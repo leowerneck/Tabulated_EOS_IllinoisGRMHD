@@ -33,7 +33,7 @@ static CCTK_REAL pressure_rho0_u(eos_struct eos, CCTK_REAL rho0, CCTK_REAL u);
 static CCTK_REAL pressure_rho0_w(eos_struct eos, CCTK_REAL rho0, CCTK_REAL w);
 
 // Inlined function used by this file
-static inline void compute_P_cold__eps_cold(eos_struct eos,CCTK_REAL rho_in, CCTK_REAL &P_cold,CCTK_REAL &eps_cold);
+void compute_P_cold__eps_cold(eos_struct eos,CCTK_REAL rho_in, CCTK_REAL &P_cold,CCTK_REAL &eps_cold);
 
 
 /**********************************************************************
