@@ -13,5 +13,6 @@ SRCS =  InitSymBound.C MoL_registration.C \
     symmetry__set_gzs_staggered_gfs.C \
     \
     outer_boundaries.C \
-    EOS_get_key.cc
+    EOS_get_key.cc \
+    EOS_Hybrid.cc
 
