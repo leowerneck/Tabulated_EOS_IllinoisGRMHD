@@ -44,7 +44,6 @@
 #include "cctk_Parameters.h"
 #include "IllinoisGRMHD_headers.h" /* Generic #define's and function prototypes */
 #include "driver_evaluate_MHD_rhs.h" /* Function prototypes for this file only */
-#include "IllinoisGRMHD_EoS_lowlevel_functs.C"
 #include "inlined_functions.C"
 
 
