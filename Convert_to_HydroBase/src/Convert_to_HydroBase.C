@@ -22,8 +22,8 @@ void Convert_to_HydroBase(CCTK_ARGUMENTS) {
    * We will need to set up our EOS in
    * order to be able to compute eps below
    */
-  eos_struct eos;
-  initialize_EOS_struct_from_input(eos);
+  igm_eos_parameters eos;
+  initialize_igm_eos_parameters_from_input(eos);
 
 #pragma omp parallel for
   for(int k=0;k<cctk_lsh[2];k++)
