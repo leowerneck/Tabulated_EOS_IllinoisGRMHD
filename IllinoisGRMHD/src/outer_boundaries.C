@@ -17,7 +17,6 @@
 #include "cctk_Parameters.h"
 
 #include "IllinoisGRMHD_headers.h"
-#include "IllinoisGRMHD_EoS_lowlevel_functs.C"
 #include "inlined_functions.C"
 
 #define IDX(i,j,k) CCTK_GFINDEX3D(cctkGH,(i),(j),(k))
