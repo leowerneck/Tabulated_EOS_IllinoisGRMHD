@@ -60,21 +60,21 @@ extern "C" void ID_TabEOS_HydroQuantities__initial_temperature( const CCTK_INT  
 }
 
 // Now recompute all HydroQuantities, to ensure consistent initial data
-extern "C" void ID_TabEOS_HydroQuantities__recompute_HydroBase_quantities( const CCTK_INT npoints,
-                                                                           CCTK_REAL *restrict rho,
-                                                                           CCTK_REAL *restrict Y_e,
-                                                                           CCTK_REAL *restrict temperature,
-                                                                           CCTK_REAL *restrict press,
-                                                                           CCTK_REAL *restrict eps,
-                                                                           CCTK_REAL *restrict entropy,
-                                                                           CCTK_REAL *restrict vel ) {
-
+extern "C" void ID_TabEOS_HydroQuantities__recompute_HydroBase_variables( const CCTK_INT npoints,
+                                                                          CCTK_REAL *restrict rho,
+                                                                          CCTK_REAL *restrict Y_e,
+                                                                          CCTK_REAL *restrict temperature,
+                                                                          CCTK_REAL *restrict press,
+                                                                          CCTK_REAL *restrict eps,
+                                                                          CCTK_REAL *restrict entropy,
+                                                                          CCTK_REAL *restrict vel ) {
+  
   DECLARE_CCTK_PARAMETERS;
 
   // Prepare for EOS function calls
   const CCTK_INT  havetemp     = 1;
   const CCTK_INT  eoskey       = EOS_Omni_GetHandle("nuc_eos");
-  const CCTK_REAL rf_precision = id_rf_precision;
+  const CCTK_REAL rf_precision = 1e-10; // This is a dummy variable
 
   // Check whether or not we want to initialize the entropy in this thorn
   bool initialize_entropy;
@@ -194,10 +194,10 @@ extern "C" void ID_TabEOS_HydroQuantities(CCTK_ARGUMENTS) {
   if( CCTK_EQUALS( initial_Y_e        ,"ID_TabEOS_HydroQuantities") ||
       CCTK_EQUALS( initial_temperature,"ID_TabEOS_HydroQuantities") ||
       CCTK_EQUALS( initial_entropy    ,"ID_TabEOS_HydroQuantities") ) {
-    ID_TabEOS_HydroQuantities__recompute_HydroBase_Quantities( npoints,
-                                                                    rho,Y_e,temperature,
-                                                                    press,eps,entropy,
-                                                                    vel );
+    ID_TabEOS_HydroQuantities__recompute_HydroBase_variables( npoints,
+                                                              rho,Y_e,temperature,
+                                                              press,eps,entropy,
+                                                              vel );
   }
 
   CCTK_VInfo(CCTK_THORNSTRING,"All done!");
