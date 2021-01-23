@@ -1,5 +1,14 @@
-#ifndef ILLINOISGRMHD_EOS_FUNCTS_C_
-#define ILLINOISGRMHD_EOS_FUNCTS_C_
+// Thorn      : IllinoisGRMHD
+// File       : EOS_Hybrid.cc
+// Author(s)  : Leo Werneck (wernecklr@gmail.com)
+// Description: In this file we provide piecewise polytropic-based
+//              hybrid EOS functions.
+
+#include "cctk.h"
+#include "cctk_Parameters.h"
+
+#include "IllinoisGRMHD_headers.h"
+
 /* Function    : setup_K_ppoly_tab__and__eps_integ_consts()
  * Authors     : Leo Werneck
  * Description : For a given set of EOS inputs, determine
@@ -30,7 +39,7 @@
  *                                 used to compute eps_cold for
  *                                 a piecewise polytropic EOS.
  */
-static void setup_K_ppoly_tab__and__eps_integ_consts(eos_struct &eos){
+void setup_K_ppoly_tab__and__eps_integ_consts(eos_struct &eos) {
 
   /* When neos = 1, we will only need the value K_ppoly_tab[0] and eps_integ_const[0].
    * Since our only polytropic EOS is given by
@@ -66,7 +75,7 @@ static void setup_K_ppoly_tab__and__eps_integ_consts(eos_struct &eos){
    * | K_{j} = K_{j-1} * rho^(Gamma_{j-1} - Gamma_{j}) |
    *  -------------------------------------------------
    */
-  for(int j=1; j<eos.neos; j++){
+  for(int j=1; j<eos.neos; j++) {
     // Set a useful auxiliary variable to keep things more compact:
     // First, (Gamma_{j-1} - Gamma_{j}):
     CCTK_REAL Gamma_diff = eos.Gamma_ppoly_tab[j-1] - eos.Gamma_ppoly_tab[j];
@@ -96,7 +105,7 @@ static void setup_K_ppoly_tab__and__eps_integ_consts(eos_struct &eos){
    * |       - ( K_{j+0}*rho_{j-1}^(Gamma_{j+0}-1) )/(Gamma_{j+0}-1) |
    *  ---------------------------------------------------------------
    */
-  for(int j=1; j<eos.neos; j++){
+  for(int j=1; j<eos.neos; j++) {
     // Set a few useful auxiliary variables to keep things more compact:
     // First, (Gamma_{j-1}-1):
     CCTK_REAL Gammajm1m1 = eos.Gamma_ppoly_tab[j-1] - 1.0;
@@ -139,27 +148,27 @@ static void setup_K_ppoly_tab__and__eps_integ_consts(eos_struct &eos){
  *
  * Outputs     : eos             - fully initialized EOS struct
  */
-static void initialize_EOS_struct_from_input(eos_struct &eos){
-    /* We start by setting up the eos_struct
-     * with the inputs given by the user at
-     * the start of the simulation. Keep in
-     * mind that these parameters are found
-     * in the "cctk_parameters.h" header file.
-     *        ^^^^^^^FIXME^^^^^^^
-     */
+void initialize_EOS_struct_from_input(eos_struct &eos) {
+  /* We start by setting up the eos_struct
+   * with the inputs given by the user at
+   * the start of the simulation. Keep in
+   * mind that these parameters are found
+   * in the "cctk_parameters.h" header file.
+   *        ^^^^^^^FIXME^^^^^^^
+   */
 
-    // Initialize: neos, {rho_{j}}, {K_{0}}, and {Gamma_{j}}
+  // Initialize: neos, {rho_{j}}, {K_{0}}, and {Gamma_{j}}
 #ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
-    DECLARE_CCTK_PARAMETERS;
+  DECLARE_CCTK_PARAMETERS;
 #endif
 
-    eos.neos = neos;
-    eos.K_ppoly_tab[0] = K_ppoly_tab0;
-    for(int j=0; j<=neos-2; j++) eos.rho_ppoly_tab[j]   = rho_ppoly_tab_in[j];
-    for(int j=0; j<=neos-1; j++) eos.Gamma_ppoly_tab[j] = Gamma_ppoly_tab_in[j];
+  eos.neos = neos;
+  eos.K_ppoly_tab[0] = K_ppoly_tab0;
+  for(int j=0; j<=neos-2; j++) eos.rho_ppoly_tab[j]   = rho_ppoly_tab_in[j];
+  for(int j=0; j<=neos-1; j++) eos.Gamma_ppoly_tab[j] = Gamma_ppoly_tab_in[j];
 
-    // Initialize {K_{j}}, j>=1, and {eps_integ_const_{j}}
-    setup_K_ppoly_tab__and__eps_integ_consts(eos);
+  // Initialize {K_{j}}, j>=1, and {eps_integ_const_{j}}
+  setup_K_ppoly_tab__and__eps_integ_consts(eos);
 }
 
 
@@ -180,29 +189,29 @@ static void initialize_EOS_struct_from_input(eos_struct &eos){
  * Outputs     : index         - the appropriate index for the K_ppoly_tab
  *                               and Gamma_ppoly_tab array
  */
-static inline int find_polytropic_K_and_Gamma_index(eos_struct eos, CCTK_REAL rho_in) {
+int find_polytropic_K_and_Gamma_index(eos_struct eos, CCTK_REAL rho_in) {
 
-   /* We want to find the appropriate polytropic EOS for the
-    * input value rho_in. Remember that:
-    *
-    * if rho < rho_{0}:                P_{0} , index: 0
-    * if rho >= rho_{0} but < rho_{1}: P_{1} , index: 1
-    * if rho >= rho_{1} but < rho_{2}: P_{2} , index: 2
-    *                      ...
-    * if rho >= rho_{j-1} but < rho_{j}: P_{j} , index: j
-    *
-    * Then, a simple way of determining the index is through
-    * the formula:
-    *  ---------------------------------------------------------------------------
-    * | index = (rho >= rho_{0}) + (rho >= rho_{1}) + ... + (rho >= rho_{neos-2}) |
-    *  ---------------------------------------------------------------------------
-    */
-    if(eos.neos == 1) return 0;
+  /* We want to find the appropriate polytropic EOS for the
+   * input value rho_in. Remember that:
+   *
+   * if rho < rho_{0}:                P_{0} , index: 0
+   * if rho >= rho_{0} but < rho_{1}: P_{1} , index: 1
+   * if rho >= rho_{1} but < rho_{2}: P_{2} , index: 2
+   *                      ...
+   * if rho >= rho_{j-1} but < rho_{j}: P_{j} , index: j
+   *
+   * Then, a simple way of determining the index is through
+   * the formula:
+   *  ---------------------------------------------------------------------------
+   * | index = (rho >= rho_{0}) + (rho >= rho_{1}) + ... + (rho >= rho_{neos-2}) |
+   *  ---------------------------------------------------------------------------
+   */
+  if(eos.neos == 1) return 0;
 
-    int polytropic_index = 0;
-    for(int j=0; j<=eos.neos-2; j++) polytropic_index += (rho_in >= eos.rho_ppoly_tab[j]);
+  int polytropic_index = 0;
+  for(int j=0; j<=eos.neos-2; j++) polytropic_index += (rho_in >= eos.rho_ppoly_tab[j]);
 
-    return polytropic_index;
+  return polytropic_index;
 }
 
 /* Function    : find_polytropic_K_and_Gamma_index_from_P()
@@ -223,22 +232,22 @@ static inline int find_polytropic_K_and_Gamma_index(eos_struct eos, CCTK_REAL rh
  * Outputs     : index             - the appropriate index for the K_ppoly_tab
  *                                   and Gamma_ppoly_tab array
  */
-static inline int find_polytropic_K_and_Gamma_index_from_P(const eos_struct eos, const CCTK_REAL P_in) {
+int find_polytropic_K_and_Gamma_index_from_P(const eos_struct eos, const CCTK_REAL P_in) {
 
-    if(eos.neos == 1) return 0;
+  if(eos.neos == 1) return 0;
 
-    int polytropic_index = 0;
-    for(int j=0; j<=eos.neos-2; j++) {
-      // This function is just slightly more involved than the previous function.
-      // Instead of comparing rho_in against the values of rho that separate
-      // one polytropic index from the next, we compute P(rho) at the separation
-      // values and compare P_in against them. This is guaranteed to work because
-      // P(rho) increases monotonically with rho.
-      const CCTK_REAL P_local = eos.K_ppoly_tab[j] * pow( eos.rho_ppoly_tab[j], eos.Gamma_ppoly_tab[j] );
-      polytropic_index += (P_in >= P_local);
-    }
+  int polytropic_index = 0;
+  for(int j=0; j<=eos.neos-2; j++) {
+    // This function is just slightly more involved than the previous function.
+    // Instead of comparing rho_in against the values of rho that separate
+    // one polytropic index from the next, we compute P(rho) at the separation
+    // values and compare P_in against them. This is guaranteed to work because
+    // P(rho) increases monotonically with rho.
+    const CCTK_REAL P_local = eos.K_ppoly_tab[j] * pow( eos.rho_ppoly_tab[j], eos.Gamma_ppoly_tab[j] );
+    polytropic_index += (P_in >= P_local);
+  }
 
-    return polytropic_index;
+  return polytropic_index;
 }
 
 /* Function    : compute_P_cold__eps_cold()
@@ -270,8 +279,8 @@ static inline int find_polytropic_K_and_Gamma_index_from_P(const eos_struct eos,
  *             SPEOS: Single-Polytrope Equation of State
  *             PPEOS: Piecewise Polytrope Equation of State
  */
-static inline void compute_P_cold__eps_cold(eos_struct eos, CCTK_REAL rho_in,
-                                            CCTK_REAL &P_cold,CCTK_REAL &eps_cold) {
+void compute_P_cold__eps_cold(eos_struct eos, CCTK_REAL rho_in,
+                              CCTK_REAL &P_cold,CCTK_REAL &eps_cold) {
   // This code handles equations of state of the form defined
   // in Eqs 13-16 in http://arxiv.org/pdf/0802.0200.pdf
   if(rho_in==0) {
@@ -370,9 +379,9 @@ static inline void compute_P_cold__eps_cold(eos_struct eos, CCTK_REAL rho_in,
  *             SPEOS: Single-Polytrope Equation of State
  *             PPEOS: Piecewise Polytrope Equation of State
  */
-static inline void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(CCTK_REAL *U, eos_struct &eos, CCTK_REAL Gamma_th,
-                                                                         CCTK_REAL &P_cold,CCTK_REAL &eps_cold,CCTK_REAL &dPcold_drho,CCTK_REAL &eps_th,CCTK_REAL &h,
-                                                                         CCTK_REAL &Gamma_cold) {
+void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(CCTK_REAL *U, eos_struct &eos, CCTK_REAL Gamma_th,
+                                                                  CCTK_REAL &P_cold,CCTK_REAL &eps_cold,CCTK_REAL &dPcold_drho,CCTK_REAL &eps_th,CCTK_REAL &h,
+                                                                  CCTK_REAL &Gamma_cold) {
   // This code handles equations of state of the form defined
   // in Eqs 13-16 in http://arxiv.org/pdf/0802.0200.pdf
 
@@ -420,19 +429,20 @@ static inline void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(
  *
  * Outputs     : CCTK_VInfo string with the EOS table used by IllinoisGRMHD
  */
-static inline void print_EOS_table( eos_struct eos ) {
+void print_EOS_Hybrid( eos_struct eos ) {
 
   /* Start by printint a header t the table */
 #ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
-  CCTK_VInfo(CCTK_THORNSTRING,"\n"
+  CCTK_VInfo(CCTK_THORNSTRING,
+             "\n.--------------------------------------------.\n");
 #else
-  printf("\n"
+  printf("\n.--------------------------------------------.\n");
 #endif
-".--------------------------------------------.\n"
-"|                 EOS Table                  |\n"
-".--------------------------------------------.");
-  printf("|              rho_ppoly_tab[j]              |\n"
-".--------------------------------------------.\n");
+         
+  printf("|                 EOS Table                  |\n"
+         ".--------------------------------------------."
+         "|              rho_ppoly_tab[j]              |\n"
+         ".--------------------------------------------.\n");
 
   /* Adjust the maximum index of rhob to
    * allow for single polytropes as well
@@ -473,5 +483,3 @@ static inline void print_EOS_table( eos_struct eos ) {
     }
   }
 }
-
-#endif // ILLINOISGRMHD_EOS_FUNCTS_C_
