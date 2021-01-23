@@ -1,7 +1,7 @@
 
 
 static inline void find_cp_cm(CCTK_REAL &cplus,CCTK_REAL &cminus,CCTK_REAL v02,CCTK_REAL u0,
-                       CCTK_REAL vi,CCTK_REAL ONE_OVER_LAPSE_SQUARED,CCTK_REAL shifti,CCTK_REAL psim4,CCTK_REAL gupii) {
+                              CCTK_REAL vi,CCTK_REAL ONE_OVER_LAPSE_SQUARED,CCTK_REAL shifti,CCTK_REAL psim4,CCTK_REAL gupii) {
   // This computes phase speeds in the direction given by flux_dirn.
   //  Note that we replace the full dispersion relation with a simpler
   //     one, which overestimates the max. speeds by a factor of ~2.
@@ -96,7 +96,7 @@ static inline void compute_v02(CCTK_REAL dPcold_drho,CCTK_REAL Gamma_th,CCTK_REA
 inline int font_fix__rhob_loop( int maxits, CCTK_REAL tol,
                                 CCTK_REAL W, CCTK_REAL Sf2, CCTK_REAL Psim6, CCTK_REAL sdots, CCTK_REAL BbardotS2, CCTK_REAL B2bar,
                                 CCTK_REAL *CONSERVS,
-                                eos_struct eos, CCTK_REAL rhob_in, CCTK_REAL &rhob_out ) {
+                                igm_eos_parameters eos, CCTK_REAL rhob_in, CCTK_REAL &rhob_out ) {
 
   /* Declare basic variables */
   bool fontcheck=true;
@@ -308,7 +308,7 @@ static inline void enforce_pressure_floor_ceiling(output_stats &stats,CCTK_REAL 
 
 
 static inline void compute_smallba_b2_and_u_i_over_u0_psi4(CCTK_REAL *METRIC,CCTK_REAL *METRIC_LAP_PSI4,CCTK_REAL *U,CCTK_REAL u0L,CCTK_REAL ONE_OVER_LAPSE_SQRT_4PI,
-                                                    CCTK_REAL &u_x_over_u0_psi4,CCTK_REAL &u_y_over_u0_psi4,CCTK_REAL &u_z_over_u0_psi4,CCTK_REAL *smallb) {
+                                                           CCTK_REAL &u_x_over_u0_psi4,CCTK_REAL &u_y_over_u0_psi4,CCTK_REAL &u_z_over_u0_psi4,CCTK_REAL *smallb) {
 
   // NOW COMPUTE b^{\mu} and b^2 = b^{\mu} b^{\nu} g_{\mu \nu}
   CCTK_REAL ONE_OVER_U0 = 1.0/u0L;

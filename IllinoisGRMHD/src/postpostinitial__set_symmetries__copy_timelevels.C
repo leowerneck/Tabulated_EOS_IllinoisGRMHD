@@ -26,8 +26,8 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
    * source file for the documentation on the
    * function.
    */
-  eos_struct eos;
-  initialize_EOS_struct_from_input(eos);
+  igm_eos_parameters eos;
+  initialize_igm_eos_parameters_from_input(eos);
 
   /* For diagnostic and user convenience purposes, we print
    * out the EOS parameters (rho_ppoly_tab, K_ppoly_tab,

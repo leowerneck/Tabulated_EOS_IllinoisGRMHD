@@ -23,11 +23,11 @@ static inline CCTK_REAL slope_limit(CCTK_REAL dU,CCTK_REAL dUp1);
 static inline void steepen_rho(CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES],CCTK_REAL slope_lim_dU[MAXNUMVARS][MAXNUMINDICES],
                                CCTK_REAL Gamma_th,CCTK_REAL P_cold,CCTK_REAL Gamma_cold,
                                CCTK_REAL *rho_br_ppm,CCTK_REAL *rho_bl_ppm);
-static inline void compute_P_cold__Gamma_cold(CCTK_REAL rho_b,eos_struct &eos,   CCTK_REAL &P_cold,CCTK_REAL &Gamma_cold);
+static inline void compute_P_cold__Gamma_cold(CCTK_REAL rho_b,igm_eos_parameters &eos,   CCTK_REAL &P_cold,CCTK_REAL &Gamma_cold);
 static inline void monotonize(CCTK_REAL U,CCTK_REAL &Ur,CCTK_REAL &Ul);
 
 
-static void reconstruct_set_of_prims_PPM(const cGH *cctkGH,const int *cctk_lsh,const int flux_dirn,const int num_prims_to_reconstruct,const int *which_prims_to_reconstruct,eos_struct &eos,
+static void reconstruct_set_of_prims_PPM(const cGH *cctkGH,const int *cctk_lsh,const int flux_dirn,const int num_prims_to_reconstruct,const int *which_prims_to_reconstruct,igm_eos_parameters &eos,
                                          gf_and_gz_struct *in_prims,gf_and_gz_struct *out_prims_r,gf_and_gz_struct *out_prims_l,CCTK_REAL *ftilde_gf, CCTK_REAL *temporary) {
 
   DECLARE_CCTK_PARAMETERS;
@@ -306,7 +306,7 @@ static inline void monotonize(CCTK_REAL U,CCTK_REAL &Ur,CCTK_REAL &Ul) {
 }
 
 
-static inline void compute_P_cold__Gamma_cold(CCTK_REAL rho_b,eos_struct &eos,   CCTK_REAL &P_cold,CCTK_REAL &Gamma_cold) {
+static inline void compute_P_cold__Gamma_cold(CCTK_REAL rho_b,igm_eos_parameters &eos,   CCTK_REAL &P_cold,CCTK_REAL &Gamma_cold) {
   // This code handles equations of state of the form defined
   // in Eqs 13-16 in http://arxiv.org/pdf/0802.0200.pdf
 

@@ -1,7 +1,7 @@
 void eigenvalues_3by3_real_sym_matrix(CCTK_REAL & lam1, CCTK_REAL & lam2, CCTK_REAL & lam3,
                                       CCTK_REAL M11, CCTK_REAL M12, CCTK_REAL M13, CCTK_REAL M22, CCTK_REAL M23, CCTK_REAL M33);
 
-static inline int apply_tau_floor(const int index,const CCTK_REAL tau_atm,const CCTK_REAL rho_b_atm,const CCTK_REAL Psi6threshold,CCTK_REAL *PRIMS,CCTK_REAL *METRIC,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4,output_stats &stats,eos_struct &eos,  CCTK_REAL *CONSERVS) {
+static inline int apply_tau_floor(const int index,const CCTK_REAL tau_atm,const CCTK_REAL rho_b_atm,const CCTK_REAL Psi6threshold,CCTK_REAL *PRIMS,CCTK_REAL *METRIC,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4,output_stats &stats,igm_eos_parameters &eos,  CCTK_REAL *CONSERVS) {
 
 
   //First apply the rho_star floor:
@@ -161,7 +161,7 @@ static inline int apply_tau_floor(const int index,const CCTK_REAL tau_atm,const 
 
 
 
-void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int already_computed_physical_metric_and_inverse,CCTK_REAL *U,struct output_stats &stats,eos_struct &eos,
+void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int already_computed_physical_metric_and_inverse,CCTK_REAL *U,struct output_stats &stats,igm_eos_parameters &eos,
                                                                        CCTK_REAL *METRIC,CCTK_REAL g4dn[4][4],CCTK_REAL g4up[4][4], CCTK_REAL *TUPMUNU,CCTK_REAL *TDNMUNU,CCTK_REAL *CONSERVS) {
 #ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
   DECLARE_CCTK_PARAMETERS;

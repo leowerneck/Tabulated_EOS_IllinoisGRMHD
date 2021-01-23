@@ -2,7 +2,7 @@ inline int harm_primitives_gammalaw_lowlevel(const int index,const int i,const i
                                              CCTK_REAL *METRIC,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4,
                                              CCTK_REAL *CONSERVS,CCTK_REAL *PRIMS,
                                              CCTK_REAL g4dn[NDIM][NDIM],CCTK_REAL g4up[NDIM][NDIM],
-                                             struct output_stats &stats, eos_struct &eos) {
+                                             struct output_stats &stats, igm_eos_parameters &eos) {
 #ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
   DECLARE_CCTK_PARAMETERS;
 #endif

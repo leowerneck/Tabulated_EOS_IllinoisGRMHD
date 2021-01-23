@@ -55,13 +55,6 @@ struct gf_and_gz_struct {
   int gz_lo[4],gz_hi[4];
 };
 
-#define MAX_EOS_PARAMS 10
-struct eos_struct {
-  int neos;
-  CCTK_REAL rho_ppoly_tab[MAX_EOS_PARAMS-1];
-  CCTK_REAL eps_integ_const[MAX_EOS_PARAMS],K_ppoly_tab[MAX_EOS_PARAMS],Gamma_ppoly_tab[MAX_EOS_PARAMS];
-};
-
 struct output_stats {
   int font_fixed,vel_limited,failure_checker;
   long n_iter;
@@ -74,8 +67,10 @@ const int kronecker_delta[4][3] = { { 0,0,0 },
                                     { 0,1,0 },
                                     { 0,0,1 } };
 
+#include "EOS_headers.hh"
+
 /* PUBLIC FUNCTIONS, USED OUTSIDE IllinoisGRMHD AS WELL */
-void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int already_computed_physical_metric_and_inverse,CCTK_REAL *U,struct output_stats &stats,eos_struct &eos,
+void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int already_computed_physical_metric_and_inverse,CCTK_REAL *U,struct output_stats &stats,igm_eos_parameters &eos,
                                                                        CCTK_REAL *METRIC,CCTK_REAL g4dn[4][4],CCTK_REAL g4up[4][4], CCTK_REAL *TUPMUNU,CCTK_REAL *TDNMUNU,CCTK_REAL *CONSERVS);
 
 void IllinoisGRMHD_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij
@@ -87,8 +82,6 @@ void IllinoisGRMHD_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij
 
 void IllinoisGRMHD_set_symmetry_gzs_staggered(const cGH *cctkGH, const int *cctk_lsh,CCTK_REAL *X,CCTK_REAL *Y,CCTK_REAL *Z,  CCTK_REAL *gridfunc,
                                               CCTK_REAL *gridfunc_syms,int stagger_x,int stagger_y,int stagger_z);
-
-#include "EOS_headers.hh"
 
 #endif // ILLINOISGRMHD_HEADERS_H
 

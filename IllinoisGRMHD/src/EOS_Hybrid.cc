@@ -39,7 +39,7 @@
  *                                 used to compute eps_cold for
  *                                 a piecewise polytropic EOS.
  */
-void setup_K_ppoly_tab__and__eps_integ_consts(eos_struct &eos) {
+void setup_K_ppoly_tab__and__eps_integ_consts(igm_eos_parameters &eos) {
 
   /* When neos = 1, we will only need the value K_ppoly_tab[0] and eps_integ_const[0].
    * Since our only polytropic EOS is given by
@@ -125,7 +125,7 @@ void setup_K_ppoly_tab__and__eps_integ_consts(eos_struct &eos) {
 }
 
 
-/* Function    : initialize_EOS_struct_from_input()
+/* Function    : initialize_igm_eos_parameters_from_input()
  * Authors     : Leo Werneck
  * Description : Initialize the eos struct from user
  *               input
@@ -148,8 +148,8 @@ void setup_K_ppoly_tab__and__eps_integ_consts(eos_struct &eos) {
  *
  * Outputs     : eos             - fully initialized EOS struct
  */
-void initialize_EOS_struct_from_input(eos_struct &eos) {
-  /* We start by setting up the eos_struct
+void initialize_igm_eos_parameters_from_input(igm_eos_parameters &eos) {
+  /* We start by setting up the igm_eos_parameters
    * with the inputs given by the user at
    * the start of the simulation. Keep in
    * mind that these parameters are found
@@ -178,7 +178,7 @@ void initialize_EOS_struct_from_input(eos_struct &eos) {
  *               appropriate values of Gamma_ppoly_tab
  *               and K_ppoly_tab by determining the appropriate
  *               index
- * Dependencies: initialize_EOS_struct_from_input()
+ * Dependencies: initialize_igm_eos_parameters_from_input()
  *             : cctk_parameters.h (FIXME)
  *
  * Inputs      : eos           - a struct containing the following
@@ -189,7 +189,7 @@ void initialize_EOS_struct_from_input(eos_struct &eos) {
  * Outputs     : index         - the appropriate index for the K_ppoly_tab
  *                               and Gamma_ppoly_tab array
  */
-int find_polytropic_K_and_Gamma_index(eos_struct eos, CCTK_REAL rho_in) {
+int find_polytropic_K_and_Gamma_index(igm_eos_parameters eos, CCTK_REAL rho_in) {
 
   /* We want to find the appropriate polytropic EOS for the
    * input value rho_in. Remember that:
@@ -220,7 +220,7 @@ int find_polytropic_K_and_Gamma_index(eos_struct eos, CCTK_REAL rho_in) {
  *               appropriate values of Gamma_ppoly_tab
  *               and K_ppoly_tab by determining the appropriate
  *               index
- * Dependencies: initialize_EOS_struct_from_input()
+ * Dependencies: initialize_igm_eos_parameters_from_input()
  *             : cctk_parameters.h (FIXME)
  *
  * Inputs      : eos               - a struct containing the following
@@ -232,7 +232,7 @@ int find_polytropic_K_and_Gamma_index(eos_struct eos, CCTK_REAL rho_in) {
  * Outputs     : index             - the appropriate index for the K_ppoly_tab
  *                                   and Gamma_ppoly_tab array
  */
-int find_polytropic_K_and_Gamma_index_from_P(const eos_struct eos, const CCTK_REAL P_in) {
+int find_polytropic_K_and_Gamma_index_from_P(const igm_eos_parameters eos, const CCTK_REAL P_in) {
 
   if(eos.neos == 1) return 0;
 
@@ -253,7 +253,7 @@ int find_polytropic_K_and_Gamma_index_from_P(const eos_struct eos, const CCTK_RE
 /* Function    : compute_P_cold__eps_cold()
  * Authors     : Leo Werneck
  * Description : Computes P_cold and eps_cold.
- * Dependencies: initialize_EOS_struct_from_input()
+ * Dependencies: initialize_igm_eos_parameters_from_input()
  *             : find_polytropic_K_and_Gamma_index()
  *
  * Inputs      : P_cold           - cold pressure
@@ -279,7 +279,7 @@ int find_polytropic_K_and_Gamma_index_from_P(const eos_struct eos, const CCTK_RE
  *             SPEOS: Single-Polytrope Equation of State
  *             PPEOS: Piecewise Polytrope Equation of State
  */
-void compute_P_cold__eps_cold(eos_struct eos, CCTK_REAL rho_in,
+void compute_P_cold__eps_cold(igm_eos_parameters eos, CCTK_REAL rho_in,
                               CCTK_REAL &P_cold,CCTK_REAL &eps_cold) {
   // This code handles equations of state of the form defined
   // in Eqs 13-16 in http://arxiv.org/pdf/0802.0200.pdf
@@ -300,7 +300,7 @@ void compute_P_cold__eps_cold(eos_struct eos, CCTK_REAL rho_in,
    * The modifications below currently assume that the user
    * has called the recently added function
    *
-   * - initialize_EOS_struct_from_input()
+   * - initialize_igm_eos_parameters_from_input()
    *
    * *before* this function is called. We can add some feature
    * to check this automatically as well, but we'll keep that as
@@ -346,7 +346,7 @@ void compute_P_cold__eps_cold(eos_struct eos, CCTK_REAL rho_in,
  * Description : Compute basic quantities related to
  *             : the EOS, namely: P_cold, eps_cold,
  *             : dPcold/drho, eps_th, h, and Gamma_cold
- * Dependencies: initialize_EOS_struct_from_input()
+ * Dependencies: initialize_igm_eos_parameters_from_input()
  *
  * Inputs      : U               - array containing primitives {rho,P,v^{i},B^i}
  *             : P_cold          - cold pressure
@@ -379,7 +379,7 @@ void compute_P_cold__eps_cold(eos_struct eos, CCTK_REAL rho_in,
  *             SPEOS: Single-Polytrope Equation of State
  *             PPEOS: Piecewise Polytrope Equation of State
  */
-void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(CCTK_REAL *U, eos_struct &eos, CCTK_REAL Gamma_th,
+void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(CCTK_REAL *U, igm_eos_parameters &eos, CCTK_REAL Gamma_th,
                                                                   CCTK_REAL &P_cold,CCTK_REAL &eps_cold,CCTK_REAL &dPcold_drho,CCTK_REAL &eps_th,CCTK_REAL &h,
                                                                   CCTK_REAL &Gamma_cold) {
   // This code handles equations of state of the form defined
@@ -417,7 +417,7 @@ void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(CCTK_REAL *U, 
  * Authors     : Leo Werneck
  * Description : Prints out the EOS table, for diagnostic purposes
  *
- * Dependencies: initialize_EOS_struct_from_input()
+ * Dependencies: initialize_igm_eos_parameters_from_input()
  *
  * Inputs      : eos             - a struct containing the following
  *                                 relevant quantities:
@@ -429,7 +429,7 @@ void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(CCTK_REAL *U, 
  *
  * Outputs     : CCTK_VInfo string with the EOS table used by IllinoisGRMHD
  */
-void print_EOS_Hybrid( eos_struct eos ) {
+void print_EOS_Hybrid( igm_eos_parameters eos ) {
 
   /* Start by printint a header t the table */
 #ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER

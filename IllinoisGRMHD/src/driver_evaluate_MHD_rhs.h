@@ -4,12 +4,12 @@
 /* PRIVATE FUNCTIONS, Called within driver_evaluate_MHD_rhs.C ONLY */
 static void ftilde_gf_compute(const cGH *cctkGH,const int *cctk_lsh,const int flux_dirn,gf_and_gz_struct *input,CCTK_REAL *ftilde_gf);
 static void reconstruct_set_of_prims_PPM(const cGH *cctkGH,const int *cctk_lsh,const int flux_dirn,const int num_prims_to_reconstruct,const int *which_prims_to_reconstruct,
-                                         eos_struct &eosi,gf_and_gz_struct *in_prims,gf_and_gz_struct *out_prims_r,gf_and_gz_struct *out_prims_l,
+                                         igm_eos_parameters &eosi,gf_and_gz_struct *in_prims,gf_and_gz_struct *out_prims_r,gf_and_gz_struct *out_prims_l,
                                          CCTK_REAL *ftilde_gf,CCTK_REAL *temporary);
 
 static void compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu
 (const cGH *cctkGH,const int *cctk_lsh,const int *cctk_nghostzones,CCTK_REAL *dX,CCTK_REAL **metric,gf_and_gz_struct *prims,
- CCTK_REAL **TUPmunu,eos_struct &eos, CCTK_REAL Gamma_th,
+ CCTK_REAL **TUPmunu,igm_eos_parameters &eos, CCTK_REAL Gamma_th,
  CCTK_REAL *gupxy,CCTK_REAL *gupxz,CCTK_REAL *gupyz,
  CCTK_REAL *kxx,CCTK_REAL *kxy,CCTK_REAL *kxz,CCTK_REAL *kyy,CCTK_REAL *kyz,CCTK_REAL *kzz,
  CCTK_REAL *tau_rhs);
@@ -24,7 +24,7 @@ static void Lorenz_psi6phi_rhs__add_gauge_terms_to_A_i_rhs(const cGH *cctkGH,con
 
 static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const cGH *cctkGH,const int *cctk_lsh,const int *cctk_nghostzones,CCTK_REAL *dX,
                                                       CCTK_REAL **metric,gf_and_gz_struct *in_prims,CCTK_REAL **TUPmunu,
-                                                      int numvars_reconstructed,gf_and_gz_struct *out_prims_r,gf_and_gz_struct *out_prims_l,eos_struct &eos,
+                                                      int numvars_reconstructed,gf_and_gz_struct *out_prims_r,gf_and_gz_struct *out_prims_l,igm_eos_parameters &eos,
                                                       CCTK_REAL *cmax,CCTK_REAL *cmin,
                                                       CCTK_REAL *rho_star_flux,CCTK_REAL *tau_flux,CCTK_REAL *st_x_flux,CCTK_REAL *st_y_flux,CCTK_REAL *st_z_flux,
                                                       CCTK_REAL *rho_star_rhs,CCTK_REAL *tau_rhs,CCTK_REAL *st_x_rhs,CCTK_REAL *st_y_rhs,CCTK_REAL *st_z_rhs);

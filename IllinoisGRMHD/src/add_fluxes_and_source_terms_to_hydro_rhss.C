@@ -11,7 +11,7 @@
 #define A1  -0.0625
 #define COMPUTE_FCVAL(METRICm2,METRICm1,METRIC,METRICp1) (AM2*(METRICm2) + AM1*(METRICm1) + A0*(METRIC) + A1*(METRICp1))
 
-static inline void mhdflux(int i,int j,int k,const int flux_dirn,CCTK_REAL *Ul,CCTK_REAL *Ur,  CCTK_REAL *FACEVAL,CCTK_REAL *FACEVAL_LAPSE_PSI4,eos_struct &eos, CCTK_REAL Gamma_th,
+static inline void mhdflux(int i,int j,int k,const int flux_dirn,CCTK_REAL *Ul,CCTK_REAL *Ur,  CCTK_REAL *FACEVAL,CCTK_REAL *FACEVAL_LAPSE_PSI4,igm_eos_parameters &eos, CCTK_REAL Gamma_th,
                            CCTK_REAL &cmax,CCTK_REAL &cmin,
                            CCTK_REAL &rho_star_flux,CCTK_REAL &tau_flux,CCTK_REAL &st_x_flux,CCTK_REAL &st_y_flux,CCTK_REAL &st_z_flux);
 
@@ -33,7 +33,7 @@ static inline void mhdflux(int i,int j,int k,const int flux_dirn,CCTK_REAL *Ul,C
 
 static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const cGH *cctkGH,const int *cctk_lsh,const int *cctk_nghostzones,CCTK_REAL *dX,
                                                       CCTK_REAL **metric,gf_and_gz_struct *in_prims,CCTK_REAL **TUPmunu,
-                                                      int numvars_reconstructed,gf_and_gz_struct *out_prims_r,gf_and_gz_struct *out_prims_l,eos_struct &eos,
+                                                      int numvars_reconstructed,gf_and_gz_struct *out_prims_r,gf_and_gz_struct *out_prims_l,igm_eos_parameters &eos,
                                                       CCTK_REAL *cmax,CCTK_REAL *cmin,
                                                       CCTK_REAL *rho_star_flux,CCTK_REAL *tau_flux,CCTK_REAL *st_x_flux,CCTK_REAL *st_y_flux,CCTK_REAL *st_z_flux,
                                                       CCTK_REAL *rho_star_rhs,CCTK_REAL *tau_rhs,CCTK_REAL *st_x_rhs,CCTK_REAL *st_y_rhs,CCTK_REAL *st_z_rhs) {
