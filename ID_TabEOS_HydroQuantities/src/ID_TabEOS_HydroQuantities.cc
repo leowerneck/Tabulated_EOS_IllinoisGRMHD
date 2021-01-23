@@ -2,11 +2,11 @@
 #include <cctk_Arguments.h>
 #include <cctk_Parameters.h>
 
-#include "ID_TabEOS_HydroBase_Quantities.hh"
+#include "ID_TabEOS_HydroQuantities.hh"
 
-extern "C" void ID_TabEOS_HydroBase_Quantities__initial_Y_e( const CCTK_INT  npoints,
-                                                             const CCTK_REAL *restrict rho,
-                                                             CCTK_REAL *restrict Y_e ) {
+extern "C" void ID_TabEOS_HydroQuantities__initial_Y_e( const CCTK_INT  npoints,
+                                                        const CCTK_REAL *restrict rho,
+                                                        CCTK_REAL *restrict Y_e ) {
 
   DECLARE_CCTK_PARAMETERS;
 
@@ -50,8 +50,8 @@ extern "C" void ID_TabEOS_HydroBase_Quantities__initial_Y_e( const CCTK_INT  npo
 }
 
 // Set initial temperature to be constant everywhere (TODO: add other options)
-extern "C" void ID_TabEOS_HydroBase_Quantities__initial_temperature( const CCTK_INT  npoints,
-                                                                     CCTK_REAL *restrict temperature ) {
+extern "C" void ID_TabEOS_HydroQuantities__initial_temperature( const CCTK_INT  npoints,
+                                                                CCTK_REAL *restrict temperature ) {
 
   DECLARE_CCTK_PARAMETERS;
 
@@ -60,14 +60,14 @@ extern "C" void ID_TabEOS_HydroBase_Quantities__initial_temperature( const CCTK_
 }
 
 // Now recompute all HydroQuantities, to ensure consistent initial data
-extern "C" void ID_TabEOS_HydroBase_Quantities__recompute_HydroBase_quantities( const CCTK_INT npoints,
-                                                                                CCTK_REAL *restrict rho,
-                                                                                CCTK_REAL *restrict Y_e,
-                                                                                CCTK_REAL *restrict temperature,
-                                                                                CCTK_REAL *restrict press,
-                                                                                CCTK_REAL *restrict eps,
-                                                                                CCTK_REAL *restrict entropy,
-                                                                                CCTK_REAL *restrict vel ) {
+extern "C" void ID_TabEOS_HydroQuantities__recompute_HydroBase_quantities( const CCTK_INT npoints,
+                                                                           CCTK_REAL *restrict rho,
+                                                                           CCTK_REAL *restrict Y_e,
+                                                                           CCTK_REAL *restrict temperature,
+                                                                           CCTK_REAL *restrict press,
+                                                                           CCTK_REAL *restrict eps,
+                                                                           CCTK_REAL *restrict entropy,
+                                                                           CCTK_REAL *restrict vel ) {
 
   DECLARE_CCTK_PARAMETERS;
 
@@ -78,7 +78,7 @@ extern "C" void ID_TabEOS_HydroBase_Quantities__recompute_HydroBase_quantities( 
 
   // Check whether or not we want to initialize the entropy in this thorn
   bool initialize_entropy;
-  if( CCTK_EQUALS( initial_entropy,"ID_TabEOS_HydroBase_Quantities" ) ) {
+  if( CCTK_EQUALS( initial_entropy,"ID_TabEOS_HydroQuantities" ) ) {
     CCTK_VInfo(CCTK_THORNSTRING,"Entropy initialization is ENABLED!");
     initialize_entropy = true;
   }
@@ -159,7 +159,7 @@ extern "C" void ID_TabEOS_HydroBase_Quantities__recompute_HydroBase_quantities( 
   
 }
 
-extern "C" void ID_TabEOS_HydroBase_Quantities(CCTK_ARGUMENTS) {
+extern "C" void ID_TabEOS_HydroQuantities(CCTK_ARGUMENTS) {
   
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
@@ -169,10 +169,10 @@ extern "C" void ID_TabEOS_HydroBase_Quantities(CCTK_ARGUMENTS) {
 
   // This function sets Y_e from a file containing Y_e(rho),
   // typically in neutrino-free beta-equilibrium.
-  if( CCTK_EQUALS( initial_Y_e,"ID_TabEOS_HydroBase_Quantities") ) {
+  if( CCTK_EQUALS( initial_Y_e,"ID_TabEOS_HydroQuantities") ) {
     CCTK_VInfo(CCTK_THORNSTRING,"Y_e initialization is ENABLED!");
     // Initialize Y_e
-    ID_TabEOS_HydroBase_Quantities__initial_Y_e( npoints, rho, Y_e );
+    ID_TabEOS_HydroQuantities__initial_Y_e( npoints, rho, Y_e );
   }
   else {
     CCTK_VInfo(CCTK_THORNSTRING,"Y_e initialization is DISABLED!");
@@ -181,20 +181,20 @@ extern "C" void ID_TabEOS_HydroBase_Quantities(CCTK_ARGUMENTS) {
   // This function sets the temperature everywhere in the grid to
   // a constant value. We can generalize it later to allow for
   // other types of temperature initial data.
-  if( CCTK_EQUALS( initial_temperature,"ID_TabEOS_HydroBase_Quantities") ) {
+  if( CCTK_EQUALS( initial_temperature,"ID_TabEOS_HydroQuantities") ) {
     CCTK_VInfo(CCTK_THORNSTRING,"temperature initialization is ENABLED!");
     // Initialize the temperature
-    ID_TabEOS_HydroBase_Quantities__initial_temperature( npoints, temperature );
+    ID_TabEOS_HydroQuantities__initial_temperature( npoints, temperature );
   }
   else {
     CCTK_VInfo(CCTK_THORNSTRING,"temperature initialization is DISABLED!");
   }
 
   // Now recompute the HydroBase quantities, to ensure consistency
-  if( CCTK_EQUALS( initial_Y_e        ,"ID_TabEOS_HydroBase_Quantities") ||
-      CCTK_EQUALS( initial_temperature,"ID_TabEOS_HydroBase_Quantities") ||
-      CCTK_EQUALS( initial_entropy    ,"ID_TabEOS_HydroBase_Quantities") ) {
-    ID_TabEOS_HydroBase_Quantities__recompute_HydroBase_Quantities( npoints,
+  if( CCTK_EQUALS( initial_Y_e        ,"ID_TabEOS_HydroQuantities") ||
+      CCTK_EQUALS( initial_temperature,"ID_TabEOS_HydroQuantities") ||
+      CCTK_EQUALS( initial_entropy    ,"ID_TabEOS_HydroQuantities") ) {
+    ID_TabEOS_HydroQuantities__recompute_HydroBase_Quantities( npoints,
                                                                     rho,Y_e,temperature,
                                                                     press,eps,entropy,
                                                                     vel );
