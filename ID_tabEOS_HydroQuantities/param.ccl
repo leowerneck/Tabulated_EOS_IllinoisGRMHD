@@ -1,22 +1,24 @@
 shares: Grid
+
+#---------------- HydroBase parameters ----------------
 shares: HydroBase
 
 EXTENDS KEYWORD initial_Y_e
 {
-  "ID_tabEOS_HydroQuantities" :: "Initial electron fraction"
+  "ID_TabEOS_HydroBase_Quantities" :: "Initial electron fraction"
 }
 
 EXTENDS KEYWORD initial_temperature
 {
-  "ID_tabEOS_HydroQuantities" :: "Initial temperature"
+  "ID_TabEOS_HydroBase_Quantities" :: "Initial temperature"
 }
 
 EXTENDS KEYWORD initial_entropy
 {
-  "ID_tabEOS_HydroQuantities" :: "Initial entropy"
+  "ID_TabEOS_HydroBase_Quantities" :: "Initial entropy"
 }
 
-#["r_in","r_at_max_density","a","M"] A_b, kappa, gamma
+#----------------- Initial data files -----------------
 restricted:
 CCTK_STRING Y_e_filename "Initial data file for electron fraction"
 {
@@ -24,11 +26,34 @@ CCTK_STRING Y_e_filename "Initial data file for electron fraction"
 } ""
 
 restricted:
+CCTK_STRING temperature_filename "Initial data file for temperature"
+{
+ ".+" :: "Any nonempty string"
+} ""
+
+#----------------- Initial data type ------------------
+restricted:
+CCTK_STRING id_temperature_type "Type of initial temperature"
+{
+  "constant"  :: "Constant initial temperature"
+  "from file" :: "Read initial temperature from file (as a function of density)"
+} "constant"
+
+restricted:
+CCTK_STRING id_entropy_type "Type of initial entropy"
+{
+  "constant"   :: "Constant initial entropy"
+  "from table" :: "Set initial entropy from (rho,Ye,T) using the EOS table"
+} "from table"
+
+#------ Initial temperature (constant type only) ------
+restricted:
 CCTK_REAL id_temperature "Initial temperature (constant everywhere on the grid)"
 {
   0:* :: "Should be positive"
 } 0
 
+#----------------- Atmospheric values -----------------
 restricted:
 CCTK_REAL id_rho_atm "Atmospheric density"
 {
@@ -46,9 +71,3 @@ CCTK_REAL id_temperature_atm "Atmospheric temperature"
 {
   0:* :: "Should be positive"
 } 0
-
-restricted:
-CCTK_REAL id_rf_precision "Root-finding precision for EOS interpolators"
-{
-  0:* :: "Should be positive"
-} 1e-8

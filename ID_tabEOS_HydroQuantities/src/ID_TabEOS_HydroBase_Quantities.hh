@@ -14,9 +14,9 @@ namespace nuc_eos_private {
 }
 //----------------------------
 
-int read_1dfile__set_array(FILE *in1D,
-                           CCTK_REAL *f_of_rho_arr,
-                           const int num_header_lines=0)
+void read_1dfile__set_array(FILE *in1D,
+                            CCTK_REAL *f_of_rho_arr,
+                            const int num_header_lines=0)
 {
   char* line = NULL;
   size_t len = 0;
@@ -28,7 +28,6 @@ int read_1dfile__set_array(FILE *in1D,
     which_line++;
   }
   free(line);
-  return 0;
 }
 
 // Find interpolation index using Bisection root-finding algorithm:
