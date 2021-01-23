@@ -1,0 +1,280 @@
+# Interface definition for thorn IllinoisGRMHD
+
+implements: IllinoisGRMHD
+inherits: ADMBase, Boundary, SpaceMask, Tmunubase, HydroBase, grid
+
+includes header: IllinoisGRMHD_headers.h in IllinoisGRMHD_headers.h
+
+USES INCLUDE: Symmetry.h
+
+public:
+
+#vvvvvvvv EVOLVED VARIABLES vvvvvvvv#
+#cctk_real grmhd_conservatives type = GF TAGS='prolongation="Lag3"' Timelevels=3
+cctk_real grmhd_conservatives type = GF Timelevels=3
+{
+  rho_star,tau,mhd_st_x,mhd_st_y,mhd_st_z  # Note that st = Stilde, as mhd_st_i = \tilde{S}_i.
+} "Evolved mhd variables"
+
+# These variables are semi-staggered:
+# Ax is defined on the semi-staggered grid (i,j+1/2,k+1/2)
+# WARNING: WILL NOT WORK PROPERLY WITHOUT SEMI-STAGGERED PROLONGATION/RESTRICTION:
+cctk_real em_Ax type = GF Timelevels=3 tags='Prolongation="STAGGER011"'
+{
+  Ax
+} "x-component of the vector potential, evolved when constrained_transport_scheme==3"
+
+# Ay is defined on the semi-staggered grid (i+1/2,j,k+1/2)
+# WARNING: WILL NOT WORK PROPERLY WITHOUT SEMI-STAGGERED PROLONGATION/RESTRICTION:
+cctk_real em_Ay type = GF Timelevels=3 tags='Prolongation="STAGGER101"'
+{
+  Ay
+} "y-component of the vector potential, evolved when constrained_transport_scheme==3"
+# WARNING: WILL NOT WORK PROPERLY WITHOUT SEMI-STAGGERED PROLONGATION/RESTRICTION:
+
+# Az is defined on the semi-staggered grid (i+1/2,j+1/2,k)
+cctk_real em_Az type = GF Timelevels=3 tags='Prolongation="STAGGER110"'
+{
+  Az
+} "z-component of the vector potential, evolved when constrained_transport_scheme==3"
+
+# psi6phi is defined on the staggered grid (i+1/2,j+1/2,k+1/2)
+# WARNING: WILL NOT WORK PROPERLY WITHOUT FULLY-STAGGERED PROLONGATION/RESTRICTION:
+#
+cctk_real em_psi6phi type = GF Timelevels=3 tags='Prolongation="STAGGER111"'
+{
+  psi6phi
+} "sqrt{gamma} Phi, where Phi is the em scalar potential"
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+
+
+#vvvvvvv PRIMITIVE VARIABLES vvvvvvv#
+# TODO: split into groups with well defined symmetry properties: (rho_b, P, u0), (vx,vy,vz)
+cctk_real grmhd_primitives_allbutBi type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
+{
+  rho_b,P,vx,vy,vz
+} "Primitive variables density, pressure, and components of three velocity v^i. Note that v^i is defined in terms of 4-velocity as: v^i = u^i/u^0. Note that this definition differs from the Valencia formalism."
+# It is useful to split Bi from Bi_stagger, since we're generally only interested in outputting Bi for diagnostics
+cctk_real grmhd_primitives_Bi type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
+{
+  Bx,By,Bz
+} "B-field components defined at vertices."
+cctk_real grmhd_primitives_Bi_stagger type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
+{
+  Bx_stagger,By_stagger,Bz_stagger
+} "B-field components defined at staggered points [Bx_stagger at (i+1/2,j,k),By_stagger at (i,j+1/2,k),Bz_stagger at (i,j,k+1/2)]."
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+
+#vvvvvvv BSSN-based quantities, computed from ADM quantities.v vvvvvvv#
+cctk_real BSSN_quantities type = GF TAGS='prolongation="none" Checkpoint="no"'
+{
+   gtxx,gtxy,gtxz,gtyy,gtyz,gtzz,gtupxx,gtupxy,gtupxz,gtupyy,gtupyz,gtupzz,phi_bssn,psi_bssn,lapm1
+} "BSSN quantities, computed from ADM quantities"
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+
+private:
+
+#vvvvvvv DIAGNOSTIC GRIDFUNCTIONS vvvvvvv#
+cctk_real diagnostic_gfs type = GF TAGS='prolongation="none" Checkpoint="no"'
+{
+  failure_checker
+} "Gridfunction to track conservative-to-primitives solver fixes. Beware that this gridfunction is overwritten at each RK substep."
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+
+#vvvvvvv TEMPORARY VARIABLES FOR RECONSTRUCTION vvvvvvv#
+cctk_real grmhd_primitives_reconstructed_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
+{
+  ftilde_gf,temporary,
+  rho_br,Pr,vxr,vyr,vzr,Bxr,Byr,Bzr,Bx_staggerr,By_staggerr,Bz_staggerr,
+  rho_bl,Pl,vxl,vyl,vzl,Bxl,Byl,Bzl,Bx_staggerl,By_staggerl,Bz_staggerl,
+  vxrr,vxrl,vyrr,vyrl,vzrr,vzrl,vxlr,vxll,vylr,vyll,vzlr,vzll
+} "Temporary variables used for primitives reconstruction"
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+
+#vvvvvvv RHS VARIABLES vvvvvvv#
+cctk_real grmhd_conservatives_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
+{
+  rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs
+} "Storage for the right-hand side of the partial_t rho_star, partial_t tau, and partial_t tilde{S}_i equations. Needed for MoL timestepping."
+
+cctk_real em_Ax_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
+{
+  Ax_rhs
+} "Storage for the right-hand side of the partial_t A_x equation. Needed for MoL timestepping."
+cctk_real em_Ay_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
+{
+  Ay_rhs
+} "Storage for the right-hand side of the partial_t A_y equation. Needed for MoL timestepping."
+cctk_real em_Az_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
+{
+  Az_rhs
+} "Storage for the right-hand side of the partial_t A_z equation. Needed for MoL timestepping."
+cctk_real em_psi6phi_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
+{
+  psi6phi_rhs
+} "Storage for the right-hand side of the partial_t (psi^6 Phi) equation. Needed for MoL timestepping."
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+
+#vvvvvvv TEMPORARY VARIABLES USEFUL FOR A-FIELD EVOLUTION vvvvvvv#
+cctk_real grmhd_cmin_cmax_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
+{
+  cmin_x,cmax_x,
+  cmin_y,cmax_y,
+  cmin_z,cmax_z
+} "Store min and max characteristic speeds in all three directions."
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+
+#vvvvvvv TEMPORARY VARIABLES USEFUL FOR FLUX COMPUTATION vvvvvvv#
+cctk_real grmhd_flux_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
+{
+  rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux
+} "Temporary variables for storing the flux terms of tilde{S}_i."
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+
+#vvvvvvv T^{\mu \nu}, stored to avoid expensive recomputation vvvvvvv#
+cctk_real TUPmunu type = GF TAGS='prolongation="none" Checkpoint="no"'
+{
+  TUPtt,TUPtx,TUPty,TUPtz,TUPxx,TUPxy,TUPxz,TUPyy,TUPyz,TUPzz
+} "T^{mu nu}, stored to avoid expensive recomputation"
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+
+###########################################################################
+####################################################
+###  Functions provided by MoL for registration  ###
+####################################################
+
+CCTK_INT FUNCTION MoLRegisterEvolved(CCTK_INT IN EvolvedIndex, \
+                                         CCTK_INT IN RHSIndex)
+CCTK_INT FUNCTION MoLRegisterEvolvedSlow(CCTK_INT IN EvolvedIndex, \
+                                         CCTK_INT IN RHSIndexSlow)
+CCTK_INT FUNCTION MoLRegisterConstrained(CCTK_INT IN ConstrainedIndex)
+CCTK_INT FUNCTION MoLRegisterEvolvedGroup(CCTK_INT IN EvolvedIndex, \
+                                          CCTK_INT IN RHSIndex)
+CCTK_INT FUNCTION MoLRegisterEvolvedGroupSlow(CCTK_INT IN EvolvedIndex, \
+                                          CCTK_INT IN RHSIndexSlow)
+CCTK_INT FUNCTION MoLRegisterConstrainedGroup(CCTK_INT IN ConstrainedIndex)
+CCTK_INT FUNCTION MoLRegisterSaveAndRestoreGroup(CCTK_INT IN SandRIndex)
+
+USES FUNCTION MoLRegisterEvolved
+USES FUNCTION MoLRegisterEvolvedSlow
+USES FUNCTION MoLRegisterConstrained
+USES FUNCTION MoLRegisterEvolvedGroup
+USES FUNCTION MoLRegisterEvolvedGroupSlow
+USES FUNCTION MoLRegisterConstrainedGroup
+USES FUNCTION MoLRegisterSaveAndRestoreGroup
+
+#########################################
+###  Aliased functions from Boundary  ###
+#########################################
+
+CCTK_INT FUNCTION Boundary_SelectVarForBC(CCTK_POINTER_TO_CONST IN GH, \
+  CCTK_INT IN faces, CCTK_INT IN boundary_width, CCTK_INT IN table_handle, \
+  CCTK_STRING IN var_name, CCTK_STRING IN bc_name)
+CCTK_INT FUNCTION Boundary_SelectGroupForBC(CCTK_POINTER_TO_CONST IN GH, \
+  CCTK_INT IN faces, CCTK_INT IN boundary_width, CCTK_INT IN table_handle, \
+  CCTK_STRING IN group_name, CCTK_STRING IN bc_name)
+
+USES FUNCTION Boundary_SelectVarForBC
+USES FUNCTION Boundary_SelectGroupForBC
+###########################################################################
+
+#########################################
+###  Aliased functions from Carpet    ###
+#########################################
+
+CCTK_INT FUNCTION                         \
+    GetRefinementLevel                    \
+        (CCTK_POINTER_TO_CONST IN cctkGH)
+USES FUNCTION GetRefinementLevel
+
+########################################
+### Aliased functions from EOS_OMNI  ###
+########################################
+
+# This function is used to ensure we get the correct
+# eoskey for tabulated EOS, even if EOS_Omni is
+# updated in the future and the value of the key,
+# which is an integer, changes.
+CCTK_INT FUNCTION EOS_Omni_GetHandle(CCTK_STRING IN name)
+USES FUNCTION EOS_Omni_GetHandle
+
+# This function is used (in IllinoisGRMHD) to compute:
+#
+# - P(  rho,Y_e,T)
+# - eps(rho,Y_e,T)
+#
+# *or*
+#
+# - T(rho,Y_e,eps)
+# - P(rho,Y_e,eps)
+void FUNCTION EOS_Omni_press(CCTK_INT IN eoskey,         \
+			     CCTK_INT IN havetemp,       \
+			     CCTK_REAL IN rf_precision,  \
+                             CCTK_INT IN npoints,        \
+			     CCTK_REAL IN ARRAY rho,     \
+			     CCTK_REAL INOUT ARRAY eps,  \
+			     CCTK_REAL INOUT ARRAY temp, \
+			     CCTK_REAL IN ARRAY ye,      \
+			     CCTK_REAL OUT ARRAY press,  \
+			     CCTK_INT OUT ARRAY keyerr,  \
+			     CCTK_INT OUT anyerr)
+
+USES FUNCTION EOS_Omni_press
+
+# This function is used (in IllinoisGRMHD) to compute:
+#
+# - P(  rho,Y_e,T)
+# - eps(rho,Y_e,T)
+# - cs2(rho,Y_e,T)
+#
+# *or*
+#
+# - T(  rho,Y_e,eps)
+# - P(  rho,Y_e,eps)
+# - cs2(rho,Y_e,eps)
+void FUNCTION EOS_Omni_press_cs2(CCTK_INT IN eoskey,         \
+			         CCTK_INT IN havetemp,       \
+			         CCTK_REAL IN rf_precision,  \
+                                 CCTK_INT IN npoints,        \
+			         CCTK_REAL IN ARRAY rho,     \
+			         CCTK_REAL INOUT ARRAY eps,  \
+			         CCTK_REAL INOUT ARRAY temp, \
+			         CCTK_REAL IN ARRAY ye,      \
+			         CCTK_REAL OUT ARRAY press,  \
+			         CCTK_REAL OUT ARRAY cs2,    \
+			         CCTK_INT OUT ARRAY keyerr,  \
+			         CCTK_INT OUT anyerr)
+
+USES FUNCTION EOS_Omni_press_cs2
+
+
+# This function is used (in IllinoisGRMHD) to compute:
+#
+# - P(  rho,Y_e,T)
+# - eps(rho,Y_e,T)
+# - S(  rho,Y_e,T)
+#
+# *or*
+#
+# - T(  rho,Y_e,S)
+# - P(  rho,Y_e,S)
+# - eps(rho,Y_e,S)
+void FUNCTION EOS_Omni_short(CCTK_INT IN eoskey,                \
+			     CCTK_INT IN havetemp,              \
+			     CCTK_REAL IN rf_precision,         \
+                             CCTK_INT IN npoints,               \
+			     CCTK_REAL IN ARRAY rho,     	\
+			     CCTK_REAL INOUT ARRAY eps,  	\
+			     CCTK_REAL INOUT ARRAY temp, 	\
+			     CCTK_REAL IN ARRAY ye,      	\
+			     CCTK_REAL OUT ARRAY press,		\
+			     CCTK_REAL INOUT ARRAY entropy,	\
+			     CCTK_REAL OUT ARRAY cs2,  		\
+			     CCTK_REAL OUT ARRAY dedt, 		\
+			     CCTK_REAL OUT ARRAY dpderho,	\
+			     CCTK_REAL OUT ARRAY dpdrhoe,	\
+			     CCTK_REAL OUT ARRAY munu,  	\
+			     CCTK_INT OUT ARRAY keyerr,   	\
+                             CCTK_INT OUT anyerr)
+
+USES FUNCTION EOS_Omni_short
