@@ -1,0 +1,54 @@
+shares: Grid
+shares: HydroBase
+
+EXTENDS KEYWORD initial_Y_e
+{
+  "ID_tabEOS_HydroQuantities" :: "Initial electron fraction"
+}
+
+EXTENDS KEYWORD initial_temperature
+{
+  "ID_tabEOS_HydroQuantities" :: "Initial temperature"
+}
+
+EXTENDS KEYWORD initial_entropy
+{
+  "ID_tabEOS_HydroQuantities" :: "Initial entropy"
+}
+
+#["r_in","r_at_max_density","a","M"] A_b, kappa, gamma
+restricted:
+CCTK_STRING Y_e_filename "Initial data file for electron fraction"
+{
+ ".+" :: "Any nonempty string"
+} ""
+
+restricted:
+CCTK_REAL id_temperature "Initial temperature (constant everywhere on the grid)"
+{
+  0:* :: "Should be positive"
+} 0
+
+restricted:
+CCTK_REAL id_rho_atm "Atmospheric density"
+{
+  0:* :: "Should be positive"
+} 0
+
+restricted:
+CCTK_REAL id_Y_e_atm "Atmospheric electron fraction"
+{
+  0:1 :: "Should be something between 0 and 1"
+} 0
+
+restricted:
+CCTK_REAL id_temperature_atm "Atmospheric temperature"
+{
+  0:* :: "Should be positive"
+} 0
+
+restricted:
+CCTK_REAL id_rf_precision "Root-finding precision for EOS interpolators"
+{
+  0:* :: "Should be positive"
+} 1e-8

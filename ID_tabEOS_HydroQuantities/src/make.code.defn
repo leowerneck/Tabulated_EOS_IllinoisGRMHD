@@ -1,0 +1,4 @@
+# Main make.code.defn file for thorn ID_tabEOS_HydroQuantities
+
+# Source files in this directory
+SRCS =  ID_tabEOS_HydroQuantities.cc
