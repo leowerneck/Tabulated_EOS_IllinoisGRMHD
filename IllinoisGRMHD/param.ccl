@@ -163,3 +163,24 @@ CCTK_REAL igm_T_atm "Atmospheric temperature"
 {
  0.0:* :: "Positive. Should be within table limits (preferably at least 10% above the minimum)."
 } 0.1
+
+restricted:
+CCTK_REAL igm_eos_root_finding_precision "Root-finding precision for EOS table inversions"
+{
+ 0.0:* :: "Positive."
+} 1e-10
+
+########################################################
+# NEW USEFUL PARAMS
+restricted:
+CCTK_BOOLEAN igm_evolve_entropy "Do we want to evolve the entropy?"
+{
+} "no"
+
+restricted:
+CCTK_STRING igm_PPM_reconstructed_variable "Type of EOS IllinoisGRMHD will use"
+{
+  "pressure" :: "Default: reconstruct the pressure"
+  "epsilon"  :: "Reconstruct the specific internal energy"
+  "entropy"  :: "Reconstruct the entropy"
+} "pressure"

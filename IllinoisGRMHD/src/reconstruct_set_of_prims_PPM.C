@@ -240,7 +240,7 @@ static inline CCTK_REAL slope_limit(CCTK_REAL dU,CCTK_REAL dUp1) {
 #define K0      0.1
 #define ETA1   20.0
 #define ETA2    0.05
-#define EPSILON 0.01
+#define PPM_EPSILON 0.01
 static inline void steepen_rho(CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES],CCTK_REAL slope_lim_dU[MAXNUMVARS][MAXNUMINDICES],CCTK_REAL Gamma_th,CCTK_REAL P_cold,CCTK_REAL Gamma_cold,
                                CCTK_REAL *rho_br_ppm,CCTK_REAL *rho_bl_ppm) {
 
@@ -257,7 +257,7 @@ static inline void steepen_rho(CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES],CCTK_REAL 
     MIN(U[PRESSURE][PLUS1],U[PRESSURE][MINUS1])
     -fabs(U[PRESSURE][PLUS1]-U[PRESSURE][MINUS1])*MIN(U[RHOB][PLUS1],U[RHOB][MINUS1]);
   CCTK_REAL second_deriv_check = -d2rho_b_p1*d2rho_b_m1;
-  CCTK_REAL relative_change_check = fabs(2.0*d1rho_b) - EPSILON*MIN(U[RHOB][PLUS1],U[RHOB][MINUS1]);
+  CCTK_REAL relative_change_check = fabs(2.0*d1rho_b) - PPM_EPSILON*MIN(U[RHOB][PLUS1],U[RHOB][MINUS1]);
 
   if(contact_discontinuity_check >= 0.0 && second_deriv_check >= 0.0
      && relative_change_check >= 0.0) {
@@ -326,7 +326,7 @@ static inline void compute_P_cold__Gamma_cold(CCTK_REAL rho_b,igm_eos_parameters
 
 #define OMEGA1   0.75
 #define OMEGA2  10.0
-#define EPSILON2 0.33
+#define PPM_EPSILON2 0.33
 static void ftilde_gf_compute(const cGH *cctkGH,const int *cctk_lsh,const int flux_dirn,gf_and_gz_struct *in_prims,CCTK_REAL *ftilde_gf) {
   int ijkgz_lo_hi[4][2];
   CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES];
@@ -371,7 +371,7 @@ static inline CCTK_REAL ftilde_compute(const int flux_dirn,CCTK_REAL U[MAXNUMVAR
   CCTK_REAL w=0.0;
 
   // w==1 -> inside a shock
-  if (q2 > EPSILON2 && q2*( (U[VX+(flux_dirn-1)][MINUS1]) - (U[VX+(flux_dirn-1)][PLUS1]) ) > 0.0) w = 1.0;
+  if (q2 > PPM_EPSILON2 && q2*( (U[VX+(flux_dirn-1)][MINUS1]) - (U[VX+(flux_dirn-1)][PLUS1]) ) > 0.0) w = 1.0;
 
   return MIN(1.0, w*MAX(0.0,q1));
 }

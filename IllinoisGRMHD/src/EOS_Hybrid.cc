@@ -148,7 +148,7 @@ void setup_K_ppoly_tab__and__eps_integ_consts(igm_eos_parameters &eos) {
  *
  * Outputs     : eos             - fully initialized EOS struct
  */
-void initialize_igm_eos_parameters_from_input(igm_eos_parameters &eos) {
+void initialize_Hybrid_EOS_parameters_from_input(igm_eos_parameters &eos) {
   /* We start by setting up the igm_eos_parameters
    * with the inputs given by the user at
    * the start of the simulation. Keep in

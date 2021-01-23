@@ -67,7 +67,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
    * function.
    */
   igm_eos_parameters eos;
-  initialize_igm_eos_parameters_from_input(eos);
+  initialize_igm_eos_parameters_from_input(igm_eos_key,eos);
 
 
   // These BSSN-based variables are not evolved, and so are not defined anywhere that the grid has moved.

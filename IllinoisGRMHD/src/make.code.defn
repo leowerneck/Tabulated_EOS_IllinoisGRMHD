@@ -14,5 +14,7 @@ SRCS =  InitSymBound.C MoL_registration.C \
     \
     outer_boundaries.C \
     EOS_get_key.cc \
-    EOS_Hybrid.cc
+    EOS_initialize_parameters.cc \
+    EOS_Hybrid.cc \
+    EOS_Tabulated.cc
 

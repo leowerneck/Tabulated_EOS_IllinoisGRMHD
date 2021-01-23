@@ -75,7 +75,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
    * function.
    */
   igm_eos_parameters eos;
-  initialize_igm_eos_parameters_from_input(eos);
+  initialize_igm_eos_parameters_from_input(igm_eos_key,eos);
 
 
   // in_prims,out_prims_r, and out_prims_l are arrays of pointers to the actual gridfunctions.

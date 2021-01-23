@@ -168,7 +168,7 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
    * function.
    */
   igm_eos_parameters eos;
-  initialize_igm_eos_parameters_from_input(eos);
+  initialize_igm_eos_parameters_from_input(igm_eos_key,eos);
 
 #pragma omp parallel for
   for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
