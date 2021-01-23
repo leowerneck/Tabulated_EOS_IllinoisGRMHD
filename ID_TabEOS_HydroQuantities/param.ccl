@@ -5,17 +5,17 @@ shares: HydroBase
 
 EXTENDS KEYWORD initial_Y_e
 {
-  "ID_TabEOS_HydroBase_Quantities" :: "Initial electron fraction"
+  "ID_TabEOS_HydroQuantities" :: "Initial electron fraction"
 }
 
 EXTENDS KEYWORD initial_temperature
 {
-  "ID_TabEOS_HydroBase_Quantities" :: "Initial temperature"
+  "ID_TabEOS_HydroQuantities" :: "Initial temperature"
 }
 
 EXTENDS KEYWORD initial_entropy
 {
-  "ID_TabEOS_HydroBase_Quantities" :: "Initial entropy"
+  "ID_TabEOS_HydroQuantities" :: "Initial entropy"
 }
 
 #----------------- Initial data files -----------------
