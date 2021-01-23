@@ -10,7 +10,6 @@
 #include "cctk_Parameters.h"
 #include "Symmetry.h"
 #include "IllinoisGRMHD_headers.h"
-#include "IllinoisGRMHD_EoS_lowlevel_functs.C"
 
 extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
@@ -34,7 +33,7 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
    * out the EOS parameters (rho_ppoly_tab, K_ppoly_tab,
    * and Gamma_ppoly_tab) at t=0.
    */
-  if(cctk_iteration==0 && (int)GetRefinementLevel(cctkGH)==0) { print_EOS_table(eos); }
+  if(cctk_iteration==0 && (int)GetRefinementLevel(cctkGH)==0) { print_EOS_Hybrid(eos); }
 
   if(Gamma_th<0)
     CCTK_VError(VERR_DEF_PARAMS,"ERROR.  Default Gamma_th (=-1) detected.  You must set Gamma_th to the appropriate value in your initial data thorn, or your .par file!\n");
