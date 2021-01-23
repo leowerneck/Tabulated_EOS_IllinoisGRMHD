@@ -21,9 +21,11 @@ extern "C" void IllinoisGRMHD_EOS_get_key(CCTK_ARGUMENTS) {
   // Now check what we have
   if( CCTK_EQUALS(igm_eos_type,"Hybrid") ) {
     *igm_eos_key = EOS_Omni_GetHandle("Hybrid");
+    CCTK_VInfo(CCTK_THORNSTRING,"Hybrid EOS selected. igm_eos_key set to %d",*igm_eos_key);
   }
   else if( CCTK_EQUALS(igm_eos_type,"Tabulated") || CCTK_EQUALS(igm_eos_type,"nuc_eos") ) {
     *igm_eos_key = EOS_Omni_GetHandle("nuc_eos");
+    CCTK_VInfo(CCTK_THORNSTRING,"Tabulated (nuc_eos) EOS selected. igm_eos_key set to %d",*igm_eos_key);
   }
   else {
     CCTK_VError(__LINE__, __FILE__, CCTK_THORNSTRING,
