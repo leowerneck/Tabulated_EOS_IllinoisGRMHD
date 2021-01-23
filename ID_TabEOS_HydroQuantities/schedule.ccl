@@ -1,0 +1,18 @@
+if( CCTK_EQUALS( initial_Y_e        ,"ID_tabEOS_HydroQuantities" ) ||
+    CCTK_EQUALS( initial_temperature,"ID_tabEOS_HydroQuantities" ) ||
+    CCTK_EQUALS( initial_entropy    ,"ID_tabEOS_HydroQuantities" ) )
+{
+  schedule ID_tabEOS_HydroQuantities IN HydroBase_Initial AFTER NRPyPlusTOVID AFTER Meudon_Bin_NS_initialise
+  {
+    LANG: C
+    WRITES: HydroBase::vel[0](Everywhere)
+    WRITES: HydroBase::vel[1](Everywhere)
+    WRITES: HydroBase::vel[2](Everywhere)
+    WRITES: HydroBase::press(Everywhere)
+    WRITES: HydroBase::rho(Everywhere)
+    WRITES: HydroBase::eps(Everywhere)
+    WRITES: HydroBase::Y_e(Everywhere)
+    WRITES: HydroBase::temperature(Everywhere)
+    WRITES: HydroBase::entropy(Everywhere)
+  } "Set up general relativistic hydrodynamic (GRHD) fields"
+}
