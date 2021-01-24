@@ -29,7 +29,5 @@ static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const 
                                                       CCTK_REAL *rho_star_flux,CCTK_REAL *tau_flux,CCTK_REAL *st_x_flux,CCTK_REAL *st_y_flux,CCTK_REAL *st_z_flux,
                                                       CCTK_REAL *rho_star_rhs,CCTK_REAL *tau_rhs,CCTK_REAL *st_x_rhs,CCTK_REAL *st_y_rhs,CCTK_REAL *st_z_rhs);
 
-#include "harm_primitives_headers.h"
-
 #endif /* DRIVER_EVALUATE_MHD_RHS_H_ */
 
