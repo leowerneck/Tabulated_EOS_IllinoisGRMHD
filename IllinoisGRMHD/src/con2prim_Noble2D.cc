@@ -1,5 +1,10 @@
-#ifndef __HARM_UTOPRIM_2D__C__
-#define __HARM_UTOPRIM_2D__C__
+#include "cctk.h"
+#include "cctk_Parameters.h"
+
+#include "IllinoisGRMHD_headers.h"
+#include "con2prim_headers.h"
+#include "harm_u2p_util.h"
+
 /***********************************************************************************
     Copyright 2006 Charles F. Gammie, Jonathan C. McKinney, Scott C. Noble,
                    Gabor Toth, and Luca Del Zanna
@@ -776,7 +781,3 @@ static CCTK_REAL dpdvsq_calc(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq,
 /******************************************************************************
              END   OF   UTOPRIM_2D.C
 ******************************************************************************/
-#endif
-
-
-
