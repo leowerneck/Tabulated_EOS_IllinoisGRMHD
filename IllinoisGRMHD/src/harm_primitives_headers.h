@@ -83,28 +83,66 @@ static const CCTK_REAL FAIL_VAL     =1.e30;    /* Generic value to which we set 
 
 static const CCTK_REAL NUMEPSILON=(2.2204460492503131e-16);
 
-
 /* some mnemonics */
 /* for primitive variables */
-static const int RHO    =0;
-static const int UU     =1;
-static const int UTCON1 =2;
-static const int UTCON2 =3;
-static const int UTCON3 =4;
-static const int BCON1  =5;
-static const int BCON2  =6;
-static const int BCON3  =7;
+static const int UU       =1;
+static const int UTCON1   =2;
+static const int UTCON2   =3;
+static const int UTCON3   =4;
+static const int BCON1    =5;
+static const int BCON2    =6;
+static const int BCON3    =7;
 
 /* for conserved variables */
-static const int QCOV0  =1;
-static const int QCOV1  =2;
-static const int QCOV2  =3;
-static const int QCOV3  =4;
+static const int QCOV0    =1;
+static const int QCOV1    =2;
+static const int QCOV2    =3;
+static const int QCOV3    =4;
+
+/* Also for primitive variables */
+static const int RHO      =0;
+static const int EPS      =1;
+static const int v1_con   =2;
+static const int v2_con   =3;
+static const int v3_con   =4;
+static const int B1_con   =5;
+static const int B2_con   =6;
+static const int B3_con   =7;
+static const int YE       =8;
+static const int TEMP     =9;
+static const int PRESS    =10;
+static const int WLORENTZ =11;
+static const int ENT      =12;
+static const int numprims =13; // rho, eps, v^{x,y,z}, B^{x,y,z}, Ye, T, P, W, S
+
+/* Also for conservative variables */
+static const int DD       =0;
+static const int TAU      =1;
+static const int S1_cov   =2;
+static const int S2_cov   =3;
+static const int S3_cov   =4;
+static const int DS       =9;
+static const int numcons  =10; // D, tau, S_{x,y,z}, B^{x,y,z}, DYe, DS
 
 /********************************************************************************************/
 // Function prototype declarations:
-int Utoprim_2d(igm_eos_parameters eos, CCTK_REAL U[NPR], CCTK_REAL gcov[NDIM][NDIM], CCTK_REAL gcon[NDIM][NDIM],
-               CCTK_REAL gdet, CCTK_REAL prim[NPR], long &n_iter);
+int con2prim( const igm_eos_parameters eos,
+              const CCTK_REAL g4dn[4][4],
+              const CCTK_REAL g4up[4][4],
+              CCTK_REAL *restrict con,
+              CCTK_REAL *restrict prim );
+
+int con2prim_Noble2D( const igm_eos_parameters eos,
+                      const CCTK_REAL g4dn[4][4],
+                      const CCTK_REAL g4up[4][4],
+                      CCTK_REAL *restrict con,
+                      CCTK_REAL *restrict prim );
+
+int con2prim_palenzuela_entropy( const igm_eos_parameters eos,
+                                 const CCTK_REAL g4dn[4][4],
+                                 const CCTK_REAL g4up[4][4],
+                                 CCTK_REAL *restrict con,
+                                 CCTK_REAL *restrict prim );
 
 inline int harm_primitives_gammalaw_lowlevel(const int index,const int i,const int j,const int k,CCTK_REAL *X,CCTK_REAL *Y,CCTK_REAL *Z,
                                              CCTK_REAL *METRIC,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4,
