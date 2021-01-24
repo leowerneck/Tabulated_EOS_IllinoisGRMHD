@@ -2,59 +2,19 @@ inline int IllinoisGRMHD_conservative_to_primitive(const int index,const int i,c
                                                    CCTK_REAL *METRIC,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4,
                                                    CCTK_REAL *CONSERVS,CCTK_REAL *PRIMS,
                                                    CCTK_REAL g4dn[NDIM][NDIM],CCTK_REAL g4up[NDIM][NDIM],
-                                                   struct output_stats &stats, igm_eos_parameters &eos) {
+                                                   struct output_stats& stats, igm_eos_parameters& eos) {
 
   // declare some variables for HARM.
-  CCTK_REAL U[NPR];
-  CCTK_REAL prim[NPR];
-  CCTK_REAL detg = METRIC_LAP_PSI4[LAPSE]*METRIC_LAP_PSI4[PSI6]; // == alpha sqrt{gamma} = alpha Psi^6
+  CCTK_REAL cons[numcons];
+  CCTK_REAL prim[numprims];
 
-  // Check to see if the metric is positive-definite.
-  // Note that this will slow down the code, and if the metric doesn't obey this, the run is probably too far gone to save,
-  //   though if it happens deep in the horizon, it might resurrect the run.
-  /*
-    CCTK_REAL lam1,lam2,lam3;
-    CCTK_REAL M11 = METRIC[GXX], M12=METRIC[GXY], M13=METRIC[GXZ], M22=METRIC[GYY], M23=METRIC[GYZ], M33=METRIC[GZZ];
-    eigenvalues_3by3_real_sym_matrix(lam1, lam2, lam3,M11, M12, M13, M22, M23, M33);
-    if (lam1 < 0.0 || lam2 < 0.0 || lam3 < 0.0) {
-    // Metric is not positive-defitive, reset the physical metric to be conformally-flat.
-    METRIC_PHYS[GXX] = METRIC_LAP_PSI4[PSI4];
-    METRIC_PHYS[GXY] = 0.0;
-    METRIC_PHYS[GXZ] = 0.0;
-    METRIC_PHYS[GYY] = METRIC_LAP_PSI4[PSI4];
-    METRIC_PHYS[GYZ] = 0.0;
-    METRIC_PHYS[GZZ] = METRIC_LAP_PSI4[PSI4];
-    METRIC_PHYS[GUPXX] = METRIC_LAP_PSI4[PSIM4];
-    METRIC_PHYS[GUPXY] = 0.0;
-    METRIC_PHYS[GUPXZ] = 0.0;
-    METRIC_PHYS[GUPYY] = METRIC_LAP_PSI4[PSIM4];
-    METRIC_PHYS[GUPYZ] = 0.0;
-    METRIC_PHYS[GUPZZ] = METRIC_LAP_PSI4[PSIM4];
-    }
-  */
-
+  // This is a (perhaps ugly) trick to select the con2prim routine
+  // outside of the main loop below. May be best to do it at the
+  // driver level, though.
   int (*con2prim)( const igm_eos_parameters,
                    const CCTK_REAL[4][4],const CCTK_REAL[4][4],
-                   CCTK_REAL *restrict,CCTK_REAL *restrict ) = NULL;
-  con2prim_select( con2prim );
-
-
-  // Note that ONE_OVER_SQRT_4PI gets us to the object
-  // referred to as B^i in the Noble et al paper (and
-  // apparently also in the comments to their code).
-  // This is NOT the \mathcal{B}^i, which differs by
-  // a factor of the lapse.
-  CCTK_REAL BxL_over_alpha_sqrt_fourpi = PRIMS[BX_CENTER]*METRIC_LAP_PSI4[LAPSEINV]*ONE_OVER_SQRT_4PI;
-  CCTK_REAL ByL_over_alpha_sqrt_fourpi = PRIMS[BY_CENTER]*METRIC_LAP_PSI4[LAPSEINV]*ONE_OVER_SQRT_4PI;
-  CCTK_REAL BzL_over_alpha_sqrt_fourpi = PRIMS[BZ_CENTER]*METRIC_LAP_PSI4[LAPSEINV]*ONE_OVER_SQRT_4PI;
-
-
-  CCTK_REAL rho_b_oldL = PRIMS[RHOB];
-  CCTK_REAL P_oldL     = PRIMS[PRESSURE];
-  CCTK_REAL vxL        = PRIMS[VX];
-  CCTK_REAL vyL        = PRIMS[VY];
-  CCTK_REAL vzL        = PRIMS[VZ];
-
+                   const CCTK_REAL *restrict,CCTK_REAL *restrict ) = NULL;
+  con2prim_select( &eos.c2p_routine,con2prim );
 
   /*
     -- Driver for new prim. var. solver.  The driver just translates
@@ -85,10 +45,10 @@ inline int IllinoisGRMHD_conservative_to_primitive(const int index,const int i,c
   // U[1]   =
   // U[2-4] =  stildei + rhostar
 
-  CCTK_REAL rho_star_orig = CONSERVS[RHOSTAR];
-  CCTK_REAL mhd_st_x_orig = CONSERVS[STILDEX];
-  CCTK_REAL mhd_st_y_orig = CONSERVS[STILDEY];
-  CCTK_REAL mhd_st_z_orig = CONSERVS[STILDEZ];
+  CCTK_REAL rho_star_orig = CONSERVS[RHOSTAR  ];
+  CCTK_REAL mhd_st_x_orig = CONSERVS[STILDEX  ];
+  CCTK_REAL mhd_st_y_orig = CONSERVS[STILDEY  ];
+  CCTK_REAL mhd_st_z_orig = CONSERVS[STILDEZ  ];
   CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
 
 
@@ -106,99 +66,16 @@ inline int IllinoisGRMHD_conservative_to_primitive(const int index,const int i,c
   CCTK_REAL K_ppoly_tab,Gamma_ppoly_tab;
 
   for(int which_guess=startguess;which_guess<3;which_guess++) {
-    int check;
 
-    if(which_guess==1) {
-      //Use a different initial guess:
-      rho_b_oldL = CONSERVS[RHOSTAR]/METRIC_LAP_PSI4[PSI6];
+    // Set the conserved variables required by the con2prim routine
+    set_cons_from_PRIMS_and_CONSERVS( eos, METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
 
-      /**********************************
-       * Piecewise Polytropic EOS Patch *
-       *  Finding Gamma_ppoly_tab and K_ppoly_tab *
-       **********************************/
-      /* Here we use our newly implemented
-       * find_polytropic_K_and_Gamma() function
-       * to determine the relevant polytropic
-       * Gamma and K parameters to be used
-       * within this function.
-       */
-      int polytropic_index = find_polytropic_K_and_Gamma_index(eos,rho_b_oldL);
-      K_ppoly_tab     = eos.K_ppoly_tab[polytropic_index];
-      Gamma_ppoly_tab = eos.Gamma_ppoly_tab[polytropic_index];
+    // Set primitive guesses
+    set_prim_from_PRIMS_and_CONSERVS( eos, which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
 
-      // After that, we compute P_cold
-      P_oldL = K_ppoly_tab*pow(rho_b_oldL,Gamma_ppoly_tab);
-
-      u0L = METRIC_LAP_PSI4[LAPSEINV];
-      vxL = -METRIC[SHIFTX];
-      vyL = -METRIC[SHIFTY];
-      vzL = -METRIC[SHIFTZ];
-    }
-
-    if(which_guess==2) {
-      //Use atmosphere as initial guess:
-      rho_b_oldL = 100.0*eos.rho_atm;
-
-      /**********************************
-       * Piecewise Polytropic EOS Patch *
-       *  Finding Gamma_ppoly_tab and K_ppoly_tab *
-       **********************************/
-      /* Here we use our newly implemented
-       * find_polytropic_K_and_Gamma() function
-       * to determine the relevant polytropic
-       * Gamma and K parameters to be used
-       * within this function.
-       */
-      int polytropic_index = find_polytropic_K_and_Gamma_index(eos,rho_b_oldL);
-      K_ppoly_tab     = eos.K_ppoly_tab[polytropic_index];
-      Gamma_ppoly_tab = eos.Gamma_ppoly_tab[polytropic_index];
-
-      // After that, we compute P_cold
-      P_oldL = K_ppoly_tab*pow(rho_b_oldL,Gamma_ppoly_tab);
-
-      u0L = METRIC_LAP_PSI4[LAPSEINV];
-      vxL = -METRIC[SHIFTX];
-      vyL = -METRIC[SHIFTY];
-      vzL = -METRIC[SHIFTZ];
-    }
-
-
-    // Fill the array of conserved variables according to the wishes of Utoprim_2d.
-    U[RHO]    = CONSERVS[RHOSTAR];
-    U[UU]     = -CONSERVS[TAUENERGY]*METRIC_LAP_PSI4[LAPSE] - (METRIC_LAP_PSI4[LAPSE]-1.0)*CONSERVS[RHOSTAR] +
-      METRIC[SHIFTX]*CONSERVS[STILDEX] + METRIC[SHIFTY]*CONSERVS[STILDEY]  + METRIC[SHIFTZ]*CONSERVS[STILDEZ] ; // note the minus sign on tau
-    U[UTCON1] = CONSERVS[STILDEX];
-    U[UTCON2] = CONSERVS[STILDEY];
-    U[UTCON3] = CONSERVS[STILDEZ];
-    U[BCON1]  = detg*BxL_over_alpha_sqrt_fourpi;
-    U[BCON2]  = detg*ByL_over_alpha_sqrt_fourpi;
-    U[BCON3]  = detg*BzL_over_alpha_sqrt_fourpi;
-
-
-    CCTK_REAL uL = P_oldL/(Gamma_ppoly_tab - 1.0);
-    CCTK_REAL utxL = u0L*(vxL + METRIC[SHIFTX]);
-    CCTK_REAL utyL = u0L*(vyL + METRIC[SHIFTY]);
-    CCTK_REAL utzL = u0L*(vzL + METRIC[SHIFTZ]);
-
-    prim[RHO]    = rho_b_oldL;
-    prim[UU]     = uL;
-    prim[UTCON1] = utxL;
-    prim[UTCON2] = utyL;
-    prim[UTCON3] = utzL;
-    prim[BCON1]  = BxL_over_alpha_sqrt_fourpi;
-    prim[BCON2]  = ByL_over_alpha_sqrt_fourpi;
-    prim[BCON3]  = BzL_over_alpha_sqrt_fourpi;
-
-
+    /************* Conservative-to-primitive recovery ************/
+    int check = (*con2prim)(eos, g4dn,g4up,cons, prim);
     /*************************************************************/
-    // CALL HARM PRIMITIVES SOLVER:
-    check = Utoprim_2d(eos, U, g4dn, g4up, detg, prim,stats.n_iter);
-    check = (*con2prim)(eos, g4dn,g4up, prim,U);
-    // Note that we have modified this solver, so that nearly 100%
-    // of the time it yields either a good root, or a root with
-    // negative epsilon (i.e., pressure).
-    /*************************************************************/
-
 
     // Use the new Font fix subroutine
     int font_fix_applied=0;
