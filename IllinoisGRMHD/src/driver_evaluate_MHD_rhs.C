@@ -75,7 +75,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
    * function.
    */
   igm_eos_parameters eos;
-  initialize_igm_eos_parameters_from_input(igm_eos_key,eos);
+  initialize_igm_eos_parameters_from_input(igm_eos_key,cctk_time,eos);
 
 
   // in_prims,out_prims_r, and out_prims_l are arrays of pointers to the actual gridfunctions.
@@ -87,23 +87,23 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   //   evaluate_MHD_rhs_headers.h (look for RHOB=0, etc.)
   //   For example, in_prims[0] _must_ be rho_b.
   int ww=0;
-  in_prims[ww].gf=rho_b; out_prims_r[ww].gf=rho_br; out_prims_l[ww].gf=rho_bl; ww++;
-  in_prims[ww].gf=P;     out_prims_r[ww].gf=Pr;     out_prims_l[ww].gf=Pl;     ww++;
-  in_prims[ww].gf=vx;    out_prims_r[ww].gf=vxr;    out_prims_l[ww].gf=vxl;    ww++;
-  in_prims[ww].gf=vy;    out_prims_r[ww].gf=vyr;    out_prims_l[ww].gf=vyl;    ww++;
-  in_prims[ww].gf=vz;    out_prims_r[ww].gf=vzr;    out_prims_l[ww].gf=vzl;    ww++;
-  in_prims[ww].gf=Bx;    out_prims_r[ww].gf=Bxr;    out_prims_l[ww].gf=Bxl;    ww++;
-  in_prims[ww].gf=By;    out_prims_r[ww].gf=Byr;    out_prims_l[ww].gf=Byl;    ww++;
-  in_prims[ww].gf=Bz;    out_prims_r[ww].gf=Bzr;    out_prims_l[ww].gf=Bzl;    ww++;
+  in_prims[ww].gf=rho_b;      out_prims_r[ww].gf=rho_br;      out_prims_l[ww].gf=rho_bl;      ww++;
+  in_prims[ww].gf=P;          out_prims_r[ww].gf=Pr;          out_prims_l[ww].gf=Pl;          ww++;
+  in_prims[ww].gf=vx;         out_prims_r[ww].gf=vxr;         out_prims_l[ww].gf=vxl;         ww++;
+  in_prims[ww].gf=vy;         out_prims_r[ww].gf=vyr;         out_prims_l[ww].gf=vyl;         ww++;
+  in_prims[ww].gf=vz;         out_prims_r[ww].gf=vzr;         out_prims_l[ww].gf=vzl;         ww++;
+  in_prims[ww].gf=Bx;         out_prims_r[ww].gf=Bxr;         out_prims_l[ww].gf=Bxl;         ww++;
+  in_prims[ww].gf=By;         out_prims_r[ww].gf=Byr;         out_prims_l[ww].gf=Byl;         ww++;
+  in_prims[ww].gf=Bz;         out_prims_r[ww].gf=Bzr;         out_prims_l[ww].gf=Bzl;         ww++;
   in_prims[ww].gf=Bx_stagger; out_prims_r[ww].gf=Bx_staggerr; out_prims_l[ww].gf=Bx_staggerl; ww++;
   in_prims[ww].gf=By_stagger; out_prims_r[ww].gf=By_staggerr; out_prims_l[ww].gf=By_staggerl; ww++;
   in_prims[ww].gf=Bz_stagger; out_prims_r[ww].gf=Bz_staggerr; out_prims_l[ww].gf=Bz_staggerl; ww++;
-  in_prims[ww].gf=vxr;    out_prims_r[ww].gf=vxrr;    out_prims_l[ww].gf=vxrl;    ww++;
-  in_prims[ww].gf=vyr;    out_prims_r[ww].gf=vyrr;    out_prims_l[ww].gf=vyrl;    ww++;
-  in_prims[ww].gf=vzr;    out_prims_r[ww].gf=vzrr;    out_prims_l[ww].gf=vzrl;    ww++;
-  in_prims[ww].gf=vxl;    out_prims_r[ww].gf=vxlr;    out_prims_l[ww].gf=vxll;    ww++;
-  in_prims[ww].gf=vyl;    out_prims_r[ww].gf=vylr;    out_prims_l[ww].gf=vyll;    ww++;
-  in_prims[ww].gf=vzl;    out_prims_r[ww].gf=vzlr;    out_prims_l[ww].gf=vzll;    ww++;
+  in_prims[ww].gf=vxr;        out_prims_r[ww].gf=vxrr;        out_prims_l[ww].gf=vxrl;        ww++;
+  in_prims[ww].gf=vyr;        out_prims_r[ww].gf=vyrr;        out_prims_l[ww].gf=vyrl;        ww++;
+  in_prims[ww].gf=vzr;        out_prims_r[ww].gf=vzrr;        out_prims_l[ww].gf=vzrl;        ww++;
+  in_prims[ww].gf=vxl;        out_prims_r[ww].gf=vxlr;        out_prims_l[ww].gf=vxll;        ww++;
+  in_prims[ww].gf=vyl;        out_prims_r[ww].gf=vylr;        out_prims_l[ww].gf=vyll;        ww++;
+  in_prims[ww].gf=vzl;        out_prims_r[ww].gf=vzlr;        out_prims_l[ww].gf=vzll;        ww++;
 
   // Prims are defined AT ALL GRIDPOINTS, so we set the # of ghostzones to zero:
   for(int i=0;i<MAXNUMVARS;i++) for(int j=1;j<=3;j++) { in_prims[i].gz_lo[j]=0; in_prims[i].gz_hi[j]=0; }
@@ -204,15 +204,14 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
    *      this, we'll reconstruct again in the y-dir'n to get {vx,vy} at (i-1/2,j-1/2,k)
    * 2Ab) By_stagger is at (i,j+1/2,k), and we reconstruct below to (i-1/2,j+1/2,k). */
   ww=0;
-  which_prims_to_reconstruct[ww]=RHOB;      ww++;
-  which_prims_to_reconstruct[ww]=PRESSURE;  ww++;
-  which_prims_to_reconstruct[ww]=VX;        ww++;
-  which_prims_to_reconstruct[ww]=VY;        ww++;
-  which_prims_to_reconstruct[ww]=VZ;        ww++;
-  //which_prims_to_reconstruct[ww]=BX_CENTER; ww++;
-  which_prims_to_reconstruct[ww]=BY_CENTER; ww++;
-  which_prims_to_reconstruct[ww]=BZ_CENTER; ww++;
-  which_prims_to_reconstruct[ww]=BY_STAGGER;ww++;
+  which_prims_to_reconstruct[ww]=RHOB;                      ww++;
+  which_prims_to_reconstruct[ww]=eos.PPM_reconstructed_var; ww++;
+  which_prims_to_reconstruct[ww]=VX;                        ww++;
+  which_prims_to_reconstruct[ww]=VY;                        ww++;
+  which_prims_to_reconstruct[ww]=VZ;                        ww++;
+  which_prims_to_reconstruct[ww]=BY_CENTER;                 ww++;
+  which_prims_to_reconstruct[ww]=BZ_CENTER;                 ww++;
+  which_prims_to_reconstruct[ww]=BY_STAGGER;                ww++;
   num_prims_to_reconstruct=ww;
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
   reconstruct_set_of_prims_PPM(cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
@@ -271,26 +270,25 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   ww=0;
   // NOTE! The order of variable reconstruction is important here,
   //   as we don't want to overwrite {vxr,vxl,vyr,vyl}!
-  which_prims_to_reconstruct[ww]=VXR;       ww++;
-  which_prims_to_reconstruct[ww]=VYR;       ww++;
-  which_prims_to_reconstruct[ww]=VXL;       ww++;
-  which_prims_to_reconstruct[ww]=VYL;       ww++;
+  which_prims_to_reconstruct[ww]=VXR;                       ww++;
+  which_prims_to_reconstruct[ww]=VYR;                       ww++;
+  which_prims_to_reconstruct[ww]=VXL;                       ww++;
+  which_prims_to_reconstruct[ww]=VYL;                       ww++;
   num_prims_to_reconstruct=ww;
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
   reconstruct_set_of_prims_PPM(cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
                                eos,in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
   ww=0;
   // Reconstruct other primitives last!
-  which_prims_to_reconstruct[ww]=RHOB;      ww++;
-  which_prims_to_reconstruct[ww]=PRESSURE;  ww++;
-  which_prims_to_reconstruct[ww]=VX;        ww++;
-  which_prims_to_reconstruct[ww]=VY;        ww++;
-  which_prims_to_reconstruct[ww]=VZ;        ww++;
-  which_prims_to_reconstruct[ww]=BX_CENTER; ww++;
-  //which_prims_to_reconstruct[ww]=BY_CENTER; ww++;
-  which_prims_to_reconstruct[ww]=BZ_CENTER; ww++;
-  which_prims_to_reconstruct[ww]=BX_STAGGER;ww++;
-  which_prims_to_reconstruct[ww]=BZ_STAGGER;ww++;
+  which_prims_to_reconstruct[ww]=RHOB;                      ww++;
+  which_prims_to_reconstruct[ww]=eos.PPM_reconstructed_var; ww++;
+  which_prims_to_reconstruct[ww]=VX;                        ww++;
+  which_prims_to_reconstruct[ww]=VY;                        ww++;
+  which_prims_to_reconstruct[ww]=VZ;                        ww++;
+  which_prims_to_reconstruct[ww]=BX_CENTER;                 ww++;
+  which_prims_to_reconstruct[ww]=BZ_CENTER;                 ww++;
+  which_prims_to_reconstruct[ww]=BX_STAGGER;                ww++;
+  which_prims_to_reconstruct[ww]=BZ_STAGGER;                ww++;
   num_prims_to_reconstruct=ww;
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
   reconstruct_set_of_prims_PPM(cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
@@ -372,26 +370,25 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   ww=0;
   // NOTE! The order of variable reconstruction is important here,
   //   as we don't want to overwrite {vxr,vxl,vyr,vyl}!
-  which_prims_to_reconstruct[ww]=VYR;       ww++;
-  which_prims_to_reconstruct[ww]=VZR;       ww++;
-  which_prims_to_reconstruct[ww]=VYL;       ww++;
-  which_prims_to_reconstruct[ww]=VZL;       ww++;
+  which_prims_to_reconstruct[ww]=VYR;                       ww++;
+  which_prims_to_reconstruct[ww]=VZR;                       ww++;
+  which_prims_to_reconstruct[ww]=VYL;                       ww++;
+  which_prims_to_reconstruct[ww]=VZL;                       ww++;
   num_prims_to_reconstruct=ww;
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
   reconstruct_set_of_prims_PPM(cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
                                eos,in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
   // Reconstruct other primitives last!
   ww=0;
-  which_prims_to_reconstruct[ww]=RHOB;      ww++;
-  which_prims_to_reconstruct[ww]=PRESSURE;  ww++;
-  which_prims_to_reconstruct[ww]=VX;        ww++;
-  which_prims_to_reconstruct[ww]=VY;        ww++;
-  which_prims_to_reconstruct[ww]=VZ;        ww++;
-  which_prims_to_reconstruct[ww]=BX_CENTER; ww++;
-  which_prims_to_reconstruct[ww]=BY_CENTER; ww++;
-  //which_prims_to_reconstruct[ww]=BZ_CENTER; ww++;
-  which_prims_to_reconstruct[ww]=BX_STAGGER; ww++;
-  which_prims_to_reconstruct[ww]=BY_STAGGER; ww++;
+  which_prims_to_reconstruct[ww]=RHOB;                      ww++;
+  which_prims_to_reconstruct[ww]=eos.PPM_reconstructed_var; ww++;
+  which_prims_to_reconstruct[ww]=VX;                        ww++;
+  which_prims_to_reconstruct[ww]=VY;                        ww++;
+  which_prims_to_reconstruct[ww]=VZ;                        ww++;
+  which_prims_to_reconstruct[ww]=BX_CENTER;                 ww++;
+  which_prims_to_reconstruct[ww]=BY_CENTER;                 ww++;
+  which_prims_to_reconstruct[ww]=BX_STAGGER;                ww++;
+  which_prims_to_reconstruct[ww]=BY_STAGGER;                ww++;
   num_prims_to_reconstruct=ww;
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
   reconstruct_set_of_prims_PPM(cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
