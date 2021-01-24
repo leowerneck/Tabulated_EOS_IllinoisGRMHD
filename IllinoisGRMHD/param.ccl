@@ -165,6 +165,18 @@ CCTK_REAL igm_T_atm "Atmospheric temperature"
 } 0.1
 
 restricted:
+CCTK_REAL igm_eos_table_ceiling_safety_factor "How close to the table maximum do we set the ceiling?"
+{
+ 0.0:1.0 :: "1 -> table maximum, 0.9 -> 0.9*table_maximum, etc"
+} 0.9
+
+restricted:
+CCTK_REAL igm_eos_table_floor_safety_factor "How close to the table maximum do we set the floor?"
+{
+ 1.0:* :: "1 -> table minimum, 1.1 -> 1.1*table_minimum, etc"
+} 1.1
+
+restricted:
 CCTK_REAL igm_eos_root_finding_precision "Root-finding precision for EOS table inversions"
 {
  0.0:* :: "Positive."
@@ -172,6 +184,11 @@ CCTK_REAL igm_eos_root_finding_precision "Root-finding precision for EOS table i
 
 ########################################################
 # NEW USEFUL PARAMS
+restricted:
+CCTK_BOOLEAN igm_evolve_temperature "Do we want to evolve the temperature?"
+{
+} "no"
+
 restricted:
 CCTK_BOOLEAN igm_evolve_entropy "Do we want to evolve the entropy?"
 {
@@ -184,3 +201,9 @@ CCTK_STRING igm_PPM_reconstructed_variable "Type of EOS IllinoisGRMHD will use"
   "epsilon"  :: "Reconstruct the specific internal energy"
   "entropy"  :: "Reconstruct the entropy"
 } "pressure"
+
+restricted:
+CCTK_REAL igm_freeze_T_evolution_until_cctk_time "Freeze temperature evolution until simulation time is reached"
+{
+  0.0:* :: "Positive"
+} 0.0
