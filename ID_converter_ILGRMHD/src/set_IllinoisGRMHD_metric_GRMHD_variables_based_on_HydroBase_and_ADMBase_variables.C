@@ -36,7 +36,7 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
    * PPEOS Patch *
    ***************/
   igm_eos_parameters eos;
-  initialize_igm_eos_parameters_from_input(igm_eos_key,eos);
+  initialize_igm_eos_parameters_from_input(igm_eos_key,cctk_time,eos);
   
   if(pure_hydro_run) {
 #pragma omp parallel for
