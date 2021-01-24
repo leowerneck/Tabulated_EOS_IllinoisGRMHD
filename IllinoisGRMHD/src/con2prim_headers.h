@@ -126,11 +126,12 @@ static const int numcons  =10; // D, tau, S_{x,y,z}, B^{x,y,z}, DYe, DS
 
 /********************************************************************************************/
 // Function prototype declarations:
-int con2prim( const igm_eos_parameters eos,
-              const CCTK_REAL g4dn[4][4],
-              const CCTK_REAL g4up[4][4],
-              CCTK_REAL *restrict con,
-              CCTK_REAL *restrict prim );
+int Utoprim_2d(igm_eos_parameters eos, CCTK_REAL U[NPR], CCTK_REAL gcov[NDIM][NDIM], CCTK_REAL gcon[NDIM][NDIM],
+               CCTK_REAL gdet, CCTK_REAL prim[NPR], long &n_iter);
+
+void con2prim_select( int (*con2prim)( const igm_eos_parameters,
+                                       const CCTK_REAL[4][4],const CCTK_REAL[4][4],
+                                       CCTK_REAL*,CCTK_REAL* ) );
 
 int con2prim_Noble2D( const igm_eos_parameters eos,
                       const CCTK_REAL g4dn[4][4],
@@ -138,21 +139,33 @@ int con2prim_Noble2D( const igm_eos_parameters eos,
                       CCTK_REAL *restrict con,
                       CCTK_REAL *restrict prim );
 
-int con2prim_palenzuela_entropy( const igm_eos_parameters eos,
-                                 const CCTK_REAL g4dn[4][4],
-                                 const CCTK_REAL g4up[4][4],
-                                 CCTK_REAL *restrict con,
-                                 CCTK_REAL *restrict prim );
+int con2prim_Palenzuela1D( const igm_eos_parameters eos,
+                           const CCTK_REAL g4dn[4][4],
+                           const CCTK_REAL g4up[4][4],
+                           CCTK_REAL *restrict con,
+                           CCTK_REAL *restrict prim );
 
-inline int harm_primitives_gammalaw_lowlevel(const int index,const int i,const int j,const int k,CCTK_REAL *X,CCTK_REAL *Y,CCTK_REAL *Z,
-                                             CCTK_REAL *METRIC,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4,
-                                             CCTK_REAL *CONSERVS,CCTK_REAL *PRIMS,
-                                             CCTK_REAL g4dn[NDIM][NDIM],CCTK_REAL g4up[NDIM][NDIM],
-                                             output_stats &stats,igm_eos_parameters &eos);
+int con2prim_Palenzuela1D_entropy( const igm_eos_parameters eos,
+                                   const CCTK_REAL g4dn[4][4],
+                                   const CCTK_REAL g4up[4][4],
+                                   CCTK_REAL *restrict con,
+                                   CCTK_REAL *restrict prim );
+
+inline int IllinoisGRMHD_conservative_to_primitive(const int index,const int i,const int j,const int k,CCTK_REAL *X,CCTK_REAL *Y,CCTK_REAL *Z,
+                                                   CCTK_REAL *METRIC,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4,
+                                                   CCTK_REAL *CONSERVS,CCTK_REAL *PRIMS,
+                                                   CCTK_REAL g4dn[NDIM][NDIM],CCTK_REAL g4up[NDIM][NDIM],
+                                                   output_stats &stats,igm_eos_parameters &eos);
 
 inline int font_fix__hybrid_EOS(CCTK_REAL &u_x, CCTK_REAL &u_y, CCTK_REAL &u_z,CCTK_REAL *CONSERVS,CCTK_REAL *PRIMS,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4, igm_eos_parameters eos);
 void eigenvalues_3by3_real_sym_matrix(CCTK_REAL & lam1, CCTK_REAL & lam2, CCTK_REAL & lam3,
                                       CCTK_REAL M11, CCTK_REAL M12, CCTK_REAL M13, CCTK_REAL M22, CCTK_REAL M23, CCTK_REAL M33);
+
+void raise_g(CCTK_REAL vcov[NDIM], CCTK_REAL gcon[NDIM][NDIM], CCTK_REAL vcon[NDIM]);
+void lower_g(CCTK_REAL vcon[NDIM], CCTK_REAL gcov[NDIM][NDIM], CCTK_REAL vcov[NDIM]);
+void ncov_calc(CCTK_REAL gcon[NDIM][NDIM],CCTK_REAL ncov[NDIM]);
+CCTK_REAL pressure_rho0_u(igm_eos_parameters eos, CCTK_REAL rho0, CCTK_REAL u);
+CCTK_REAL pressure_rho0_w(igm_eos_parameters eos, CCTK_REAL rho0, CCTK_REAL w);
 
 /********************************************************************************************/
 
