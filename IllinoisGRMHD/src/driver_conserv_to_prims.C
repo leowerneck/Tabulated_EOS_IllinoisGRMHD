@@ -42,8 +42,7 @@
 #include "Symmetry.h"
 
 #include "IllinoisGRMHD_headers.h"
-#include "harm_primitives_headers.h"
-#include "harm_u2p_util.c"
+#include "con2prim_headers.h"
 #include "inlined_functions.C"
 #include "apply_tau_floor__enforce_limits_on_primitives_and_recompute_conservs.C"
 
@@ -251,8 +250,8 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
           stats.font_fixed=0;
           for(int ii=0;ii<3;ii++) {
-            check = harm_primitives_gammalaw_lowlevel(index,i,j,k,x,y,z,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,
-                                                      CONSERVS,PRIMS,  g4dn,g4up,   stats,eos);
+            check = IllinoisGRMHD_conservative_to_primitive(index,i,j,k,x,y,z,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,
+                                                            CONSERVS,PRIMS,  g4dn,g4up,   stats,eos);
             if(check==0) ii=4;
             else stats.failure_checker+=100000;
           }
@@ -466,5 +465,5 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
 }
 
-#include "harm_primitives_lowlevel.C"
+#include "con2prim_wrapper.h"
 
