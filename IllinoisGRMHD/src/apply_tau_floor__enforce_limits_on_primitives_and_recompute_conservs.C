@@ -1,7 +1,7 @@
 void eigenvalues_3by3_real_sym_matrix(CCTK_REAL & lam1, CCTK_REAL & lam2, CCTK_REAL & lam3,
                                       CCTK_REAL M11, CCTK_REAL M12, CCTK_REAL M13, CCTK_REAL M22, CCTK_REAL M23, CCTK_REAL M33);
 
-static inline int apply_tau_floor(const int index,const CCTK_REAL tau_atm,const CCTK_REAL rho_b_atm,const CCTK_REAL Psi6threshold,CCTK_REAL *PRIMS,CCTK_REAL *METRIC,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4,output_stats &stats,igm_eos_parameters &eos,  CCTK_REAL *CONSERVS) {
+static inline int apply_tau_floor(const int index,const CCTK_REAL Psi6threshold,CCTK_REAL *PRIMS,CCTK_REAL *METRIC,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4,output_stats &stats,igm_eos_parameters &eos,  CCTK_REAL *CONSERVS) {
 
 
   //First apply the rho_star floor:
@@ -85,10 +85,9 @@ static inline int apply_tau_floor(const int index,const CCTK_REAL tau_atm,const 
   CCTK_REAL Wmin = sqrt(Sm2 + SQR(CONSERVS[RHOSTAR]))/METRIC_LAP_PSI4[PSI6];
   CCTK_REAL sdots_fluid_max = sdots;
 
-
   //tau fix, applicable when B==0 and B!=0:
   if(CONSERVS[TAUENERGY] < 0.5*METRIC_LAP_PSI4[PSI6]*Bbar2) {
-    CONSERVS[TAUENERGY] = tau_atm+0.5*METRIC_LAP_PSI4[PSI6]*Bbar2;
+    CONSERVS[TAUENERGY] = eos.tau_atm+0.5*METRIC_LAP_PSI4[PSI6]*Bbar2;
     stats.failure_checker+=1000000;
   }
 
@@ -99,25 +98,7 @@ static inline int apply_tau_floor(const int index,const CCTK_REAL tau_atm,const 
   //if(PRIMS[BX_CENTER]==0 && PRIMS[BY_CENTER]==0 && PRIMS[BZ_CENTER]==0 && (METRIC_LAP_PSI4[PSI6]>30.0 || CONSERVS[RHOSTAR]/METRIC_LAP_PSI4[PSI6]<100*rho_b_atm)) {
   //if(check_B_small < 1.e-300) {
 
-  /**********************************
-   * Piecewise Polytropic EOS Patch *
-   *         Computing Patm         *
-   **********************************/
-  /* This modification of the code trades the variable
-   * "gamma_equals2" by the already defined function
-   * pow().
-   *
-   * Also, assuming that Patm < rho_ppoly_tab[0], we skip
-   * the declaration of new variables to store the
-   * values of K_ppoly_tab[0] and Gamma_ppoly_tab[0]. Thus:
-   *  -----------------------------------------
-   * | P_{atm} = K_{0} * rho_{atm}^{Gamma_{0}} |
-   *  -----------------------------------------
-   */
-  int polytropic_index = find_polytropic_K_and_Gamma_index(eos,rho_b_atm);
-  CCTK_REAL Patm = eos.K_ppoly_tab[polytropic_index]*pow(rho_b_atm,eos.Gamma_ppoly_tab[polytropic_index]);
-
-  if(check_B_small*check_B_small < Patm*1e-32) {
+  if(check_B_small*check_B_small < eos.P_atm*1e-32) {
     CCTK_REAL rhot=CONSERVS[TAUENERGY]*(CONSERVS[TAUENERGY]+2.0*CONSERVS[RHOSTAR]);
     CCTK_REAL safetyfactor = 0.999999;
     //if(METRIC_LAP_PSI4[PSI6]>Psi6threshold) safetyfactor=0.99;
@@ -131,8 +112,8 @@ static inline int apply_tau_floor(const int index,const CCTK_REAL tau_atm,const 
     }
   } else if(METRIC_LAP_PSI4[PSI6]>Psi6threshold) {
     //Apply new Stilde fix.
-    if (tau_fluid_min < tau_atm*1.001) {
-      tau_fluid_min = tau_atm*1.001;
+    if (tau_fluid_min < eos.tau_atm*1.001) {
+      tau_fluid_min = eos.tau_atm*1.001;
       CONSERVS[TAUENERGY] = tau_fluid_min + 0.5*METRIC_LAP_PSI4[PSI6]*Bbar2 + (Bbar2*sdots - SQR(BbardotS))*0.5/(METRIC_LAP_PSI4[PSI6]*SQR(Wmin+Bbar2));
     }
 
@@ -177,9 +158,9 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
   // Enforce limits on pressure, density, and v^i
   /***********************************************************/
   // Density floor:
-  U[RHOB] = MAX(U[RHOB],rho_b_atm);
+  U[RHOB] = MAX(U[RHOB],eos.rho_atm);
   // Density ceiling:
-  U[RHOB] = MIN(U[RHOB],rho_b_max);
+  U[RHOB] = MIN(U[RHOB],eos.rho_max);
 
   //   Next set h, the enthalpy:
   CCTK_REAL h_enthalpy,  P_cold,eps_cold,dPcold_drho,eps_th,Gamma_cold; /* <- Note that in setting h, we need to define several
@@ -190,7 +171,7 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
 
   // Pressure floor & ceiling:
   int polytropic_index = find_polytropic_K_and_Gamma_index(eos,U[RHOB]);
-  enforce_pressure_floor_ceiling(stats,eos.K_ppoly_tab[polytropic_index],P_cold,METRIC_LAP_PSI4[PSI6],Psi6threshold,U[RHOB],rho_b_atm,  U[PRESSURE]);
+  enforce_pressure_floor_ceiling(stats,eos.K_ppoly_tab[polytropic_index],P_cold,METRIC_LAP_PSI4[PSI6],Psi6threshold,U[RHOB],eos.rho_atm,  U[PRESSURE]);
 
   // Possibly adjusted pressure, so recompute eps & h:
   CCTK_REAL eps = eps_cold + (U[PRESSURE]-P_cold)/(Gamma_th-1.0)/U[RHOB];
