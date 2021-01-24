@@ -66,7 +66,7 @@ typedef struct _igm_eos_parameters_ {
 } igm_eos_parameters;
 //------------------------------------------------
 
-void initialize_igm_eos_parameters_from_input( const int* igm_eos_key, const CCTK_REAL cctk_time, igm_eos_parameters &eos );
+void initialize_igm_eos_parameters_from_input( const CCTK_INT* igm_eos_key, const CCTK_REAL cctk_time, igm_eos_parameters &eos );
 
 //----------- Hybrid Equation of State -----------
 void print_EOS_Hybrid( igm_eos_parameters eos );

@@ -68,7 +68,6 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   igm_eos_parameters eos;
   initialize_igm_eos_parameters_from_input(igm_eos_key,cctk_time,eos);
 
-
   // These BSSN-based variables are not evolved, and so are not defined anywhere that the grid has moved.
   // Here we convert ADM variables (from ADMBase) to the BSSN-based variables expected by this routine.
   IllinoisGRMHD_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij(cctkGH,cctk_lsh,  gxx,gxy,gxz,gyy,gyz,gzz,alp,
@@ -146,7 +145,6 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         METRIC[ww] = gtupxz[index];  ww++;
         METRIC[ww] = gtupyz[index];  ww++;
 
-
         CCTK_REAL PRIMS[MAXNUMVARS];
         ww=0;
         PRIMS[ww] = rho_b[index]; ww++;
@@ -158,13 +156,17 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         PRIMS[ww] = By[index];    ww++;
         PRIMS[ww] = Bz[index];    ww++;
 
-
-        CCTK_REAL CONSERVS[NUM_CONSERVS] = {rho_star[index], mhd_st_x[index],mhd_st_y[index],mhd_st_z[index],tau[index]};
+        CCTK_REAL CONSERVS[NUM_CONSERVS];
+        ww=0;
+        CONSERVS[RHOSTAR  ] = rho_star[index]; ww++;
+        CONSERVS[STILDEX  ] = mhd_st_x[index]; ww++;
+        CONSERVS[STILDEY  ] = mhd_st_y[index]; ww++;
+        CONSERVS[STILDEZ  ] = mhd_st_z[index]; ww++;
+        CONSERVS[TAUENERGY] = tau[index];      ww++;
 
 
         CCTK_REAL METRIC_LAP_PSI4[NUMVARS_METRIC_AUX];
         SET_LAPSE_PSI4(METRIC_LAP_PSI4,METRIC);
-
 
         CCTK_REAL METRIC_PHYS[NUMVARS_FOR_METRIC];
         METRIC_PHYS[GXX]   = METRIC[GXX]*METRIC_LAP_PSI4[PSI4];
@@ -243,12 +245,11 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         stats.n_iter=0;
         stats.vel_limited=0;
         stats.failure_checker=0;
-
+        stats.font_fixed=0;
         if(CONSERVS[RHOSTAR]>0.0) {
           // Apply the tau floor
           apply_tau_floor(index,Psi6threshold,PRIMS,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,stats,eos,  CONSERVS);
 
-          stats.font_fixed=0;
           for(int ii=0;ii<3;ii++) {
             check = IllinoisGRMHD_conservative_to_primitive(index,i,j,k,x,y,z,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,
                                                             CONSERVS,PRIMS,  g4dn,g4up,   stats,eos);
@@ -263,11 +264,10 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
           PRIMS[VX      ] = -METRIC[SHIFTX];
           PRIMS[VY      ] = -METRIC[SHIFTY];
           PRIMS[VZ      ] = -METRIC[SHIFTZ];
-
+          
           rho_star_fix_applied++;
         }
-
-
+        
         // Enforce limits on primitive variables and recompute conservatives.
         static const int already_computed_physical_metric_and_inverse=1;
         IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(already_computed_physical_metric_and_inverse,PRIMS,stats,eos,METRIC,g4dn,g4up, TUPMUNU,TDNMUNU,CONSERVS);

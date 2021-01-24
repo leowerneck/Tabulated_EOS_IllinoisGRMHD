@@ -7,12 +7,12 @@ STORAGE: grmhd_conservatives[3],em_Ax[3],em_Ay[3],em_Az[3],em_psi6phi[3]
 STORAGE: grmhd_primitives_allbutBi,grmhd_primitives_Bi,grmhd_primitives_Bi_stagger,grmhd_primitives_reconstructed_temps,grmhd_conservatives_rhs,em_Ax_rhs,em_Ay_rhs,em_Az_rhs,em_psi6phi_rhs,grmhd_cmin_cmax_temps,grmhd_flux_temps,TUPmunu,diagnostic_gfs
 
 ####################
-# TABULATED EOS MOD
-schedule IllinoisGRMHD_EOS_get_key in STARTUP after EOS_Omni_Startup 
+# NEW STUFF
+schedule IllinoisGRMHD_EOS_get_key at CCTK_INITIAL before HydroBase_Initial
 {
   LANG: C
-  OPTIONS: global # Copying EOS_Omni here
-} "Get the appropriate EOS key"
+  OPTIONS: LOCAL
+} "Get EOS handle for IllinoisGRMHD's interface with EOS_Omni"
 
 STORAGE: igm_eos_key
 

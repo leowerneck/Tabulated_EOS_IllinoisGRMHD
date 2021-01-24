@@ -10,12 +10,11 @@
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
 
-extern "C" void IllinoisGRMHD_EOS_get_key(CCTK_ARGUMENTS) {
-
-  // This gives us the parameter igm_eos_type
-  DECLARE_CCTK_ARGUMENTS;
+extern "C" void IllinoisGRMHD_EOS_get_key( CCTK_ARGUMENTS ) {
 
   // This gives us the pointer igm_eos_key
+  DECLARE_CCTK_ARGUMENTS;
+  // This gives us the parameter igm_eos_type
   DECLARE_CCTK_PARAMETERS;
 
   // Now check what we have
@@ -31,5 +30,5 @@ extern "C" void IllinoisGRMHD_EOS_get_key(CCTK_ARGUMENTS) {
     CCTK_VError(__LINE__, __FILE__, CCTK_THORNSTRING,
                 "Unknown EOS type: %s. ABORTING!",igm_eos_type);
   }
-  
+
 }

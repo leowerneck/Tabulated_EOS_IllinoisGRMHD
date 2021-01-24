@@ -58,11 +58,12 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
     // alpha/detg = alpha/( alpha*sqrt(gamma) )
     //            = alpha/( alpha*psi^6 )
     //            = psi^{-6}
-    const CCTK_REAL psim6 = 1.0/METRIC_LAP_PSI4[PSI6];
+    const CCTK_REAL psim6 = 1.0/ METRIC_LAP_PSI4[PSI6];
 
     // Now convert from one system to the next
-    cons[RHO]    = CONSERVS[RHOSTAR] * psim6;
-    cons[UU]     = uu                * psim6; 
+    cons[RHO   ] = CONSERVS[RHOSTAR];
+    cons[UU    ] = (uu - cons[RHO])  * psim6;
+    cons[RHO   ] = cons[RHO]         * psim6;
     cons[UTCON1] = CONSERVS[STILDEX] * psim6;
     cons[UTCON2] = CONSERVS[STILDEY] * psim6;
     cons[UTCON3] = CONSERVS[STILDEZ] * psim6;

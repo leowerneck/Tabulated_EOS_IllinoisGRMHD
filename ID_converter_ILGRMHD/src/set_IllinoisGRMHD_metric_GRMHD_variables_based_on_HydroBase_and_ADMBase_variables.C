@@ -37,6 +37,15 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
    ***************/
   igm_eos_parameters eos;
   initialize_igm_eos_parameters_from_input(igm_eos_key,cctk_time,eos);
+
+  // printf("EOS parameters:\n");
+  // for(int i=0;i<eos.neos-1;i++) {
+  //   printf("%d %e %e %e\n",i,eos.K_ppoly_tab[i],eos.Gamma_ppoly_tab[i],eos.rho_ppoly_tab[i]);
+  // }
+  // printf("%d %e %e\n",eos.neos-1,eos.K_ppoly_tab[eos.neos-1],eos.Gamma_ppoly_tab[eos.neos-1]);
+
+  // getchar();
+         
   
   if(pure_hydro_run) {
 #pragma omp parallel for
@@ -360,12 +369,17 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         struct output_stats stats; stats.failure_checker=0;
         IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(zero_int,PRIMS,stats,eos,
                                                                           METRIC,g4dn,g4up,TUPMUNU,TDNMUNU,CONSERVS);
+
+        // printf("PB: %e %e %e %e %e\n",rho_b[index],P[index],vx[index],vy[index],vz[index]);
+        // printf("PA: %e %e %e %e %e\n",PRIMS[RHOB],PRIMS[PRESSURE],PRIMS[VX],PRIMS[VY],PRIMS[VZ]);
         rho_b[index] = PRIMS[RHOB];
         P[index]     = PRIMS[PRESSURE];
         vx[index]    = PRIMS[VX];
         vy[index]    = PRIMS[VY];
         vz[index]    = PRIMS[VZ];
 
+        // printf("CB: %e %e %e %e %e\n",rho_star[index],tau[index],mhd_st_x[index],mhd_st_y[index],mhd_st_z[index]);
+        // printf("CA: %e %e %e %e %e\n",CONSERVS[RHOSTAR],CONSERVS[TAUENERGY],CONSERVS[STILDEX],CONSERVS[STILDEY],CONSERVS[STILDEZ]);
         rho_star[index] = CONSERVS[RHOSTAR];
         mhd_st_x[index] = CONSERVS[STILDEX];
         mhd_st_y[index] = CONSERVS[STILDEY];

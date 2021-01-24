@@ -8,14 +8,19 @@ inline int IllinoisGRMHD_conservative_to_primitive(const int index,const int i,c
   CCTK_REAL cons[numcons];
   CCTK_REAL prim[numprims];
 
+  // printf("Inside con2prim_wrapper\n");
+
   // This is a (perhaps ugly) trick to select the con2prim routine
   // outside of the main loop below. May be best to do it at the
   // driver level, though.
-  int (*con2prim)( const igm_eos_parameters,
-                   const CCTK_REAL[4][4],const CCTK_REAL[4][4],
-                   const CCTK_REAL *restrict,CCTK_REAL *restrict ) = NULL;
-  con2prim_select( &eos.c2p_routine,con2prim );
-
+  // printf("Setting con2prim routine\n");
+  // int (*con2prim)( const igm_eos_parameters,
+  //                  const CCTK_REAL[4][4],const CCTK_REAL[4][4],
+  //                  const CCTK_REAL *restrict,CCTK_REAL *restrict ) = NULL;
+  // con2prim_select( &eos.c2p_routine,con2prim );
+  // printf("OK\n");
+  
+  
   /*
     -- Driver for new prim. var. solver.  The driver just translates
     between the two sets of definitions for U and P.  The user may
@@ -68,13 +73,20 @@ inline int IllinoisGRMHD_conservative_to_primitive(const int index,const int i,c
   for(int which_guess=startguess;which_guess<3;which_guess++) {
 
     // Set the conserved variables required by the con2prim routine
+    // printf("Setting cons\n");
     set_cons_from_PRIMS_and_CONSERVS( eos, METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
+    // printf("OK\n");
 
     // Set primitive guesses
+    // printf("Setting prim\n");
     set_prim_from_PRIMS_and_CONSERVS( eos, which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
+    // printf("OK\n");
 
     /************* Conservative-to-primitive recovery ************/
-    int check = (*con2prim)(eos, g4dn,g4up,cons, prim);
+    // printf("con2prim\n");
+    // int check = (*con2prim)(eos, g4dn,g4up,cons, prim);
+    int check = con2prim_Noble2D(eos,g4dn,g4up,cons,prim);
+    // printf("OK\n");
     /*************************************************************/
 
     // Use the new Font fix subroutine
