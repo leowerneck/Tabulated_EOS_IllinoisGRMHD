@@ -1,8 +1,8 @@
-inline int harm_primitives_gammalaw_lowlevel(const int index,const int i,const int j,const int k,CCTK_REAL *X,CCTK_REAL *Y,CCTK_REAL *Z,
-                                             CCTK_REAL *METRIC,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4,
-                                             CCTK_REAL *CONSERVS,CCTK_REAL *PRIMS,
-                                             CCTK_REAL g4dn[NDIM][NDIM],CCTK_REAL g4up[NDIM][NDIM],
-                                             struct output_stats &stats, igm_eos_parameters &eos) {
+inline int IllinoisGRMHD_conservative_to_primitive(const int index,const int i,const int j,const int k,CCTK_REAL *X,CCTK_REAL *Y,CCTK_REAL *Z,
+                                                   CCTK_REAL *METRIC,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4,
+                                                   CCTK_REAL *CONSERVS,CCTK_REAL *PRIMS,
+                                                   CCTK_REAL g4dn[NDIM][NDIM],CCTK_REAL g4up[NDIM][NDIM],
+                                                   struct output_stats &stats, igm_eos_parameters &eos) {
 
   // declare some variables for HARM.
   CCTK_REAL U[NPR];
@@ -32,6 +32,11 @@ inline int harm_primitives_gammalaw_lowlevel(const int index,const int i,const i
     METRIC_PHYS[GUPZZ] = METRIC_LAP_PSI4[PSIM4];
     }
   */
+
+  int (*con2prim)( const igm_eos_parameters,
+                   const CCTK_REAL[4][4],const CCTK_REAL[4][4],
+                   CCTK_REAL *restrict,CCTK_REAL *restrict ) = NULL;
+  con2prim_select( con2prim );
 
 
   // Note that ONE_OVER_SQRT_4PI gets us to the object
@@ -188,6 +193,7 @@ inline int harm_primitives_gammalaw_lowlevel(const int index,const int i,const i
     /*************************************************************/
     // CALL HARM PRIMITIVES SOLVER:
     check = Utoprim_2d(eos, U, g4dn, g4up, detg, prim,stats.n_iter);
+    check = (*con2prim)(eos, g4dn,g4up, prim,U);
     // Note that we have modified this solver, so that nearly 100%
     // of the time it yields either a good root, or a root with
     // negative epsilon (i.e., pressure).
@@ -300,6 +306,7 @@ inline int harm_primitives_gammalaw_lowlevel(const int index,const int i,const i
       PRIMS[VZ]       = utz_new/u0L - METRIC[SHIFTZ];
 
       return 0;
+      
     } else {
       //If we didn't find a root, then try again with a different guess.
     }
@@ -309,8 +316,6 @@ inline int harm_primitives_gammalaw_lowlevel(const int index,const int i,const i
   return 1;
 }
 
-//#include "harm_u2p_util.c"
-#include "harm_utoprim_2d.c"
 #include "eigen.C"
 #include "font_fix_hybrid_EOS.C"
 
