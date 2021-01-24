@@ -203,6 +203,14 @@ CCTK_STRING igm_PPM_reconstructed_variable "Type of EOS IllinoisGRMHD will use"
 } "pressure"
 
 restricted:
+CCTK_STRING igm_con2prim_routine "What con2prim routine is used"
+{
+  "Noble2D"              :: "2D routine in https://arxiv.org/pdf/astro-ph/0512420.pdf"
+  "Palenzuela1D"         :: "https://arxiv.org/pdf/1505.01607.pdf (see also https://arxiv.org/pdf/1712.07538.pdf for an excellent review)"
+  "Palenzuela1D_entropy" :: "Modified version of the above routine, by Leonardo Werneck"
+} "Noble2D"
+
+restricted:
 CCTK_REAL igm_freeze_T_evolution_until_cctk_time "Freeze temperature evolution until simulation time is reached"
 {
   0.0:* :: "Positive"
