@@ -19,5 +19,6 @@ SRCS =  InitSymBound.C MoL_registration.C \
     EOS_Tabulated.cc \
     con2prim_select.cc \
     con2prim_Noble2D.cc \
-    con2prim_Palenzuela1D_entropy.cc
+    con2prim_Palenzuela1D_entropy.cc \
+    con2prim_set_cons_and_prim_from_CONSERVS_and_PRIMS.cc
 
