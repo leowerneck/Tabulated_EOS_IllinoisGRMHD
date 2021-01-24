@@ -11,7 +11,9 @@
 
 #include "IllinoisGRMHD_headers.h"
 
-void initialize_igm_eos_parameters_from_input( const int *restrict igm_eos_key, igm_eos_parameters &eos ) {
+void initialize_igm_eos_parameters_from_input( const int *restrict igm_eos_key,
+                                               const CCTK_REAL cctk_time,
+                                               igm_eos_parameters &eos ) {
 
   // Set the EOS key
   eos.key = *igm_eos_key;
@@ -20,7 +22,7 @@ void initialize_igm_eos_parameters_from_input( const int *restrict igm_eos_key, 
     initialize_Hybrid_EOS_parameters_from_input(eos);
   }
   else if( eos.key == EOS_Omni_GetHandle("nuc_eos") ) {
-    initialize_Tabulated_EOS_parameters_from_input(eos);
+    initialize_Tabulated_EOS_parameters_from_input(cctk_time,eos);
   }
   else {
     CCTK_VError(VERR_DEF_PARAMS,"Unknown EOS key: %d. ABORTING!",eos.key);
