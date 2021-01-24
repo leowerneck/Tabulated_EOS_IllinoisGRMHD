@@ -16,5 +16,6 @@ SRCS =  InitSymBound.C MoL_registration.C \
     EOS_get_key.cc \
     EOS_initialize_parameters.cc \
     EOS_Hybrid.cc \
-    EOS_Tabulated.cc
+    EOS_Tabulated.cc \
+    con2prim_palenzuela_entropy.cc
 
