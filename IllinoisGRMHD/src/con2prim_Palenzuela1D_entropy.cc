@@ -4,7 +4,7 @@
 #include "cctk_Functions.h"
 
 #include "IllinoisGRMHD_headers.h"
-#include "harm_primitives_headers.h"
+#include "con2prim_headers.h"
 
 /*****************************************************************************/
 /*********** IMPORTED FROM A STRIPPED VERSION OF THE HEADER FILES ************/
@@ -63,11 +63,11 @@ double func_root_entropy(const igm_eos_parameters eos, double x, double * param,
 // -> S_{i} = \tilde{S}_{i} / sqrt(gamma)
 //
 // From the input quantities, we compute B_{i} and S^{i}
-int con2prim_palenzuela_entropy( const igm_eos_parameters eos,
-                                 const CCTK_REAL g4dn[4][4],
-                                 const CCTK_REAL g4up[4][4],
-                                 CCTK_REAL *con,
-                                 CCTK_REAL *prim ) {
+int con2prim_Palenzuela1D_entropy( const igm_eos_parameters eos,
+                                   const CCTK_REAL g4dn[4][4],
+                                   const CCTK_REAL g4up[4][4],
+                                   CCTK_REAL *con,
+                                   CCTK_REAL *prim ) {
 
   // Compute scalars needed by the con2prim routine      
   // Lower indices - covariant
