@@ -9,6 +9,90 @@
 
 #include "IllinoisGRMHD_headers.h"
 
+/* Function    : initialize_igm_eos_parameters_from_input()
+ * Authors     : Leo Werneck
+ * Description : Initialize the eos struct from user
+ *               input
+ * Dependencies: setup_K_ppoly_tab__and__eps_integ_consts()
+ *             : cctk_parameters.h (FIXME)
+ *
+ * Inputs      : eos             - a struct containing the following
+ *                                 relevant quantities:
+ *             : neos            - number of polytropic EOSs used
+ *             : rho_ppoly_tab   - array of rho values that determine
+ *                                 the polytropic EOS to be used.
+ *             : Gamma_ppoly_tab - array of Gamma_cold values to be
+ *                                 used in each polytropic EOS.
+ *             : K_ppoly_tab     - array of K_ppoly_tab values to be used
+ *                                 in each polytropic EOS.
+ *             : eps_integ_const - array of C_{j} values, which are the
+ *                                 integration constants that arrise when
+ *                                 determining eps_{cold} for a piecewise
+ *                                 polytropic EOS.
+ *
+ * Outputs     : eos             - fully initialized EOS struct
+ */
+void initialize_Hybrid_EOS_parameters_from_input(igm_eos_parameters &eos) {
+
+  // Initialize: neos, {rho_{j}}, {K_{0}}, and {Gamma_{j}}
+#ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
+  DECLARE_CCTK_PARAMETERS;
+#endif
+
+  // In the Hybrid EOS case we allow reconstruction
+  // of either the pressure or the entropy.
+  if( CCTK_EQUALS(igm_PPM_reconstructed_variable,"pressure") ) {
+    eos.PPM_reconstructed_var = PRESSURE;
+  }
+  else if( CCTK_EQUALS(igm_PPM_reconstructed_variable,"entropy") ) {
+    eos.PPM_reconstructed_var = ENTROPY;
+  }
+  else {
+    CCTK_VError(VERR_DEF_PARAMS,
+                "PPM reconstruction of variable \"%s\" not supported with Hybrid EOS. "
+                "Can only reconstruct: pressure, entropy. ABORTING!",
+                igm_PPM_reconstructed_variable);
+  }
+
+  eos.neos = neos;
+  eos.K_ppoly_tab[0] = K_ppoly_tab0;
+  for(int j=0; j<=neos-2; j++) eos.rho_ppoly_tab[j]   = rho_ppoly_tab_in[j];
+  for(int j=0; j<=neos-1; j++) eos.Gamma_ppoly_tab[j] = Gamma_ppoly_tab_in[j];
+
+  // Initialize {K_{j}}, j>=1, and {eps_integ_const_{j}}
+  setup_K_ppoly_tab__and__eps_integ_consts(eos);
+
+  // --------- Atmospheric values ---------
+  // Compute P and eps atm
+  CCTK_REAL P_atm,eps_atm;
+  compute_P_cold__eps_cold(eos,rho_b_atm,P_atm,eps_atm);
+  // Set atmospheric values
+  eos.rho_atm = rho_b_atm;
+  eos.P_atm   = P_atm;
+  eos.eps_atm = eps_atm;
+  eos.tau_atm = tau_atm;
+  // --------------------------------------
+
+  // -------------- Ceilings --------------
+  // Compute maximum P and eps
+  CCTK_REAL P_max,eps_max;
+  compute_P_cold__eps_cold(eos,rho_b_max,P_max,eps_max);
+  // Set maximum values
+  eos.rho_max = rho_b_max;
+  eos.P_max   = P_max;
+  eos.eps_max = eps_max;
+  eos.W_max   = GAMMA_SPEED_LIMIT;
+  // --------------------------------------
+
+  // --------------- Floors ---------------
+  // We'll choose these as the atmospheric values
+  eos.rho_min = eos.rho_atm;
+  eos.P_min   = eos.P_atm;
+  eos.eps_min = eos.eps_atm;
+  // --------------------------------------
+  
+}
+
 /* Function    : setup_K_ppoly_tab__and__eps_integ_consts()
  * Authors     : Leo Werneck
  * Description : For a given set of EOS inputs, determine
@@ -123,54 +207,6 @@ void setup_K_ppoly_tab__and__eps_integ_consts(igm_eos_parameters &eos) {
     eos.eps_integ_const[j] = eos.eps_integ_const[j-1] + aux_epsm1 - aux_epsp0;
   }
 }
-
-
-/* Function    : initialize_igm_eos_parameters_from_input()
- * Authors     : Leo Werneck
- * Description : Initialize the eos struct from user
- *               input
- * Dependencies: setup_K_ppoly_tab__and__eps_integ_consts()
- *             : cctk_parameters.h (FIXME)
- *
- * Inputs      : eos             - a struct containing the following
- *                                 relevant quantities:
- *             : neos            - number of polytropic EOSs used
- *             : rho_ppoly_tab   - array of rho values that determine
- *                                 the polytropic EOS to be used.
- *             : Gamma_ppoly_tab - array of Gamma_cold values to be
- *                                 used in each polytropic EOS.
- *             : K_ppoly_tab     - array of K_ppoly_tab values to be used
- *                                 in each polytropic EOS.
- *             : eps_integ_const - array of C_{j} values, which are the
- *                                 integration constants that arrise when
- *                                 determining eps_{cold} for a piecewise
- *                                 polytropic EOS.
- *
- * Outputs     : eos             - fully initialized EOS struct
- */
-void initialize_Hybrid_EOS_parameters_from_input(igm_eos_parameters &eos) {
-  /* We start by setting up the igm_eos_parameters
-   * with the inputs given by the user at
-   * the start of the simulation. Keep in
-   * mind that these parameters are found
-   * in the "cctk_parameters.h" header file.
-   *        ^^^^^^^FIXME^^^^^^^
-   */
-
-  // Initialize: neos, {rho_{j}}, {K_{0}}, and {Gamma_{j}}
-#ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
-  DECLARE_CCTK_PARAMETERS;
-#endif
-
-  eos.neos = neos;
-  eos.K_ppoly_tab[0] = K_ppoly_tab0;
-  for(int j=0; j<=neos-2; j++) eos.rho_ppoly_tab[j]   = rho_ppoly_tab_in[j];
-  for(int j=0; j<=neos-1; j++) eos.Gamma_ppoly_tab[j] = Gamma_ppoly_tab_in[j];
-
-  // Initialize {K_{j}}, j>=1, and {eps_integ_const_{j}}
-  setup_K_ppoly_tab__and__eps_integ_consts(eos);
-}
-
 
 /* Function    : find_polytropic_K_and_Gamma_index()
  * Authors     : Leo Werneck & Zach Etienne
