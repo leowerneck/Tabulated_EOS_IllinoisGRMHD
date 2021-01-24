@@ -44,6 +44,11 @@
 #ifndef HARM_PRIMITIVES_HEADERS_H_
 #define HARM_PRIMITIVES_HEADERS_H_
 
+// These are used to select the con2prim routine
+static const int Noble2D              = 0;
+static const int Palenzuela1D         = 1;
+static const int Palenzuela1D_entropy = 2;
+
 static const int NPR =8;
 static const int NDIM=4;
 
@@ -126,36 +131,35 @@ static const int numcons  =10; // D, tau, S_{x,y,z}, B^{x,y,z}, DYe, DS
 
 /********************************************************************************************/
 // Function prototype declarations:
-int Utoprim_2d(igm_eos_parameters eos, CCTK_REAL U[NPR], CCTK_REAL gcov[NDIM][NDIM], CCTK_REAL gcon[NDIM][NDIM],
-               CCTK_REAL gdet, CCTK_REAL prim[NPR], long &n_iter);
 
-void con2prim_select( int (*con2prim)( const igm_eos_parameters,
+void con2prim_select( int* c2p_key,
+                      int (*con2prim)( const igm_eos_parameters,
                                        const CCTK_REAL[4][4],const CCTK_REAL[4][4],
-                                       CCTK_REAL*,CCTK_REAL* ) );
+                                       const CCTK_REAL *restrict,CCTK_REAL *restrict ) );
 
 int con2prim_Noble2D( const igm_eos_parameters eos,
                       const CCTK_REAL g4dn[4][4],
                       const CCTK_REAL g4up[4][4],
-                      CCTK_REAL *restrict con,
+                      const CCTK_REAL *restrict cons,
                       CCTK_REAL *restrict prim );
 
 int con2prim_Palenzuela1D( const igm_eos_parameters eos,
                            const CCTK_REAL g4dn[4][4],
                            const CCTK_REAL g4up[4][4],
-                           CCTK_REAL *restrict con,
+                           const CCTK_REAL *restrict cons,
                            CCTK_REAL *restrict prim );
 
 int con2prim_Palenzuela1D_entropy( const igm_eos_parameters eos,
                                    const CCTK_REAL g4dn[4][4],
                                    const CCTK_REAL g4up[4][4],
-                                   CCTK_REAL *restrict con,
+                                   const CCTK_REAL *restrict cons,
                                    CCTK_REAL *restrict prim );
 
 inline int IllinoisGRMHD_conservative_to_primitive(const int index,const int i,const int j,const int k,CCTK_REAL *X,CCTK_REAL *Y,CCTK_REAL *Z,
                                                    CCTK_REAL *METRIC,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4,
                                                    CCTK_REAL *CONSERVS,CCTK_REAL *PRIMS,
                                                    CCTK_REAL g4dn[NDIM][NDIM],CCTK_REAL g4up[NDIM][NDIM],
-                                                   output_stats &stats,igm_eos_parameters &eos);
+                                                   output_stats& stats,igm_eos_parameters& eos);
 
 inline int font_fix__hybrid_EOS(CCTK_REAL &u_x, CCTK_REAL &u_y, CCTK_REAL &u_z,CCTK_REAL *CONSERVS,CCTK_REAL *PRIMS,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4, igm_eos_parameters eos);
 void eigenvalues_3by3_real_sym_matrix(CCTK_REAL & lam1, CCTK_REAL & lam2, CCTK_REAL & lam3,
@@ -166,6 +170,22 @@ void lower_g(CCTK_REAL vcon[NDIM], CCTK_REAL gcov[NDIM][NDIM], CCTK_REAL vcov[ND
 void ncov_calc(CCTK_REAL gcon[NDIM][NDIM],CCTK_REAL ncov[NDIM]);
 CCTK_REAL pressure_rho0_u(igm_eos_parameters eos, CCTK_REAL rho0, CCTK_REAL u);
 CCTK_REAL pressure_rho0_w(igm_eos_parameters eos, CCTK_REAL rho0, CCTK_REAL w);
+
+void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
+                                       const CCTK_REAL *restrict METRIC,
+                                       const CCTK_REAL *restrict METRIC_LAP_PSI4,
+                                       const CCTK_REAL *restrict PRIMS,
+                                       const CCTK_REAL *restrict CONSERVS,
+                                       CCTK_REAL *restrict cons);
+
+void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
+                                       const int which_guess,
+                                       const CCTK_REAL *restrict METRIC,
+                                       const CCTK_REAL *restrict METRIC_LAP_PSI4,
+                                       const CCTK_REAL *restrict PRIMS,
+                                       const CCTK_REAL *restrict CONSERVS,
+                                       const CCTK_REAL *restrict cons,
+                                       CCTK_REAL *restrict prim );
 
 /********************************************************************************************/
 
