@@ -27,7 +27,7 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
    * function.
    */
   igm_eos_parameters eos;
-  initialize_igm_eos_parameters_from_input(igm_eos_key,eos);
+  initialize_igm_eos_parameters_from_input(igm_eos_key,cctk_time,eos);
 
   /* For diagnostic and user convenience purposes, we print
    * out the EOS parameters (rho_ppoly_tab, K_ppoly_tab,
