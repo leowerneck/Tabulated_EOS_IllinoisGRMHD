@@ -11,9 +11,7 @@
 
 #include "IllinoisGRMHD_headers.h"
 
-void initialize_igm_eos_parameters_from_input( const int* igm_eos_key, igm_eos_parameters &eos ) {
-
-  DECLARE_CCTK_PARAMETERS;
+void initialize_igm_eos_parameters_from_input( const int *restrict igm_eos_key, igm_eos_parameters &eos ) {
 
   // Set the EOS key
   eos.key = *igm_eos_key;
@@ -25,7 +23,7 @@ void initialize_igm_eos_parameters_from_input( const int* igm_eos_key, igm_eos_p
     initialize_Tabulated_EOS_parameters_from_input(eos);
   }
   else {
-    CCTK_VError(VERR_DEF_PARAMS,"Unknown EOS key: %d (obtained from EOS type: %s). ABORTING!",eos.key,igm_eos_type);
+    CCTK_VError(VERR_DEF_PARAMS,"Unknown EOS key: %d. ABORTING!",eos.key);
   }
   
 }
