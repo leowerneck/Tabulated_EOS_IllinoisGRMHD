@@ -73,14 +73,18 @@ utoprim_2d.c:
 static const int NEWT_DIM=2;
 
 // Declarations:
-static CCTK_REAL vsq_calc(CCTK_REAL W,CCTK_REAL &Bsq,CCTK_REAL &QdotBsq,CCTK_REAL &Qtsq,CCTK_REAL &Qdotn,CCTK_REAL &D);
-static int Utoprim_new_body(igm_eos_parameters eos, CCTK_REAL U[], CCTK_REAL gcov[NDIM][NDIM], CCTK_REAL gcon[NDIM][NDIM], CCTK_REAL gdet,  CCTK_REAL prim[],long &n_iter);
-static int general_newton_raphson( igm_eos_parameters eos, CCTK_REAL x[], int n, long &n_iter, void (*funcd) (igm_eos_parameters, CCTK_REAL [], CCTK_REAL [], CCTK_REAL [], CCTK_REAL [][NEWT_DIM], CCTK_REAL *, CCTK_REAL *, int,CCTK_REAL &,CCTK_REAL &,CCTK_REAL &,CCTK_REAL &,CCTK_REAL &),CCTK_REAL &Bsq,CCTK_REAL &QdotBsq,CCTK_REAL &Qtsq,CCTK_REAL &Qdotn,CCTK_REAL &D);
-static void func_vsq( igm_eos_parameters eos, CCTK_REAL [], CCTK_REAL [], CCTK_REAL [], CCTK_REAL [][NEWT_DIM], CCTK_REAL *f, CCTK_REAL *df, int n,CCTK_REAL &Bsq,CCTK_REAL &QdotBsq,CCTK_REAL &Qtsq,CCTK_REAL &Qdotn,CCTK_REAL &D);
-static CCTK_REAL x1_of_x0(CCTK_REAL x0, CCTK_REAL &Bsq, CCTK_REAL &QdotBsq, CCTK_REAL &Qtsq, CCTK_REAL &Qdotn, CCTK_REAL &D ) ;
-static CCTK_REAL pressure_W_vsq(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_REAL &D) ;
-static CCTK_REAL dpdW_calc_vsq(CCTK_REAL W, CCTK_REAL vsq);
-static CCTK_REAL dpdvsq_calc(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_REAL &D);
+CCTK_REAL vsq_calc(CCTK_REAL W,CCTK_REAL &Bsq,CCTK_REAL &QdotBsq,CCTK_REAL &Qtsq,CCTK_REAL &Qdotn,CCTK_REAL &D);
+int general_newton_raphson( igm_eos_parameters eos, CCTK_REAL x[], int n, void (*funcd) (igm_eos_parameters, CCTK_REAL [], CCTK_REAL [], CCTK_REAL [], CCTK_REAL [][NEWT_DIM], CCTK_REAL *, CCTK_REAL *, int,CCTK_REAL &,CCTK_REAL &,CCTK_REAL &,CCTK_REAL &,CCTK_REAL &),CCTK_REAL &Bsq,CCTK_REAL &QdotBsq,CCTK_REAL &Qtsq,CCTK_REAL &Qdotn,CCTK_REAL &D);
+void func_vsq( igm_eos_parameters eos, CCTK_REAL [], CCTK_REAL [], CCTK_REAL [], CCTK_REAL [][NEWT_DIM], CCTK_REAL *f, CCTK_REAL *df, int n,CCTK_REAL &Bsq,CCTK_REAL &QdotBsq,CCTK_REAL &Qtsq,CCTK_REAL &Qdotn,CCTK_REAL &D);
+CCTK_REAL x1_of_x0(CCTK_REAL x0, CCTK_REAL &Bsq, CCTK_REAL &QdotBsq, CCTK_REAL &Qtsq, CCTK_REAL &Qdotn, CCTK_REAL &D ) ;
+CCTK_REAL pressure_W_vsq(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_REAL &D) ;
+CCTK_REAL dpdW_calc_vsq(CCTK_REAL W, CCTK_REAL vsq);
+CCTK_REAL dpdvsq_calc(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_REAL &D);
+int Utoprim_new_body(const igm_eos_parameters eos,
+                     const CCTK_REAL *restrict U,
+                     const CCTK_REAL gcov[NDIM][NDIM],
+                     const CCTK_REAL gcon[NDIM][NDIM],
+                     CCTK_REAL *restrict prim);
 
 /**********************************************************************/
 /******************************************************************
@@ -119,54 +123,13 @@ static CCTK_REAL dpdvsq_calc(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq,
 ******************************************************************/
 
 
-int Utoprim_2d(igm_eos_parameters eos, CCTK_REAL U[NPR], CCTK_REAL gcov[NDIM][NDIM], CCTK_REAL gcon[NDIM][NDIM],
-               CCTK_REAL gdet, CCTK_REAL prim[NPR], long &n_iter)
-{
+int con2prim_Noble2D( const igm_eos_parameters eos,
+                      const CCTK_REAL g4dn[4][4],
+                      const CCTK_REAL g4up[4][4],
+                      const CCTK_REAL *restrict cons,
+                      CCTK_REAL *restrict prim ) {
 
-  CCTK_REAL U_tmp[NPR], prim_tmp[NPR];
-  int i, ret;
-  CCTK_REAL alpha;
-
-  if( U[0] <= 0. ) {
-    return(-100);
-  }
-
-  /* First update the primitive B-fields */
-  for(i = BCON1; i <= BCON3; i++) prim[i] = U[i] / gdet ;
-
-  /* Set the geometry variables: */
-  alpha = 1.0/sqrt(-gcon[0][0]);
-
-
-  /* Transform the CONSERVED variables into the new system */
-  U_tmp[RHO] = alpha * U[RHO] / gdet;
-  U_tmp[UU]  = alpha * (U[UU] - U[RHO])  / gdet ;
-  for( i = UTCON1; i <= UTCON3; i++ ) {
-    U_tmp[i] = alpha * U[i] / gdet ;
-  }
-  for( i = BCON1; i <= BCON3; i++ ) {
-    U_tmp[i] = alpha * U[i] / gdet ;
-  }
-
-
-  /* Transform the PRIMITIVE variables into the new system */
-  for( i = 0; i < BCON1; i++ ) {
-    prim_tmp[i] = prim[i];
-  }
-  for( i = BCON1; i <= BCON3; i++ ) {
-    prim_tmp[i] = alpha*prim[i];
-  }
-
-  ret = Utoprim_new_body(eos, U_tmp, gcov, gcon, gdet, prim_tmp,n_iter);
-
-  /* Transform new primitive variables back if there was no problem : */
-  if( ret == 0 || ret == 5 || ret==101 ) {
-    for( i = 0; i < BCON1; i++ ) {
-      prim[i] = prim_tmp[i];
-    }
-  }
-
-  return( ret ) ;
+  return( Utoprim_new_body(eos, cons, g4dn, g4up, prim) );
 
 }
 
@@ -212,8 +175,11 @@ return:  (i*100 + j)  where
 
 **********************************************************************************/
 
-static int Utoprim_new_body(igm_eos_parameters eos, CCTK_REAL U[NPR], CCTK_REAL gcov[NDIM][NDIM],
-                            CCTK_REAL gcon[NDIM][NDIM], CCTK_REAL gdet,  CCTK_REAL prim[NPR], long &n_iter)
+int Utoprim_new_body(const igm_eos_parameters eos,
+                     const CCTK_REAL *restrict U,
+                     const CCTK_REAL gcov[NDIM][NDIM],
+                     const CCTK_REAL gcon[NDIM][NDIM],
+                     CCTK_REAL *restrict prim)
 {
 
   CCTK_REAL x_2d[NEWT_DIM];
@@ -303,7 +269,7 @@ static int Utoprim_new_body(igm_eos_parameters eos, CCTK_REAL U[NPR], CCTK_REAL 
   // Calculate W and vsq:
   x_2d[0] =  fabs( W_last );
   x_2d[1] = x1_of_x0( W_last , Bsq,QdotBsq,Qtsq,Qdotn,D) ;
-  retval = general_newton_raphson( eos, x_2d, n, n_iter, func_vsq, Bsq,QdotBsq,Qtsq,Qdotn,D) ;
+  retval = general_newton_raphson( eos, x_2d, n, func_vsq, Bsq,QdotBsq,Qtsq,Qdotn,D) ;
 
   W = x_2d[0];
   vsq = x_2d[1];
@@ -378,7 +344,7 @@ static int Utoprim_new_body(igm_eos_parameters eos, CCTK_REAL U[NPR], CCTK_REAL 
             W = \gamma^2 w
 
 ****************************************************************************/
-static CCTK_REAL vsq_calc(CCTK_REAL W,CCTK_REAL &Bsq,CCTK_REAL &QdotBsq,CCTK_REAL &Qtsq,CCTK_REAL &Qdotn,CCTK_REAL &D)
+CCTK_REAL vsq_calc(CCTK_REAL W,CCTK_REAL &Bsq,CCTK_REAL &QdotBsq,CCTK_REAL &Qtsq,CCTK_REAL &Qdotn,CCTK_REAL &D)
 {
   CCTK_REAL Wsq,Xsq;
 
@@ -400,7 +366,7 @@ static CCTK_REAL vsq_calc(CCTK_REAL W,CCTK_REAL &Bsq,CCTK_REAL &QdotBsq,CCTK_REA
 
 *********************************************************************/
 
-static CCTK_REAL x1_of_x0(CCTK_REAL x0, CCTK_REAL &Bsq, CCTK_REAL &QdotBsq, CCTK_REAL &Qtsq, CCTK_REAL &Qdotn, CCTK_REAL &D )
+CCTK_REAL x1_of_x0(CCTK_REAL x0, CCTK_REAL &Bsq, CCTK_REAL &QdotBsq, CCTK_REAL &Qtsq, CCTK_REAL &Qdotn, CCTK_REAL &D )
 {
   CCTK_REAL vsq;
   CCTK_REAL dv = 1.e-15;
@@ -422,7 +388,7 @@ static CCTK_REAL x1_of_x0(CCTK_REAL x0, CCTK_REAL &Bsq, CCTK_REAL &QdotBsq, CCTK
 
 *********************************************************************/
 
-static void validate_x(CCTK_REAL x[2], CCTK_REAL x0[2] )
+void validate_x(CCTK_REAL x[2], CCTK_REAL x0[2] )
 {
 
   CCTK_REAL dv = 1.e-15;
@@ -449,26 +415,25 @@ static void validate_x(CCTK_REAL x[2], CCTK_REAL x0[2] )
     -- inspired in part by Num. Rec.'s routine newt();
 
 *****************************************************************/
-static int general_newton_raphson( igm_eos_parameters eos, CCTK_REAL x[], int n, long &n_iter,
-                                   void (*funcd) (igm_eos_parameters, CCTK_REAL [], CCTK_REAL [], CCTK_REAL [],
-                                                  CCTK_REAL [][NEWT_DIM], CCTK_REAL *,
-                                                  CCTK_REAL *, int,CCTK_REAL &,CCTK_REAL &,CCTK_REAL &,CCTK_REAL &,CCTK_REAL &),CCTK_REAL &Bsq,CCTK_REAL &QdotBsq,CCTK_REAL &Qtsq,CCTK_REAL &Qdotn,CCTK_REAL &D)
+int general_newton_raphson( igm_eos_parameters eos, CCTK_REAL x[], int n,
+                            void (*funcd) (igm_eos_parameters, CCTK_REAL [], CCTK_REAL [], CCTK_REAL [],
+                                           CCTK_REAL [][NEWT_DIM], CCTK_REAL *,
+                                           CCTK_REAL *, int,CCTK_REAL &,CCTK_REAL &,CCTK_REAL &,CCTK_REAL &,CCTK_REAL &),CCTK_REAL &Bsq,CCTK_REAL &QdotBsq,CCTK_REAL &Qtsq,CCTK_REAL &Qdotn,CCTK_REAL &D)
 {
   CCTK_REAL f, df, dx[NEWT_DIM], x_old[NEWT_DIM];
   CCTK_REAL resid[NEWT_DIM], jac[NEWT_DIM][NEWT_DIM];
   CCTK_REAL errx, x_orig[NEWT_DIM];
   int    id, i_extra, doing_extra;
-
+  int n_iter;
   int   keep_iterating;
 
 
   // Initialize various parameters and variables:
+  n_iter = 0;
   errx = 1. ;
   df = f = 1.;
   i_extra = doing_extra = 0;
   for( id = 0; id < n ; id++)  x_old[id] = x_orig[id] = x[id] ;
-
-  n_iter = 0;
 
   /* Start the Newton-Raphson iterations : */
   keep_iterating = 1;
@@ -561,9 +526,9 @@ static int general_newton_raphson( igm_eos_parameters eos, CCTK_REAL x[], int n,
          n    = dimension of x[];
 *********************************************************************************/
 
-static void func_vsq(igm_eos_parameters eos, CCTK_REAL x[], CCTK_REAL dx[], CCTK_REAL resid[],
-                     CCTK_REAL jac[][NEWT_DIM], CCTK_REAL *f, CCTK_REAL *df, int n,
-                     CCTK_REAL &Bsq,CCTK_REAL &QdotBsq,CCTK_REAL &Qtsq,CCTK_REAL &Qdotn,CCTK_REAL &D)
+void func_vsq(igm_eos_parameters eos, CCTK_REAL x[], CCTK_REAL dx[], CCTK_REAL resid[],
+              CCTK_REAL jac[][NEWT_DIM], CCTK_REAL *f, CCTK_REAL *df, int n,
+              CCTK_REAL &Bsq,CCTK_REAL &QdotBsq,CCTK_REAL &Qtsq,CCTK_REAL &Qdotn,CCTK_REAL &D)
 {
 
 
@@ -677,7 +642,7 @@ static void func_vsq(igm_eos_parameters eos, CCTK_REAL x[], CCTK_REAL dx[], CCTK
         -- Hybrid single and piecewise polytropic equation of state;
         -- pressure as a function of P_cold, eps_cold, W, vsq, and D:
 **********************************************************************/
-static CCTK_REAL pressure_W_vsq(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_REAL &D)
+CCTK_REAL pressure_W_vsq(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_REAL &D)
 {
 
 #ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
@@ -708,7 +673,7 @@ static CCTK_REAL pressure_W_vsq(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL v
 
       -- partial derivative of pressure with respect to W;
 **********************************************************************/
-static CCTK_REAL dpdW_calc_vsq(CCTK_REAL W, CCTK_REAL vsq)
+CCTK_REAL dpdW_calc_vsq(CCTK_REAL W, CCTK_REAL vsq)
 {
 
 #ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
@@ -726,7 +691,7 @@ static CCTK_REAL dpdW_calc_vsq(CCTK_REAL W, CCTK_REAL vsq)
 
       -- partial derivative of pressure with respect to vsq
 **********************************************************************/
-static CCTK_REAL dpdvsq_calc(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_REAL &D)
+CCTK_REAL dpdvsq_calc(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_REAL &D)
 {
 
   // This sets Gamma_th
