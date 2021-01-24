@@ -67,7 +67,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
    * function.
    */
   igm_eos_parameters eos;
-  initialize_igm_eos_parameters_from_input(igm_eos_key,eos);
+  initialize_igm_eos_parameters_from_input(igm_eos_key,cctk_time,eos);
 
 
   // These BSSN-based variables are not evolved, and so are not defined anywhere that the grid has moved.
@@ -247,7 +247,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
         if(CONSERVS[RHOSTAR]>0.0) {
           // Apply the tau floor
-          apply_tau_floor(index,tau_atm,rho_b_atm,Psi6threshold,PRIMS,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,stats,eos,  CONSERVS);
+          apply_tau_floor(index,Psi6threshold,PRIMS,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,stats,eos,  CONSERVS);
 
           stats.font_fixed=0;
           for(int ii=0;ii<3;ii++) {
@@ -259,18 +259,11 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         } else {
           stats.failure_checker+=1;
           // Set to atmosphere if rho_star<0.
-          //FIXME: FOR GAMMA=2 ONLY:
-          PRIMS[RHOB] = rho_b_atm;
-
-          /* Set P = P_cold */
-          int polytropic_index = find_polytropic_K_and_Gamma_index(eos, rho_b_atm);
-          CCTK_REAL K_ppoly_tab     = eos.K_ppoly_tab[polytropic_index];
-          CCTK_REAL Gamma_ppoly_tab = eos.Gamma_ppoly_tab[polytropic_index];
-          PRIMS[PRESSURE]      = K_ppoly_tab*pow(rho_b_atm,Gamma_ppoly_tab);
-
-          PRIMS[VX]        =-METRIC[SHIFTX];
-          PRIMS[VY]        =-METRIC[SHIFTY];
-          PRIMS[VZ]        =-METRIC[SHIFTZ];
+          PRIMS[RHOB    ] =  eos.rho_atm;
+          PRIMS[PRESSURE] =  eos.P_atm;
+          PRIMS[VX      ] = -METRIC[SHIFTX];
+          PRIMS[VY      ] = -METRIC[SHIFTY];
+          PRIMS[VZ      ] = -METRIC[SHIFTZ];
 
           rho_star_fix_applied++;
         }
@@ -281,18 +274,18 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(already_computed_physical_metric_and_inverse,PRIMS,stats,eos,METRIC,g4dn,g4up, TUPMUNU,TDNMUNU,CONSERVS);
 
 
-        rho_star[index] = CONSERVS[RHOSTAR];
-        mhd_st_x[index] = CONSERVS[STILDEX];
-        mhd_st_y[index] = CONSERVS[STILDEY];
-        mhd_st_z[index] = CONSERVS[STILDEZ];
-        tau[index] = CONSERVS[TAUENERGY];
+        rho_star[index] = CONSERVS[RHOSTAR  ];
+        mhd_st_x[index] = CONSERVS[STILDEX  ];
+        mhd_st_y[index] = CONSERVS[STILDEY  ];
+        mhd_st_z[index] = CONSERVS[STILDEZ  ];
+        tau[index]      = CONSERVS[TAUENERGY];
 
         // Set primitives, and/or provide a better guess.
-        rho_b[index] = PRIMS[RHOB];
+        rho_b[index] = PRIMS[RHOB    ];
         P[index]     = PRIMS[PRESSURE];
-        vx[index]    = PRIMS[VX];
-        vy[index]    = PRIMS[VY];
-        vz[index]    = PRIMS[VZ];
+        vx[index]    = PRIMS[VX      ];
+        vy[index]    = PRIMS[VY      ];
+        vz[index]    = PRIMS[VZ      ];
 
 
         if(update_Tmunu) {
