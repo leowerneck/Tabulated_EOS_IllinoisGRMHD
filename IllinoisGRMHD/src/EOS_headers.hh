@@ -24,9 +24,13 @@ typedef struct _igm_eos_parameters_ {
   // Which variable to reconstruct in PPM
   CCTK_INT PPM_reconstructed_var;
   // Whether or not to evolve the entropy
-  bool evolve_entropy;
-  // Atmospheric density
-  CCTK_REAL rho_b_atm;
+  bool evolve_T,evolve_entropy;
+  // Baryonic density parameters
+  CCTK_REAL rho_atm, rho_min, rho_max;
+  // Atmospheric tau
+  CCTK_REAL tau_atm;
+  // Maximum Lorentz factor
+  CCTK_REAL W_max;
   //------------------------------------------------
 
   //----------- Hybrid Equation of State -----------
@@ -43,16 +47,16 @@ typedef struct _igm_eos_parameters_ {
   //------------------------------------------------
 
   //---------- Tabulated Equation of State ---------
-  // Atmospheric electron fraction
-  CCTK_REAL Ye_atm;
-  // Atmospheric temperature
-  CCTK_REAL T_atm;
-  // Atmospheric pressure
-  CCTK_REAL P_atm;
-  // Atmospheric specific internal energy
-  CCTK_REAL eps_atm;
-  // Atmospheric entropy
-  CCTK_REAL S_atm;
+  // Electron fraction parameters
+  CCTK_REAL Ye_atm , Ye_min , Ye_max ;
+  // Temperature parameters
+  CCTK_REAL T_atm  , T_min  , T_max  ;
+  // Pressure parameters
+  CCTK_REAL P_atm  , P_min  , P_max  ;
+  // Specific internal energy parameters
+  CCTK_REAL eps_atm, eps_min, eps_max;
+  // Entropy parameters
+  CCTK_REAL S_atm  , S_min  , S_max  ;
   // Root-finding precision for table inversions
   CCTK_REAL root_finding_precision;
   //------------------------------------------------
@@ -60,7 +64,7 @@ typedef struct _igm_eos_parameters_ {
 } igm_eos_parameters;
 //------------------------------------------------
 
-void initialize_igm_eos_parameters_from_input( const int* igm_eos_key, igm_eos_parameters &eos );
+void initialize_igm_eos_parameters_from_input( const int* igm_eos_key, const CCTK_REAL cctk_time, igm_eos_parameters &eos );
 
 //----------- Hybrid Equation of State -----------
 void print_EOS_Hybrid( igm_eos_parameters eos );
@@ -75,7 +79,7 @@ void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold( CCTK_REAL *U,
 //------------------------------------------------
 
 //---------- Tabulated Equation of State ---------
-void initialize_Tabulated_EOS_parameters_from_input( igm_eos_parameters& eos );
+void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time, igm_eos_parameters& eos );
 
 void get_P_and_eps_from_rho_Ye_and_T( const igm_eos_parameters eos,
                                       const CCTK_REAL rho,
@@ -91,6 +95,14 @@ void get_P_eps_and_S_from_rho_Ye_and_T( const igm_eos_parameters eos,
                                         CCTK_REAL *restrict P,
                                         CCTK_REAL *restrict eps,
                                         CCTK_REAL *restrict S );
+
+void get_P_eps_and_T_from_rho_Ye_and_S( const igm_eos_parameters eos,
+                                        const CCTK_REAL rho,
+                                        const CCTK_REAL Y_e,
+                                        const CCTK_REAL S,
+                                        CCTK_REAL *restrict P,
+                                        CCTK_REAL *restrict eps,
+                                        CCTK_REAL *restrict T );
 //------------------------------------------------
 
 #endif // __EOS_HEADERS__
