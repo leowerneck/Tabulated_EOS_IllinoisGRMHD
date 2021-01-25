@@ -520,3 +520,18 @@ void print_EOS_Hybrid( igm_eos_parameters eos ) {
     }
   }
 }
+
+void compute_entropy_function( const igm_eos_parameters eos,
+                               const CCTK_REAL rho,
+                               const CCTK_REAL P,
+                               CCTK_REAL *restrict S ) {
+  // This function sets the entropy funtion:
+  //
+  // S = P / rho^(Gamma-1)
+  //
+  // See eq. (20) in https://arxiv.org/pdf/0808.3140.pdf
+  const CCTK_INT  index = find_polytropic_K_and_Gamma_index(eos,rho);
+  const CCTK_REAL Gamma = eos.Gamma_ppoly_tab[index];
+  // Now compute S
+  *S = P * pow(rho,1.0-Gamma);
+}
