@@ -148,8 +148,8 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         PRIMS[VY           ] = vy[index];
         PRIMS[VZ           ] = vz[index];
         PRIMS[BX_CENTER    ] = Bx[index];
-        PRIMS[BX_CENTER    ] = By[index];
-        PRIMS[BX_CENTER    ] = Bz[index];
+        PRIMS[BY_CENTER    ] = By[index];
+        PRIMS[BZ_CENTER    ] = Bz[index];
 
         CCTK_REAL CONSERVS[NUM_CONSERVS];
         CONSERVS[RHOSTAR  ] = rho_star[index];
@@ -303,7 +303,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         vx[index]                = PRIMS[VX          ];
         vy[index]                = PRIMS[VY          ];
         vz[index]                = PRIMS[VZ          ];
-            
+
         // Tabulated EOS quantities
         if( eos.is_Tabulated ) {
           // Primitives
