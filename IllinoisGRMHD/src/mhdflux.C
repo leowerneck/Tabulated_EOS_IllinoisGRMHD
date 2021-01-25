@@ -108,6 +108,31 @@ static inline void mhdflux( const igm_eos_parameters eos,
   // HLL step for rho_star:
   rho_star_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(rho_star_r-rho_star_l) )/(cmaxL + cminL);
 
+  //*********************************************************************
+  // Electron fraction flux = Ye_* v^m, where m is the current flux direction (the m index)
+  //*********************************************************************
+  if( eos.is_Tabulated ) {
+    CCTK_REAL Ye_star_r = rho_star_r * Ur[YEPRIM];
+    CCTK_REAL Ye_Star_l = rho_star_l * Ul[YEPRIM];
+    Fr = Ye_star_r*Ur[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ur[VX] -> Ur[VY]
+    Fl = Ye_star_l*Ul[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ul[VX] -> Ul[VY]
+
+    // HLL step for Ye_star:
+    Ye_star_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(Ye_star_r-Ye_star_l) )/(cmaxL + cminL);
+  }
+
+  //*********************************************************************
+  // Entropy flux = S_* v^m, where m is the current flux direction (the m index)
+  //*********************************************************************
+  if( eos.evolve_entropy ) {
+    CCTK_REAL S_star_r = alpha_sqrt_gamma*Ur[ENTROPY]*u0_r;
+    CCTK_REAL S_Star_l = alpha_sqrt_gamma*Ul[ENTROPY]*u0_l;
+    Fr = S_star_r*Ur[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ur[VX] -> Ur[VY]
+    Fl = S_star_l*Ul[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ul[VX] -> Ul[VY]
+
+    // HLL step for S_star:
+    S_star_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(S_star_r-S_star_l) )/(cmaxL + cminL);
+  }
 
   //*********************************************************************
   // energy flux = \alpha^2 \sqrt{\gamma} T^{0m} - \rho_* v^m, where m is the current flux direction (the m index)
