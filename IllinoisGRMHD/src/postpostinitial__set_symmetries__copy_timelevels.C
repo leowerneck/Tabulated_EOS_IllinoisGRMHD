@@ -68,7 +68,7 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
 
   CCTK_VInfo(CCTK_THORNSTRING,"Primary conservative-to-primitive routine: %s",igm_con2prim_routine);
   if( CCTK_EQUALS(igm_con2prim_backup_routine[0],"None") ) {
-    CCTK_VInfo(CCTK_THORNSTRING,"No conservative-to-primitive routine selected.");
+    CCTK_VInfo(CCTK_THORNSTRING,"No backup conservative-to-primitive routine selected.");
   }
   else {
     CCTK_VInfo(CCTK_THORNSTRING,"Backup conservative-to-primitive routine #1: %s",igm_con2prim_backup_routine[0]);
