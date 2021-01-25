@@ -115,9 +115,6 @@ void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,i
 
   // Initialize tabulated EOS parameters
 
-  // Whether or not to evolve the entropy
-  eos.evolve_entropy = igm_evolve_entropy;
-
   // Check if it's time to begin temperature evolution
   if( igm_evolve_temperature && (cctk_time >= igm_freeze_T_evolution_until_cctk_time) ) {
     eos.evolve_T = true;

@@ -15,12 +15,28 @@
 
 void initialize_igm_eos_parameters_from_input( const CCTK_INT* igm_eos_key,const CCTK_REAL cctk_time,igm_eos_parameters &eos ) {
 
+  DECLARE_CCTK_PARAMETERS;
+  
   // Set the EOS key
   eos.key          = *igm_eos_key;
-  eos.c2p_routine  = Noble2D;
-  eos.is_Hybrid    = false;
-  eos.is_Tabulated = false;
 
+  // Con2prim configuration
+  if( CCTK_EQUALS(igm_con2prim_routine,"Noble2D") ) {
+    eos.c2p_routine  = Noble2D;
+  } 
+  else if( CCTK_EQUALS(igm_con2prim_routine,"Palenzuela1D") ) {
+    eos.c2p_routine  = Palenzuela1D;
+  }
+  else if( CCTK_EQUALS(igm_con2prim_routine,"Palenzuela1D_entropy") ) {
+    eos.c2p_routine  = Palenzuela1D_entropy;
+  }
+
+  // Whether or not to evolve the entropy
+  eos.evolve_entropy = igm_evolve_entropy;
+
+  // EOS specific initialization
+  eos.is_Hybrid      = false;
+  eos.is_Tabulated   = false;
   if( eos.key == EOS_Omni_GetHandle("Hybrid") ) {
     eos.is_Hybrid = true;
     initialize_Hybrid_EOS_parameters_from_input(eos);
