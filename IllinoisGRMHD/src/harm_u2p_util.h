@@ -25,7 +25,15 @@
   -------------------------------------------------------------------------------
 */
 
-// Inlined function used by this file
+// HARM uses lots of globals. These auxiliary variables
+// allow us to pass useful quantities to the con2prim
+// functions without having a large number of function
+// arguments.
+typedef struct _harm_auxiliary_vars_ {
+  CCTK_REAL Bsq,QdotBsq,Qsq,Qtsq,Qdotn,QdotB,D,gamma,gamma_times_S;
+} harm_aux_vars_struct;
+
+
 void compute_P_cold__eps_cold(const igm_eos_parameters eos,const CCTK_REAL rho_in, CCTK_REAL &P_cold,CCTK_REAL &eps_cold);
 
 
@@ -35,7 +43,7 @@ void compute_P_cold__eps_cold(const igm_eos_parameters eos,const CCTK_REAL rho_i
          -- calculates the contravariant form of a covariant tensor,
             using the inverse of the metric;
 ***********************************************************************/
-void raise_g(const CCTK_REAL vcov[NDIM], const CCTK_REAL gcon[NDIM][NDIM], CCTK_REAL vcon[NDIM])
+static inline void raise_g(const CCTK_REAL vcov[NDIM], const CCTK_REAL gcon[NDIM][NDIM], CCTK_REAL vcon[NDIM])
 {
   int i,j;
 
@@ -55,7 +63,7 @@ void raise_g(const CCTK_REAL vcov[NDIM], const CCTK_REAL gcon[NDIM][NDIM], CCTK_
           -- calculates the ocvariant form of a contravariant tensor
              using the metric;
 ***********************************************************************/
-void lower_g(const CCTK_REAL vcon[NDIM], const CCTK_REAL gcov[NDIM][NDIM], CCTK_REAL vcov[NDIM])
+static inline void lower_g(const CCTK_REAL vcon[NDIM], const CCTK_REAL gcov[NDIM][NDIM], CCTK_REAL vcov[NDIM])
 {
   int i,j;
 
@@ -77,7 +85,7 @@ void lower_g(const CCTK_REAL vcon[NDIM], const CCTK_REAL gcov[NDIM][NDIM], CCTK_
 
          -- requires the inverse metric;
 ***********************************************************************/
-void ncov_calc(const CCTK_REAL gcon[NDIM][NDIM],CCTK_REAL ncov[NDIM])
+static inline void ncov_calc(const CCTK_REAL gcon[NDIM][NDIM],CCTK_REAL ncov[NDIM])
 {
   CCTK_REAL lapse ;
   int i;
@@ -100,7 +108,7 @@ void ncov_calc(const CCTK_REAL gcon[NDIM][NDIM],CCTK_REAL ncov[NDIM])
 pressure as a function of rho0 and u
 this is used by primtoU and Utoprim_?D
 */
-CCTK_REAL pressure_rho0_u(const igm_eos_parameters eos, const CCTK_REAL rho0, const CCTK_REAL u)
+static inline CCTK_REAL pressure_rho0_u(const igm_eos_parameters eos, const CCTK_REAL rho0, const CCTK_REAL u)
 {
 
   // Compute P_cold, eps_cold
@@ -122,7 +130,7 @@ CCTK_REAL pressure_rho0_u(const igm_eos_parameters eos, const CCTK_REAL rho0, co
    pressure as a function of rho0 and w = rho0 + u + p
    this is used by primtoU and Utoprim_1D
 */
-CCTK_REAL pressure_rho0_w(const igm_eos_parameters eos, const CCTK_REAL rho0, const CCTK_REAL w)
+static inline CCTK_REAL pressure_rho0_w(const igm_eos_parameters eos, const CCTK_REAL rho0, const CCTK_REAL w)
 {
 
   // Compute P_cold, eps_cold
@@ -137,4 +145,5 @@ CCTK_REAL pressure_rho0_w(const igm_eos_parameters eos, const CCTK_REAL rho0, co
    */
   return( (P_cold + (eos.Gamma_th-1.0)*( w - rho0*(1.0+eps_cold) ) )/eos.Gamma_th );
 }
+
 #endif
