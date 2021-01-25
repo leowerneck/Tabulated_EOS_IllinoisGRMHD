@@ -68,7 +68,22 @@ int con2prim( const igm_eos_parameters eos,
     set_prim_from_PRIMS_and_CONSERVS( eos, which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
 
     /************* Conservative-to-primitive recovery ************/
-    int check = con2prim_Noble2D(eos,g4dn,g4up,cons,prim);
+    int check = con2prim_select(eos,eos.c2p_routine,g4dn,g4up,cons,prim);
+
+    if( (check != 0) && (eos.c2p_backup[0] != None) ) {
+      // Backup routine #1
+      check = con2prim_select(eos,eos.c2p_backup[0],g4dn,g4up,cons,prim);
+
+      if( (check != 0) && (eos.c2p_backup[1] != None) ) {
+        // Backup routine #2
+        check = con2prim_select(eos,eos.c2p_backup[1],g4dn,g4up,cons,prim);
+
+        if( (check != 0) && (eos.c2p_backup[2] != None) ) {
+          // Backup routine #3
+          check = con2prim_select(eos,eos.c2p_backup[2],g4dn,g4up,cons,prim);
+        }
+      }
+    }
     /*************************************************************/
 
     // Use the new Font fix subroutine
