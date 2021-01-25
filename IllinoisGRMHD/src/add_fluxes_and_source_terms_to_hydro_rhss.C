@@ -11,9 +11,24 @@
 #define A1  -0.0625
 #define COMPUTE_FCVAL(METRICm2,METRICm1,METRIC,METRICp1) (AM2*(METRICm2) + AM1*(METRICm1) + A0*(METRIC) + A1*(METRICp1))
 
-static inline void mhdflux(int i,int j,int k,const int flux_dirn,CCTK_REAL *Ul,CCTK_REAL *Ur,  CCTK_REAL *FACEVAL,CCTK_REAL *FACEVAL_LAPSE_PSI4,igm_eos_parameters &eos,
-                           CCTK_REAL &cmax,CCTK_REAL &cmin,
-                           CCTK_REAL &rho_star_flux,CCTK_REAL &tau_flux,CCTK_REAL &st_x_flux,CCTK_REAL &st_y_flux,CCTK_REAL &st_z_flux);
+static inline void mhdflux( const igm_eos_parameters eos,
+                            const int i,
+                            const int j,
+                            const int k,
+                            const int flux_dirn,
+                            CCTK_REAL *restrict Ur,
+                            CCTK_REAL *restrict Ul,
+                            CCTK_REAL *restrict FACEVAL,
+                            CCTK_REAL *restrict FACEVAL_LAPSE_PSI4,
+                            CCTK_REAL &cmax,
+                            CCTK_REAL &cmin,
+                            CCTK_REAL &rho_star_flux,
+                            CCTK_REAL &tau_flux,
+                            CCTK_REAL &st_x_flux,
+                            CCTK_REAL &st_y_flux,
+                            CCTK_REAL &st_z_flux,
+                            CCTK_REAL &Ye_star_flux,
+                            CCTK_REAL &S_star_flux );
 
 #define COMPUTE_FOURMETRIC(g4tt,g4tx,g4ty,g4tz,g4xx,g4xy,g4xz,g4yy,g4yz,g4zz,METRIC,METRIC_AUX)  ( { \
       /* g_{0i} = beta_i */                                             \
@@ -31,12 +46,34 @@ static inline void mhdflux(int i,int j,int k,const int flux_dirn,CCTK_REAL *Ul,C
     } )
 
 
-static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const cGH *cctkGH,const int *cctk_lsh,const int *cctk_nghostzones,CCTK_REAL *dX,
-                                                      CCTK_REAL **metric,gf_and_gz_struct *in_prims,CCTK_REAL **TUPmunu,
-                                                      int numvars_reconstructed,gf_and_gz_struct *out_prims_r,gf_and_gz_struct *out_prims_l,igm_eos_parameters &eos,
-                                                      CCTK_REAL *cmax,CCTK_REAL *cmin,
-                                                      CCTK_REAL *rho_star_flux,CCTK_REAL *tau_flux,CCTK_REAL *st_x_flux,CCTK_REAL *st_y_flux,CCTK_REAL *st_z_flux,
-                                                      CCTK_REAL *rho_star_rhs,CCTK_REAL *tau_rhs,CCTK_REAL *st_x_rhs,CCTK_REAL *st_y_rhs,CCTK_REAL *st_z_rhs) {
+static void add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters eos,
+                                                       const int flux_dirn,
+                                                       const cGH *restrict cctkGH,
+                                                       const int *restrict cctk_lsh,
+                                                       const int *restrict cctk_nghostzones,
+                                                       const CCTK_REAL *restrict dX,
+                                                       CCTK_REAL **metric,
+                                                       CCTK_REAL **TUPmunu,
+                                                       const int numvars_reconstructed,
+                                                       gf_and_gz_struct *restrict in_prims,
+                                                       gf_and_gz_struct *restrict out_prims_r,
+                                                       gf_and_gz_struct *restrict out_prims_l,
+                                                       CCTK_REAL *restrict cmax,
+                                                       CCTK_REAL *restrict cmin,
+                                                       CCTK_REAL *restrict rho_star_flux,
+                                                       CCTK_REAL *restrict tau_flux,
+                                                       CCTK_REAL *restrict st_x_flux,
+                                                       CCTK_REAL *restrict st_y_flux,
+                                                       CCTK_REAL *restrict st_z_flux,
+                                                       CCTK_REAL *restrict Ye_star_flux,
+                                                       CCTK_REAL *restrict S_star_flux,
+                                                       CCTK_REAL *restrict rho_star_rhs,
+                                                       CCTK_REAL *restrict tau_rhs,
+                                                       CCTK_REAL *restrict st_x_rhs,
+                                                       CCTK_REAL *restrict st_y_rhs,
+                                                       CCTK_REAL *restrict st_z_rhs,
+                                                       CCTK_REAL *restrict Ye_star_rhs,
+                                                       CCTK_REAL *restrict S_star_rhs ) {
 
   DECLARE_CCTK_PARAMETERS;
 
@@ -82,8 +119,9 @@ static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const 
 
 	//-----------------------------------------------------------------------------
 	// Next compute fluxes for \tilde{S}_i, tau, and rho_*
-	mhdflux(i,j,k,flux_dirn,Ul  ,Ur  ,FACEVAL  ,FACEVAL_LAPSE_PSI4  ,eos, cmax[index],cmin[index],
-		rho_star_flux[index],tau_flux[index],st_x_flux[index],st_y_flux[index],st_z_flux[index]);
+	mhdflux(eos, i,j,k,flux_dirn, Ur,Ul ,FACEVAL  ,FACEVAL_LAPSE_PSI4, cmax[index],cmin[index],
+		rho_star_flux[index],tau_flux[index],st_x_flux[index],st_y_flux[index],st_z_flux[index],
+                Ye_star_flux[index],S_star_flux[index]);
 
 
 	//-----------------------------------------------------------------------------
@@ -124,15 +162,15 @@ static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const 
 	  // add \frac{1}{2} \alpha \sqrt{\gamma} T^{\mu \nu} \partial_i g_{\mu \nu} . Note that i is given by the flux direction.
 	  //   (Source term of Eq 43 in http://arxiv.org/pdf/astro-ph/0503420.pdf)
 	  st_i_curvature_terms[flux_dirn] = half_alpha_sqrtgamma * ( TUP[0][0]*partial_i_gmunu[0][0] +
-								     TUP[1][1]*partial_i_gmunu[1][1] +
-								     TUP[2][2]*partial_i_gmunu[2][2] +
-								     TUP[3][3]*partial_i_gmunu[3][3] +
-								     2.0*(TUP[0][1]*partial_i_gmunu[0][1] +
-									  TUP[0][2]*partial_i_gmunu[0][2] +
-									  TUP[0][3]*partial_i_gmunu[0][3] +
-									  TUP[1][2]*partial_i_gmunu[1][2] +
-									  TUP[1][3]*partial_i_gmunu[1][3] +
-									  TUP[2][3]*partial_i_gmunu[2][3]) );
+                                                                     TUP[1][1]*partial_i_gmunu[1][1] +
+                                                                     TUP[2][2]*partial_i_gmunu[2][2] +
+                                                                     TUP[3][3]*partial_i_gmunu[3][3] +
+                                                                2.0*(TUP[0][1]*partial_i_gmunu[0][1] +
+                                                                     TUP[0][2]*partial_i_gmunu[0][2] +
+                                                                     TUP[0][3]*partial_i_gmunu[0][3] +
+                                                                     TUP[1][2]*partial_i_gmunu[1][2] +
+                                                                     TUP[1][3]*partial_i_gmunu[1][3] +
+                                                                     TUP[2][3]*partial_i_gmunu[2][3]) );
 
 	  // add - ( T^{00} \beta^i + T^{0i} ) \partial_i \alpha.
 	  //   (Last part of Eq. 39 source term in http://arxiv.org/pdf/astro-ph/0503420.pdf)
@@ -154,14 +192,20 @@ static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const 
   //   we only need the rhs's from 3 to cctk_lsh-3 for i, j, and k.
 #pragma omp parallel for
   for(int k=cctk_nghostzones[2];k<cctk_lsh[2]-cctk_nghostzones[2];k++) for(int j=cctk_nghostzones[1];j<cctk_lsh[1]-cctk_nghostzones[1];j++) for(int i=cctk_nghostzones[0];i<cctk_lsh[0]-cctk_nghostzones[0];i++) {
-	int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+	int index   = CCTK_GFINDEX3D(cctkGH,i,j,k);
 	int indexp1 = CCTK_GFINDEX3D(cctkGH,i+kronecker_delta[flux_dirn][0],j+kronecker_delta[flux_dirn][1],k+kronecker_delta[flux_dirn][2]);
 
-	rho_star_rhs[index] += (rho_star_flux[index] - rho_star_flux[indexp1]) * dxi[flux_dirn];
-	tau_rhs[index]      += (tau_flux[index]      - tau_flux[indexp1]     ) * dxi[flux_dirn];
-	st_x_rhs[index]     += (st_x_flux[index]     - st_x_flux[indexp1]    ) * dxi[flux_dirn];
-	st_y_rhs[index]     += (st_y_flux[index]     - st_y_flux[indexp1]    ) * dxi[flux_dirn];
-	st_z_rhs[index]     += (st_z_flux[index]     - st_z_flux[indexp1]    ) * dxi[flux_dirn];
+	rho_star_rhs [index] += (rho_star_flux[index] - rho_star_flux[indexp1]) * dxi[flux_dirn];
+	tau_rhs      [index] += (tau_flux     [index] - tau_flux     [indexp1]) * dxi[flux_dirn];
+	st_x_rhs     [index] += (st_x_flux    [index] - st_x_flux    [indexp1]) * dxi[flux_dirn];
+	st_y_rhs     [index] += (st_y_flux    [index] - st_y_flux    [indexp1]) * dxi[flux_dirn];
+	st_z_rhs     [index] += (st_z_flux    [index] - st_z_flux    [indexp1]) * dxi[flux_dirn];
+        if( eos.is_Tabulated ) {
+          Ye_star_rhs[index] += (Ye_star_flux [index] - Ye_star_flux [indexp1]) * dxi[flux_dirn];
+        }
+        if( eos.evolve_entropy ) {
+          S_star_rhs [index] += (S_star_flux  [index] - S_star_flux  [indexp1]) * dxi[flux_dirn];
+        }
       }
 }
 
