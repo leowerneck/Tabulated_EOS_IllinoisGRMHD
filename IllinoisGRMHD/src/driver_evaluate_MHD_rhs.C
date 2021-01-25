@@ -104,25 +104,21 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   in_prims[VZL       ].gf=vzl;        out_prims_r[VZL       ].gf=vzlr;        out_prims_l[VZL       ].gf=vzll;
 
   // Get the additional hydro variable that will be reconstructed
-  switch( eos.PPM_reconstructed_var ) {
-    case PRESSURE:
+  if( eos.PPM_reconstructed_var == PRESSURE ) {
     in_prims[PRESSURE].gf=P;          out_prims_r[PRESSURE  ].gf=Pr;          out_prims_l[PRESSURE  ].gf=Pl;
-    break;
-
-    case EPSILON:
+  }
+  else if( eos.PPM_reconstructed_var == EPSILON ) {
     in_prims[EPSILON ].gf=igm_eps;    out_prims_r[EPSILON   ].gf=epsr;        out_prims_l[EPSILON   ].gf=epsl;
-    break;
-
-    case ENTROPY:
+  }
+  else if( eos.PPM_reconstructed_var == ENTROPY ) {
     in_prims[ENTROPY ].gf=igm_entropy;out_prims_r[ENTROPY   ].gf=Sr;          out_prims_l[ENTROPY   ].gf=Sl;
-    break;
   }
 
-  // If using tabulated EOS, then we'll also reconstruct the electron fraction
+  // If using tabulated EOS, then we also reconstruct the electron fraction
   if( eos.is_Tabulated ) {
     in_prims[YEPRIM  ].gf=igm_Ye;     out_prims_r[YEPRIM    ].gf=Yer;         out_prims_l[YEPRIM    ].gf=Yel;
   }
-  
+
   // Prims are defined AT ALL GRIDPOINTS, so we set the # of ghostzones to zero:
   for(int i=0;i<MAXNUMVARS;i++) for(int j=1;j<=3;j++) { in_prims[i].gz_lo[j]=0; in_prims[i].gz_hi[j]=0; }
   // Left/right variables are not yet defined, yet we set the # of gz's to zero by default:
