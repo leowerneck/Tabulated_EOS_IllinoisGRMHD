@@ -4,7 +4,10 @@
  * Piecewise Polytropic EOS Patch *
  *    Font fix: function call     *
  **********************************/
-inline int font_fix__hybrid_EOS(CCTK_REAL &u_x, CCTK_REAL &u_y, CCTK_REAL &u_z,CCTK_REAL *CONSERVS,CCTK_REAL *PRIMS,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4, igm_eos_parameters eos) {
+int font_fix__hybrid_EOS( const igm_eos_parameters eos,
+                          const CCTK_REAL *restrict METRIC_PHYS,const CCTK_REAL *restrict METRIC_LAP_PSI4,
+                          const CCTK_REAL *restrict CONSERVS,const CCTK_REAL *restrict PRIMS,
+                          CCTK_REAL &u_x, CCTK_REAL &u_y, CCTK_REAL &u_z ) {
 
   CCTK_REAL Bxbar = PRIMS[BX_CENTER]*ONE_OVER_SQRT_4PI;
   CCTK_REAL Bybar = PRIMS[BY_CENTER]*ONE_OVER_SQRT_4PI;
