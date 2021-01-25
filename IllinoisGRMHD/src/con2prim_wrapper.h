@@ -1,8 +1,10 @@
-inline int IllinoisGRMHD_conservative_to_primitive(const int index,const int i,const int j,const int k,CCTK_REAL *X,CCTK_REAL *Y,CCTK_REAL *Z,
-                                                   CCTK_REAL *METRIC,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4,
-                                                   CCTK_REAL *CONSERVS,CCTK_REAL *PRIMS,
-                                                   CCTK_REAL g4dn[NDIM][NDIM],CCTK_REAL g4up[NDIM][NDIM],
-                                                   struct output_stats& stats, igm_eos_parameters& eos) {
+int con2prim( const igm_eos_parameters eos,
+              const int index,const int i,const int j,const int k,
+              const CCTK_REAL *restrict X,const CCTK_REAL *restrict Y,const CCTK_REAL *restrict Z,
+              const CCTK_REAL *restrict METRIC,const CCTK_REAL *restrict METRIC_PHYS,const CCTK_REAL *restrict METRIC_LAP_PSI4,
+              const CCTK_REAL g4dn[NDIM][NDIM],const CCTK_REAL g4up[NDIM][NDIM],
+              CCTK_REAL *restrict CONSERVS,CCTK_REAL *restrict PRIMS,
+              output_stats& stats ) {
 
   // declare some variables for HARM.
   CCTK_REAL cons[numcons];
@@ -97,7 +99,7 @@ inline int IllinoisGRMHD_conservative_to_primitive(const int index,const int i,c
       /************************
        * New Font fix routine *
        ************************/
-       check = font_fix__hybrid_EOS(u_xl,u_yl,u_zl, CONSERVS,PRIMS,METRIC_PHYS,METRIC_LAP_PSI4, eos);
+      check = font_fix__hybrid_EOS(eos,METRIC_PHYS,METRIC_LAP_PSI4,CONSERVS,PRIMS, u_xl,u_yl,u_zl);
 
       //Translate to HARM primitive now:
       prim[UTCON1] = METRIC_PHYS[GUPXX]*u_xl + METRIC_PHYS[GUPXY]*u_yl + METRIC_PHYS[GUPXZ]*u_zl;
