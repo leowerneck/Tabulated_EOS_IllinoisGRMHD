@@ -2,9 +2,24 @@
 // Compute the flux for advecting rho_star, tau (Font's energy variable),
 //  and S_i .
 //-----------------------------------------------------------------------------
-static inline void mhdflux(int i,int j,int k,const int flux_dirn,CCTK_REAL *Ul,CCTK_REAL *Ur,  CCTK_REAL *FACEVAL,CCTK_REAL *FACEVAL_LAPSE_PSI4,igm_eos_parameters &eos,
-                           CCTK_REAL &cmax,CCTK_REAL &cmin,
-                           CCTK_REAL &rho_star_flux,CCTK_REAL &tau_flux,CCTK_REAL &st_x_flux,CCTK_REAL &st_y_flux,CCTK_REAL &st_z_flux) {
+static inline void mhdflux( const igm_eos_parameters eos,
+                            const int i,
+                            const int j,
+                            const int k,
+                            const int flux_dirn,
+                            CCTK_REAL *restrict Ur,
+                            CCTK_REAL *restrict Ul,
+                            CCTK_REAL *restrict FACEVAL,
+                            CCTK_REAL *restrict FACEVAL_LAPSE_PSI4,
+                            CCTK_REAL &cmax,
+                            CCTK_REAL &cmin,
+                            CCTK_REAL &rho_star_flux,
+                            CCTK_REAL &tau_flux,
+                            CCTK_REAL &st_x_flux,
+                            CCTK_REAL &st_y_flux,
+                            CCTK_REAL &st_z_flux,
+                            CCTK_REAL &Ye_star_flux,
+                            CCTK_REAL &S_star_flux ) {
 
   CCTK_REAL psi4 = FACEVAL_LAPSE_PSI4[PSI4];
   CCTK_REAL psi6 = FACEVAL_LAPSE_PSI4[PSI4]*FACEVAL_LAPSE_PSI4[PSI2];
