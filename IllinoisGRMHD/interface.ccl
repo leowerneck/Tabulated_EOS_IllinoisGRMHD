@@ -13,7 +13,7 @@ public:
 #cctk_real grmhd_conservatives type = GF TAGS='prolongation="Lag3"' Timelevels=3
 cctk_real grmhd_conservatives type = GF Timelevels=3
 {
-  rho_star,tau,mhd_st_x,mhd_st_y,mhd_st_z  # Note that st = Stilde, as mhd_st_i = \tilde{S}_i.
+  rho_star,tau,mhd_st_x,mhd_st_y,mhd_st_z,Ye_star,S_star  # Note that st = Stilde, as mhd_st_i = \tilde{S}_i.
 } "Evolved mhd variables"
 
 # These variables are semi-staggered:
@@ -52,7 +52,7 @@ cctk_real em_psi6phi type = GF Timelevels=3 tags='Prolongation="STAGGER111"'
 # TODO: split into groups with well defined symmetry properties: (rho_b, P, u0), (vx,vy,vz)
 cctk_real grmhd_primitives_allbutBi type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
 {
-  rho_b,P,vx,vy,vz
+  rho_b,P,vx,vy,vz,igm_Ye,igm_temperature,igm_eps,igm_entropy
 } "Primitive variables density, pressure, and components of three velocity v^i. Note that v^i is defined in terms of 4-velocity as: v^i = u^i/u^0. Note that this definition differs from the Valencia formalism."
 # It is useful to split Bi from Bi_stagger, since we're generally only interested in outputting Bi for diagnostics
 cctk_real grmhd_primitives_Bi type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
@@ -85,8 +85,8 @@ cctk_real diagnostic_gfs type = GF TAGS='prolongation="none" Checkpoint="no"'
 cctk_real grmhd_primitives_reconstructed_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
   ftilde_gf,temporary,
-  rho_br,Pr,vxr,vyr,vzr,Bxr,Byr,Bzr,Bx_staggerr,By_staggerr,Bz_staggerr,
-  rho_bl,Pl,vxl,vyl,vzl,Bxl,Byl,Bzl,Bx_staggerl,By_staggerl,Bz_staggerl,
+  rho_br,Pr,vxr,vyr,vzr,Bxr,Byr,Bzr,Bx_staggerr,By_staggerr,Bz_staggerr,Yer,epsr,Sr,
+  rho_bl,Pl,vxl,vyl,vzl,Bxl,Byl,Bzl,Bx_staggerl,By_staggerl,Bz_staggerl,Yel,epsl,Sl,
   vxrr,vxrl,vyrr,vyrl,vzrr,vzrl,vxlr,vxll,vylr,vyll,vzlr,vzll
 } "Temporary variables used for primitives reconstruction"
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
@@ -94,7 +94,7 @@ cctk_real grmhd_primitives_reconstructed_temps type = GF TAGS='prolongation="non
 #vvvvvvv RHS VARIABLES vvvvvvv#
 cctk_real grmhd_conservatives_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
-  rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs
+  rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs,Ye_star_rhs,S_star_rhs
 } "Storage for the right-hand side of the partial_t rho_star, partial_t tau, and partial_t tilde{S}_i equations. Needed for MoL timestepping."
 
 cctk_real em_Ax_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
