@@ -35,8 +35,34 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
    */
   if(cctk_iteration==0 && (int)GetRefinementLevel(cctkGH)==0) { print_EOS_Hybrid(eos); }
 
-  if(Gamma_th<0)
-    CCTK_VError(VERR_DEF_PARAMS,"ERROR.  Default Gamma_th (=-1) detected.  You must set Gamma_th to the appropriate value in your initial data thorn, or your .par file!\n");
+  // Perform parameter checks
+
+  // Hybrid EOS
+  if( CCTK_EQUALS(igm_eos_type,"Hybrid") ) {
+    if( Gamma_th<0 ) {
+      CCTK_VError(VERR_DEF_PARAMS,"Default Gamma_th (=-1) detected. You must set Gamma_th to the appropriate value in your initial data thorn, or your .par file!");
+    }
+    if( !CCTK_EQUALS(igm_con2prim_routine,"Noble2D") ) {
+      CCTK_VError(VERR_DEF_PARAMS,"IllinoisGRMHD only supports the Noble2D con2prim routine with Hybrid EOS. ABORTING!");
+    }
+  }
+
+  // Tabulated EOS
+  if( CCTK_EQUALS(igm_eos_type,"Tabulated") || CCTK_EQUALS(igm_eos_type,"nuc_eos") ) {
+    if( CCTK_EQUALS(igm_con2prim_routine,"Noble2D") ) {
+      CCTK_VError(VERR_DEF_PARAMS,"IllinoisGRMHD only supports the Palenzuela1D and Palenzuela1D_entropy con2prim routine with Tabulated EOS. ABORTING!");
+    }
+  }
+  
+  // Entropy
+  if( igm_evolve_entropy == false ) {
+    if( CCTK_EQUALS(igm_PPM_reconstructed_variable,"entropy") ) {
+      CCTK_VError(VERR_DEF_PARAMS,"Cannot reconstruct the entropy during PPM without evolving the entropy. Please set igm_evolve_entropy=\"yes\" in the parfile. ABORTING!");
+    }
+    if( CCTK_EQUALS(igm_con2prim_routine,"Palenzuela1D_entropy") ) {
+      CCTK_VError(VERR_DEF_PARAMS,"Cannot use the Palenzuela1D_entropy con2prim routine without evolving the entropy. Please set igm_evolve_entropy=\"yes\" in the parfile. ABORTING!");
+    }
+  }
 
   //For emfields, we assume that you've set Bx, By, Bz (the UN-tilded B^i's)
   // or Ax, Ay, Az (if using constrained transport scheme of Del Zanna)
