@@ -1,8 +1,18 @@
 /* Compute the part of A_i_rhs that excludes the gauge terms. I.e., we set
  *   A_i_rhs = \partial_t A_i = \psi^{6} (v^z B^x - v^x B^z)   here.
  */
-static void A_i_rhs_no_gauge_terms(const int A_dirn,const cGH *cctkGH,const int *cctk_lsh,const int *cctk_nghostzones,gf_and_gz_struct *out_prims_r,gf_and_gz_struct *out_prims_l,
-                                   CCTK_REAL *phi_interped,CCTK_REAL *cmax_1,CCTK_REAL *cmin_1,CCTK_REAL *cmax_2,CCTK_REAL *cmin_2, CCTK_REAL *A3_rhs) {
+static void A_i_rhs_no_gauge_terms( const int A_dirn,
+                                    const cGH *restrict cctkGH,
+                                    const int *restrict cctk_lsh,
+                                    const int *restrict cctk_nghostzones,
+                                    gf_and_gz_struct *restrict out_prims_r,
+                                    gf_and_gz_struct *restrict out_prims_l,
+                                    CCTK_REAL *restrict phi_interped,
+                                    CCTK_REAL *restrict cmax_1,
+                                    CCTK_REAL *restrict cmin_1,
+                                    CCTK_REAL *restrict cmax_2,
+                                    CCTK_REAL *restrict cmin_2,
+                                    CCTK_REAL *restrict A3_rhs ) {
   // If A_dirn=1, then v1_offset=1 (v1=VY) and v2_offset=2 (v2=VZ)
   // If A_dirn=2, then v1_offset=2 (v1=VZ) and v2_offset=0 (v2=VX)
   // If A_dirn=3, then v1_offset=0 (v1=VX) and v2_offset=1 (v2=VY)
