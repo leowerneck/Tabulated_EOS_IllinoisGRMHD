@@ -20,16 +20,28 @@
 
 static inline CCTK_REAL ftilde_compute(const int flux_dirn,CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES]);
 static inline CCTK_REAL slope_limit(CCTK_REAL dU,CCTK_REAL dUp1);
+
 static inline void steepen_rho(const igm_eos_parameters eos,
-                               CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES],CCTK_REAL slope_lim_dU[MAXNUMVARS][MAXNUMINDICES],
-                               CCTK_REAL P_cold,CCTK_REAL Gamma_cold,
-                               CCTK_REAL *rho_br_ppm,CCTK_REAL *rho_bl_ppm);
+                               CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES],
+                               CTK_REAL slope_lim_dU[MAXNUMVARS][MAXNUMINDICES],
+                               CCTK_REAL *restrict rho_br_ppm,
+                               CCTK_REAL *restrict rho_bl_ppm);
+
 static inline void compute_P_cold__Gamma_cold(CCTK_REAL rho_b,igm_eos_parameters &eos,   CCTK_REAL &P_cold,CCTK_REAL &Gamma_cold);
 static inline void monotonize(CCTK_REAL U,CCTK_REAL &Ur,CCTK_REAL &Ul);
 
 
-static void reconstruct_set_of_prims_PPM(const cGH *cctkGH,const int *cctk_lsh,const int flux_dirn,const int num_prims_to_reconstruct,const int *which_prims_to_reconstruct,igm_eos_parameters &eos,
-                                         gf_and_gz_struct *in_prims,gf_and_gz_struct *out_prims_r,gf_and_gz_struct *out_prims_l,CCTK_REAL *ftilde_gf, CCTK_REAL *temporary) {
+static void reconstruct_set_of_prims_PPM( const igm_eos_parameters eos,
+                                          const cGH *restrict cctkGH,
+                                          const int *restrict cctk_lsh,
+                                          const int flux_dirn,
+                                          const int num_prims_to_reconstruct,
+                                          const int *restrict which_prims_to_reconstruct,
+                                          gf_and_gz_struct *restrict in_prims,
+                                          gf_and_gz_struct *restrict out_prims_r,
+                                          gf_and_gz_struct *restrict out_prims_l,
+                                          CCTK_REAL *restrict ftilde_gf,
+                                          CCTK_REAL *restrict temporary ) {
 
   DECLARE_CCTK_PARAMETERS;
 
@@ -120,9 +132,7 @@ static void reconstruct_set_of_prims_PPM(const cGH *cctkGH,const int *cctk_lsh,c
 
 	// Steepen rho
 	// DEPENDENCIES: RHOB face values, RHOB(MINUS2,MINUS1,PLUS0,PLUS1,PLUS2), P(MINUS1,PLUS0,PLUS1), and slope_lim_dU[RHOB](MINUS1,PLUS1)
-	CCTK_REAL P_cold,Gamma_cold;
-	compute_P_cold__Gamma_cold(U[RHOB][PLUS0],eos,  P_cold,Gamma_cold);
-	steepen_rho(eos,U,slope_lim_dU,P_cold,Gamma_cold,  Ur[RHOB],Ul[RHOB]);
+	steepen_rho(eos,U,slope_lim_dU, Ur[RHOB],Ul[RHOB]);
 
 	// Output rho
 	out_prims_r[RHOB].gf[index_arr[flux_dirn][PLUS0]] = Ur[RHOB][PLUS0];
@@ -242,18 +252,29 @@ static inline CCTK_REAL slope_limit(CCTK_REAL dU,CCTK_REAL dUp1) {
 #define ETA1   20.0
 #define ETA2    0.05
 #define PPM_EPSILON 0.01
-static inline void steepen_rho(const igm_eos_parameters eos, CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES],CCTK_REAL slope_lim_dU[MAXNUMVARS][MAXNUMINDICES],
-                               CCTK_REAL P_cold,CCTK_REAL Gamma_cold,
-                               CCTK_REAL *rho_br_ppm,CCTK_REAL *rho_bl_ppm) {
+static inline void steepen_rho(const igm_eos_parameters eos,
+                               CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES],
+                               CCTK_REAL slope_lim_dU[MAXNUMVARS][MAXNUMINDICES],
+                               CCTK_REAL *restrict rho_br_ppm,
+                               CCTK_REAL *restrict rho_bl_ppm) {
+
+  
 
   // Next compute centered differences d RHOB and d^2 RHOB
   CCTK_REAL d1rho_b     = 0.5*(U[RHOB][PLUS1] - U[RHOB][MINUS1]);
   CCTK_REAL d2rho_b_m1  = U[RHOB][PLUS0] - 2.0*U[RHOB][MINUS1] + U[RHOB][MINUS2];
   CCTK_REAL d2rho_b_p1  = U[RHOB][PLUS2] - 2.0*U[RHOB][PLUS1]  + U[RHOB][PLUS0];
 
-
-  // Compute effective Gamma = (partial P / partial rho0)_s /(P/rho0)
-  CCTK_REAL Gamma = eos.Gamma_th + (Gamma_cold-eos.Gamma_th)*P_cold/U[PRESSURE][PLUS0];
+  // This value of Gamma was chosen for compatibility
+  // with the Spritz code when tabulated EOS is selected
+  CCTK_REAL Gamma = 1.0;
+  if( eos.is_Hybrid ) {
+    // If using Hybrid EOS, recompute Gamma
+    CCTK_REAL P_cold,Gamma_cold;
+    compute_P_cold__Gamma_cold(U[RHOB][PLUS0],eos,  P_cold,Gamma_cold);
+    // Compute effective Gamma = (partial P / partial rho0)_s /(P/rho0)
+    Gamma = eos.Gamma_th + (Gamma_cold-eos.Gamma_th)*P_cold/U[PRESSURE][PLUS0];
+  }
 
   CCTK_REAL contact_discontinuity_check = Gamma*K0*fabs(U[RHOB][PLUS1]-U[RHOB][MINUS1])*
     MIN(U[PRESSURE][PLUS1],U[PRESSURE][MINUS1])
@@ -329,7 +350,11 @@ static inline void compute_P_cold__Gamma_cold(CCTK_REAL rho_b,igm_eos_parameters
 #define OMEGA1   0.75
 #define OMEGA2  10.0
 #define PPM_EPSILON2 0.33
-static void ftilde_gf_compute(const cGH *cctkGH,const int *cctk_lsh,const int flux_dirn,gf_and_gz_struct *in_prims,CCTK_REAL *ftilde_gf) {
+static void ftilde_gf_compute( const cGH *restrict cctkGH,
+                               const int *restrict cctk_lsh,
+                               const int flux_dirn,
+                               gf_and_gz_struct *restrict input,
+                               CCTK_REAL *restrict ftilde_gf ) {
   int ijkgz_lo_hi[4][2];
   CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES];
   /*Remove gcc unused variable warning/error Re: Pragma statement in loop define:*/
