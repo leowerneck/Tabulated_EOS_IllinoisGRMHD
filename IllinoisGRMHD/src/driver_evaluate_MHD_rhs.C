@@ -170,20 +170,19 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 #pragma omp parallel for
   for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
         int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
-        Ax_rhs[index]=0.0;
-        Ay_rhs[index]=0.0;
-        Az_rhs[index]=0.0;
-        psi6phi_rhs[index]=0.0;
+        Ax_rhs      [index] = 0.0;
+        Ay_rhs      [index] = 0.0;
+        Az_rhs      [index] = 0.0;
+        psi6phi_rhs [index] = 0.0;
 
-        tau_rhs[index]=0.0;
-        rho_star_rhs[index]=0.0;
-        st_x_rhs[index]=0.0;
-        st_y_rhs[index]=0.0;
-        st_z_rhs[index]=0.0;
+        rho_star_rhs[index] = 0.0;
+        st_x_rhs    [index] = 0.0;
+        st_y_rhs    [index] = 0.0;
+        st_z_rhs    [index] = 0.0;
+        tau_rhs     [index] = 0.0;
 
-        // Initialize everything to zero to avoid inefficient if statements
-        Ye_star_rhs[index] = 0.0;
-        S_star_rhs[index]  = 0.0;
+        Ye_star_rhs [index] = 0.0;
+        S_star_rhs  [index] = 0.0;
       }
 
   // Here, we:
@@ -219,14 +218,17 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
    *      this, we'll reconstruct again in the y-dir'n to get {vx,vy} at (i-1/2,j-1/2,k)
    * 2Ab) By_stagger is at (i,j+1/2,k), and we reconstruct below to (i-1/2,j+1/2,k). */
   ww=0;
-  which_prims_to_reconstruct[ww]=RHOB;                      ww++;
-  which_prims_to_reconstruct[ww]=eos.PPM_reconstructed_var; ww++;
-  which_prims_to_reconstruct[ww]=VX;                        ww++;
-  which_prims_to_reconstruct[ww]=VY;                        ww++;
-  which_prims_to_reconstruct[ww]=VZ;                        ww++;
-  which_prims_to_reconstruct[ww]=BY_CENTER;                 ww++;
-  which_prims_to_reconstruct[ww]=BZ_CENTER;                 ww++;
-  which_prims_to_reconstruct[ww]=BY_STAGGER;                ww++;
+  which_prims_to_reconstruct  [ww]=RHOB;                      ww++;
+  if( eos.is_Tabulated ) {
+    which_prims_to_reconstruct[ww]=YEPRIM;                    ww++;
+  }
+  which_prims_to_reconstruct  [ww]=eos.PPM_reconstructed_var; ww++;
+  which_prims_to_reconstruct  [ww]=VX;                        ww++;
+  which_prims_to_reconstruct  [ww]=VY;                        ww++;
+  which_prims_to_reconstruct  [ww]=VZ;                        ww++;
+  which_prims_to_reconstruct  [ww]=BY_CENTER;                 ww++;
+  which_prims_to_reconstruct  [ww]=BZ_CENTER;                 ww++;
+  which_prims_to_reconstruct  [ww]=BY_STAGGER;                ww++;
   num_prims_to_reconstruct=ww;
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
   reconstruct_set_of_prims_PPM(cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
@@ -240,11 +242,13 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
         out_prims_r[BX_CENTER].gf[index]=out_prims_l[BX_CENTER].gf[index]=in_prims[BX_STAGGER].gf[indexim1]; }
   // Then add fluxes to RHS for hydro variables {rho_b,P,vx,vy,vz}:
   // This function is housed in the file: "add_fluxes_and_source_terms_to_hydro_rhss.C"
-  add_fluxes_and_source_terms_to_hydro_rhss(flux_dirn,cctkGH,cctk_lsh,cctk_nghostzones,dX,   metric,in_prims,TUPmunu,
-                                            num_prims_to_reconstruct,out_prims_r,out_prims_l,eos,
+  add_fluxes_and_source_terms_to_hydro_rhss(eos,flux_dirn,cctkGH,cctk_lsh,cctk_nghostzones,dX,
+                                            metric,TUPmunu,
+                                            num_prims_to_reconstruct,
+                                            in_prims,out_prims_r,out_prims_l,
                                             cmax_x,cmin_x,
-                                            rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,
-                                            rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs);
+                                            rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,Ye_star_flux,S_star_flux,
+                                            rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs,Ye_star_rhs,S_star_rhs);
 
 
   // Note that we have already reconstructed vx and vy along the x-direction,
@@ -295,15 +299,18 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
                                eos,in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
   ww=0;
   // Reconstruct other primitives last!
-  which_prims_to_reconstruct[ww]=RHOB;                      ww++;
-  which_prims_to_reconstruct[ww]=eos.PPM_reconstructed_var; ww++;
-  which_prims_to_reconstruct[ww]=VX;                        ww++;
-  which_prims_to_reconstruct[ww]=VY;                        ww++;
-  which_prims_to_reconstruct[ww]=VZ;                        ww++;
-  which_prims_to_reconstruct[ww]=BX_CENTER;                 ww++;
-  which_prims_to_reconstruct[ww]=BZ_CENTER;                 ww++;
-  which_prims_to_reconstruct[ww]=BX_STAGGER;                ww++;
-  which_prims_to_reconstruct[ww]=BZ_STAGGER;                ww++;
+  which_prims_to_reconstruct  [ww]=RHOB;                      ww++;
+  if( eos.is_Tabulated ) {
+    which_prims_to_reconstruct[ww]=YEPRIM;                    ww++;
+  }
+  which_prims_to_reconstruct  [ww]=eos.PPM_reconstructed_var; ww++;
+  which_prims_to_reconstruct  [ww]=VX;                        ww++;
+  which_prims_to_reconstruct  [ww]=VY;                        ww++;
+  which_prims_to_reconstruct  [ww]=VZ;                        ww++;
+  which_prims_to_reconstruct  [ww]=BX_CENTER;                 ww++;
+  which_prims_to_reconstruct  [ww]=BZ_CENTER;                 ww++;
+  which_prims_to_reconstruct  [ww]=BX_STAGGER;                ww++;
+  which_prims_to_reconstruct  [ww]=BZ_STAGGER;                ww++;
   num_prims_to_reconstruct=ww;
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
   reconstruct_set_of_prims_PPM(cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
@@ -317,11 +324,13 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
         out_prims_r[BY_CENTER].gf[index]=out_prims_l[BY_CENTER].gf[index]=in_prims[BY_STAGGER].gf[indexjm1]; }
   // Then add fluxes to RHS for hydro variables {rho_b,P,vx,vy,vz}:
   // This function is housed in the file: "add_fluxes_and_source_terms_to_hydro_rhss.C"
-  add_fluxes_and_source_terms_to_hydro_rhss(flux_dirn,cctkGH,cctk_lsh,cctk_nghostzones,dX,   metric,in_prims,TUPmunu,
-                                            num_prims_to_reconstruct,out_prims_r,out_prims_l,eos,
+  add_fluxes_and_source_terms_to_hydro_rhss(eos,flux_dirn,cctkGH,cctk_lsh,cctk_nghostzones,dX,
+                                            metric,TUPmunu,
+                                            num_prims_to_reconstruct,
+                                            in_prims,out_prims_r,out_prims_l,
                                             cmax_y,cmin_y,
-                                            rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,
-                                            rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs);
+                                            rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,Ye_star_flux,S_star_flux,
+                                            rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs,Ye_star_rhs,S_star_rhs);
 
 
   /*****************************************
@@ -385,25 +394,28 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   ww=0;
   // NOTE! The order of variable reconstruction is important here,
   //   as we don't want to overwrite {vxr,vxl,vyr,vyl}!
-  which_prims_to_reconstruct[ww]=VYR;                       ww++;
-  which_prims_to_reconstruct[ww]=VZR;                       ww++;
-  which_prims_to_reconstruct[ww]=VYL;                       ww++;
-  which_prims_to_reconstruct[ww]=VZL;                       ww++;
+  which_prims_to_reconstruct  [ww]=VYR;                       ww++;
+  which_prims_to_reconstruct  [ww]=VZR;                       ww++;
+  which_prims_to_reconstruct  [ww]=VYL;                       ww++;
+  which_prims_to_reconstruct  [ww]=VZL;                       ww++;
   num_prims_to_reconstruct=ww;
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
   reconstruct_set_of_prims_PPM(cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
                                eos,in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
   // Reconstruct other primitives last!
   ww=0;
-  which_prims_to_reconstruct[ww]=RHOB;                      ww++;
-  which_prims_to_reconstruct[ww]=eos.PPM_reconstructed_var; ww++;
-  which_prims_to_reconstruct[ww]=VX;                        ww++;
-  which_prims_to_reconstruct[ww]=VY;                        ww++;
-  which_prims_to_reconstruct[ww]=VZ;                        ww++;
-  which_prims_to_reconstruct[ww]=BX_CENTER;                 ww++;
-  which_prims_to_reconstruct[ww]=BY_CENTER;                 ww++;
-  which_prims_to_reconstruct[ww]=BX_STAGGER;                ww++;
-  which_prims_to_reconstruct[ww]=BY_STAGGER;                ww++;
+  which_prims_to_reconstruct  [ww]=RHOB;                      ww++;
+  if( eos.is_Tabulated ) {
+    which_prims_to_reconstruct[ww]=YEPRIM;                    ww++;
+  }
+  which_prims_to_reconstruct  [ww]=eos.PPM_reconstructed_var; ww++;
+  which_prims_to_reconstruct  [ww]=VX;                        ww++;
+  which_prims_to_reconstruct  [ww]=VY;                        ww++;
+  which_prims_to_reconstruct  [ww]=VZ;                        ww++;
+  which_prims_to_reconstruct  [ww]=BX_CENTER;                 ww++;
+  which_prims_to_reconstruct  [ww]=BY_CENTER;                 ww++;
+  which_prims_to_reconstruct  [ww]=BX_STAGGER;                ww++;
+  which_prims_to_reconstruct  [ww]=BY_STAGGER;                ww++;
   num_prims_to_reconstruct=ww;
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
   reconstruct_set_of_prims_PPM(cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
@@ -417,11 +429,13 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 
   // Then add fluxes to RHS for hydro variables {rho_b,P,vx,vy,vz}:
   // This function is housed in the file: "add_fluxes_and_source_terms_to_hydro_rhss.C"
-  add_fluxes_and_source_terms_to_hydro_rhss(flux_dirn,cctkGH,cctk_lsh,cctk_nghostzones,dX,   metric,in_prims,TUPmunu,
-                                            num_prims_to_reconstruct,out_prims_r,out_prims_l,eos,
+  add_fluxes_and_source_terms_to_hydro_rhss(eos,flux_dirn,cctkGH,cctk_lsh,cctk_nghostzones,dX,
+                                            metric,TUPmunu,
+                                            num_prims_to_reconstruct,
+                                            in_prims,out_prims_r,out_prims_l,
                                             cmax_z,cmin_z,
-                                            rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,
-                                            rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs);
+                                            rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,Ye_star_flux,S_star_flux,
+                                            rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs,Ye_star_rhs,S_star_rhs);
 
   // in_prims[{VYR,VYL,VZR,VZL}].gz_{lo,hi} ghostzones are not set correcty.
   //    We fix this below.
