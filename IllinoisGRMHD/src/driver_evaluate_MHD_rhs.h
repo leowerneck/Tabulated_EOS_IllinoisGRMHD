@@ -56,7 +56,7 @@ static void Lorenz_psi6phi_rhs__add_gauge_terms_to_A_i_rhs( const cGH *restrict 
                                                             const int *restrict cctk_lsh,
                                                             const int *restrict cctk_nghostzones,
                                                             CCTK_REAL *restrict dX,
-                                                            CCTK_REAL **interp_vars,
+                                                            CCTK_REAL **in_vars,
                                                             CCTK_REAL *restrict psi6phi,
                                                             CCTK_REAL *restrict shiftx_iphjphkph,
                                                             CCTK_REAL *restrict shifty_iphjphkph,

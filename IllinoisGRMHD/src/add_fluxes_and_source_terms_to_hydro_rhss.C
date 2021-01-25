@@ -92,6 +92,25 @@ static void add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters 
 
 	CCTK_REAL Ur[MAXNUMVARS]; for(int ii=0;ii<numvars_reconstructed;ii++) Ur[ii] = out_prims_r[ii].gf[index];
 	CCTK_REAL Ul[MAXNUMVARS]; for(int ii=0;ii<numvars_reconstructed;ii++) Ul[ii] = out_prims_l[ii].gf[index];
+        if( eos.is_Tabulated ) {
+          // In this case we also need the temperature, which *is not* reconstructed
+          // Use the value of the temperature at the cell center as a guess
+          Ur[TEMPERATURE] = Ul[TEMPERATURE] = in_prims[TEMPERATURE].gf[index];
+          if( eos.evolve_entropy ) {
+            // If evolving the entropy, use it to recover the temperature
+            // Right face
+            get_P_eps_and_T_from_rho_Ye_and_S(eos,Ur[RHOB],Ur[YEPRIM],Ur[ENTROPY], &Ur[PRESSURE],&Ur[EPSILON],&Ur[TEMPERATURE]);
+            // Left face
+            get_P_eps_and_T_from_rho_Ye_and_S(eos,Ul[RHOB],Ul[YEPRIM],Ul[ENTROPY], &Ul[PRESSURE],&Ul[EPSILON],&Ul[TEMPERATURE]);
+          }
+          else {
+            // Otherwise recover the temperature from eps
+            // Right face
+            get_P_and_T_from_rho_Ye_and_eps(eos,Ur[RHOB],Ur[YEPRIM],Ur[EPSILON], &Ur[PRESSURE],&Ur[TEMPERATURE]);
+            // Left face
+            get_P_and_T_from_rho_Ye_and_eps(eos,Ul[RHOB],Ul[YEPRIM],Ul[EPSILON], &Ul[PRESSURE],&Ul[TEMPERATURE]);
+          }
+        }
 
 	// Read the T^{\mu \nu} gridfunction from memory, since computing T^{\mu \nu} is expensive
 	CCTK_REAL TUP[4][4]; int counter=0;
