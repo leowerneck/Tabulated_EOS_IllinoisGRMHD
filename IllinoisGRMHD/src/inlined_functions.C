@@ -55,17 +55,58 @@ static inline void find_cp_cm(CCTK_REAL &cplus,CCTK_REAL &cminus,CCTK_REAL v02,C
   }
 }
 
+static inline void compute_cs2_and_enthalpy( const igm_eos_parameters eos,
+                                             CCTK_REAL *restrict PRIMS,
+                                             CCTK_REAL *restrict c_s_squared,
+                                             CCTK_REAL *restrict enthalpy ) {
+  if( eos.is_Hybrid ) {
+    CCTK_REAL P_cold,eps_cold,dPcold_drho=0,eps_th=0,h=0,Gamma_cold=0;
+    compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(PRIMS,eos,P_cold,eps_cold,dPcold_drho,eps_th,h,Gamma_cold);
+    // Now compute cs2 squared
+    *c_s_squared  = (dPcold_drho + eos.Gamma_th*(eos.Gamma_th-1.0)*eps_th)/h;
+    // And set the enthalpy
+    *enthalpy     = h;
+  }
+  else if( eos.is_Tabulated ) {
+    CCTK_REAL xrho  = PRIMS[RHOB       ];
+    CCTK_REAL xye   = PRIMS[YEPRIM     ];
+    CCTK_REAL xtemp = PRIMS[TEMPERATURE];
+    CCTK_REAL xprs  = 0.0;
+    CCTK_REAL xcs2  = 0.0;
+    CCTK_REAL xeps  = 0.0;
+    CCTK_REAL xent  = 0.0;
+    if( eos.evolve_entropy ) {
+      xent = PRIMS[ENTROPY];
+      get_P_eps_cs2_and_T_from_rho_Ye_and_S(eos,xrho,xye,xent, &xprs,&xeps,&xcs2,&xtemp);
+    }
+    else {
+      xeps = PRIMS[EPSILON];
+      get_P_cs2_and_T_from_rho_Ye_and_eps(eos,xrho,xye,xeps, &xprs,&xcs2,&xtemp);
+    }
+    PRIMS[PRESSURE   ] = xprs;
+    PRIMS[TEMPERATURE] = xtemp;
+    PRIMS[EPSILON    ] = xeps;
+    PRIMS[ENTROPY    ] = xent;
 
-static inline void compute_v02(const igm_eos_parameters eos, CCTK_REAL dPcold_drho,CCTK_REAL eps_th,CCTK_REAL h,CCTK_REAL *smallb,CCTK_REAL *U,  CCTK_REAL &v02L) {
+    // Now compute the enthalpy
+    *enthalpy = 1.0 + xeps + xprs/xrho;
 
-  if(U[RHOB]<=0) { v02L=1.0; return; }
+    // And update cs2
+    *c_s_squared = xcs2;
+  }
+}
 
-  /* c_s = sound speed = (dP_c/drho + \Gamma(\Gamma-1) \epsilon_th)/h */
-  CCTK_REAL c_s_squared  = (dPcold_drho + eos.Gamma_th*(eos.Gamma_th-1.0)*eps_th)/(h);
-
-  /* v_A = Alfven speed = sqrt( b^2/(rho0 h + b^2) ) */
-  CCTK_REAL v_A_squared = smallb[SMALLB2]/(smallb[SMALLB2] + U[RHOB]*(h));
-
+static inline void compute_v02( const igm_eos_parameters eos,
+                                const CCTK_REAL h,
+                                const CCTK_REAL c_s_squared,
+                                CCTK_REAL *restrict smallb,
+                                CCTK_REAL *restrict PRIMS,
+                                CCTK_REAL &v02L) {
+  // Check rho_b
+  if(PRIMS[RHOB]<=0) { v02L=1.0; return; }
+  // Compute v_A = Alfven speed = sqrt( b^2/(rho0 h + b^2) )
+  CCTK_REAL v_A_squared = smallb[SMALLB2]/(smallb[SMALLB2] + PRIMS[RHOB]*(h));
+  // Finally compute v02L
   v02L = v_A_squared + c_s_squared*(1.0-v_A_squared);
 }
 
