@@ -32,18 +32,31 @@ void Convert_to_HydroBase(CCTK_ARGUMENTS) {
         int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
         /* Note that we currently do not set Abar, Y_e, temperature, entropy, Avec[3], Aphi, Avec_stag[3], Aphi_stag */
         CCTK_REAL PRIMS[MAXNUMVARS];
-        int ww=0;
-        PRIMS[ww] = rho_b[index]; ww++;
-        PRIMS[ww] = P[index];     ww++;
-        PRIMS[ww] = vx[index];    ww++;
-        PRIMS[ww] = vy[index];    ww++;
-        PRIMS[ww] = vz[index];    ww++;
-        PRIMS[ww] = Bx[index];    ww++;
-        PRIMS[ww] = By[index];    ww++;
-        PRIMS[ww] = Bz[index];    ww++;
+        PRIMS[RHOB         ] = rho_b[index];
+        PRIMS[PRESSURE     ] = P[index];
+        PRIMS[VX           ] = vx[index];
+        PRIMS[VY           ] = vy[index];
+        PRIMS[VZ           ] = vz[index];
+        PRIMS[BX_CENTER    ] = Bx[index];
+        PRIMS[BY_CENTER    ] = By[index];
+        PRIMS[BZ_CENTER    ] = Bz[index];
+        if( eos.is_Tabulated ) {
+          PRIMS[YEPRIM     ] = igm_Ye[index];
+          PRIMS[TEMPERATURE] = igm_temperature[index];
+        }
+        if( eos.evolve_entropy ) {
+          PRIMS[ENTROPY    ] = igm_entropy[index];
+        }
 
-        rho[index]   = PRIMS[RHOB];
-        press[index] = PRIMS[PRESSURE];
+        rho[index]           = PRIMS[RHOB       ];
+        press[index]         = PRIMS[PRESSURE   ];
+        if( eos.is_Tabulated ) {
+          Y_e[index]         = PRIMS[YEPRIM     ];
+          temperature[index] = PRIMS[TEMPERATURE];
+        }
+        if( eos.evolve_entropy ) {
+          entropy[index]     = PRIMS[ENTROPY    ];
+        }
 
         /***************
          * PPEOS Patch *
@@ -55,11 +68,18 @@ void Convert_to_HydroBase(CCTK_ARGUMENTS) {
          * .------------------------------------------------------.
          */
         /* Compute P_cold and eps_cold */
-        CCTK_REAL P_cold, eps_cold;
-        compute_P_cold__eps_cold(eos,PRIMS[RHOB], P_cold,eps_cold); /* <- This function is defined in inlined_functions.C */
+        if( eos.is_Hybrid ) {
+          CCTK_REAL P_cold, eps_cold;
+          compute_P_cold__eps_cold(eos,PRIMS[RHOB], P_cold,eps_cold); /* <- This function is defined in inlined_functions.C */
 
-        /* Compute eps as described above */
-        eps[index] = (PRIMS[PRESSURE]-P_cold)/PRIMS[RHOB]/(Gamma_th-1.0);
+          /* Compute eps as described above */
+          eps[index] = (PRIMS[PRESSURE]-P_cold)/PRIMS[RHOB]/(Gamma_th-1.0);
+        }
+        else if( eos.is_Tabulated ) {
+          CCTK_REAL xP=0,xeps=0;
+          get_P_and_eps_from_rho_Ye_and_T( eos,PRIMS[RHOB],PRIMS[YEPRIM],PRIMS[TEMPERATURE], &xP,&xeps );
+          eps[index] = xeps;
+        }
 
         // IllinoisGRMHD defines v^i = u^i/u^0.
 
