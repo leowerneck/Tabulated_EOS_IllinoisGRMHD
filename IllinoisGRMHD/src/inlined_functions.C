@@ -93,15 +93,17 @@ static inline void compute_v02(CCTK_REAL dPcold_drho,CCTK_REAL Gamma_th,CCTK_REA
  *             : return value: 0 - Font fix worked
  *             : return value: 1 - Font fix failed
  */
-inline int font_fix__rhob_loop( int maxits, CCTK_REAL tol,
-                                CCTK_REAL W, CCTK_REAL Sf2, CCTK_REAL Psim6, CCTK_REAL sdots, CCTK_REAL BbardotS2, CCTK_REAL B2bar,
-                                CCTK_REAL *CONSERVS,
-                                igm_eos_parameters eos, CCTK_REAL rhob_in, CCTK_REAL &rhob_out ) {
+inline int font_fix__rhob_loop( const int maxits, const CCTK_REAL tol,
+                                const CCTK_REAL W_in, const CCTK_REAL Sf2_in, const CCTK_REAL Psim6, const CCTK_REAL sdots, const CCTK_REAL BbardotS2, const CCTK_REAL B2bar,
+                                const CCTK_REAL *restrict CONSERVS,
+                                const igm_eos_parameters eos, const CCTK_REAL rhob_in, CCTK_REAL &rhob_out ) {
 
   /* Declare basic variables */
   bool fontcheck=true;
   int itcount = 0, j0, j1;
   CCTK_REAL W0, Sf20, rhob0, rhob1, h, P_cold, eps_cold;
+  CCTK_REAL W   = W_in;
+  CCTK_REAL Sf2 = Sf2_in;
 
   //////////////////////
   // OUTER LOOP START //
