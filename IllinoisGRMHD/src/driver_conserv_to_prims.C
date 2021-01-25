@@ -100,22 +100,18 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
     gettimeofday(&start, NULL);
   */
 
-  int failures=0,font_fixes=0,vel_limited_ptcount=0;
+  int failures=0,font_fixes=0,vel_limited_ptcount=0,atm_resets=0,rho_star_fix_applied=0;
   int pointcount=0;
   int failures_inhoriz=0;
   int pointcount_inhoriz=0;
 
-  int pressure_cap_hit=0;
-
   CCTK_REAL error_int_numer=0,error_int_denom=0;
 
-  int imin=0,jmin=0,kmin=0;
-  int imax=cctk_lsh[0],jmax=cctk_lsh[1],kmax=cctk_lsh[2];
+  int imin=0,imax=cctk_lsh[0];
+  int jmin=0,jmax=cctk_lsh[1];
+  int kmin=0,kmax=cctk_lsh[2];
 
-  int rho_star_fix_applied=0;
-  long n_iter=0;
-
-#pragma omp parallel for reduction(+:failures,vel_limited_ptcount,font_fixes,pointcount,failures_inhoriz,pointcount_inhoriz,error_int_numer,error_int_denom,pressure_cap_hit,rho_star_fix_applied,n_iter) schedule(static)
+#pragma omp parallel for reduction(+:failures,vel_limited_ptcount,font_fixes,pointcount,failures_inhoriz,pointcount_inhoriz,error_int_numer,error_int_denom,rho_star_fix_applied,atm_resets) schedule(static)
   for(int k=kmin;k<kmax;k++)
     for(int j=jmin;j<jmax;j++)
       for(int i=imin;i<imax;i++) {
@@ -146,23 +142,36 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         METRIC[ww] = gtupyz[index];  ww++;
 
         CCTK_REAL PRIMS[MAXNUMVARS];
-        ww=0;
-        PRIMS[ww] = rho_b[index]; ww++;
-        PRIMS[ww] = P[index];     ww++;
-        PRIMS[ww] = vx[index];    ww++;
-        PRIMS[ww] = vy[index];    ww++;
-        PRIMS[ww] = vz[index];    ww++;
-        PRIMS[ww] = Bx[index];    ww++;
-        PRIMS[ww] = By[index];    ww++;
-        PRIMS[ww] = Bz[index];    ww++;
+        PRIMS[RHOB         ] = rho_b[index];
+        PRIMS[PRESSURE     ] = P[index];
+        PRIMS[VX           ] = vx[index];
+        PRIMS[VY           ] = vy[index];
+        PRIMS[VZ           ] = vz[index];
+        PRIMS[BX_CENTER    ] = Bx[index];
+        PRIMS[BX_CENTER    ] = By[index];
+        PRIMS[BX_CENTER    ] = Bz[index];
 
         CCTK_REAL CONSERVS[NUM_CONSERVS];
-        ww=0;
-        CONSERVS[RHOSTAR  ] = rho_star[index]; ww++;
-        CONSERVS[STILDEX  ] = mhd_st_x[index]; ww++;
-        CONSERVS[STILDEY  ] = mhd_st_y[index]; ww++;
-        CONSERVS[STILDEZ  ] = mhd_st_z[index]; ww++;
-        CONSERVS[TAUENERGY] = tau[index];      ww++;
+        CONSERVS[RHOSTAR  ] = rho_star[index];
+        CONSERVS[STILDEX  ] = mhd_st_x[index];
+        CONSERVS[STILDEY  ] = mhd_st_y[index];
+        CONSERVS[STILDEZ  ] = mhd_st_z[index];
+        CONSERVS[TAUENERGY] = tau[index];
+
+        // Tabulated EOS quantities
+        if( eos.is_Tabulated ) {
+          // Primitives
+          PRIMS[YEPRIM     ] = igm_Ye[index];
+          PRIMS[TEMPERATURE] = igm_temperature[index];
+          // Conservatives
+          CONSERVS[YESTAR  ] = Ye_star[index];
+        }
+
+        // If using the Palenzuela1D_entropy routine, then
+        // the entropy must read the conserved entropy
+        if( eos.c2p_routine == Palenzuela1D_entropy ) {
+          CONSERVS[ENTSTAR] = S_star[index];
+        }
 
 
         CCTK_REAL METRIC_LAP_PSI4[NUMVARS_METRIC_AUX];
@@ -181,9 +190,6 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         METRIC_PHYS[GUPYY] = METRIC[GUPYY]*METRIC_LAP_PSI4[PSIM4];
         METRIC_PHYS[GUPYZ] = METRIC[GUPYZ]*METRIC_LAP_PSI4[PSIM4];
         METRIC_PHYS[GUPZZ] = METRIC[GUPZZ]*METRIC_LAP_PSI4[PSIM4];
-
-
-        CCTK_REAL TUPMUNU[10],TDNMUNU[10];
 
         CCTK_REAL shift_xL = METRIC_PHYS[GXX]*METRIC[SHIFTX] + METRIC_PHYS[GXY]*METRIC[SHIFTY] + METRIC_PHYS[GXZ]*METRIC[SHIFTZ];
         CCTK_REAL shift_yL = METRIC_PHYS[GXY]*METRIC[SHIFTX] + METRIC_PHYS[GYY]*METRIC[SHIFTY] + METRIC_PHYS[GYZ]*METRIC[SHIFTZ];
@@ -227,25 +233,25 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         }
 
         // Here we use _flux variables as temp storage for original values of conservative variables.. This is used for debugging purposes only.
-        rho_star_flux[index] = CONSERVS[RHOSTAR];
-        st_x_flux[index]     = CONSERVS[STILDEX];
-        st_y_flux[index]     = CONSERVS[STILDEY];
-        st_z_flux[index]     = CONSERVS[STILDEZ];
-        tau_flux[index]      = CONSERVS[TAUENERGY];
+        rho_star_flux[index]    = CONSERVS[RHOSTAR  ];
+        st_x_flux[index]        = CONSERVS[STILDEX  ];
+        st_y_flux[index]        = CONSERVS[STILDEY  ];
+        st_z_flux[index]        = CONSERVS[STILDEZ  ];
+        tau_flux[index]         = CONSERVS[TAUENERGY];
 
-        CCTK_REAL rho_star_orig = CONSERVS[RHOSTAR];
-        CCTK_REAL mhd_st_x_orig = CONSERVS[STILDEX];
-        CCTK_REAL mhd_st_y_orig = CONSERVS[STILDEY];
-        CCTK_REAL mhd_st_z_orig = CONSERVS[STILDEZ];
+        CCTK_REAL rho_star_orig = CONSERVS[RHOSTAR  ];
+        CCTK_REAL mhd_st_x_orig = CONSERVS[STILDEX  ];
+        CCTK_REAL mhd_st_y_orig = CONSERVS[STILDEY  ];
+        CCTK_REAL mhd_st_z_orig = CONSERVS[STILDEZ  ];
         CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
 
 
         int check=0;
         struct output_stats stats;
-        stats.n_iter=0;
         stats.vel_limited=0;
         stats.failure_checker=0;
         stats.font_fixed=0;
+        stats.atm_reset=0;
         if(CONSERVS[RHOSTAR]>0.0) {
           // Apply the tau floor
           apply_tau_floor(index,Psi6threshold,PRIMS,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,stats,eos,  CONSERVS);
@@ -270,21 +276,42 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         
         // Enforce limits on primitive variables and recompute conservatives.
         static const int already_computed_physical_metric_and_inverse=1;
+        CCTK_REAL TUPMUNU[10],TDNMUNU[10];
         IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(already_computed_physical_metric_and_inverse,PRIMS,stats,eos,METRIC,g4dn,g4up, TUPMUNU,TDNMUNU,CONSERVS);
 
 
-        rho_star[index] = CONSERVS[RHOSTAR  ];
-        mhd_st_x[index] = CONSERVS[STILDEX  ];
-        mhd_st_y[index] = CONSERVS[STILDEY  ];
-        mhd_st_z[index] = CONSERVS[STILDEZ  ];
-        tau[index]      = CONSERVS[TAUENERGY];
+        rho_star[index]          = CONSERVS[RHOSTAR  ];
+        mhd_st_x[index]          = CONSERVS[STILDEX  ];
+        mhd_st_y[index]          = CONSERVS[STILDEY  ];
+        mhd_st_z[index]          = CONSERVS[STILDEZ  ];
+        tau[index]               = CONSERVS[TAUENERGY];
 
         // Set primitives, and/or provide a better guess.
-        rho_b[index] = PRIMS[RHOB    ];
-        P[index]     = PRIMS[PRESSURE];
-        vx[index]    = PRIMS[VX      ];
-        vy[index]    = PRIMS[VY      ];
-        vz[index]    = PRIMS[VZ      ];
+        rho_b[index]             = PRIMS[RHOB        ];
+        P[index]                 = PRIMS[PRESSURE    ];
+        vx[index]                = PRIMS[VX          ];
+        vy[index]                = PRIMS[VY          ];
+        vz[index]                = PRIMS[VZ          ];
+            
+        // Tabulated EOS quantities
+        if( eos.is_Tabulated ) {
+          // Primitives
+          igm_Ye[index]          = PRIMS[YEPRIM      ];
+          igm_temperature[index] = PRIMS[TEMPERATURE ];
+          // Conservatives
+          Ye_star[index]         = CONSERVS[YESTAR   ];
+        }
+
+        // Entropy evolution quantities
+        if( eos.evolve_entropy || eos.PPM_reconstructed_var == ENTROPY ) {
+          igm_entropy[index]     = PRIMS[ENTROPY     ];
+          S_star[index]          = CONSERVS[ENTSTAR  ];
+        }
+
+        // Read in epsilon if we want to reconstruct it during PPM
+        if( eos.PPM_reconstructed_var == EPSILON ) {
+          igm_eps[index]         = PRIMS[EPSILON     ];
+        }
 
 
         if(update_Tmunu) {
@@ -301,25 +328,12 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
           eTzz[index] = TDNMUNU[ww];
         }
 
-        //Finally, we set h, the enthalpy:
-        //CCTK_REAL eps = P[index]/rho_b[index]/(GAMMA-1.0);
-        //h[index] = 1.0 + P[index]/rho_b[index] + eps;
-
-        /***************************************************************************************************************************/
-        // DIAGNOSTICS:
-        //Pressure cap hit?
-        /* FIXME
-        CCTK_REAL P_cold = rho_b[index]*rho_b[index];
-        if(P[index]/P_cold > 0.99*1e3 && rho_b[index]>100.0*rho_b_atm) {
-          if(exp(phi[index]*6.0) <= Psi6threshold) pressure_cap_hit++;
-        }
-        */
-
         //Now we compute the difference between original & new conservatives, for diagnostic purposes:
         error_int_numer += fabs(tau[index] - tau_orig) + fabs(rho_star[index] - rho_star_orig) +
           fabs(mhd_st_x[index] - mhd_st_x_orig) + fabs(mhd_st_y[index] - mhd_st_y_orig) + fabs(mhd_st_z[index] - mhd_st_z_orig);
         error_int_denom += tau_orig + rho_star_orig + fabs(mhd_st_x_orig) + fabs(mhd_st_y_orig) + fabs(mhd_st_z_orig);
 
+        if(stats.atm_reset==1) atm_resets++;
         if(stats.font_fixed==1) font_fixes++;
         vel_limited_ptcount+=stats.vel_limited;
         if(check!=0) {
@@ -332,30 +346,16 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         pointcount++;
         /***************************************************************************************************************************/
         failure_checker[index] = stats.failure_checker;
-        n_iter += stats.n_iter;
       }
 
-  /*
-    gettimeofday(&end, NULL);
 
-    seconds  = end.tv_sec  - start.tv_sec;
-    useconds = end.tv_usec - start.tv_usec;
-
-    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.999;  // We add 0.999 since mtime is a long int; this rounds up the result before setting the value.  Here, rounding down is incorrect.
-    solutions per second: cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2] / ((CCTK_REAL)mtime/1000.0),
-  */
   if(CCTK_Equals(verbose, "essential") || CCTK_Equals(verbose, "essential+iteration output")) {
-    CCTK_VInfo(CCTK_THORNSTRING,"C2P: Lev: %d NumPts= %d | Fixes: Font= %d VL= %d rho*= %d | Failures: %d InHoriz= %d / %d | Error: %.3e, ErrDenom: %.3e | %.2f iters/gridpt",
+    CCTK_VInfo(CCTK_THORNSTRING,"C2P: Lev: %d NumPts= %d | Fixes: Font= %d VL= %d rho*= %d ATM= %d | Failures: %d InHoriz= %d / %d | Error: %.3e, ErrDenom: %.3e",
                (int)GetRefinementLevel(cctkGH),
-               pointcount,font_fixes,vel_limited_ptcount,rho_star_fix_applied,
+               pointcount,font_fixes,vel_limited_ptcount,rho_star_fix_applied,atm_resets,
                failures,
                failures_inhoriz,pointcount_inhoriz,
-               error_int_numer/error_int_denom,error_int_denom,
-               (double)n_iter/( (double)(cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]) ));
-  }
-
-  if(pressure_cap_hit!=0) {
-    //CCTK_VInfo(CCTK_THORNSTRING,"PRESSURE CAP HIT %d TIMES!  Outputting debug file!",pressure_cap_hit);
+               error_int_numer/error_int_denom,error_int_denom);
   }
 
   // Very useful con2prim debugger. If the primitives (con2prim) solver fails, this will output all data needed to
