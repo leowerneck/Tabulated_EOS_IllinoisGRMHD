@@ -71,6 +71,7 @@ typedef struct _igm_eos_parameters_ {
 //------------------------------------------------
 
 void initialize_igm_eos_parameters_from_input( const CCTK_INT* igm_eos_key, const CCTK_REAL cctk_time, igm_eos_parameters &eos );
+void apply_floors_and_ceilings_to_prims( const igm_eos_parameters eos, const CCTK_REAL *restrict METRIC_LAP_PSI4, CCTK_REAL *restrict PRIMS );
 
 //----------- Hybrid Equation of State -----------
 void print_EOS_Hybrid( igm_eos_parameters eos );
@@ -82,6 +83,10 @@ void compute_P_cold__eps_cold(igm_eos_parameters eos,CCTK_REAL rho_in, CCTK_REAL
 void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold( CCTK_REAL *U, igm_eos_parameters &eos,
                                                                    CCTK_REAL &P_cold,CCTK_REAL &eps_cold,CCTK_REAL &dPcold_drho,CCTK_REAL &eps_th,CCTK_REAL &h,
                                                                    CCTK_REAL &Gamma_cold );
+void compute_entropy_function( const igm_eos_parameters eos,
+                               const CCTK_REAL rho,
+                               const CCTK_REAL P,
+                               CCTK_REAL *restrict S );
 //------------------------------------------------
 
 //---------- Tabulated Equation of State ---------
