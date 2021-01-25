@@ -416,7 +416,7 @@ void compute_P_cold__eps_cold(igm_eos_parameters eos, CCTK_REAL rho_in,
  *             SPEOS: Single-Polytrope Equation of State
  *             PPEOS: Piecewise Polytrope Equation of State
  */
-void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(CCTK_REAL *U, igm_eos_parameters &eos,
+void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(CCTK_REAL *U, const igm_eos_parameters eos,
                                                                   CCTK_REAL &P_cold,CCTK_REAL &eps_cold,CCTK_REAL &dPcold_drho,CCTK_REAL &eps_th,CCTK_REAL &h,
                                                                   CCTK_REAL &Gamma_cold) {
   // This code handles equations of state of the form defined
