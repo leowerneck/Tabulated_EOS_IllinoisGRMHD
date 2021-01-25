@@ -71,7 +71,7 @@ typedef struct _igm_eos_parameters_ {
 //------------------------------------------------
 
 void initialize_igm_eos_parameters_from_input( const CCTK_INT* igm_eos_key, const CCTK_REAL cctk_time, igm_eos_parameters &eos );
-void apply_floors_and_ceilings_to_prims( const igm_eos_parameters eos, const CCTK_REAL *restrict METRIC_LAP_PSI4, CCTK_REAL *restrict PRIMS );
+void apply_floors_and_ceilings_to_prims__set_P_eps_and_S( const igm_eos_parameters eos, const CCTK_REAL *restrict METRIC_LAP_PSI4, CCTK_REAL *restrict PRIMS );
 
 //----------- Hybrid Equation of State -----------
 void print_EOS_Hybrid( igm_eos_parameters eos );

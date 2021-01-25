@@ -9,9 +9,9 @@
 #include "IllinoisGRMHD_headers.h"
 #include "EOS_headers.hh"
 
-void apply_floors_and_ceilings_to_prims( const igm_eos_parameters eos,
-                                         const CCTK_REAL *restrict METRIC_LAP_PSI4,
-                                         CCTK_REAL *restrict PRIMS ) {
+void apply_floors_and_ceilings_to_prims__set_P_eps_and_S( const igm_eos_parameters eos,
+                                                          const CCTK_REAL *restrict METRIC_LAP_PSI4,
+                                                          CCTK_REAL *restrict PRIMS ) {
 
   DECLARE_CCTK_PARAMETERS;
 

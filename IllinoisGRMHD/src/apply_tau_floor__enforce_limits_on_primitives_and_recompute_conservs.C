@@ -163,7 +163,7 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
   // S  (if evolving the entropy)
   // Ye (if tabulated EOS is enabled)
   // T  (if tabulated EOS is enabled)
-  apply_floors_and_ceilings_to_prims(eos,METRIC_LAP_PSI4,PRIMS);
+  apply_floors_and_ceilings_to_prims__set_P_eps_and_S(eos,METRIC_LAP_PSI4,PRIMS);
 
   // Now compute the enthalpy
   const CCTK_REAL h_enthalpy = 1.0 + PRIMS[EPSILON] + PRIMS[PRESSURE]/PRIMS[RHOB];
