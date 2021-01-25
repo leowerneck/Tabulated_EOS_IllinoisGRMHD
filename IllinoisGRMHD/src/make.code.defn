@@ -13,10 +13,13 @@ SRCS =  InitSymBound.C MoL_registration.C \
     symmetry__set_gzs_staggered_gfs.C \
     \
     outer_boundaries.C \
+    \
     EOS_get_key.cc \
     EOS_initialize_parameters.cc \
     EOS_Hybrid.cc \
     EOS_Tabulated.cc \
+    EOS_floors_ceilings.cc \
+    \
     con2prim_select.cc \
     con2prim_Noble2D.cc \
     con2prim_Palenzuela1D_entropy.cc \
