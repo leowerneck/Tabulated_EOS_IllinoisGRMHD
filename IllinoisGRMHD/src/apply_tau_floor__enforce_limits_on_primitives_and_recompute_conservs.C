@@ -142,7 +142,7 @@ static inline int apply_tau_floor(const int index,const CCTK_REAL Psi6threshold,
 
 
 
-void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int already_computed_physical_metric_and_inverse,CCTK_REAL *U,struct output_stats &stats,igm_eos_parameters &eos,
+void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int already_computed_physical_metric_and_inverse,CCTK_REAL *PRIMS,struct output_stats &stats,igm_eos_parameters &eos,
                                                                        CCTK_REAL *METRIC,CCTK_REAL g4dn[4][4],CCTK_REAL g4up[4][4], CCTK_REAL *TUPMUNU,CCTK_REAL *TDNMUNU,CCTK_REAL *CONSERVS) {
 #ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
   DECLARE_CCTK_PARAMETERS;
@@ -151,40 +151,30 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
   CCTK_REAL METRIC_LAP_PSI4[NUMVARS_METRIC_AUX];
   SET_LAPSE_PSI4(METRIC_LAP_PSI4,METRIC);
 
-  // Useful debugging tool, can be used to track fixes:
-  //CCTK_REAL rho_b_orig=U[RHOB],P_orig=U[PRESSURE],vx_orig=U[VX],vy_orig=U[VY],vz_orig=U[VZ];
+  // The goal here is to apply floors and ceilings to the primitives
+  // and compute the enthalpy. Note that the derivative of the
+  // pressure with respect to rho was unecessary in this function.
+  //
+  // This function will apply floors and ceilings and recompute:
+  //
+  // rho_b
+  // P
+  // eps
+  // S  (if evolving the entropy)
+  // Ye (if tabulated EOS is enabled)
+  // T  (if tabulated EOS is enabled)
+  apply_floors_and_ceilings_to_prims(eos,METRIC_LAP_PSI4,PRIMS);
 
-  /***********************************************************/
-  // Enforce limits on pressure, density, and v^i
-  /***********************************************************/
-  // Density floor:
-  U[RHOB] = MAX(U[RHOB],eos.rho_atm);
-  // Density ceiling:
-  U[RHOB] = MIN(U[RHOB],eos.rho_max);
-
-  //   Next set h, the enthalpy:
-  CCTK_REAL h_enthalpy,  P_cold,eps_cold,dPcold_drho,eps_th,Gamma_cold; /* <- Note that in setting h, we need to define several
-                                                                         *    other variables. Though some will be unused later
-                                                                         *    in this function, they may be useful in other
-                                                                         *    functions */
-  compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(U,eos,P_cold,eps_cold,dPcold_drho,eps_th,h_enthalpy,Gamma_cold);
-
-  // Pressure floor & ceiling:
-  int polytropic_index = find_polytropic_K_and_Gamma_index(eos,U[RHOB]);
-  enforce_pressure_floor_ceiling(stats,eos.K_ppoly_tab[polytropic_index],P_cold,METRIC_LAP_PSI4[PSI6],Psi6threshold,U[RHOB],eos.rho_atm,  U[PRESSURE]);
-
-  // Possibly adjusted pressure, so recompute eps & h:
-  CCTK_REAL eps = eps_cold + (U[PRESSURE]-P_cold)/(eos.Gamma_th-1.0)/U[RHOB];
-  h_enthalpy = 1.0 + eps + U[PRESSURE]/U[RHOB];
+  // Now compute the enthalpy
+  const CCTK_REAL h_enthalpy = 1.0 + PRIMS[EPSILON] + PRIMS[PRESSURE]/PRIMS[RHOB];
 
   CCTK_REAL uUP[4];
-  impose_speed_limit_output_u0(METRIC,U,METRIC_LAP_PSI4[PSI4],METRIC_LAP_PSI4[LAPSEINV],stats, uUP[0]);
+  impose_speed_limit_output_u0(METRIC,PRIMS,METRIC_LAP_PSI4[PSI4],METRIC_LAP_PSI4[LAPSEINV],stats, uUP[0]);
   // Compute u^i. We've already set uUP[0] in the lines above.
-  for(int ii=0;ii<3;ii++) uUP[UX+ii] = uUP[0]*U[VX+ii];
+  for(int ii=0;ii<3;ii++) uUP[UX+ii] = uUP[0]*PRIMS[VX+ii];
 
   // Useful debugging tool, part 2: can be used to track fixes:
   //if(P_orig!=U[PRESSURE] || rho_b_orig!=U[RHOB] || vx_orig!=U[VX] || vy_orig!=U[VY] || vz_orig!=U[VZ]) {
-
 
   /***************************************************************/
   // COMPUTE TUPMUNU, TDNMUNU, AND  CONSERVATIVES FROM PRIMITIVES
@@ -193,7 +183,7 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
   CCTK_REAL ONE_OVER_LAPSE_SQRT_4PI = METRIC_LAP_PSI4[LAPSEINV]*ONE_OVER_SQRT_4PI;
   CCTK_REAL u_x_over_u0_psi4,u_y_over_u0_psi4,u_z_over_u0_psi4;
   CCTK_REAL smallb[NUMVARS_SMALLB];
-  compute_smallba_b2_and_u_i_over_u0_psi4(METRIC,METRIC_LAP_PSI4,U,uUP[0],ONE_OVER_LAPSE_SQRT_4PI,
+  compute_smallba_b2_and_u_i_over_u0_psi4(METRIC,METRIC_LAP_PSI4,PRIMS,uUP[0],ONE_OVER_LAPSE_SQRT_4PI,
                                           u_x_over_u0_psi4,u_y_over_u0_psi4,u_z_over_u0_psi4,smallb);
   // Compute u_i; we compute u_0 below.
   CCTK_REAL uDN[4] = { 1e200, u_x_over_u0_psi4*uUP[0]*METRIC_LAP_PSI4[PSI4],u_y_over_u0_psi4*uUP[0]*METRIC_LAP_PSI4[PSI4],u_z_over_u0_psi4*uUP[0]*METRIC_LAP_PSI4[PSI4] };
@@ -201,8 +191,8 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
 
   // Precompute some useful quantities, for later:
   CCTK_REAL alpha_sqrt_gamma=METRIC_LAP_PSI4[LAPSE]*METRIC_LAP_PSI4[PSI6];
-  CCTK_REAL rho0_h_plus_b2 = (U[RHOB]*h_enthalpy + smallb[SMALLB2]);
-  CCTK_REAL P_plus_half_b2 = (U[PRESSURE]+0.5*smallb[SMALLB2]);
+  CCTK_REAL rho0_h_plus_b2 = (PRIMS[RHOB]*h_enthalpy + smallb[SMALLB2]);
+  CCTK_REAL P_plus_half_b2 = (PRIMS[PRESSURE]+0.5*smallb[SMALLB2]);
 
   if(!already_computed_physical_metric_and_inverse) {
     // If you like, see Eq 2.119 in Numerical Relativity, by Baumgarte & Shapiro:
@@ -273,13 +263,20 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
   //CCTK_VInfo(CCTK_THORNSTRING,"YAY %e",TDNMUNU[0]);
 
   // Finally, compute conservatives:
-  CONSERVS[RHOSTAR] = alpha_sqrt_gamma * U[RHOB] * uUP[0];
-  CONSERVS[STILDEX] = CONSERVS[RHOSTAR]*h_enthalpy*uDN[1] + alpha_sqrt_gamma*(uUP[0]*smallb[SMALLB2]*uDN[1] - smallb[SMALLBT]*smallb_lower[SMALLBX]);
-  CONSERVS[STILDEY] = CONSERVS[RHOSTAR]*h_enthalpy*uDN[2] + alpha_sqrt_gamma*(uUP[0]*smallb[SMALLB2]*uDN[2] - smallb[SMALLBT]*smallb_lower[SMALLBY]);
-  CONSERVS[STILDEZ] = CONSERVS[RHOSTAR]*h_enthalpy*uDN[3] + alpha_sqrt_gamma*(uUP[0]*smallb[SMALLB2]*uDN[3] - smallb[SMALLBT]*smallb_lower[SMALLBZ]);
+  CONSERVS[RHOSTAR  ] = alpha_sqrt_gamma * PRIMS[RHOB] * uUP[0];
+  CONSERVS[STILDEX  ] = CONSERVS[RHOSTAR]*h_enthalpy*uDN[1] + alpha_sqrt_gamma*(uUP[0]*smallb[SMALLB2]*uDN[1] - smallb[SMALLBT]*smallb_lower[SMALLBX]);
+  CONSERVS[STILDEY  ] = CONSERVS[RHOSTAR]*h_enthalpy*uDN[2] + alpha_sqrt_gamma*(uUP[0]*smallb[SMALLB2]*uDN[2] - smallb[SMALLBT]*smallb_lower[SMALLBY]);
+  CONSERVS[STILDEZ  ] = CONSERVS[RHOSTAR]*h_enthalpy*uDN[3] + alpha_sqrt_gamma*(uUP[0]*smallb[SMALLB2]*uDN[3] - smallb[SMALLBT]*smallb_lower[SMALLBZ]);
   // tauL = alpha^2 sqrt(gamma) T^{00} - CONSERVS[RHOSTAR]
   CONSERVS[TAUENERGY] =  METRIC_LAP_PSI4[LAPSE]*alpha_sqrt_gamma*(rho0_h_plus_b2*SQR(uUP[0]) + P_plus_half_b2*(-SQR(METRIC_LAP_PSI4[LAPSEINV])) - SQR(smallb[SMALLBT])) - CONSERVS[RHOSTAR];
-  // FIXME: We have TUPMUNU already, should replace           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ by TUPMUNU[0].
+  if( eos.is_Tabulated ) {
+    // Tabulated EOS evolves Y_e_star = alpha * sqrt(gamma) * rho_b * Y_e * u^{0} = rho_star * Y_e
+    CONSERVS[YESTAR ] = CONSERVS[RHOSTAR] * PRIMS[YEPRIM];
+  }
+  if( eos.evolve_entropy ) {
+    // Entropy equation evolves S_star = alpha * sqrt(gamma) * S * u^{0}
+    CONSERVS[ENTSTAR] = alpha_sqrt_gamma * PRIMS[ENTROPY] * uUP[0];
+  }
 }
 
 
