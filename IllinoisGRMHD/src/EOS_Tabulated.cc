@@ -224,6 +224,37 @@ void get_P_and_eps_from_rho_Ye_and_T( const igm_eos_parameters eos,
   // FIXME: add error handling!  
 }
 
+void get_P_and_T_from_rho_Ye_and_eps( const igm_eos_parameters eos,
+                                      const CCTK_REAL rho,
+                                      const CCTK_REAL Y_e,
+                                      const CCTK_REAL eps,
+                                      CCTK_REAL *restrict P,
+                                      CCTK_REAL *restrict T ) {
+  // Set up for table call
+  CCTK_INT  npoints  = 1;
+  CCTK_INT  keyerr   = 0;
+  CCTK_INT  anyerr   = 0;
+  // The EOS_Omni function does not like some of its arguments
+  // being constant (even when they are not supposed to change).
+  // We declare auxiliary variables here to avoid errors.
+  CCTK_REAL rho_in   = rho;
+  CCTK_REAL Y_e_in   = Y_e;
+  CCTK_REAL eps_in   = eps;
+  CCTK_REAL T_out    = *T;
+  CCTK_REAL P_out    = 0.0;
+
+  // Perform the table interpolations
+  EOS_Omni_press( eos.key,have_eps,eos.root_finding_precision,npoints,
+                  &rho_in,&eps_in,&T_out,&Y_e_in,&P_out,
+                  &keyerr,&anyerr );
+
+  // Now update P and eps
+  *P = P_out;
+  *T = T_out;
+
+  // FIXME: add error handling!  
+}
+
 
 void get_P_eps_and_S_from_rho_Ye_and_T( const igm_eos_parameters eos,
                                         const CCTK_REAL rho,
