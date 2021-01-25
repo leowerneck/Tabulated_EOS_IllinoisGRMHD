@@ -21,6 +21,8 @@ typedef struct _igm_eos_parameters_ {
   //-------------- General parameters --------------
   // EOS key (selects Hybrid or Tabulated EOS)
   CCTK_INT key;
+  // This is useful so we know which EOS type we are using
+  bool is_Hybrid,is_Tabulated;
   // con2prim key (selects the con2prim routine)
   CCTK_INT c2p_routine;
   // Which variable to reconstruct in PPM
