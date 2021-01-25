@@ -18,18 +18,15 @@ void initialize_igm_eos_parameters_from_input( const CCTK_INT* igm_eos_key,const
   DECLARE_CCTK_PARAMETERS;
   
   // Set the EOS key
-  eos.key          = *igm_eos_key;
+  eos.key           = *igm_eos_key;
 
-  // Con2prim configuration
-  if( CCTK_EQUALS(igm_con2prim_routine,"Noble2D") ) {
-    eos.c2p_routine  = Noble2D;
-  } 
-  else if( CCTK_EQUALS(igm_con2prim_routine,"Palenzuela1D") ) {
-    eos.c2p_routine  = Palenzuela1D;
-  }
-  else if( CCTK_EQUALS(igm_con2prim_routine,"Palenzuela1D_entropy") ) {
-    eos.c2p_routine  = Palenzuela1D_entropy;
-  }
+  // Get con2prim key
+  eos.c2p_routine   = con2prim_get_key(igm_con2prim_routine);
+
+  // Get con2prim backup keys
+  eos.c2p_backup[0] = con2prim_get_key(igm_con2prim_backup_routine[0]);
+  eos.c2p_backup[1] = con2prim_get_key(igm_con2prim_backup_routine[1]);
+  eos.c2p_backup[2] = con2prim_get_key(igm_con2prim_backup_routine[2]);
 
   // Whether or not to evolve the entropy
   eos.evolve_entropy = igm_evolve_entropy;
