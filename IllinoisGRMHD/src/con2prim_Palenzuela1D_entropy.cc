@@ -16,39 +16,21 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define par_q (0)
-#define par_r (1)
-#define par_s (2)
-#define par_t (3)
-#define conDD (4)
-#define conYE (5)
-#define conDS (6) // Entropy
-
-struct c2p_report {
-  bool failed;
-  bool adjust_cons;
-  char err_msg[200];
-  int count;
-  bool retry;
-  int c2p_keyerr;
-  int nEOScalls;
-};
-
 void palenzuela_entropy(const igm_eos_parameters eos,
-                        struct c2p_report * c2p_rep, const double S_squared, const double BdotS, 
-                        const double B_squared, const double * con, double * prim, const double g_con[4][4], 
+                        struct c2p_report *restrict c2p_rep, const double S_squared, const double BdotS,
+                        const double B_squared, const double *restrict con, double *restrict prim, const double g_con[4][4],
                         const double g_cov[4][4], const double tol_x, bool use_epsmin);
 
-double zbrent_entropy(double (*func)(const igm_eos_parameters, double, double *, struct c2p_report *, bool, double *),
-                      const igm_eos_parameters eos, double * param, 
-                      double * temp_guess, double x1, double x2, double tol_x, struct c2p_report * c2p_rep, bool use_epsmin);
+double zbrent_entropy(double (*func)(const igm_eos_parameters, double, double *restrict, struct c2p_report *restrict, bool, double *restrict),
+                      const igm_eos_parameters eos, double *restrict param,
+                      double *restrict temp_guess, double x1, double x2, double tol_x, struct c2p_report *restrict c2p_rep, bool use_epsmin);
 
 void calc_prim_entropy(const igm_eos_parameters eos,
-                       const double x, const double * con, const double * param, const double temp_guess, double * prim, 
-                       const double S_squared, const double BdotS, 
+                       const double x, const double *restrict con, const double *restrict param, const double temp_guess, double *restrict prim,
+                       const double S_squared, const double BdotS,
                        const double B_squared, const double g4up[4][4], struct c2p_report * c2p_rep );
 
-double func_root_entropy(const igm_eos_parameters eos, double x, double * param, struct c2p_report * c2p_rep, bool use_epsmin, double * temp_guess);
+double func_root_entropy(const igm_eos_parameters eos, double x, double *restrict param, struct c2p_report *restrict c2p_rep, bool use_epsmin, double *restrict temp_guess);
 
 
 /*****************************************************************************/
@@ -66,8 +48,8 @@ double func_root_entropy(const igm_eos_parameters eos, double x, double * param,
 int con2prim_Palenzuela1D_entropy( const igm_eos_parameters eos,
                                    const CCTK_REAL g4dn[4][4],
                                    const CCTK_REAL g4up[4][4],
-                                   CCTK_REAL *con,
-                                   CCTK_REAL *prim ) {
+                                   const CCTK_REAL *restrict con,
+                                   CCTK_REAL *restrict prim ) {
 
   // Compute scalars needed by the con2prim routine      
   // Lower indices - covariant
@@ -101,10 +83,9 @@ int con2prim_Palenzuela1D_entropy( const igm_eos_parameters eos,
 /*********************** PALENZUELA CON2PRIM FUNCTIONS ***********************/
 /*****************************************************************************/
 void palenzuela_entropy(const igm_eos_parameters eos,
-                        struct c2p_report * c2p_rep, const double S_squared, const double BdotS, 
-                        const double B_squared, const double * con, double * prim, const double g_con[4][4],
-                        const double g_cov[4][4], const double tol_x, bool use_epsmin)
-{
+                        struct c2p_report *restrict c2p_rep, const double S_squared, const double BdotS,
+                        const double B_squared, const double *restrict con, double *restrict prim, const double g_con[4][4],
+                        const double g_cov[4][4], const double tol_x, bool use_epsmin) {
 
   // main root finding routine
   // using scheme of Palenzuela et al. 2015, PRD, 92, 044045
@@ -144,9 +125,9 @@ void palenzuela_entropy(const igm_eos_parameters eos,
 }
 
 void calc_prim_entropy(const igm_eos_parameters eos,
-                       const double x, const double * con, const double * param, const double temp_guess, double * prim, 
-                       const double S_squared, const double BdotS, 
-                       const double B_squared, const double g4up[4][4], struct c2p_report * c2p_rep ) {
+                       const double x, const double *restrict con, const double *restrict param, const double temp_guess, double *restrict prim,
+                       const double S_squared, const double BdotS,
+                       const double B_squared, const double g4up[4][4], struct c2p_report *restrict c2p_rep ) {
   
   // Recover the primitive variables prim from x, r, s, t, con
   double r = param[par_r];
@@ -215,7 +196,7 @@ void calc_prim_entropy(const igm_eos_parameters eos,
 
 }
 
-double func_root_entropy(const igm_eos_parameters eos, double x, double * param, struct c2p_report * c2p_rep, bool use_epsmin, double * temp_guess) {
+double func_root_entropy(const igm_eos_parameters eos, double x, double *restrict param, struct c2p_report *restrict c2p_rep, bool use_epsmin, double *restrict temp_guess) {
 
   // computes f(x) from x and r,s,t
   const double r  = param[par_r];
@@ -255,10 +236,9 @@ double func_root_entropy(const igm_eos_parameters eos, double x, double * param,
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
 
 
-double zbrent_entropy(double (*func)(const igm_eos_parameters, double, double *, struct c2p_report *, bool, double *),
-                      const igm_eos_parameters eos, double * param, 
-                      double * temp_guess, double x1, double x2, double tol_x, struct c2p_report * c2p_rep, bool use_epsmin)
-{
+double zbrent_entropy(double (*func)(const igm_eos_parameters, double, double *restrict, struct c2p_report *restrict, bool, double *restrict),
+                      const igm_eos_parameters eos, double *restrict param,
+                      double *restrict temp_guess, double x1, double x2, double tol_x, struct c2p_report *restrict c2p_rep, bool use_epsmin) {
 
   // Implementation of Brent’s method to find the root of a function func to accuracy tol_x. The root
   // must be bracketed by x1 and x2.

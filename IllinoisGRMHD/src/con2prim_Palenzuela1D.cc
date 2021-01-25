@@ -22,17 +22,17 @@
 #include <stdbool.h>
 
 void palenzuela(const igm_eos_parameters eos,
-                struct c2p_report *restrict c2p_rep, const double S_squared, const double BdotS, 
-                const double B_squared, const double *restrict con, double *restrict prim, const double g_con[4][4], 
+                struct c2p_report *restrict c2p_rep, const double S_squared, const double BdotS,
+                const double B_squared, const double *restrict con, double *restrict prim, const double g_con[4][4],
                 const double g_cov[4][4], const double tol_x, bool use_epsmin);
 
 double zbrent(double (*func)(const igm_eos_parameters, double, double *restrict, struct c2p_report *restrict, bool, double *restrict),
-              const igm_eos_parameters eos, double *restrict param, 
+              const igm_eos_parameters eos, double *restrict param,
               double *restrict temp_guess, double x1, double x2, double tol_x, struct c2p_report * c2p_rep, bool use_epsmin);
 
 void calc_prim(const igm_eos_parameters eos,
-               const double x, const double *restrict con, const double * param, const double temp_guess, double *restrict prim, 
-               const double S_squared, const double BdotS, 
+               const double x, const double *restrict con, const double * param, const double temp_guess, double *restrict prim,
+               const double S_squared, const double BdotS,
                const double B_squared, const double g4up[4][4], struct c2p_report *restrict c2p_rep );
 
 double func_root(const igm_eos_parameters eos, double x, double *restrict param, struct c2p_report *restrict c2p_rep, bool use_epsmin, double *restrict temp_guess);
@@ -88,7 +88,7 @@ int con2prim_Palenzuela1D( const igm_eos_parameters eos,
 /*********************** PALENZUELA CON2PRIM FUNCTIONS ***********************/
 /*****************************************************************************/
 void palenzuela(const igm_eos_parameters eos,
-                struct c2p_report *restrict c2p_rep, const double S_squared, const double BdotS, 
+                struct c2p_report *restrict c2p_rep, const double S_squared, const double BdotS,
                 const double B_squared, const double * con, double *restrict prim, const double g_con[4][4],
                 const double g_cov[4][4], const double tol_x, bool use_epsmin)
 {
@@ -130,8 +130,8 @@ void palenzuela(const igm_eos_parameters eos,
 }
 
 void calc_prim(const igm_eos_parameters eos,
-               const double x, const double *restrict con, const double *restrict param, const double temp_guess, double *restrict prim, 
-               const double S_squared, const double BdotS, 
+               const double x, const double *restrict con, const double *restrict param, const double temp_guess, double *restrict prim,
+               const double S_squared, const double BdotS,
                const double B_squared, const double g4up[4][4], struct c2p_report *restrict c2p_rep ) {
   
   // Recover the primitive variables prim from x, q, r, s, t, con
@@ -256,7 +256,7 @@ double func_root(const igm_eos_parameters eos, double x, double *restrict param,
 
 
 double zbrent(double (*func)(const igm_eos_parameters, double, double *, struct c2p_report *restrict, bool, double *restrict),
-              const igm_eos_parameters eos, double *restrict param, 
+              const igm_eos_parameters eos, double *restrict param,
               double * temp_guess, double x1, double x2, double tol_x, struct c2p_report *restrict c2p_rep, bool use_epsmin)
 {
 
