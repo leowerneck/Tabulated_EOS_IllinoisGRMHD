@@ -22,12 +22,34 @@ static void Lorenz_psi6phi_rhs__add_gauge_terms_to_A_i_rhs(const cGH *cctkGH,con
                                                            CCTK_REAL *alpha_sqrtg_Ay_interp,CCTK_REAL *alpha_sqrtg_Az_interp,
                                                            CCTK_REAL *psi6phi_rhs,CCTK_REAL *Ax_rhs,CCTK_REAL *Ay_rhs,CCTK_REAL *Az_rhs);
 
-static void add_fluxes_and_source_terms_to_hydro_rhss(const int flux_dirn,const cGH *cctkGH,const int *cctk_lsh,const int *cctk_nghostzones,CCTK_REAL *dX,
-                                                      CCTK_REAL **metric,gf_and_gz_struct *in_prims,CCTK_REAL **TUPmunu,
-                                                      int numvars_reconstructed,gf_and_gz_struct *out_prims_r,gf_and_gz_struct *out_prims_l,igm_eos_parameters &eos,
-                                                      CCTK_REAL *cmax,CCTK_REAL *cmin,
-                                                      CCTK_REAL *rho_star_flux,CCTK_REAL *tau_flux,CCTK_REAL *st_x_flux,CCTK_REAL *st_y_flux,CCTK_REAL *st_z_flux,
-                                                      CCTK_REAL *rho_star_rhs,CCTK_REAL *tau_rhs,CCTK_REAL *st_x_rhs,CCTK_REAL *st_y_rhs,CCTK_REAL *st_z_rhs);
+static void add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters eos,
+                                                       const int flux_dirn,
+                                                       const cGH *restrict cctkGH,
+                                                       const int *restrict cctk_lsh,
+                                                       const int *restrict cctk_nghostzones,
+                                                       const CCTK_REAL *restrict dX,
+                                                       CCTK_REAL **metric,
+                                                       CCTK_REAL **TUPmunu,
+                                                       const int numvars_reconstructed,
+                                                       gf_and_gz_struct *restrict in_prims,
+                                                       gf_and_gz_struct *restrict out_prims_r,
+                                                       gf_and_gz_struct *restrict out_prims_l,
+                                                       CCTK_REAL *restrict cmax,
+                                                       CCTK_REAL *restrict cmin,
+                                                       CCTK_REAL *restrict rho_star_flux,
+                                                       CCTK_REAL *restrict tau_flux,
+                                                       CCTK_REAL *restrict st_x_flux,
+                                                       CCTK_REAL *restrict st_y_flux,
+                                                       CCTK_REAL *restrict st_z_flux,
+                                                       CCTK_REAL *restrict Ye_star_flux,
+                                                       CCTK_REAL *restrict S_star_flux,
+                                                       CCTK_REAL *restrict rho_star_rhs,
+                                                       CCTK_REAL *restrict tau_rhs,
+                                                       CCTK_REAL *restrict st_x_rhs,
+                                                       CCTK_REAL *restrict st_y_rhs,
+                                                       CCTK_REAL *restrict st_z_rhs,
+                                                       CCTK_REAL *restrict Ye_star_rhs,
+                                                       CCTK_REAL *restrict S_star_rhs );
 
 #endif /* DRIVER_EVALUATE_MHD_RHS_H_ */
 
