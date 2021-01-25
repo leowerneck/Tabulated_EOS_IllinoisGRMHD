@@ -106,27 +106,37 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
   for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
         int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-        rho_star_p[index] = rho_star[index];
-        tau_p[index] = tau[index];
-        mhd_st_x_p[index] = mhd_st_x[index];
-        mhd_st_y_p[index] = mhd_st_y[index];
-        mhd_st_z_p[index] = mhd_st_z[index];
+        rho_star_p[index]    = rho_star[index];
+        tau_p[index]         = tau[index];
+        mhd_st_x_p[index]    = mhd_st_x[index];
+        mhd_st_y_p[index]    = mhd_st_y[index];
+        mhd_st_z_p[index]    = mhd_st_z[index];
 
-        psi6phi_p[index] = psi6phi[index];
-        Ax_p[index] = Ax[index];
-        Ay_p[index] = Ay[index];
-        Az_p[index] = Az[index];
+        psi6phi_p[index]     = psi6phi[index];
+        Ax_p[index]          = Ax[index];
+        Ay_p[index]          = Ay[index];
+        Az_p[index]          = Az[index];
 
-        rho_star_p_p[index] = rho_star[index];
-        tau_p_p[index] = tau[index];
-        mhd_st_x_p_p[index] = mhd_st_x[index];
-        mhd_st_y_p_p[index] = mhd_st_y[index];
-        mhd_st_z_p_p[index] = mhd_st_z[index];
+        rho_star_p_p[index]  = rho_star[index];
+        tau_p_p[index]       = tau[index];
+        mhd_st_x_p_p[index]  = mhd_st_x[index];
+        mhd_st_y_p_p[index]  = mhd_st_y[index];
+        mhd_st_z_p_p[index]  = mhd_st_z[index];
 
-        psi6phi_p_p[index] = psi6phi[index];
-        Ax_p_p[index] = Ax[index];
-        Ay_p_p[index] = Ay[index];
-        Az_p_p[index] = Az[index];
+        psi6phi_p_p[index]   = psi6phi[index];
+        Ax_p_p[index]        = Ax[index];
+        Ay_p_p[index]        = Ay[index];
+        Az_p_p[index]        = Az[index];
+
+        if( eos.is_Tabulated ) {
+          Ye_star_p[index]   = Ye_star[index];
+          Ye_star_p_p[index] = Ye_star[index];
+        }
+
+        if( eos.evolve_entropy ) {
+          S_star_p[index]    = S_star[index];
+          S_star_p_p[index]  = S_star[index];
+        }
       }
 }
 
