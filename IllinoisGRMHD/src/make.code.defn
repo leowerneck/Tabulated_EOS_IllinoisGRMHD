@@ -20,8 +20,13 @@ SRCS =  InitSymBound.C MoL_registration.C \
     EOS_Tabulated.cc \
     EOS_floors_ceilings.cc \
     \
+    con2prim_get_key.cc \
     con2prim_select.cc \
+    con2prim_set_cons_and_prim_from_CONSERVS_and_PRIMS.cc \
     con2prim_Noble2D.cc \
-    con2prim_Palenzuela1D_entropy.cc \
-    con2prim_set_cons_and_prim_from_CONSERVS_and_PRIMS.cc
+    con2prim_Noble1D.cc \
+    con2prim_Noble1D_entropy.cc \
+    con2prim_Noble1D_entropy2.cc \
+    con2prim_Palenzuela1D.cc \
+    con2prim_Palenzuela1D_entropy.cc
 
