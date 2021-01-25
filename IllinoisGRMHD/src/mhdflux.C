@@ -29,14 +29,13 @@ static inline void mhdflux( const igm_eos_parameters eos,
   CCTK_REAL ONE_OVER_LAPSE = 1.0/FACEVAL_LAPSE_PSI4[LAPSE];
   CCTK_REAL ONE_OVER_LAPSE_SQUARED=SQR(ONE_OVER_LAPSE);
 
+  // Compute the sound speed and enthalpy on the right face
+  CCTK_REAL cs2_r=0,h_r=0;
+  compute_cs2_and_enthalpy(eos,Ur,&cs2_r,&h_r);
 
-  // First compute P_{cold}, \epsilon_{cold}, dP_{cold}/drho, \epsilon_{th}, h, and \Gamma_{cold},
-  // for right and left faces:
-  CCTK_REAL P_coldr,eps_coldr,dPcold_drhor=0,eps_thr=0,h_r=0,Gamma_coldr;
-  compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(Ur,eos,P_coldr,eps_coldr,dPcold_drhor,eps_thr,h_r,Gamma_coldr);
-  CCTK_REAL P_coldl,eps_coldl,dPcold_drhol=0,eps_thl=0,h_l=0,Gamma_coldl;
-  compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(Ul,eos,P_coldl,eps_coldl,dPcold_drhol,eps_thl,h_l,Gamma_coldl);
-
+  // Compute the sound speed and enthalpy on the left face
+  CCTK_REAL cs2_l=0,h_l=0;
+  compute_cs2_and_enthalpy(eos,Ul,&cs2_l,&h_l);
 
   //Compute face velocities
   // Begin by computing u0
@@ -44,7 +43,6 @@ static inline void mhdflux( const igm_eos_parameters eos,
   CCTK_REAL u0_r,u0_l;
   impose_speed_limit_output_u0(FACEVAL,Ur,psi4,ONE_OVER_LAPSE,stats,u0_r);
   impose_speed_limit_output_u0(FACEVAL,Ul,psi4,ONE_OVER_LAPSE,stats,u0_l);
-
 
   //Next compute b^{\mu}, the magnetic field measured in the comoving fluid frame:
   CCTK_REAL ONE_OVER_LAPSE_SQRT_4PI = ONE_OVER_LAPSE*ONE_OVER_SQRT_4PI;
@@ -71,13 +69,12 @@ static inline void mhdflux( const igm_eos_parameters eos,
                             u_z_over_u0_psi4l*u0_l*FACEVAL_LAPSE_PSI4[PSI4] };
   /***********************************************************/
 
-
   // Compute v02 = v_A^2 + c_s^2*(1.0-v_A^2), where c_s = sound speed, and v_A = Alfven velocity
   CCTK_REAL v02r,v02l;
   // First right face
-  compute_v02(eos,dPcold_drhor,eps_thr,h_r,smallbr,Ur,v02r);
+  compute_v02(eos,h_r,cs2_r,smallbr,Ur,v02r);
   // Then left face.
-  compute_v02(eos,dPcold_drhol,eps_thl,h_l,smallbl,Ul,v02l);
+  compute_v02(eos,h_l,cs2_l,smallbl,Ul,v02l);
 
   int offset=flux_dirn-1;
 
@@ -113,7 +110,7 @@ static inline void mhdflux( const igm_eos_parameters eos,
   //*********************************************************************
   if( eos.is_Tabulated ) {
     CCTK_REAL Ye_star_r = rho_star_r * Ur[YEPRIM];
-    CCTK_REAL Ye_Star_l = rho_star_l * Ul[YEPRIM];
+    CCTK_REAL Ye_star_l = rho_star_l * Ul[YEPRIM];
     Fr = Ye_star_r*Ur[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ur[VX] -> Ur[VY]
     Fl = Ye_star_l*Ul[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ul[VX] -> Ul[VY]
 
@@ -126,7 +123,7 @@ static inline void mhdflux( const igm_eos_parameters eos,
   //*********************************************************************
   if( eos.evolve_entropy ) {
     CCTK_REAL S_star_r = alpha_sqrt_gamma*Ur[ENTROPY]*u0_r;
-    CCTK_REAL S_Star_l = alpha_sqrt_gamma*Ul[ENTROPY]*u0_l;
+    CCTK_REAL S_star_l = alpha_sqrt_gamma*Ul[ENTROPY]*u0_l;
     Fr = S_star_r*Ur[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ur[VX] -> Ur[VY]
     Fl = S_star_l*Ul[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ul[VX] -> Ul[VY]
 
