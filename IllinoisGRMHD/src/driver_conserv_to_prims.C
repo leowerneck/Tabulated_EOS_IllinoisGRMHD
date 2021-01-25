@@ -486,5 +486,6 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
 }
 
+#include "harm_u2p_util.h"
 #include "con2prim_wrapper.h"
 
