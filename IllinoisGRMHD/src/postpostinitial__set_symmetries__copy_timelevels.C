@@ -59,8 +59,24 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
     if( CCTK_EQUALS(igm_PPM_reconstructed_variable,"entropy") ) {
       CCTK_VError(VERR_DEF_PARAMS,"Cannot reconstruct the entropy during PPM without evolving the entropy. Please set igm_evolve_entropy=\"yes\" in the parfile. ABORTING!");
     }
-    if( CCTK_EQUALS(igm_con2prim_routine,"Palenzuela1D_entropy") ) {
-      CCTK_VError(VERR_DEF_PARAMS,"Cannot use the Palenzuela1D_entropy con2prim routine without evolving the entropy. Please set igm_evolve_entropy=\"yes\" in the parfile. ABORTING!");
+    if( CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy") ||
+        CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy2") ||
+        CCTK_EQUALS(igm_con2prim_routine,"Palenzuela1D_entropy") ) {
+      CCTK_VError(VERR_DEF_PARAMS,"Cannot use the an entropy con2prim routine without evolving the entropy. Please set igm_evolve_entropy=\"yes\" in the parfile. ABORTING!");
+    }
+  }
+
+  CCTK_VInfo(CCTK_THORNSTRING,"Primary conservative-to-primitive routine: %s",igm_con2prim_routine);
+  if( CCTK_EQUALS(igm_con2prim_backup_routine[0],"None") ) {
+    CCTK_VInfo(CCTK_THORNSTRING,"No conservative-to-primitive routine selected.");
+  }
+  else {
+    CCTK_VInfo(CCTK_THORNSTRING,"Backup conservative-to-primitive routine #1: %s",igm_con2prim_backup_routine[0]);
+    if( !CCTK_EQUALS(igm_con2prim_backup_routine[1],"None") ) {
+      CCTK_VInfo(CCTK_THORNSTRING,"Backup conservative-to-primitive routine #2: %s",igm_con2prim_backup_routine[1]);
+      if( !CCTK_EQUALS(igm_con2prim_backup_routine[2],"None") ) {
+        CCTK_VInfo(CCTK_THORNSTRING,"Backup conservative-to-primitive routine #3: %s",igm_con2prim_backup_routine[2]);
+      }
     }
   }
 
