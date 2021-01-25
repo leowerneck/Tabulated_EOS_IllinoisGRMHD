@@ -53,7 +53,7 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
       CCTK_VError(VERR_DEF_PARAMS,"IllinoisGRMHD only supports the Palenzuela1D and Palenzuela1D_entropy con2prim routine with Tabulated EOS. ABORTING!");
     }
   }
-  
+
   // Entropy
   if( igm_evolve_entropy == false ) {
     if( CCTK_EQUALS(igm_PPM_reconstructed_variable,"entropy") ) {
