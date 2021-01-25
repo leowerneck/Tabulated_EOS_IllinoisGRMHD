@@ -38,15 +38,6 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
   igm_eos_parameters eos;
   initialize_igm_eos_parameters_from_input(igm_eos_key,cctk_time,eos);
 
-  // printf("EOS parameters:\n");
-  // for(int i=0;i<eos.neos-1;i++) {
-  //   printf("%d %e %e %e\n",i,eos.K_ppoly_tab[i],eos.Gamma_ppoly_tab[i],eos.rho_ppoly_tab[i]);
-  // }
-  // printf("%d %e %e\n",eos.neos-1,eos.K_ppoly_tab[eos.neos-1],eos.Gamma_ppoly_tab[eos.neos-1]);
-
-  // getchar();
-         
-  
   if(pure_hydro_run) {
 #pragma omp parallel for
     for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
