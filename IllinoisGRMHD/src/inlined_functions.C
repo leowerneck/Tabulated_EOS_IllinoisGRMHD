@@ -269,46 +269,6 @@ static inline void impose_speed_limit_output_u0(CCTK_REAL *METRIC,CCTK_REAL *U,C
 //alpha_u0_minus_one = one_minus_one_over_alpha_u0_squared/one_over_alpha_u0/(1.0+one_over_alpha_u0);
 //u0_out = (alpha_u0_minus_one+1.0)*ONE_OVER_LAPSE;
 
-
-static inline void enforce_pressure_floor_ceiling(output_stats &stats,CCTK_REAL kpoly,CCTK_REAL P_cold,CCTK_REAL Psi6,const CCTK_REAL Psi6threshold,CCTK_REAL rho_b,const CCTK_REAL rhobatm,  CCTK_REAL &P) {
-  CCTK_REAL P_min=0.9*P_cold;
-  if(P<P_min) {
-    stats.failure_checker+=10;
-    P=P_min;
-  }
-  //MAX(P,P_min);
-  //if(P < P_min) P=1.0*P_cold;
-
-  /* OLD: Discarded because lower limit is unphysical.
-     if(P <= 0.5*kpoly*P_cold) {
-     P=0.5*kpoly*P_cold;
-     }
-  */
-
-
-  //CCTK_REAL P_max = 10.0*P_cold;
-  CCTK_REAL P_max = 100.0*P_cold;
-  if(Psi6 > Psi6threshold) P_max = 1e5*P_cold; // <-- better than 10.
-
-  if((rho_b < 100.0*rhobatm || Psi6 > Psi6threshold) && P>P_max) {
-    P=P_max;
-    stats.failure_checker+=100;
-  }
-
-  /*
-    CCTK_REAL rho_horiz_cap = 1000.0*rhobatm;
-
-    //New density damping mechanism inside the horizon
-    if(Psi6 > Psi6threshold && rho_b>rho_horiz_cap) {
-    CCTK_REAL six_phi=log(Psi6);
-    CCTK_REAL six_phithreshold=log(Psi6threshold);
-    CCTK_REAL Psi6max_approx=350000;
-    rho_b = rho_horiz_cap+(rho_b-rho_horiz_cap)*exp(-200.0*SQR((six_phi-six_phithreshold)/log(Psi6max_approx)));
-    }
-  */
-}
-
-
 static inline void compute_smallba_b2_and_u_i_over_u0_psi4(CCTK_REAL *METRIC,CCTK_REAL *METRIC_LAP_PSI4,CCTK_REAL *U,CCTK_REAL u0L,CCTK_REAL ONE_OVER_LAPSE_SQRT_4PI,
                                                            CCTK_REAL &u_x_over_u0_psi4,CCTK_REAL &u_y_over_u0_psi4,CCTK_REAL &u_z_over_u0_psi4,CCTK_REAL *smallb) {
 
