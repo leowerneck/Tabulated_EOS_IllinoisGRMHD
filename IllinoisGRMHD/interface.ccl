@@ -126,7 +126,7 @@ cctk_real grmhd_cmin_cmax_temps type = GF TAGS='prolongation="none" Checkpoint="
 #vvvvvvv TEMPORARY VARIABLES USEFUL FOR FLUX COMPUTATION vvvvvvv#
 cctk_real grmhd_flux_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
-  rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux
+  rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,Ye_star_flux,S_star_flux
 } "Temporary variables for storing the flux terms of tilde{S}_i."
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
