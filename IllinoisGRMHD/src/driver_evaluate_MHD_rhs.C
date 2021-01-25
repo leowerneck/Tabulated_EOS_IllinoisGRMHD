@@ -86,37 +86,39 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   // The order here MATTERS, and must be consistent with the global variable declarations in
   //   evaluate_MHD_rhs_headers.h (look for RHOB=0, etc.)
   //   For example, in_prims[0] _must_ be rho_b.
-  in_prims[RHOB      ].gf=rho_b;      out_prims_r[RHOB      ].gf=rho_br;      out_prims_l[RHOB      ].gf=rho_bl;
-  in_prims[VX        ].gf=vx;         out_prims_r[VX        ].gf=vxr;         out_prims_l[VX        ].gf=vxl;
-  in_prims[VY        ].gf=vy;         out_prims_r[VY        ].gf=vyr;         out_prims_l[VY        ].gf=vyl;
-  in_prims[VZ        ].gf=vz;         out_prims_r[VZ        ].gf=vzr;         out_prims_l[VZ        ].gf=vzl;
-  in_prims[BX_CENTER ].gf=Bx;         out_prims_r[BX_CENTER ].gf=Bxr;         out_prims_l[BX_CENTER ].gf=Bxl;
-  in_prims[BY_CENTER ].gf=By;         out_prims_r[BY_CENTER ].gf=Byr;         out_prims_l[BY_CENTER ].gf=Byl;
-  in_prims[BZ_CENTER ].gf=Bz;         out_prims_r[BZ_CENTER ].gf=Bzr;         out_prims_l[BZ_CENTER ].gf=Bzl;
-  in_prims[BX_STAGGER].gf=Bx_stagger; out_prims_r[BX_STAGGER].gf=Bx_staggerr; out_prims_l[BX_STAGGER].gf=Bx_staggerl;
-  in_prims[BY_STAGGER].gf=By_stagger; out_prims_r[BY_STAGGER].gf=By_staggerr; out_prims_l[BY_STAGGER].gf=By_staggerl;
-  in_prims[BZ_STAGGER].gf=Bz_stagger; out_prims_r[BZ_STAGGER].gf=Bz_staggerr; out_prims_l[BZ_STAGGER].gf=Bz_staggerl;
-  in_prims[VXR       ].gf=vxr;        out_prims_r[VXR       ].gf=vxrr;        out_prims_l[VXR       ].gf=vxrl;
-  in_prims[VYR       ].gf=vyr;        out_prims_r[VYR       ].gf=vyrr;        out_prims_l[VYR       ].gf=vyrl;
-  in_prims[VZR       ].gf=vzr;        out_prims_r[VZR       ].gf=vzrr;        out_prims_l[VZR       ].gf=vzrl;
-  in_prims[VXL       ].gf=vxl;        out_prims_r[VXL       ].gf=vxlr;        out_prims_l[VXL       ].gf=vxll;
-  in_prims[VYL       ].gf=vyl;        out_prims_r[VYL       ].gf=vylr;        out_prims_l[VYL       ].gf=vyll;
-  in_prims[VZL       ].gf=vzl;        out_prims_r[VZL       ].gf=vzlr;        out_prims_l[VZL       ].gf=vzll;
+  in_prims[RHOB         ].gf=rho_b;      out_prims_r[RHOB      ].gf=rho_br;      out_prims_l[RHOB      ].gf=rho_bl;
+  in_prims[VX           ].gf=vx;         out_prims_r[VX        ].gf=vxr;         out_prims_l[VX        ].gf=vxl;
+  in_prims[VY           ].gf=vy;         out_prims_r[VY        ].gf=vyr;         out_prims_l[VY        ].gf=vyl;
+  in_prims[VZ           ].gf=vz;         out_prims_r[VZ        ].gf=vzr;         out_prims_l[VZ        ].gf=vzl;
+  in_prims[BX_CENTER    ].gf=Bx;         out_prims_r[BX_CENTER ].gf=Bxr;         out_prims_l[BX_CENTER ].gf=Bxl;
+  in_prims[BY_CENTER    ].gf=By;         out_prims_r[BY_CENTER ].gf=Byr;         out_prims_l[BY_CENTER ].gf=Byl;
+  in_prims[BZ_CENTER    ].gf=Bz;         out_prims_r[BZ_CENTER ].gf=Bzr;         out_prims_l[BZ_CENTER ].gf=Bzl;
+  in_prims[BX_STAGGER   ].gf=Bx_stagger; out_prims_r[BX_STAGGER].gf=Bx_staggerr; out_prims_l[BX_STAGGER].gf=Bx_staggerl;
+  in_prims[BY_STAGGER   ].gf=By_stagger; out_prims_r[BY_STAGGER].gf=By_staggerr; out_prims_l[BY_STAGGER].gf=By_staggerl;
+  in_prims[BZ_STAGGER   ].gf=Bz_stagger; out_prims_r[BZ_STAGGER].gf=Bz_staggerr; out_prims_l[BZ_STAGGER].gf=Bz_staggerl;
+  in_prims[VXR          ].gf=vxr;        out_prims_r[VXR       ].gf=vxrr;        out_prims_l[VXR       ].gf=vxrl;
+  in_prims[VYR          ].gf=vyr;        out_prims_r[VYR       ].gf=vyrr;        out_prims_l[VYR       ].gf=vyrl;
+  in_prims[VZR          ].gf=vzr;        out_prims_r[VZR       ].gf=vzrr;        out_prims_l[VZR       ].gf=vzrl;
+  in_prims[VXL          ].gf=vxl;        out_prims_r[VXL       ].gf=vxlr;        out_prims_l[VXL       ].gf=vxll;
+  in_prims[VYL          ].gf=vyl;        out_prims_r[VYL       ].gf=vylr;        out_prims_l[VYL       ].gf=vyll;
+  in_prims[VZL          ].gf=vzl;        out_prims_r[VZL       ].gf=vzlr;        out_prims_l[VZL       ].gf=vzll;
 
   // Get the additional hydro variable that will be reconstructed
   if( eos.PPM_reconstructed_var == PRESSURE ) {
-    in_prims[PRESSURE].gf=P;          out_prims_r[PRESSURE  ].gf=Pr;          out_prims_l[PRESSURE  ].gf=Pl;
+    in_prims[PRESSURE   ].gf=P;          out_prims_r[PRESSURE  ].gf=Pr;          out_prims_l[PRESSURE  ].gf=Pl;
   }
   else if( eos.PPM_reconstructed_var == EPSILON ) {
-    in_prims[EPSILON ].gf=igm_eps;    out_prims_r[EPSILON   ].gf=epsr;        out_prims_l[EPSILON   ].gf=epsl;
+    in_prims[EPSILON    ].gf=igm_eps;    out_prims_r[EPSILON   ].gf=epsr;        out_prims_l[EPSILON   ].gf=epsl;
   }
   else if( eos.PPM_reconstructed_var == ENTROPY ) {
-    in_prims[ENTROPY ].gf=igm_entropy;out_prims_r[ENTROPY   ].gf=Sr;          out_prims_l[ENTROPY   ].gf=Sl;
+    in_prims[ENTROPY    ].gf=igm_entropy;out_prims_r[ENTROPY   ].gf=Sr;          out_prims_l[ENTROPY   ].gf=Sl;
   }
 
   // If using tabulated EOS, then we also reconstruct the electron fraction
   if( eos.is_Tabulated ) {
-    in_prims[YEPRIM  ].gf=igm_Ye;     out_prims_r[YEPRIM    ].gf=Yer;         out_prims_l[YEPRIM    ].gf=Yel;
+    in_prims[YEPRIM     ].gf=igm_Ye;     out_prims_r[YEPRIM    ].gf=Yer;         out_prims_l[YEPRIM    ].gf=Yel;
+    // We only need the temperature at the cell center
+    in_prims[TEMPERATURE].gf=igm_temperature;
   }
 
   // Prims are defined AT ALL GRIDPOINTS, so we set the # of ghostzones to zero:
@@ -189,8 +191,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   // 1) Compute tau_rhs extrinsic curvature terms, and
   // 2) Compute TUPmunu.
   // This function is housed in the file: "compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu.C"
-  compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu(cctkGH,cctk_lsh,cctk_nghostzones,dX,metric,in_prims,TUPmunu,
-                                                        eos,
+  compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu(eos,cctkGH,cctk_lsh,cctk_nghostzones,dX,metric,in_prims,TUPmunu,
                                                         gtupxy,gtupxz,gtupyz,
                                                         kxx,kxy,kxz,kyy,kyz,kzz,
                                                         tau_rhs);
@@ -231,8 +232,8 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   which_prims_to_reconstruct  [ww]=BY_STAGGER;                ww++;
   num_prims_to_reconstruct=ww;
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
-  reconstruct_set_of_prims_PPM(cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
-                               eos,in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
+  reconstruct_set_of_prims_PPM(eos,cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
+                               in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
 
   //Right and left face values of BI_CENTER are used in mhdflux computation (first to compute b^a).
   //   Instead of reconstructing, we simply set B^x face values to be consistent with BX_STAGGER.
@@ -295,8 +296,8 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   which_prims_to_reconstruct[ww]=VYL;                       ww++;
   num_prims_to_reconstruct=ww;
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
-  reconstruct_set_of_prims_PPM(cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
-                               eos,in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
+  reconstruct_set_of_prims_PPM(eos,cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
+                               in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
   ww=0;
   // Reconstruct other primitives last!
   which_prims_to_reconstruct  [ww]=RHOB;                      ww++;
@@ -313,8 +314,8 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   which_prims_to_reconstruct  [ww]=BZ_STAGGER;                ww++;
   num_prims_to_reconstruct=ww;
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
-  reconstruct_set_of_prims_PPM(cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
-                               eos,in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
+  reconstruct_set_of_prims_PPM(eos,cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
+                               in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
 
   //Right and left face values of BI_CENTER are used in mhdflux computation (first to compute b^a).
   //   Instead of reconstructing, we simply set B^y face values to be consistent with BY_STAGGER.
@@ -400,8 +401,8 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   which_prims_to_reconstruct  [ww]=VZL;                       ww++;
   num_prims_to_reconstruct=ww;
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
-  reconstruct_set_of_prims_PPM(cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
-                               eos,in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
+  reconstruct_set_of_prims_PPM(eos,cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
+                               in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
   // Reconstruct other primitives last!
   ww=0;
   which_prims_to_reconstruct  [ww]=RHOB;                      ww++;
@@ -418,8 +419,8 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   which_prims_to_reconstruct  [ww]=BY_STAGGER;                ww++;
   num_prims_to_reconstruct=ww;
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
-  reconstruct_set_of_prims_PPM(cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
-                               eos,in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
+  reconstruct_set_of_prims_PPM(eos,cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
+                               in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
   //Right and left face values of BI_CENTER are used in mhdflux computation (first to compute b^a).
   //   Instead of reconstructing, we simply set B^z face values to be consistent with BZ_STAGGER.
 #pragma omp parallel for
@@ -494,8 +495,8 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   which_prims_to_reconstruct[ww]=BZ_STAGGER;ww++;
   num_prims_to_reconstruct=ww;
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
-  reconstruct_set_of_prims_PPM(cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
-                               eos,in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
+  reconstruct_set_of_prims_PPM(eos,cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
+                               in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
 
   /*****************************************
    * COMPUTING RHS OF A_y, BOOKKEEPING NOTE:
