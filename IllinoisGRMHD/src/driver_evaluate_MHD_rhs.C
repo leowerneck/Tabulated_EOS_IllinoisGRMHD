@@ -86,25 +86,43 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   // The order here MATTERS, and must be consistent with the global variable declarations in
   //   evaluate_MHD_rhs_headers.h (look for RHOB=0, etc.)
   //   For example, in_prims[0] _must_ be rho_b.
-  int ww=0;
-  in_prims[ww].gf=rho_b;      out_prims_r[ww].gf=rho_br;      out_prims_l[ww].gf=rho_bl;      ww++;
-  in_prims[ww].gf=P;          out_prims_r[ww].gf=Pr;          out_prims_l[ww].gf=Pl;          ww++;
-  in_prims[ww].gf=vx;         out_prims_r[ww].gf=vxr;         out_prims_l[ww].gf=vxl;         ww++;
-  in_prims[ww].gf=vy;         out_prims_r[ww].gf=vyr;         out_prims_l[ww].gf=vyl;         ww++;
-  in_prims[ww].gf=vz;         out_prims_r[ww].gf=vzr;         out_prims_l[ww].gf=vzl;         ww++;
-  in_prims[ww].gf=Bx;         out_prims_r[ww].gf=Bxr;         out_prims_l[ww].gf=Bxl;         ww++;
-  in_prims[ww].gf=By;         out_prims_r[ww].gf=Byr;         out_prims_l[ww].gf=Byl;         ww++;
-  in_prims[ww].gf=Bz;         out_prims_r[ww].gf=Bzr;         out_prims_l[ww].gf=Bzl;         ww++;
-  in_prims[ww].gf=Bx_stagger; out_prims_r[ww].gf=Bx_staggerr; out_prims_l[ww].gf=Bx_staggerl; ww++;
-  in_prims[ww].gf=By_stagger; out_prims_r[ww].gf=By_staggerr; out_prims_l[ww].gf=By_staggerl; ww++;
-  in_prims[ww].gf=Bz_stagger; out_prims_r[ww].gf=Bz_staggerr; out_prims_l[ww].gf=Bz_staggerl; ww++;
-  in_prims[ww].gf=vxr;        out_prims_r[ww].gf=vxrr;        out_prims_l[ww].gf=vxrl;        ww++;
-  in_prims[ww].gf=vyr;        out_prims_r[ww].gf=vyrr;        out_prims_l[ww].gf=vyrl;        ww++;
-  in_prims[ww].gf=vzr;        out_prims_r[ww].gf=vzrr;        out_prims_l[ww].gf=vzrl;        ww++;
-  in_prims[ww].gf=vxl;        out_prims_r[ww].gf=vxlr;        out_prims_l[ww].gf=vxll;        ww++;
-  in_prims[ww].gf=vyl;        out_prims_r[ww].gf=vylr;        out_prims_l[ww].gf=vyll;        ww++;
-  in_prims[ww].gf=vzl;        out_prims_r[ww].gf=vzlr;        out_prims_l[ww].gf=vzll;        ww++;
+  in_prims[RHOB      ].gf=rho_b;      out_prims_r[RHOB      ].gf=rho_br;      out_prims_l[RHOB      ].gf=rho_bl;
+  in_prims[VX        ].gf=vx;         out_prims_r[VX        ].gf=vxr;         out_prims_l[VX        ].gf=vxl;
+  in_prims[VY        ].gf=vy;         out_prims_r[VY        ].gf=vyr;         out_prims_l[VY        ].gf=vyl;
+  in_prims[VZ        ].gf=vz;         out_prims_r[VZ        ].gf=vzr;         out_prims_l[VZ        ].gf=vzl;
+  in_prims[BX_CENTER ].gf=Bx;         out_prims_r[BX_CENTER ].gf=Bxr;         out_prims_l[BX_CENTER ].gf=Bxl;
+  in_prims[BY_CENTER ].gf=By;         out_prims_r[BY_CENTER ].gf=Byr;         out_prims_l[BY_CENTER ].gf=Byl;
+  in_prims[BZ_CENTER ].gf=Bz;         out_prims_r[BZ_CENTER ].gf=Bzr;         out_prims_l[BZ_CENTER ].gf=Bzl;
+  in_prims[BX_STAGGER].gf=Bx_stagger; out_prims_r[BX_STAGGER].gf=Bx_staggerr; out_prims_l[BX_STAGGER].gf=Bx_staggerl;
+  in_prims[BY_STAGGER].gf=By_stagger; out_prims_r[BY_STAGGER].gf=By_staggerr; out_prims_l[BY_STAGGER].gf=By_staggerl;
+  in_prims[BZ_STAGGER].gf=Bz_stagger; out_prims_r[BZ_STAGGER].gf=Bz_staggerr; out_prims_l[BZ_STAGGER].gf=Bz_staggerl;
+  in_prims[VXR       ].gf=vxr;        out_prims_r[VXR       ].gf=vxrr;        out_prims_l[VXR       ].gf=vxrl;
+  in_prims[VYR       ].gf=vyr;        out_prims_r[VYR       ].gf=vyrr;        out_prims_l[VYR       ].gf=vyrl;
+  in_prims[VZR       ].gf=vzr;        out_prims_r[VZR       ].gf=vzrr;        out_prims_l[VZR       ].gf=vzrl;
+  in_prims[VXL       ].gf=vxl;        out_prims_r[VXL       ].gf=vxlr;        out_prims_l[VXL       ].gf=vxll;
+  in_prims[VYL       ].gf=vyl;        out_prims_r[VYL       ].gf=vylr;        out_prims_l[VYL       ].gf=vyll;
+  in_prims[VZL       ].gf=vzl;        out_prims_r[VZL       ].gf=vzlr;        out_prims_l[VZL       ].gf=vzll;
 
+  // Get the additional hydro variable that will be reconstructed
+  switch( eos.PPM_reconstructed_var ) {
+    case PRESSURE:
+    in_prims[PRESSURE].gf=P;          out_prims_r[PRESSURE  ].gf=Pr;          out_prims_l[PRESSURE  ].gf=Pl;
+    break;
+
+    case EPSILON:
+    in_prims[EPSILON ].gf=igm_eps;    out_prims_r[EPSILON   ].gf=epsr;        out_prims_l[EPSILON   ].gf=epsl;
+    break;
+
+    case ENTROPY:
+    in_prims[ENTROPY ].gf=igm_entropy;out_prims_r[ENTROPY   ].gf=Sr;          out_prims_l[ENTROPY   ].gf=Sl;
+    break;
+  }
+
+  // If using tabulated EOS, then we'll also reconstruct the electron fraction
+  if( eos.is_Tabulated ) {
+    in_prims[YEPRIM  ].gf=igm_Ye;     out_prims_r[YEPRIM    ].gf=Yer;         out_prims_l[YEPRIM    ].gf=Yel;
+  }
+  
   // Prims are defined AT ALL GRIDPOINTS, so we set the # of ghostzones to zero:
   for(int i=0;i<MAXNUMVARS;i++) for(int j=1;j<=3;j++) { in_prims[i].gz_lo[j]=0; in_prims[i].gz_hi[j]=0; }
   // Left/right variables are not yet defined, yet we set the # of gz's to zero by default:
@@ -121,7 +139,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 
   /* SET POINTERS TO METRIC GRIDFUNCTIONS */
   CCTK_REAL *metric[NUMVARS_FOR_METRIC_FACEVALS]; // "metric" here is array of pointers to the actual gridfunctions.
-  ww=0;
+  int ww=0;
   metric[ww]=phi_bssn;ww++;
   metric[ww]=psi_bssn;ww++;
   metric[ww]=gtxx;    ww++;
@@ -167,6 +185,10 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
         st_x_rhs[index]=0.0;
         st_y_rhs[index]=0.0;
         st_z_rhs[index]=0.0;
+
+        // Initialize everything to zero to avoid innefficient if statements
+        Ye_star_rhs[index] = 0.0;
+        S_star_rhs[index]  = 0.0;
 
         //if(i==17 && j==19 && k==26) CCTK_VInfo(CCTK_THORNSTRING,"CONSSS: %.15e %.15e %.15e %.15e %.15e | %.15e",rho_star[index],mhd_st_x[index],mhd_st_y[index],mhd_st_z[index],tau[index],P[index]);
       }
