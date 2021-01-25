@@ -244,6 +244,14 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         CCTK_REAL mhd_st_y_orig = CONSERVS[STILDEY  ];
         CCTK_REAL mhd_st_z_orig = CONSERVS[STILDEZ  ];
         CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
+        CCTK_REAL Ye_star_orig  = 0.0;
+        CCTK_REAL S_star_orig   = 0.0;
+        if( eos.is_Tabulated) {
+          Ye_star_orig          = CONSERVS[YESTAR   ];
+        }
+        if( eos.c2p_routine == Palenzuela1D_entropy ) {
+          S_star_orig           = CONSERVS[ENTSTAR  ];
+        }
 
 
         int check=0;
@@ -257,8 +265,11 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
           apply_tau_floor(index,Psi6threshold,PRIMS,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,stats,eos,  CONSERVS);
 
           for(int ii=0;ii<3;ii++) {
-            check = IllinoisGRMHD_conservative_to_primitive(index,i,j,k,x,y,z,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,
-                                                            CONSERVS,PRIMS,  g4dn,g4up,   stats,eos);
+            check = con2prim(eos,
+                             index,i,j,k,x,y,z,
+                             METRIC,METRIC_PHYS,METRIC_LAP_PSI4,g4dn,g4up,
+                             CONSERVS,PRIMS,
+                             stats);
             if(check==0) ii=4;
             else stats.failure_checker+=100000;
           }
@@ -332,6 +343,16 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         error_int_numer += fabs(tau[index] - tau_orig) + fabs(rho_star[index] - rho_star_orig) +
           fabs(mhd_st_x[index] - mhd_st_x_orig) + fabs(mhd_st_y[index] - mhd_st_y_orig) + fabs(mhd_st_z[index] - mhd_st_z_orig);
         error_int_denom += tau_orig + rho_star_orig + fabs(mhd_st_x_orig) + fabs(mhd_st_y_orig) + fabs(mhd_st_z_orig);
+
+        if( eos.is_Tabulated ) {
+          error_int_numer += fabs(Ye_star[index] - Ye_star_orig);
+          error_int_denom += Ye_star_orig;
+        }
+
+        if( eos.c2p_routine == Palenzuela1D_entropy ) {
+          error_int_numer += fabs(S_star[index]  - S_star_orig);
+          error_int_denom += S_star_orig;
+        }
 
         if(stats.atm_reset==1) atm_resets++;
         if(stats.font_fixed==1) font_fixes++;
