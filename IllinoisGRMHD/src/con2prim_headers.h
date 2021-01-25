@@ -44,10 +44,14 @@
 #ifndef HARM_PRIMITIVES_HEADERS_H_
 #define HARM_PRIMITIVES_HEADERS_H_
 
-// These are used to select the con2prim routine
-static const int Noble2D              = 0;
-static const int Palenzuela1D         = 1;
-static const int Palenzuela1D_entropy = 2;
+// These are used to select the con2prim main and backup routines
+static const int None                 = -1;
+static const int Noble2D              =  0;
+static const int Noble1D              =  1;
+static const int Noble1D_entropy      =  2;
+static const int Noble1D_entropy2     =  3;
+static const int Palenzuela1D         =  4;
+static const int Palenzuela1D_entropy =  5;
 
 static const int NPR =8;
 static const int NDIM=4;
@@ -68,25 +72,24 @@ static const CCTK_REAL G_ISOTHERMAL = 1.0;
   #endif
 */
 
-static const int MAX_NEWT_ITER=30;     /* Max. # of Newton-Raphson iterations for find_root_2D(); */
-//#define MAX_NEWT_ITER 300     /* Max. # of Newton-Raphson iterations for find_root_2D(); */
-static const CCTK_REAL NEWT_TOL    =1.0e-10;    /* Min. of tolerance allowed for Newton-Raphson iterations */
-static const CCTK_REAL MIN_NEWT_TOL=1.0e-10;    /* Max. of tolerance allowed for Newton-Raphson iterations */
-static const int EXTRA_NEWT_ITER=0; /* ZACH SAYS: Original value = 2. But I don't think this parameter > 0 is warranted. Just slows the code for no reason, since our tolerances are fine. */
+static const int MAX_NEWT_ITER       = 30;     /* Max. # of Newton-Raphson iterations for find_root_2D(); */
+static const int EXTRA_NEWT_ITER     = 0; /* ZACH SAYS: Original value = 2. But I don't think this parameter > 0 is warranted. Just slows the code for no reason, since our tolerances are fine. */
+static const CCTK_REAL NEWT_TOL      = 1.0e-10;    /* Min. of tolerance allowed for Newton-Raphson iterations */
+static const CCTK_REAL MIN_NEWT_TOL  = 1.0e-10;    /* Max. of tolerance allowed for Newton-Raphson iterations */
 
-static const CCTK_REAL NEWT_TOL2    =1.0e-15;      /* TOL of new 1D^*_{v^2} gnr2 method */
-static const CCTK_REAL MIN_NEWT_TOL2=1.0e-10;  /* TOL of new 1D^*_{v^2} gnr2 method */
+static const CCTK_REAL NEWT_TOL2     = 1.0e-15;      /* TOL of new 1D^*_{v^2} gnr2 method */
+static const CCTK_REAL MIN_NEWT_TOL2 = 1.0e-10;  /* TOL of new 1D^*_{v^2} gnr2 method */
 
-static const CCTK_REAL W_TOO_BIG    =1.e20;    /* \gamma^2 (\rho_0 + u + p) is assumed
+static const CCTK_REAL W_TOO_BIG     = 1.e20;    /* \gamma^2 (\rho_0 + u + p) is assumed
                                                   to always be smaller than this.  This
                                                   is used to detect solver failures */
-static const CCTK_REAL UTSQ_TOO_BIG =1.e20;    /* \tilde{u}^2 is assumed to be smaller
+static const CCTK_REAL UTSQ_TOO_BIG  = 1.e20;    /* \tilde{u}^2 is assumed to be smaller
                                                   than this.  Used to detect solver
                                                   failures */
 
-static const CCTK_REAL FAIL_VAL     =1.e30;    /* Generic value to which we set variables when a problem arises */
+static const CCTK_REAL FAIL_VAL      = 1.e30;    /* Generic value to which we set variables when a problem arises */
 
-static const CCTK_REAL NUMEPSILON=(2.2204460492503131e-16);
+static const CCTK_REAL NUMEPSILON    = 2.2204460492503131e-16;
 
 /* some mnemonics */
 /* for primitive variables */
@@ -129,8 +132,29 @@ static const int S3_cov   =4;
 static const int DS       =9;
 static const int numcons  =10; // D, tau, S_{x,y,z}, B^{x,y,z}, DYe, DS
 
+// These quantities are used by the Palenzuela routines
+#define par_q (0)
+#define par_r (1)
+#define par_s (2)
+#define par_t (3)
+#define conDD (4)
+#define conYE (5)
+#define conDS (6) // Entropy
+
+struct c2p_report {
+  bool failed;
+  bool adjust_cons;
+  char err_msg[200];
+  int count;
+  bool retry;
+  int c2p_keyerr;
+  int nEOScalls;
+};
+
 /********************************************************************************************/
 // Function prototype declarations:
+
+CCTK_INT con2prim_get_key( const char* routine_name );
 
 int con2prim( const igm_eos_parameters eos,
               const int index,const int i,const int j,const int k,
@@ -140,16 +164,36 @@ int con2prim( const igm_eos_parameters eos,
               CCTK_REAL *restrict CONSERVS,CCTK_REAL *restrict PRIMS,
               output_stats& stats );
 
-void con2prim_select( int* c2p_key,
-                      int (*con2prim)( const igm_eos_parameters,
-                                       const CCTK_REAL[4][4],const CCTK_REAL[4][4],
-                                       const CCTK_REAL *restrict,CCTK_REAL *restrict ) );
+int con2prim_select( const igm_eos_parameters eos,
+                     const CCTK_INT c2p_key,
+                     const CCTK_REAL g4dn[4][4],
+                     const CCTK_REAL g4up[4][4],
+                     const CCTK_REAL *restrict cons,
+                     CCTK_REAL *restrict prim );
 
 int con2prim_Noble2D( const igm_eos_parameters eos,
                       const CCTK_REAL g4dn[4][4],
                       const CCTK_REAL g4up[4][4],
                       const CCTK_REAL *restrict cons,
                       CCTK_REAL *restrict prim );
+
+int con2prim_Noble1D( const igm_eos_parameters eos,
+                      const CCTK_REAL g4dn[4][4],
+                      const CCTK_REAL g4up[4][4],
+                      const CCTK_REAL *restrict cons,
+                      CCTK_REAL *restrict prim );
+
+int con2prim_Noble1D_entropy( const igm_eos_parameters eos,
+                              const CCTK_REAL g4dn[4][4],
+                              const CCTK_REAL g4up[4][4],
+                              const CCTK_REAL *restrict cons,
+                              CCTK_REAL *restrict prim );
+
+int con2prim_Noble1D_entropy2( const igm_eos_parameters eos,
+                               const CCTK_REAL g4dn[4][4],
+                               const CCTK_REAL g4up[4][4],
+                               const CCTK_REAL *restrict cons,
+                               CCTK_REAL *restrict prim );
 
 int con2prim_Palenzuela1D( const igm_eos_parameters eos,
                            const CCTK_REAL g4dn[4][4],
@@ -169,12 +213,6 @@ int font_fix__hybrid_EOS( const igm_eos_parameters eos,
                           CCTK_REAL &u_x, CCTK_REAL &u_y, CCTK_REAL &u_z );
 void eigenvalues_3by3_real_sym_matrix(CCTK_REAL & lam1, CCTK_REAL & lam2, CCTK_REAL & lam3,
                                       CCTK_REAL M11, CCTK_REAL M12, CCTK_REAL M13, CCTK_REAL M22, CCTK_REAL M23, CCTK_REAL M33);
-
-void raise_g(CCTK_REAL vcov[NDIM], CCTK_REAL gcon[NDIM][NDIM], CCTK_REAL vcon[NDIM]);
-void lower_g(CCTK_REAL vcon[NDIM], CCTK_REAL gcov[NDIM][NDIM], CCTK_REAL vcov[NDIM]);
-void ncov_calc(CCTK_REAL gcon[NDIM][NDIM],CCTK_REAL ncov[NDIM]);
-CCTK_REAL pressure_rho0_u(igm_eos_parameters eos, CCTK_REAL rho0, CCTK_REAL u);
-CCTK_REAL pressure_rho0_w(igm_eos_parameters eos, CCTK_REAL rho0, CCTK_REAL w);
 
 void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
                                        const CCTK_REAL *restrict METRIC,
