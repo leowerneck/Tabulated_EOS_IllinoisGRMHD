@@ -1,10 +1,23 @@
 static inline CCTK_REAL avg(CCTK_REAL f[PLUS2+1][PLUS2+1][PLUS2+1],int imin,int imax, int jmin,int jmax, int kmin,int kmax);
 
-static void Lorenz_psi6phi_rhs__add_gauge_terms_to_A_i_rhs(const cGH *cctkGH,const int *cctk_lsh,const int *cctk_nghostzones,CCTK_REAL *dX,CCTK_REAL **in_vars,CCTK_REAL *psi6phi,
-                                                           CCTK_REAL *shiftx_iphjphkph,CCTK_REAL *shifty_iphjphkph,CCTK_REAL *shiftz_iphjphkph,
-                                                           CCTK_REAL *alpha_iphjphkph,CCTK_REAL *alpha_Phi_minus_betaj_A_j_iphjphkph,CCTK_REAL *alpha_sqrtg_Ax_interp,
-                                                           CCTK_REAL *alpha_sqrtg_Ay_interp,CCTK_REAL *alpha_sqrtg_Az_interp,
-                                                           CCTK_REAL *psi6phi_rhs,CCTK_REAL *Ax_rhs,CCTK_REAL *Ay_rhs,CCTK_REAL *Az_rhs) {
+static void Lorenz_psi6phi_rhs__add_gauge_terms_to_A_i_rhs( const cGH *restrict cctkGH,
+                                                            const int *restrict cctk_lsh,
+                                                            const int *restrict cctk_nghostzones,
+                                                            CCTK_REAL *restrict dX,
+                                                            CCTK_REAL **interp_vars,
+                                                            CCTK_REAL *restrict psi6phi,
+                                                            CCTK_REAL *restrict shiftx_iphjphkph,
+                                                            CCTK_REAL *restrict shifty_iphjphkph,
+                                                            CCTK_REAL *restrict shiftz_iphjphkph,
+                                                            CCTK_REAL *restrict alpha_iphjphkph,
+                                                            CCTK_REAL *restrict alpha_Phi_minus_betaj_A_j_iphjphkph,
+                                                            CCTK_REAL *restrict alpha_sqrtg_Ax_interp,
+                                                            CCTK_REAL *restrict alpha_sqrtg_Ay_interp,
+                                                            CCTK_REAL *restrict alpha_sqrtg_Az_interp,
+                                                            CCTK_REAL *restrict psi6phi_rhs,
+                                                            CCTK_REAL *restrict Ax_rhs,
+                                                            CCTK_REAL *restrict Ay_rhs,
+                                                            CCTK_REAL *restrict Az_rhs ) {
   DECLARE_CCTK_PARAMETERS;
   /* Compute \partial_t psi6phi = -\partial_i (  \alpha psi^6 A^i - psi6phi \beta^i)
    *    (Eq 13 of http://arxiv.org/pdf/1110.4633.pdf), using Lorenz gauge.
