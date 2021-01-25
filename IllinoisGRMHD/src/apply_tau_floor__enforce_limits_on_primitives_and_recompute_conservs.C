@@ -167,14 +167,14 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
                                                                          *    other variables. Though some will be unused later
                                                                          *    in this function, they may be useful in other
                                                                          *    functions */
-  compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(U,eos,Gamma_th,P_cold,eps_cold,dPcold_drho,eps_th,h_enthalpy,Gamma_cold);
+  compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(U,eos,P_cold,eps_cold,dPcold_drho,eps_th,h_enthalpy,Gamma_cold);
 
   // Pressure floor & ceiling:
   int polytropic_index = find_polytropic_K_and_Gamma_index(eos,U[RHOB]);
   enforce_pressure_floor_ceiling(stats,eos.K_ppoly_tab[polytropic_index],P_cold,METRIC_LAP_PSI4[PSI6],Psi6threshold,U[RHOB],eos.rho_atm,  U[PRESSURE]);
 
   // Possibly adjusted pressure, so recompute eps & h:
-  CCTK_REAL eps = eps_cold + (U[PRESSURE]-P_cold)/(Gamma_th-1.0)/U[RHOB];
+  CCTK_REAL eps = eps_cold + (U[PRESSURE]-P_cold)/(eos.Gamma_th-1.0)/U[RHOB];
   h_enthalpy = 1.0 + eps + U[PRESSURE]/U[RHOB];
 
   CCTK_REAL uUP[4];

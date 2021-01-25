@@ -9,7 +9,7 @@ static void reconstruct_set_of_prims_PPM(const cGH *cctkGH,const int *cctk_lsh,c
 
 static void compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu
 (const cGH *cctkGH,const int *cctk_lsh,const int *cctk_nghostzones,CCTK_REAL *dX,CCTK_REAL **metric,gf_and_gz_struct *prims,
- CCTK_REAL **TUPmunu,igm_eos_parameters &eos, CCTK_REAL Gamma_th,
+ CCTK_REAL **TUPmunu,igm_eos_parameters &eos,
  CCTK_REAL *gupxy,CCTK_REAL *gupxz,CCTK_REAL *gupyz,
  CCTK_REAL *kxx,CCTK_REAL *kxy,CCTK_REAL *kxz,CCTK_REAL *kyy,CCTK_REAL *kyz,CCTK_REAL *kzz,
  CCTK_REAL *tau_rhs);

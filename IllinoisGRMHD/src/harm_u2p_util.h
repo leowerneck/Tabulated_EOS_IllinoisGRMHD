@@ -103,11 +103,6 @@ this is used by primtoU and Utoprim_?D
 CCTK_REAL pressure_rho0_u(const igm_eos_parameters eos, const CCTK_REAL rho0, const CCTK_REAL u)
 {
 
-  // Set up Gamma_th:
-#ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
-  DECLARE_CCTK_PARAMETERS;
-#endif
-
   // Compute P_cold, eps_cold
   CCTK_REAL P_cold, eps_cold;
   compute_P_cold__eps_cold(eos,rho0, P_cold,eps_cold);
@@ -118,7 +113,7 @@ CCTK_REAL pressure_rho0_u(const igm_eos_parameters eos, const CCTK_REAL rho0, co
    * | p(rho_b,u) = P_cold + (Gamma_th - 1)*(u - rho_b * eps_cold) |
    * .-------------------------------------------------------------.
    */
-  return( P_cold + (Gamma_th - 1.0)*(u - rho0*eps_cold) );
+  return( P_cold + (eos.Gamma_th - 1.0)*(u - rho0*eps_cold) );
 
 }
 
@@ -130,11 +125,6 @@ CCTK_REAL pressure_rho0_u(const igm_eos_parameters eos, const CCTK_REAL rho0, co
 CCTK_REAL pressure_rho0_w(const igm_eos_parameters eos, const CCTK_REAL rho0, const CCTK_REAL w)
 {
 
-  // Set up Gamma_th:
-#ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
-  DECLARE_CCTK_PARAMETERS;
-#endif
-
   // Compute P_cold, eps_cold
   CCTK_REAL P_cold, eps_cold;
   compute_P_cold__eps_cold(eos,rho0, P_cold,eps_cold);
@@ -145,6 +135,6 @@ CCTK_REAL pressure_rho0_w(const igm_eos_parameters eos, const CCTK_REAL rho0, co
    * | p(rho_b,w) = ( P_cold + (Gamma_th-1)*( w - rho_b*(1+eps_cold) ) )/Gamma_th |
    *  ----------------------------------------------------------------------------
    */
-  return( (P_cold + (Gamma_th-1.0)*( w - rho0*(1.0+eps_cold) ) )/Gamma_th );
+  return( (P_cold + (eos.Gamma_th-1.0)*( w - rho0*(1.0+eps_cold) ) )/eos.Gamma_th );
 }
 #endif

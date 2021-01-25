@@ -132,10 +132,9 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 
   // Convert ADM variables (from ADMBase) to the BSSN-based variables expected by this routine.
   IllinoisGRMHD_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij(cctkGH,cctk_lsh,  gxx,gxy,gxz,gyy,gyz,gzz,alp,
-                                                                gtxx,gtxy,gtxz,gtyy,gtyz,gtzz,
-                                                                gtupxx,gtupxy,gtupxz,gtupyy,gtupyz,gtupzz,
-                                                                phi_bssn,psi_bssn,lapm1);
-
+                                                                              gtxx,gtxy,gtxz,gtyy,gtyz,gtzz,
+                                                                              gtupxx,gtupxy,gtupxz,gtupyy,gtupyz,gtupzz,
+                                                                              phi_bssn,psi_bssn,lapm1);
 
   /* SET POINTERS TO METRIC GRIDFUNCTIONS */
   CCTK_REAL *metric[NUMVARS_FOR_METRIC_FACEVALS]; // "metric" here is array of pointers to the actual gridfunctions.
@@ -186,11 +185,9 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
         st_y_rhs[index]=0.0;
         st_z_rhs[index]=0.0;
 
-        // Initialize everything to zero to avoid innefficient if statements
+        // Initialize everything to zero to avoid inefficient if statements
         Ye_star_rhs[index] = 0.0;
         S_star_rhs[index]  = 0.0;
-
-        //if(i==17 && j==19 && k==26) CCTK_VInfo(CCTK_THORNSTRING,"CONSSS: %.15e %.15e %.15e %.15e %.15e | %.15e",rho_star[index],mhd_st_x[index],mhd_st_y[index],mhd_st_z[index],tau[index],P[index]);
       }
 
   // Here, we:
@@ -198,7 +195,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   // 2) Compute TUPmunu.
   // This function is housed in the file: "compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu.C"
   compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu(cctkGH,cctk_lsh,cctk_nghostzones,dX,metric,in_prims,TUPmunu,
-                                                        eos, Gamma_th,
+                                                        eos,
                                                         gtupxy,gtupxz,gtupyz,
                                                         kxx,kxy,kxz,kyy,kyz,kzz,
                                                         tau_rhs);

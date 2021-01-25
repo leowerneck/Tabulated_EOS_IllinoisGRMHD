@@ -54,7 +54,8 @@ void initialize_Hybrid_EOS_parameters_from_input(igm_eos_parameters &eos) {
                 igm_PPM_reconstructed_variable);
   }
 
-  eos.neos = neos;
+  eos.neos     = neos;
+  eos.Gamma_th = Gamma_th;
   eos.K_ppoly_tab[0] = K_ppoly_tab0;
   for(int j=0; j<=neos-2; j++) eos.rho_ppoly_tab[j]   = rho_ppoly_tab_in[j];
   for(int j=0; j<=neos-1; j++) eos.Gamma_ppoly_tab[j] = Gamma_ppoly_tab_in[j];
@@ -415,7 +416,7 @@ void compute_P_cold__eps_cold(igm_eos_parameters eos, CCTK_REAL rho_in,
  *             SPEOS: Single-Polytrope Equation of State
  *             PPEOS: Piecewise Polytrope Equation of State
  */
-void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(CCTK_REAL *U, igm_eos_parameters &eos, CCTK_REAL Gamma_th,
+void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(CCTK_REAL *U, igm_eos_parameters &eos,
                                                                   CCTK_REAL &P_cold,CCTK_REAL &eps_cold,CCTK_REAL &dPcold_drho,CCTK_REAL &eps_th,CCTK_REAL &h,
                                                                   CCTK_REAL &Gamma_cold) {
   // This code handles equations of state of the form defined
@@ -442,7 +443,7 @@ void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(CCTK_REAL *U, 
   dPcold_drho = Gamma_ppoly_tab*P_cold*U_RHOB_inv;
 
   // Then we compute eps_th, h, and set Gamma_cold = Gamma_ppoly_tab[j].
-  eps_th = (U[PRESSURE] - P_cold)/(Gamma_th-1.0)*U_RHOB_inv;
+  eps_th = (U[PRESSURE] - P_cold)/(eos.Gamma_th-1.0)*U_RHOB_inv;
   h = 1.0 + eps_cold + eps_th + U[PRESSURE]*U_RHOB_inv;
   Gamma_cold = Gamma_ppoly_tab;
 

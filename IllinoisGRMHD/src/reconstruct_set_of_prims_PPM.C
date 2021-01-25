@@ -20,8 +20,9 @@
 
 static inline CCTK_REAL ftilde_compute(const int flux_dirn,CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES]);
 static inline CCTK_REAL slope_limit(CCTK_REAL dU,CCTK_REAL dUp1);
-static inline void steepen_rho(CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES],CCTK_REAL slope_lim_dU[MAXNUMVARS][MAXNUMINDICES],
-                               CCTK_REAL Gamma_th,CCTK_REAL P_cold,CCTK_REAL Gamma_cold,
+static inline void steepen_rho(const igm_eos_parameters eos,
+                               CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES],CCTK_REAL slope_lim_dU[MAXNUMVARS][MAXNUMINDICES],
+                               CCTK_REAL P_cold,CCTK_REAL Gamma_cold,
                                CCTK_REAL *rho_br_ppm,CCTK_REAL *rho_bl_ppm);
 static inline void compute_P_cold__Gamma_cold(CCTK_REAL rho_b,igm_eos_parameters &eos,   CCTK_REAL &P_cold,CCTK_REAL &Gamma_cold);
 static inline void monotonize(CCTK_REAL U,CCTK_REAL &Ur,CCTK_REAL &Ul);
@@ -121,7 +122,7 @@ static void reconstruct_set_of_prims_PPM(const cGH *cctkGH,const int *cctk_lsh,c
 	// DEPENDENCIES: RHOB face values, RHOB(MINUS2,MINUS1,PLUS0,PLUS1,PLUS2), P(MINUS1,PLUS0,PLUS1), and slope_lim_dU[RHOB](MINUS1,PLUS1)
 	CCTK_REAL P_cold,Gamma_cold;
 	compute_P_cold__Gamma_cold(U[RHOB][PLUS0],eos,  P_cold,Gamma_cold);
-	steepen_rho(U,slope_lim_dU,   Gamma_th,P_cold,Gamma_cold,  Ur[RHOB],Ul[RHOB]);
+	steepen_rho(eos,U,slope_lim_dU,P_cold,Gamma_cold,  Ur[RHOB],Ul[RHOB]);
 
 	// Output rho
 	out_prims_r[RHOB].gf[index_arr[flux_dirn][PLUS0]] = Ur[RHOB][PLUS0];
@@ -241,7 +242,8 @@ static inline CCTK_REAL slope_limit(CCTK_REAL dU,CCTK_REAL dUp1) {
 #define ETA1   20.0
 #define ETA2    0.05
 #define PPM_EPSILON 0.01
-static inline void steepen_rho(CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES],CCTK_REAL slope_lim_dU[MAXNUMVARS][MAXNUMINDICES],CCTK_REAL Gamma_th,CCTK_REAL P_cold,CCTK_REAL Gamma_cold,
+static inline void steepen_rho(const igm_eos_parameters eos, CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES],CCTK_REAL slope_lim_dU[MAXNUMVARS][MAXNUMINDICES],
+                               CCTK_REAL P_cold,CCTK_REAL Gamma_cold,
                                CCTK_REAL *rho_br_ppm,CCTK_REAL *rho_bl_ppm) {
 
   // Next compute centered differences d RHOB and d^2 RHOB
@@ -251,7 +253,7 @@ static inline void steepen_rho(CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES],CCTK_REAL 
 
 
   // Compute effective Gamma = (partial P / partial rho0)_s /(P/rho0)
-  CCTK_REAL Gamma = Gamma_th + (Gamma_cold-Gamma_th)*P_cold/U[PRESSURE][PLUS0];
+  CCTK_REAL Gamma = eos.Gamma_th + (Gamma_cold-eos.Gamma_th)*P_cold/U[PRESSURE][PLUS0];
 
   CCTK_REAL contact_discontinuity_check = Gamma*K0*fabs(U[RHOB][PLUS1]-U[RHOB][MINUS1])*
     MIN(U[PRESSURE][PLUS1],U[PRESSURE][MINUS1])

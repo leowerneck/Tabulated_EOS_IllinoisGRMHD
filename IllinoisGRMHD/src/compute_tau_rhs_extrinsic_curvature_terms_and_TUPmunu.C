@@ -1,6 +1,6 @@
 static void compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu
 (const cGH *cctkGH,const int *cctk_lsh,const int *cctk_nghostzones,CCTK_REAL *dX,CCTK_REAL **metric,gf_and_gz_struct *prims,
- CCTK_REAL **TUPmunu,igm_eos_parameters &eos,CCTK_REAL Gamma_th,
+ CCTK_REAL **TUPmunu,igm_eos_parameters &eos,
  CCTK_REAL *gupxy,CCTK_REAL *gupxz,CCTK_REAL *gupyz,
  CCTK_REAL *kxx,CCTK_REAL *kxy,CCTK_REAL *kxz,CCTK_REAL *kyy,CCTK_REAL *kyz,CCTK_REAL *kzz,
  CCTK_REAL *tau_rhs) {
@@ -56,7 +56,7 @@ static void compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu
         CCTK_REAL h=0,  P_cold,eps_cold,dPcold_drho,eps_th,Gamma_cold; /* <- Note that in setting h, we need to define several
                                                                         *    other variables, even though they will be unused later
                                                                         *    in this function. */
-        compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(U,eos,Gamma_th,P_cold,eps_cold,dPcold_drho,eps_th,h,Gamma_cold);
+        compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(U,eos,P_cold,eps_cold,dPcold_drho,eps_th,h,Gamma_cold);
 
         CCTK_REAL Psi6 = METRIC_LAP_PSI4[PSI2]*METRIC_LAP_PSI4[PSI4];
         CCTK_REAL Psim4 = 1.0/METRIC_LAP_PSI4[PSI4];

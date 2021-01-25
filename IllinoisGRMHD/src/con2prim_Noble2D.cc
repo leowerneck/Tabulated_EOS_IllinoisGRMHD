@@ -78,7 +78,7 @@ int general_newton_raphson( igm_eos_parameters eos, CCTK_REAL x[], int n, void (
 void func_vsq( igm_eos_parameters eos, CCTK_REAL [], CCTK_REAL [], CCTK_REAL [], CCTK_REAL [][NEWT_DIM], CCTK_REAL *f, CCTK_REAL *df, int n,CCTK_REAL &Bsq,CCTK_REAL &QdotBsq,CCTK_REAL &Qtsq,CCTK_REAL &Qdotn,CCTK_REAL &D);
 CCTK_REAL x1_of_x0(CCTK_REAL x0, CCTK_REAL &Bsq, CCTK_REAL &QdotBsq, CCTK_REAL &Qtsq, CCTK_REAL &Qdotn, CCTK_REAL &D ) ;
 CCTK_REAL pressure_W_vsq(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_REAL &D) ;
-CCTK_REAL dpdW_calc_vsq(CCTK_REAL W, CCTK_REAL vsq);
+CCTK_REAL dpdW_calc_vsq(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq);
 CCTK_REAL dpdvsq_calc(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_REAL &D);
 int Utoprim_new_body(const igm_eos_parameters eos,
                      const CCTK_REAL *restrict U,
@@ -582,7 +582,7 @@ void func_vsq(igm_eos_parameters eos, CCTK_REAL x[], CCTK_REAL dx[], CCTK_REAL r
 
 
   p_tmp  = pressure_W_vsq( eos, W, vsq , D);
-  dPdW   = dpdW_calc_vsq( W, vsq );
+  dPdW   = dpdW_calc_vsq( eos, W, vsq );
   dPdvsq = dpdvsq_calc( eos, W, vsq, D );
 
   // These expressions were calculated using Mathematica, but made into efficient
@@ -645,10 +645,6 @@ void func_vsq(igm_eos_parameters eos, CCTK_REAL x[], CCTK_REAL dx[], CCTK_REAL r
 CCTK_REAL pressure_W_vsq(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_REAL &D)
 {
 
-#ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
-  DECLARE_CCTK_PARAMETERS;
-#endif
-
   // Compute gamma^{-2} = 1 - v^{2} and gamma^{-1}
   CCTK_REAL inv_gammasq = 1.0 - vsq;
   CCTK_REAL inv_gamma   = sqrt(inv_gammasq);
@@ -661,7 +657,7 @@ CCTK_REAL pressure_W_vsq(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCT
   compute_P_cold__eps_cold(eos,rho_b, P_cold,eps_cold);
 
   // Compute p = P_{cold} + P_{th}
-  return( ( P_cold + (Gamma_th - 1.0)*( W*inv_gammasq - D*inv_gamma*( 1.0 + eps_cold ) ) )/Gamma_th );
+  return( ( P_cold + (eos.Gamma_th - 1.0)*( W*inv_gammasq - D*inv_gamma*( 1.0 + eps_cold ) ) )/eos.Gamma_th );
 
 }
 
@@ -673,14 +669,10 @@ CCTK_REAL pressure_W_vsq(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCT
 
       -- partial derivative of pressure with respect to W;
 **********************************************************************/
-CCTK_REAL dpdW_calc_vsq(CCTK_REAL W, CCTK_REAL vsq)
+CCTK_REAL dpdW_calc_vsq(igm_eos_parameters eos,CCTK_REAL W, CCTK_REAL vsq)
 {
 
-#ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
-  DECLARE_CCTK_PARAMETERS;
-#endif
-
-  return( (Gamma_th - 1.0) * (1.0 - vsq) /  Gamma_th  ) ;
+  return( (eos.Gamma_th - 1.0) * (1.0 - vsq) /  eos.Gamma_th  ) ;
 
 }
 
@@ -693,12 +685,6 @@ CCTK_REAL dpdW_calc_vsq(CCTK_REAL W, CCTK_REAL vsq)
 **********************************************************************/
 CCTK_REAL dpdvsq_calc(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_REAL &D)
 {
-
-  // This sets Gamma_th
-#ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
-  DECLARE_CCTK_PARAMETERS;
-#endif
-
 
   // Set gamma and rho
   CCTK_REAL gamma = 1.0/sqrt(1.0 - vsq);
@@ -739,7 +725,7 @@ CCTK_REAL dpdvsq_calc(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_R
    * |                                            - (D/gamma) * deps_cold/dvsq) )  |
    *  -----------------------------------------------------------------------------
    */
-  return( ( dPcold_dvsq + (Gamma_th-1.0)*( -W + D*gamma*(1+eps_cold)/2.0 - D*depscold_dvsq/gamma ) )/Gamma_th );
+  return( ( dPcold_dvsq + (eos.Gamma_th-1.0)*( -W + D*gamma*(1+eps_cold)/2.0 - D*depscold_dvsq/gamma ) )/eos.Gamma_th );
 }
 
 

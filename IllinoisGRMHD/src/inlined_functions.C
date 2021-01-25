@@ -56,12 +56,12 @@ static inline void find_cp_cm(CCTK_REAL &cplus,CCTK_REAL &cminus,CCTK_REAL v02,C
 }
 
 
-static inline void compute_v02(CCTK_REAL dPcold_drho,CCTK_REAL Gamma_th,CCTK_REAL eps_th,CCTK_REAL h,CCTK_REAL *smallb,CCTK_REAL *U,  CCTK_REAL &v02L) {
+static inline void compute_v02(const igm_eos_parameters eos, CCTK_REAL dPcold_drho,CCTK_REAL eps_th,CCTK_REAL h,CCTK_REAL *smallb,CCTK_REAL *U,  CCTK_REAL &v02L) {
 
   if(U[RHOB]<=0) { v02L=1.0; return; }
 
   /* c_s = sound speed = (dP_c/drho + \Gamma(\Gamma-1) \epsilon_th)/h */
-  CCTK_REAL c_s_squared  = (dPcold_drho + Gamma_th*(Gamma_th-1.0)*eps_th)/(h);
+  CCTK_REAL c_s_squared  = (dPcold_drho + eos.Gamma_th*(eos.Gamma_th-1.0)*eps_th)/(h);
 
   /* v_A = Alfven speed = sqrt( b^2/(rho0 h + b^2) ) */
   CCTK_REAL v_A_squared = smallb[SMALLB2]/(smallb[SMALLB2] + U[RHOB]*(h));

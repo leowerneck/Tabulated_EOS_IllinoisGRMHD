@@ -2,7 +2,7 @@
 // Compute the flux for advecting rho_star, tau (Font's energy variable),
 //  and S_i .
 //-----------------------------------------------------------------------------
-static inline void mhdflux(int i,int j,int k,const int flux_dirn,CCTK_REAL *Ul,CCTK_REAL *Ur,  CCTK_REAL *FACEVAL,CCTK_REAL *FACEVAL_LAPSE_PSI4,igm_eos_parameters &eos, CCTK_REAL Gamma_th,
+static inline void mhdflux(int i,int j,int k,const int flux_dirn,CCTK_REAL *Ul,CCTK_REAL *Ur,  CCTK_REAL *FACEVAL,CCTK_REAL *FACEVAL_LAPSE_PSI4,igm_eos_parameters &eos,
                            CCTK_REAL &cmax,CCTK_REAL &cmin,
                            CCTK_REAL &rho_star_flux,CCTK_REAL &tau_flux,CCTK_REAL &st_x_flux,CCTK_REAL &st_y_flux,CCTK_REAL &st_z_flux) {
 
@@ -18,9 +18,9 @@ static inline void mhdflux(int i,int j,int k,const int flux_dirn,CCTK_REAL *Ul,C
   // First compute P_{cold}, \epsilon_{cold}, dP_{cold}/drho, \epsilon_{th}, h, and \Gamma_{cold},
   // for right and left faces:
   CCTK_REAL P_coldr,eps_coldr,dPcold_drhor=0,eps_thr=0,h_r=0,Gamma_coldr;
-  compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(Ur,eos,Gamma_th,P_coldr,eps_coldr,dPcold_drhor,eps_thr,h_r,Gamma_coldr);
+  compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(Ur,eos,P_coldr,eps_coldr,dPcold_drhor,eps_thr,h_r,Gamma_coldr);
   CCTK_REAL P_coldl,eps_coldl,dPcold_drhol=0,eps_thl=0,h_l=0,Gamma_coldl;
-  compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(Ul,eos,Gamma_th,P_coldl,eps_coldl,dPcold_drhol,eps_thl,h_l,Gamma_coldl);
+  compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(Ul,eos,P_coldl,eps_coldl,dPcold_drhol,eps_thl,h_l,Gamma_coldl);
 
 
   //Compute face velocities
@@ -60,9 +60,9 @@ static inline void mhdflux(int i,int j,int k,const int flux_dirn,CCTK_REAL *Ul,C
   // Compute v02 = v_A^2 + c_s^2*(1.0-v_A^2), where c_s = sound speed, and v_A = Alfven velocity
   CCTK_REAL v02r,v02l;
   // First right face
-  compute_v02(dPcold_drhor,Gamma_th,eps_thr,h_r,smallbr,Ur,v02r);
+  compute_v02(eos,dPcold_drhor,eps_thr,h_r,smallbr,Ur,v02r);
   // Then left face.
-  compute_v02(dPcold_drhol,Gamma_th,eps_thl,h_l,smallbl,Ul,v02l);
+  compute_v02(eos,dPcold_drhol,eps_thl,h_l,smallbl,Ul,v02l);
 
   int offset=flux_dirn-1;
 
