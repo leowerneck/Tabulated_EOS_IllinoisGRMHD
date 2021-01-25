@@ -1,9 +1,21 @@
-static void compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu
-(const cGH *cctkGH,const int *cctk_lsh,const int *cctk_nghostzones,CCTK_REAL *dX,CCTK_REAL **metric,gf_and_gz_struct *prims,
- CCTK_REAL **TUPmunu,igm_eos_parameters &eos,
- CCTK_REAL *gupxy,CCTK_REAL *gupxz,CCTK_REAL *gupyz,
- CCTK_REAL *kxx,CCTK_REAL *kxy,CCTK_REAL *kxz,CCTK_REAL *kyy,CCTK_REAL *kyz,CCTK_REAL *kzz,
- CCTK_REAL *tau_rhs) {
+static void compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu( const igm_eos_parameters eos,
+                                                                   const cGH *restrict cctkGH,
+                                                                   const int *restrict cctk_lsh,
+                                                                   const int *restrict cctk_nghostzones,
+                                                                   CCTK_REAL *restrict dX,
+                                                                   CCTK_REAL **metric,
+                                                                   gf_and_gz_struct *restrict prims,
+                                                                   CCTK_REAL **TUPmunu,
+                                                                   CCTK_REAL *restrict gupxy,
+                                                                   CCTK_REAL *restrict gupxz,
+                                                                   CCTK_REAL *restrict gupyz,
+                                                                   CCTK_REAL *restrict kxx,
+                                                                   CCTK_REAL *restrict kxy,
+                                                                   CCTK_REAL *restrict kxz,
+                                                                   CCTK_REAL *restrict kyy,
+                                                                   CCTK_REAL *restrict kyz,
+                                                                   CCTK_REAL *restrict kzz,
+                                                                   CCTK_REAL *restrict tau_rhs ) {
 
   // These loop extents must be consistent with add_fluxes_and_source_terms_to_hydro_rhss(), since we use TUPmunu there as well.
 #pragma omp parallel for
