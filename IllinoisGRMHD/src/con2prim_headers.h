@@ -129,7 +129,8 @@ static const int TAU      =1;
 static const int S1_cov   =2;
 static const int S2_cov   =3;
 static const int S3_cov   =4;
-static const int DS       =9;
+static const int DS       =9;  // Used by the Palenzuela routines
+static const int WS       =9;  // Used by the HARM routines
 static const int numcons  =10; // D, tau, S_{x,y,z}, B^{x,y,z}, DYe, DS
 
 // These quantities are used by the Palenzuela routines
@@ -215,6 +216,7 @@ void eigenvalues_3by3_real_sym_matrix(CCTK_REAL & lam1, CCTK_REAL & lam2, CCTK_R
                                       CCTK_REAL M11, CCTK_REAL M12, CCTK_REAL M13, CCTK_REAL M22, CCTK_REAL M23, CCTK_REAL M33);
 
 void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
+                                       const CCTK_INT c2p_key,
                                        const CCTK_REAL *restrict METRIC,
                                        const CCTK_REAL *restrict METRIC_LAP_PSI4,
                                        const CCTK_REAL *restrict PRIMS,
@@ -222,7 +224,8 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
                                        CCTK_REAL *restrict cons);
 
 void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
-                                       const int which_guess,
+                                       const CCTK_INT c2p_key,
+                                       const CCTK_INT which_guess,
                                        const CCTK_REAL *restrict METRIC,
                                        const CCTK_REAL *restrict METRIC_LAP_PSI4,
                                        const CCTK_REAL *restrict PRIMS,
