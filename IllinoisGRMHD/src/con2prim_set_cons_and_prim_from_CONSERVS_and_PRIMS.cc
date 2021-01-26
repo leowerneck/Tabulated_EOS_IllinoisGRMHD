@@ -12,6 +12,7 @@
 #include "con2prim_headers.h"
 
 void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
+                                       const CCTK_INT c2p_key,
                                        const CCTK_REAL *restrict METRIC,
                                        const CCTK_REAL *restrict METRIC_LAP_PSI4,
                                        const CCTK_REAL *restrict PRIMS,
@@ -45,7 +46,10 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   // First compute alpha*sqrt(gamma) = alpha*psi^(6)
   
   // Finally compute the remaining quantities (which are routine specific)
-  if( eos.c2p_routine == Noble2D ) {
+  if( (c2p_key == Noble2D         ) ||
+      (c2p_key == Noble1D         ) ||
+      (c2p_key == Noble1D_entropy ) ||
+      (c2p_key == Noble1D_entropy2) ) {
 
     // Auxiliary variable (tau to u conversion)
     CCTK_REAL uu = -CONSERVS[TAUENERGY]*METRIC_LAP_PSI4[LAPSE] - (METRIC_LAP_PSI4[LAPSE]-1.0)*CONSERVS[RHOSTAR] +
@@ -70,40 +74,53 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
     cons[BCON1 ] = PRIMS[BX_CENTER ] * ONE_OVER_SQRT_4PI;
     cons[BCON2 ] = PRIMS[BY_CENTER ] * ONE_OVER_SQRT_4PI;
     cons[BCON3 ] = PRIMS[BZ_CENTER ] * ONE_OVER_SQRT_4PI;
+    if( (c2p_key == Noble1D_entropy ) || (c2p_key == Noble1D_entropy2) ) {
+      // Note that:
+      //
+      // S_star = alpha * sqrt(gamma) * S * u^{0}
+      //        = ( alpha * u^{0} ) * psi^{6} * S
+      //        = W_Lorentz * psi^{6} * S
+      //    .--------------------------------.
+      // => | S_star/psi^{6} = W_Lorentz * S | ,
+      //    .--------------------------------.
+      // which is the variable expeected by the Noble1D entropy routines.
+      cons[WS ]  = CONSERVS[ENTSTAR] * psim6;
+    }
 
   }
-  else if( eos.c2p_routine == Palenzuela1D || eos.c2p_routine == Palenzuela1D_entropy ) {
+  else if( (c2p_key == Palenzuela1D) || (c2p_key == Palenzuela1D_entropy) ) {
 
     // All that is required in this case is to "undensitize"
     // the conservative variables, i.e. divide by sqrt(-g).
 
     // Auxiliary variables 1/detg = 1/( alpha*sqrt(gamma) )
-    const CCTK_REAL alpha_sqrtgamma     = METRIC_LAP_PSI4[LAPSE]*METRIC_LAP_PSI4[PSI6];
-    const CCTK_REAL inv_alpha_sqrtgamma = 1.0/alpha_sqrtgamma;
+    const CCTK_REAL detg     = METRIC_LAP_PSI4[LAPSE]*METRIC_LAP_PSI4[PSI6];
+    const CCTK_REAL inv_detg = 1.0/alpha_sqrtgamma;
 
     // Now convert from one system to the next
-    cons[DD    ] = CONSERVS[RHOSTAR  ] * inv_alpha_sqrtgamma;
-    cons[S1_cov] = CONSERVS[STILDEX  ] * inv_alpha_sqrtgamma;
-    cons[S2_cov] = CONSERVS[STILDEY  ] * inv_alpha_sqrtgamma;
-    cons[S3_cov] = CONSERVS[STILDEZ  ] * inv_alpha_sqrtgamma;
-    cons[TAU   ] = CONSERVS[TAUENERGY] * inv_alpha_sqrtgamma;
+    cons[DD    ] = CONSERVS[RHOSTAR  ] * inv_detg;
+    cons[S1_cov] = CONSERVS[STILDEX  ] * inv_detg;
+    cons[S2_cov] = CONSERVS[STILDEY  ] * inv_detg;
+    cons[S3_cov] = CONSERVS[STILDEZ  ] * inv_detg;
+    cons[TAU   ] = CONSERVS[TAUENERGY] * inv_detg;
     cons[B1_con] = PRIMS[BX_CENTER   ] * ONE_OVER_SQRT_4PI;
     cons[B2_con] = PRIMS[BY_CENTER   ] * ONE_OVER_SQRT_4PI;
     cons[B3_con] = PRIMS[BZ_CENTER   ] * ONE_OVER_SQRT_4PI;
-    cons[YE    ] = CONSERVS[YESTAR   ] * inv_alpha_sqrtgamma;
-    if( eos.c2p_routine == Palenzuela1D_entropy ) {
-      cons[DS  ] = CONSERVS[ENTSTAR  ] * inv_alpha_sqrtgamma;
+    cons[YE    ] = CONSERVS[YESTAR   ] * inv_detg;
+    if( c2p_key == Palenzuela1D_entropy ) {
+      cons[DS  ] = CONSERVS[ENTSTAR  ] * inv_detg;
     }
 
   }
   else {
-    CCTK_VError(VERR_DEF_PARAMS,"Unknown c2p_routine! (Key: %d)",eos.c2p_routine);
+    CCTK_VError(VERR_DEF_PARAMS,"Unknown c2p_routine! (Key: %d)",c2p_key);
   }
       
 }
 
 void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
-                                       const int which_guess,
+                                       const CCTK_INT c2p_key,
+                                       const CCTK_INT which_guess,
                                        const CCTK_REAL *restrict METRIC,
                                        const CCTK_REAL *restrict METRIC_LAP_PSI4,
                                        const CCTK_REAL *restrict PRIMS,
@@ -121,8 +138,12 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   CCTK_REAL vxL              = PRIMS[VX      ];
   CCTK_REAL vyL              = PRIMS[VY      ];
   CCTK_REAL vzL              = PRIMS[VZ      ];
-  // First the Noble2D guesses, which are the more complicated ones
-  if( eos.c2p_routine == Noble2D ) {
+  // First the Noble et al. con2prim guesses, which are the more complicated ones
+  if( (c2p_key == Noble2D         ) ||
+      (c2p_key == Noble1D         ) ||
+      (c2p_key == Noble1D_entropy ) ||
+      (c2p_key == Noble1D_entropy2) ) {
+
     if(which_guess==1) {
       //Use a different initial guess:
       rho_b_oldL = CONSERVS[RHOSTAR]/METRIC_LAP_PSI4[PSI6];
@@ -192,12 +213,12 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
     prim[BCON3 ]   = cons[BCON3];
 
   }
-  else if( eos.c2p_routine == Palenzuela1D || eos.c2p_routine == Palenzuela1D_entropy ) {
+  else if( c2p_key == Palenzuela1D || c2p_key == Palenzuela1D_entropy ) {
     // This one is very simple! The only guess required is the temperature
     prim[TEMP  ] = pow(10.0,(which_guess-1)) * eos.T_atm;
   }
   else {
-    CCTK_VError(VERR_DEF_PARAMS,"Unknown c2p_routine! (Key: %d)",eos.c2p_routine);
+    CCTK_VError(VERR_DEF_PARAMS,"Unknown c2p_routine! (Key: %d)",c2p_key);
   }
   
 }
