@@ -228,7 +228,7 @@ int Utoprim_new_body_1d_ee( const igm_eos_parameters eos,
   // Leo says: declare harm auxiliary variables struct
   harm_aux_vars_struct harm_aux;
   // gamma_times_S
-  harm_aux.gamma_times_S = U[ENT];
+  harm_aux.gamma_times_S = U[WS];
   // B^2 = g_{\mu\nu}B^{\mu}B^{\nu} (note that B^{0} = 0)
   harm_aux.Bsq = gcov[1][1]*Bcon[1]*Bcon[1]
     + gcov[2][2]*Bcon[2]*Bcon[2]
