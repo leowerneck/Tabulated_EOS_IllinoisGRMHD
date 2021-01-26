@@ -62,23 +62,32 @@ int con2prim( const igm_eos_parameters eos,
   for(int which_guess=startguess;which_guess<3;which_guess++) {
 
     // Set the conserved variables required by the con2prim routine
-    set_cons_from_PRIMS_and_CONSERVS( eos, METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
+    set_cons_from_PRIMS_and_CONSERVS( eos, eos.c2p_routine, METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
 
     // Set primitive guesses
-    set_prim_from_PRIMS_and_CONSERVS( eos, which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
+    set_prim_from_PRIMS_and_CONSERVS( eos, eos.c2p_routine, which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
 
     /************* Conservative-to-primitive recovery ************/
     int check = con2prim_select(eos,eos.c2p_routine,g4dn,g4up,cons,prim);
 
     if( (check != 0) && (eos.c2p_backup[0] != None) ) {
+      // Recompute guesses
+      set_cons_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[0], METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
+      set_prim_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[0], which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
       // Backup routine #1
       check = con2prim_select(eos,eos.c2p_backup[0],g4dn,g4up,cons,prim);
 
       if( (check != 0) && (eos.c2p_backup[1] != None) ) {
+        // Recompute guesses
+        set_cons_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[1], METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
+        set_prim_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[1], which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
         // Backup routine #2
         check = con2prim_select(eos,eos.c2p_backup[1],g4dn,g4up,cons,prim);
 
         if( (check != 0) && (eos.c2p_backup[2] != None) ) {
+          // Recompute guesses
+          set_cons_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[2], METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
+          set_prim_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[2], which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
           // Backup routine #3
           check = con2prim_select(eos,eos.c2p_backup[2],g4dn,g4up,cons,prim);
         }
