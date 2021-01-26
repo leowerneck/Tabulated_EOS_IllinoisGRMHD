@@ -88,7 +88,25 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
           igm_temperature[index] = temperature[index];
         }
         if( eos.evolve_entropy ) {
-          igm_entropy[index]     = entropy[index];
+          if( eos.is_Tabulated ) {
+            // In this case we expect another thorn,
+            // such as ID_TabEOS_HydroQuantities,
+            // to ahve already taken care of the
+            // entropy initialization.
+            igm_entropy[index]   = entropy[index];
+          }
+          else if( eos.is_Hybrid ) {
+            // In this case we perform the initialization
+            // of the entropy gridfunctions here.
+            const CCTK_REAL rhoL  = rho_b[index];
+            const CCTK_REAL prsL  = P[index];
+            const CCTK_INT ppidx  = find_polytropic_K_and_Gamma_index(eos,rhoL);
+            const CCTK_REAL Gamma = eos.Gamma_ppoly_tab[ppidx];
+            // Now compute the entropy function
+            const CCTK_REAL S     = prsL * pow(rhoL,1.0-Gamma);
+            // Update the gridfunctions
+            entropy[index] = igm_entropy[index] = S;
+          }
         }
 
         if( eos.is_Hybrid ) {
@@ -101,9 +119,9 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
            * P = P_cold.
            */
           /* Compute P_cold */
-          const int polytropic_index = find_polytropic_K_and_Gamma_index(eos, rho_b[index]);
-          const double K_poly     = eos.K_ppoly_tab[polytropic_index];
-          const double Gamma_poly = eos.Gamma_ppoly_tab[polytropic_index];
+          const int ppidx         = find_polytropic_K_and_Gamma_index(eos, rho_b[index]);
+          const double K_poly     = eos.K_ppoly_tab[ppidx];
+          const double Gamma_poly = eos.Gamma_ppoly_tab[ppidx];
           const double P_cold     = K_poly*pow(rho_b[index],Gamma_poly);
 
           /* Compare P and P_cold */
