@@ -95,7 +95,7 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
 
     // Auxiliary variables 1/detg = 1/( alpha*sqrt(gamma) )
     const CCTK_REAL detg     = METRIC_LAP_PSI4[LAPSE]*METRIC_LAP_PSI4[PSI6];
-    const CCTK_REAL inv_detg = 1.0/alpha_sqrtgamma;
+    const CCTK_REAL inv_detg = 1.0/detg;
 
     // Now convert from one system to the next
     cons[DD    ] = CONSERVS[RHOSTAR  ] * inv_detg;
