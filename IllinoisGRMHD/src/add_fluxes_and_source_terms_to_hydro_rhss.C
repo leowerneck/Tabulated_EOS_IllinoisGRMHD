@@ -117,22 +117,22 @@ static void add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters 
           if( eos.PPM_reconstructed_var == PRESSURE ) {
             // We need to compute the entropy
             // Right face
-            CCTK_REAL index_r = find_polytropic_K_and_Gamma_index(eos,Ur[RHOB]);
+            CCTK_INT  index_r = find_polytropic_K_and_Gamma_index(eos,Ur[RHOB]);
             CCTK_REAL Gamma_r = eos.Gamma_ppoly_tab[index_r];
             Ur[ENTROPY] = Ur[PRESSURE] * pow(Ur[RHOB],1.0-Gamma_r);
             // Left face
-            CCTK_REAL index_l = find_polytropic_K_and_Gamma_index(eos,Ul[RHOB]);
+            CCTK_INT  index_l = find_polytropic_K_and_Gamma_index(eos,Ul[RHOB]);
             CCTK_REAL Gamma_l = eos.Gamma_ppoly_tab[index_l];
             Ul[ENTROPY] = Ul[PRESSURE] * pow(Ul[RHOB],1.0-Gamma_l);
           }
           else if( eos.PPM_reconstructed_var == ENTROPY ) {
             // We need to compute the pressure
             // Right face
-            CCTK_REAL index_r = find_polytropic_K_and_Gamma_index(eos,Ur[RHOB]);
+            CCTK_INT  index_r = find_polytropic_K_and_Gamma_index(eos,Ur[RHOB]);
             CCTK_REAL Gamma_r = eos.Gamma_ppoly_tab[index_r];
             Ur[PRESSURE] = Ur[ENTROPY] * pow(Ur[RHOB],Gamma_r-1.0);
             // Left face
-            CCTK_REAL index_l = find_polytropic_K_and_Gamma_index(eos,Ul[RHOB]);
+            CCTK_INT  index_l = find_polytropic_K_and_Gamma_index(eos,Ul[RHOB]);
             CCTK_REAL Gamma_l = eos.Gamma_ppoly_tab[index_l];
             Ul[PRESSURE] = Ul[ENTROPY] * pow(Ul[RHOB],Gamma_l-1.0);
           }
