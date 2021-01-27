@@ -155,6 +155,10 @@ void check_temperature_reconstruction( const igm_eos_parameters eos,
                                        gf_and_gz_struct *restrict prims_center,
                                        gf_and_gz_struct *restrict prims_right,
                                        gf_and_gz_struct *restrict prims_left );
+
+void find_lowest_gradient_temperature_recompute_prims( const igm_eos_parameters eos,
+                                                       const CCTK_REAL T_center,
+                                                       CCTK_REAL *restrict PRIMS );
 //------------------------------------------------
 
 #endif // __EOS_HEADERS__
