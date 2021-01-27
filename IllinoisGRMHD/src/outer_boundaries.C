@@ -144,15 +144,11 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       XMAX_OB_SIMPLE_COPY(vx,imax);
       XMAX_OB_SIMPLE_COPY(vy,imax);
       XMAX_OB_SIMPLE_COPY(vz,imax);
+      XMAX_OB_SIMPLE_COPY(igm_entropy,imax);
+      XMAX_OB_SIMPLE_COPY(igm_eps,imax);
       if( eos.is_Tabulated ) {
         XMAX_OB_SIMPLE_COPY(igm_Ye,imax);
         XMAX_OB_SIMPLE_COPY(igm_temperature,imax);
-      }
-      if( eos.evolve_entropy ) {
-        XMAX_OB_SIMPLE_COPY(igm_entropy,imax);
-      }
-      if( eos.PPM_reconstructed_var == EPSILON ) {
-        XMAX_OB_SIMPLE_COPY(igm_eps,imax);
       }
       if(ENABLE) {
         XMAX_INFLOW_CHECK(vx,imax);
@@ -165,15 +161,11 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       XMIN_OB_SIMPLE_COPY(vx,imin);
       XMIN_OB_SIMPLE_COPY(vy,imin);
       XMIN_OB_SIMPLE_COPY(vz,imin);
+      XMIN_OB_SIMPLE_COPY(igm_entropy,imin);
+      XMIN_OB_SIMPLE_COPY(igm_eps,imin);
       if( eos.is_Tabulated ) {
         XMIN_OB_SIMPLE_COPY(igm_Ye,imin);
         XMIN_OB_SIMPLE_COPY(igm_temperature,imin);
-      }
-      if( eos.evolve_entropy ) {
-        XMIN_OB_SIMPLE_COPY(igm_entropy,imin);
-      }
-      if( eos.PPM_reconstructed_var == EPSILON ) {
-        XMIN_OB_SIMPLE_COPY(igm_eps,imin);
       }
       if(ENABLE) XMIN_INFLOW_CHECK(vx,imin);
     }
@@ -186,15 +178,11 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       YMAX_OB_SIMPLE_COPY(vx,jmax);
       YMAX_OB_SIMPLE_COPY(vy,jmax);
       YMAX_OB_SIMPLE_COPY(vz,jmax);
+      YMAX_OB_SIMPLE_COPY(igm_entropy,jmax);
+      YMAX_OB_SIMPLE_COPY(igm_eps,jmax);
       if( eos.is_Tabulated ) {
         YMAX_OB_SIMPLE_COPY(igm_Ye,jmax);
         YMAX_OB_SIMPLE_COPY(igm_temperature,jmax);
-      }
-      if( eos.evolve_entropy ) {
-        YMAX_OB_SIMPLE_COPY(igm_entropy,jmax);
-      }
-      if( eos.PPM_reconstructed_var == EPSILON ) {
-        YMAX_OB_SIMPLE_COPY(igm_eps,jmax);
       }
       if(ENABLE) YMAX_INFLOW_CHECK(vy,jmax); }
     // j=jmin=outer boundary
@@ -204,15 +192,11 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       YMIN_OB_SIMPLE_COPY(vx,jmin);
       YMIN_OB_SIMPLE_COPY(vy,jmin);
       YMIN_OB_SIMPLE_COPY(vz,jmin);
+      YMIN_OB_SIMPLE_COPY(igm_entropy,jmin);
+      YMIN_OB_SIMPLE_COPY(igm_eps,jmin);
       if( eos.is_Tabulated ) {
         YMIN_OB_SIMPLE_COPY(igm_Ye,jmin);
         YMIN_OB_SIMPLE_COPY(igm_temperature,jmin);
-      }
-      if( eos.evolve_entropy ) {
-        YMIN_OB_SIMPLE_COPY(igm_entropy,jmin);
-      }
-      if( eos.PPM_reconstructed_var == EPSILON ) {
-        YMIN_OB_SIMPLE_COPY(igm_eps,jmin);
       }
       if(ENABLE) YMIN_INFLOW_CHECK(vy,jmin);
     }
@@ -225,15 +209,11 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       ZMAX_OB_SIMPLE_COPY(vx,kmax);
       ZMAX_OB_SIMPLE_COPY(vy,kmax);
       ZMAX_OB_SIMPLE_COPY(vz,kmax);
+      ZMAX_OB_SIMPLE_COPY(igm_entropy,kmax);
+      ZMAX_OB_SIMPLE_COPY(igm_eps,kmax);
       if( eos.is_Tabulated ) {
         ZMAX_OB_SIMPLE_COPY(igm_Ye,kmax);
         ZMAX_OB_SIMPLE_COPY(igm_temperature,kmax);
-      }
-      if( eos.evolve_entropy ) {
-        ZMAX_OB_SIMPLE_COPY(igm_entropy,kmax);
-      }
-      if( eos.PPM_reconstructed_var == EPSILON ) {
-        ZMAX_OB_SIMPLE_COPY(igm_eps,kmax);
       }
       if(ENABLE) ZMAX_INFLOW_CHECK(vz,kmax); }
     // k=kmin=outer boundary
@@ -243,14 +223,10 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       ZMIN_OB_SIMPLE_COPY(vx,kmin);
       ZMIN_OB_SIMPLE_COPY(vy,kmin);
       ZMIN_OB_SIMPLE_COPY(vz,kmin);
+      ZMIN_OB_SIMPLE_COPY(igm_entropy,kmin);
+      ZMIN_OB_SIMPLE_COPY(igm_temperature,kmin);
       if( eos.is_Tabulated ) {
         ZMIN_OB_SIMPLE_COPY(igm_Ye,kmin);
-        ZMIN_OB_SIMPLE_COPY(igm_temperature,kmin);
-      }
-      if( eos.evolve_entropy ) {
-        ZMIN_OB_SIMPLE_COPY(igm_entropy,kmin);
-      }
-      if( eos.PPM_reconstructed_var == EPSILON ) {
         ZMIN_OB_SIMPLE_COPY(igm_temperature,kmin);
       }
       if(ENABLE) ZMIN_INFLOW_CHECK(vz,kmin); }
@@ -302,9 +278,6 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
             PRIMS[YEPRIM     ] = igm_Ye[index];
             PRIMS[TEMPERATURE] = igm_temperature[index];
           }
-          if( eos.evolve_entropy ) {
-            PRIMS[ENTROPY    ] = igm_entropy[index];
-          }
 
           struct output_stats stats;
           CCTK_REAL CONSERVS[NUM_CONSERVS],TUPMUNU[10],TDNMUNU[10];
@@ -313,33 +286,31 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
           CCTK_REAL g4dn[4][4],g4up[4][4];
           IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(already_computed_physical_metric_and_inverse,PRIMS,stats,eos,METRIC,g4dn,g4up, TUPMUNU,TDNMUNU,CONSERVS);
 
-          rho_b[index]             = PRIMS[RHOB        ];
-          P[index]                 = PRIMS[PRESSURE    ];
-          vx[index]                = PRIMS[VX          ];
-          vy[index]                = PRIMS[VY          ];
-          vz[index]                = PRIMS[VZ          ];
+          rho_b            [index] = PRIMS[RHOB        ];
+          P                [index] = PRIMS[PRESSURE    ];
+          vx               [index] = PRIMS[VX          ];
+          vy               [index] = PRIMS[VY          ];
+          vz               [index] = PRIMS[VZ          ];
+          igm_eps          [index] = PRIMS[EPSILON     ];
+          igm_entropy      [index] = PRIMS[ENTROPY     ];
 
-          rho_star[index]          = CONSERVS[RHOSTAR  ];
-          tau[index]               = CONSERVS[TAUENERGY];
-          mhd_st_x[index]          = CONSERVS[STILDEX  ];
-          mhd_st_y[index]          = CONSERVS[STILDEY  ];
-          mhd_st_z[index]          = CONSERVS[STILDEZ  ];
+          rho_star         [index] = CONSERVS[RHOSTAR  ];
+          tau              [index] = CONSERVS[TAUENERGY];
+          mhd_st_x         [index] = CONSERVS[STILDEX  ];
+          mhd_st_y         [index] = CONSERVS[STILDEY  ];
+          mhd_st_z         [index] = CONSERVS[STILDEZ  ];
+
+          if( eos.evolve_entropy ) {
+            S_star         [index] = CONSERVS[ENTSTAR  ];
+          }
 
           // Tabulated EOS
           if( eos.is_Tabulated ) {
             // Primitives
-            igm_Ye[index]          = PRIMS[YEPRIM      ];
+            igm_Ye         [index] = PRIMS[YEPRIM      ];
             igm_temperature[index] = PRIMS[TEMPERATURE ];
             // Conservatives
-            Ye_star[index]         = CONSERVS[YESTAR   ];
-          }
-
-          // Entropy
-          if( eos.evolve_entropy ) {
-            // Primitive
-            igm_entropy[index]     = PRIMS[ENTROPY     ];
-            // Conservattive
-            S_star[index]          = CONSERVS[ENTSTAR  ];
+            Ye_star        [index] = CONSERVS[YESTAR   ];
           }
 
           if(update_Tmunu) {
