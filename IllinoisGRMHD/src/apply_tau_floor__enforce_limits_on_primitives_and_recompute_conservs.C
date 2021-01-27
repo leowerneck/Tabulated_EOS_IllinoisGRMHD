@@ -163,7 +163,7 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
   // S  (if evolving the entropy)
   // Ye (if tabulated EOS is enabled)
   // T  (if tabulated EOS is enabled)
-  apply_floors_and_ceilings_to_prims__set_P_eps_and_S(eos,METRIC_LAP_PSI4,PRIMS);
+  apply_floors_and_ceilings_to_prims__recompute_prims(eos,METRIC_LAP_PSI4,PRIMS);
 
   // Now compute the enthalpy
   const CCTK_REAL h_enthalpy = 1.0 + PRIMS[EPSILON] + PRIMS[PRESSURE]/PRIMS[RHOB];
@@ -269,13 +269,13 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
   CONSERVS[STILDEZ  ] = CONSERVS[RHOSTAR]*h_enthalpy*uDN[3] + alpha_sqrt_gamma*(uUP[0]*smallb[SMALLB2]*uDN[3] - smallb[SMALLBT]*smallb_lower[SMALLBZ]);
   // tauL = alpha^2 sqrt(gamma) T^{00} - CONSERVS[RHOSTAR]
   CONSERVS[TAUENERGY] =  METRIC_LAP_PSI4[LAPSE]*alpha_sqrt_gamma*(rho0_h_plus_b2*SQR(uUP[0]) + P_plus_half_b2*(-SQR(METRIC_LAP_PSI4[LAPSEINV])) - SQR(smallb[SMALLBT])) - CONSERVS[RHOSTAR];
-  if( eos.is_Tabulated ) {
-    // Tabulated EOS evolves Y_e_star = alpha * sqrt(gamma) * rho_b * Y_e * u^{0} = rho_star * Y_e
-    CONSERVS[YESTAR ] = CONSERVS[RHOSTAR] * PRIMS[YEPRIM];
-  }
   if( eos.evolve_entropy ) {
     // Entropy equation evolves S_star = alpha * sqrt(gamma) * S * u^{0}
     CONSERVS[ENTSTAR] = alpha_sqrt_gamma * PRIMS[ENTROPY] * uUP[0];
+  }
+  if( eos.is_Tabulated ) {
+    // Tabulated EOS evolves Y_e_star = alpha * sqrt(gamma) * rho_b * Y_e * u^{0} = rho_star * Y_e
+    CONSERVS[YESTAR ] = CONSERVS[RHOSTAR] * PRIMS[YEPRIM];
   }
 }
 
