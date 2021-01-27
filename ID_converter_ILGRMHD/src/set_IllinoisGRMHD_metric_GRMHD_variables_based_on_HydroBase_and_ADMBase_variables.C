@@ -87,26 +87,24 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
           igm_Ye[index]          = Y_e[index];
           igm_temperature[index] = temperature[index];
         }
-        if( eos.evolve_entropy ) {
-          if( eos.is_Tabulated ) {
-            // In this case we expect another thorn,
-            // such as ID_TabEOS_HydroQuantities,
-            // to ahve already taken care of the
-            // entropy initialization.
-            igm_entropy[index]   = entropy[index];
-          }
-          else if( eos.is_Hybrid ) {
+        if( eos.is_Tabulated ) {
+          // In this case we expect another thorn,
+          // such as ID_TabEOS_HydroQuantities,
+          // to ahve already taken care of the
+          // entropy initialization.
+          igm_entropy[index]   = entropy[index];
+        }
+        else if( eos.is_Hybrid ) {
             // In this case we perform the initialization
             // of the entropy gridfunctions here.
-            const CCTK_REAL rhoL  = rho_b[index];
-            const CCTK_REAL prsL  = P[index];
-            const CCTK_INT ppidx  = find_polytropic_K_and_Gamma_index(eos,rhoL);
-            const CCTK_REAL Gamma = eos.Gamma_ppoly_tab[ppidx];
+            const CCTK_REAL rhoL     = rho_b[index];
+            const CCTK_REAL prsL     = P[index];
+            const CCTK_INT ppidx     = find_polytropic_K_and_Gamma_index(eos,rhoL);
+            const CCTK_REAL GammaL   = eos.Gamma_ppoly_tab[ppidx];
             // Now compute the entropy function
-            const CCTK_REAL S     = prsL * pow(rhoL,1.0-Gamma);
+            const CCTK_REAL entropyL = prsL / pow(rhoL,GammaL-1.0);
             // Update the gridfunctions
-            entropy[index] = igm_entropy[index] = S;
-          }
+            entropy[index] = igm_entropy[index] = entropyL;
         }
 
         if( eos.is_Hybrid ) {
@@ -356,12 +354,11 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         PRIMS[BX_CENTER    ] = Bx[index];
         PRIMS[BY_CENTER    ] = By[index];
         PRIMS[BZ_CENTER    ] = Bz[index];
+        PRIMS[EPSILON      ] = igm_eps[index];
+        PRIMS[ENTROPY      ] = igm_entropy[index];
         if( eos.is_Tabulated ) {
           PRIMS[YEPRIM     ] = igm_Ye[index];
           PRIMS[TEMPERATURE] = igm_temperature[index];
-        }
-        if( eos.evolve_entropy ) {
-          PRIMS[ENTROPY    ] = igm_entropy[index];
         }
 
         double METRIC[NUMVARS_FOR_METRIC],dummy=0;
@@ -396,18 +393,33 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(zero_int,PRIMS,stats,eos,
                                                                           METRIC,g4dn,g4up,TUPMUNU,TDNMUNU,CONSERVS);
 
-        rho_b[index] = PRIMS[RHOB];
-        P[index]     = PRIMS[PRESSURE];
-        vx[index]    = PRIMS[VX];
-        vy[index]    = PRIMS[VY];
-        vz[index]    = PRIMS[VZ];
+        rho_b      [index] = PRIMS[RHOB        ];
+        P          [index] = PRIMS[PRESSURE    ];
+        vx         [index] = PRIMS[VX          ];
+        vy         [index] = PRIMS[VY          ];
+        vz         [index] = PRIMS[VZ          ];
+        igm_eps    [index] = PRIMS[EPSILON     ];
+        igm_entropy[index] = PRIMS[ENTROPY     ];
 
-        rho_star[index] = CONSERVS[RHOSTAR];
-        mhd_st_x[index] = CONSERVS[STILDEX];
-        mhd_st_y[index] = CONSERVS[STILDEY];
-        mhd_st_z[index] = CONSERVS[STILDEZ];
-        tau[index]      = CONSERVS[TAUENERGY];
+        {
+          CCTK_REAL Gamma = eos.Gamma_ppoly_tab[find_polytropic_K_and_Gamma_index(eos,PRIMS[RHOB])];
+          CCTK_REAL S = PRIMS[PRESSURE] / pow(PRIMS[RHOB],Gamma-1.0);
+          if( fabs(S-igm_entropy[index])/S > 1e-10 ) {
+            printf("%e %e %e %e : %e\n",PRIMS[PRESSURE],PRIMS[RHOB],Gamma,S,igm_entropy[index]);
+            getchar();
+          }
+        }
 
+        rho_star   [index] = CONSERVS[RHOSTAR  ];
+        mhd_st_x   [index] = CONSERVS[STILDEX  ];
+        mhd_st_y   [index] = CONSERVS[STILDEY  ];
+        mhd_st_z   [index] = CONSERVS[STILDEZ  ];
+        tau        [index] = CONSERVS[TAUENERGY];
+
+        if( eos.evolve_entropy ) {
+          S_star   [index] = CONSERVS[ENTSTAR  ];
+        }
+        
         // Tabulated EOS
         if( eos.is_Tabulated ) {
           // Primitives
@@ -415,14 +427,6 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
           igm_temperature[index] = PRIMS[TEMPERATURE ];
           // Conservatives
           Ye_star[index]         = CONSERVS[YESTAR   ];
-        }
-
-        // Entropy
-        if( eos.evolve_entropy ) {
-          // Primitive
-          igm_entropy[index]     = PRIMS[ENTROPY     ];
-          // Conservattive
-          S_star[index]          = CONSERVS[ENTSTAR  ];
         }
 
         if(update_Tmunu) {
