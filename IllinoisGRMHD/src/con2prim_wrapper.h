@@ -71,6 +71,8 @@ int con2prim( const igm_eos_parameters eos,
     int check = con2prim_select(eos,eos.c2p_routine,g4dn,g4up,cons,prim);
 
     if( (check != 0) && (eos.c2p_backup[0] != None) ) {
+      // Backup 1 triggered
+      stats.backup[0] = 1;
       // Recompute guesses
       set_cons_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[0], METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
       set_prim_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[0], which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
@@ -78,6 +80,8 @@ int con2prim( const igm_eos_parameters eos,
       check = con2prim_select(eos,eos.c2p_backup[0],g4dn,g4up,cons,prim);
 
       if( (check != 0) && (eos.c2p_backup[1] != None) ) {
+        // Backup 1 triggered
+        stats.backup[1] = 1;
         // Recompute guesses
         set_cons_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[1], METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
         set_prim_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[1], which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
@@ -85,6 +89,8 @@ int con2prim( const igm_eos_parameters eos,
         check = con2prim_select(eos,eos.c2p_backup[1],g4dn,g4up,cons,prim);
 
         if( (check != 0) && (eos.c2p_backup[2] != None) ) {
+          // Backup 1 triggered
+          stats.backup[2] = 1;
           // Recompute guesses
           set_cons_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[2], METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
           set_prim_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[2], which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
