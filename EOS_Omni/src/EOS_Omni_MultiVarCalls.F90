@@ -60,6 +60,10 @@ subroutine EOS_Omni_EOS_short(eoskey,keytemp,rf_precision,npoints,&
      call nuc_eos_m_kt2_short(npoints,rho,temp,ye,eps,press,&
           entropy,cs2,dedt,dpderho,dpdrhoe,munu,rf_precision,&
           keyerr,anyerr)
+  else if (keytemp.eq.3) then
+     call nuc_eos_m_kt3_short(npoints,rho,temp,ye,eps,press,&
+          entropy,cs2,dedt,dpderho,dpdrhoe,munu,rf_precision,&
+          keyerr,anyerr)
   else
      !$OMP CRITICAL
      call CCTK_ERROR("This keytemp is not supported")
