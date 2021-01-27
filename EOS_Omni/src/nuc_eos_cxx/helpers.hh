@@ -808,6 +808,169 @@ void nuc_eos_findtemp(const double lr,
     return;
   }
 
+  static inline __attribute__((always_inline))
+  void nuc_eos_findtemp_press(const double lr, 
+                              const double lt0,
+                              const double ye,
+                              const double lprsin,
+                              const double prec,
+                              double *restrict ltout,
+                              int *keyerrt) {
 
+    using namespace nuc_eos;
+    using namespace nuc_eos_private;
+
+    // local variables
+    const int itmax = 200; // use at most 10 iterations, then go to bisection
+    double dlprsdlti; // 1 / derivative dlogprs/dlogT
+    double ldt;
+    double lprs,lprs0; // temp vars for prs
+    double ltn, lt; // temp vars for temperature
+    double oerr;
+    const double ltmax = logtemp[ntemp-1]; // max temp
+    const double ltmin = logtemp[0]; // min temp
+    const int iv = 0; // Pressure table entry key is 0
+    int it = 0;
+
+    // setting up some vars
+    *keyerrt = 0;
+    lprs0 = lprsin;
+    lt = lt0;
+
+    // step 1: do we already have the right temperature
+    int idx[8];
+    double delx,dely,delz;
+    get_interp_spots(lr,lt,ye,&delx,&dely,&delz,idx);
+    nuc_eos_C_linterp_one(idx,delx,dely,delz,&lprs,iv);
+#if DEBUG
+    fprintf(stderr,"it: %d t: %15.6E lprs: %15.6E prs0: %15.6E del: %15.6E\n",
+            it,lt, lprs,lprs0,fabs(lprs-lprs0)/(fabs(lprs0)));
+#endif
+    // TODO: profile this to see which outcome is more likely
+    if(fabs(lprs-lprs0) < prec*fabs(lprs0)) {
+      *ltout = lt0;
+      return;
+    }
+
+    oerr = 1.0e90;
+    double fac = 1.0;
+    const int irho = MIN(MAX(1 + (int)(( lr - logrho[0] - 1.0e-12) * drhoi),1),nrho-1); 
+    const int iye = MIN(MAX(1 + (int)(( ye - yes[0] - 1.0e-12) * dyei),1),nye-1); 
+
+    /* ******* if temp low for high density, switch directly to bisection. 
+       Verifying Newton-Raphson result evaluating the derivative. 
+       The variable shouldgotobisection will be modified accordingly
+       to the value of derivative of prs wrt temp ******* */
+    bool shouldgotobisection = false; // LSMOD
+    while(it < itmax && shouldgotobisection == false) {
+      it++;
+
+      // step 2: check if the two bounding values of the temperature
+      //         give prs values that enclose the new prs.
+      const int itemp = MIN(MAX(1 + (int)(( lt - logtemp[0] - 1.0e-12) * dtempi),1),ntemp-1); 
+
+      double prst1, prst2;
+      // lower temperature
+      {
+        // get data at 4 points
+        double fs[4];
+        // point 0
+        int ifs = NTABLES*(irho-1 + nrho*((itemp-1) + ntemp*(iye-1)));
+        fs[0] = alltables[ifs];
+        // point 1 
+        ifs = NTABLES*(irho + nrho*((itemp-1) + ntemp*(iye-1)));
+        fs[1] = alltables[ifs];
+        // point 2 
+        ifs = NTABLES*(irho-1 + nrho*((itemp-1) + ntemp*(iye)));
+        fs[2] = alltables[ifs];
+        // point 3
+        ifs = NTABLES*(irho + nrho*((itemp-1) + ntemp*(iye)));
+        fs[3] = alltables[ifs];
+      
+        prst1 = linterp2D(&logrho[irho-1],&yes[iye-1], fs, lr, ye);
+      }
+      // upper temperature
+      {
+        // get data at 4 points
+        double fs[4];
+        // point 0
+        int ifs = NTABLES*(irho-1 + nrho*((itemp) + ntemp*(iye-1)));
+        fs[0] = alltables[ifs];
+        // point 1 
+        ifs = NTABLES*(irho + nrho*((itemp) + ntemp*(iye-1)));
+        fs[1] = alltables[ifs];
+        // point 2 
+        ifs = NTABLES*(irho-1 + nrho*((itemp) + ntemp*(iye)));
+        fs[2] = alltables[ifs];
+        // point 3
+        ifs = NTABLES*(irho + nrho*((itemp) + ntemp*(iye)));
+        fs[3] = alltables[ifs];
+      
+        prst2 = linterp2D(&logrho[irho-1],&yes[iye-1], fs, lr, ye);
+      }
+
+      // Check if we are already bracketing the input internal
+      // energy. If so, interpolate for new T.
+      if(CCTK_BUILTIN_EXPECT((lprs0 - prst1) * (lprs0 - prst2) <= 0., false)) {
+      
+        *ltout = (logtemp[itemp]-logtemp[itemp-1]) / (prst2 - prst1) * 
+          (lprs0 - prst1) + logtemp[itemp-1];
+     
+        return;
+      }
+
+      // well, then do a Newton-Raphson step
+      // first, guess the derivative
+      dlprsdlti = (logtemp[itemp]-logtemp[itemp-1])/(prst2-prst1);
+      ldt = -(lprs - lprs0) * dlprsdlti * fac;
+
+      //LSMOD: too large a dlt means that the energy dependence on the temperature
+      //       is weak ==> We'd better try bisection.
+      //       Factor 1/12.0 come from tests by LSMOD
+      //       This is done in order to limit the "velocity" of T variation
+      //       given by Newton-Raphson.    
+      if(ldt > (ltmax-ltmin) / 12.0 ) shouldgotobisection = true;
+
+      ltn = MIN(MAX(lt + ldt,ltmin),ltmax);
+      lt = ltn;
+
+      get_interp_spots(lr,lt,ye,&delx,&dely,&delz,idx);
+      nuc_eos_C_linterp_one(idx,delx,dely,delz,&lprs,iv);
+
+#if DEBUG
+      fprintf(stderr,"%d %d %d\n",irho,itemp,iye);
+      fprintf(stderr,"it: %d t: %15.6E lprs: %15.6E prs0: %15.6E del: %15.6E\n",
+              it,lt, lprs,lprs0,fabs(lprs-lprs0)/(fabs(lprs0)));
+#endif
+      // drive the thing into the right direction
+      double err = fabs(lprs-lprs0);
+      if(oerr < err) fac *= 0.9;
+      oerr = err;
+
+      if(CCTK_BUILTIN_EXPECT(err < prec*fabs(lprs0), false)) {
+        *ltout = lt;
+        return;
+      }
+
+
+
+    } // while(it < itmax)
+
+    // try bisection
+    // bisection(lr, lt0, ye, lprs0, ltout, 1, prec, keyerrt);
+#if DEBUG
+    fprintf(stderr, "Failed to converge. This is bad. Trying bisection!\n");
+#endif
+    bisection(lr,lt0,ye,lprs0,prec,ltout,0,keyerrt);
+#if DEBUG
+    if(*keyerrt==667) {
+      fprintf(stderr,"This is worse. Bisection failed!\n");
+      abort();
+    }
+#endif
+
+
+    return;
+  }
 
 } // namespace nuc_eos
