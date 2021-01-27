@@ -403,6 +403,16 @@ void get_P_cs2_and_T_from_rho_Ye_and_eps( const igm_eos_parameters eos,
   // FIXME: add error handling!
 }
 
+void get_eps_S_and_T_from_rho_Ye_and_P( const igm_eos_parameters eos,
+                                        const CCTK_REAL rho,
+                                        const CCTK_REAL Y_e,
+                                        const CCTK_REAL P,
+                                        CCTK_REAL *restrict eps,
+                                        CCTK_REAL *restrict S,
+                                        CCTK_REAL *restrict T ) {
+  // FIXME: empty function to allow the code to be compiled
+}
+
 void check_temperature_reconstruction( const igm_eos_parameters eos,
                                        const cGH *restrict cctkGH,
                                        const int *restrict cctk_lsh,
