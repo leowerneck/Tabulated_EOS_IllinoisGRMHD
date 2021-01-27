@@ -104,6 +104,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   int pointcount=0;
   int failures_inhoriz=0;
   int pointcount_inhoriz=0;
+  int backup1=0,backup2=0,backup3=0;
 
   CCTK_REAL error_int_numer=0,error_int_denom=0;
 
@@ -111,7 +112,8 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   int jmin=0,jmax=cctk_lsh[1];
   int kmin=0,kmax=cctk_lsh[2];
 
-#pragma omp parallel for reduction(+:failures,vel_limited_ptcount,font_fixes,pointcount,failures_inhoriz,pointcount_inhoriz,error_int_numer,error_int_denom,rho_star_fix_applied,atm_resets) schedule(static)
+
+#pragma omp parallel for reduction(+:failures,vel_limited_ptcount,font_fixes,pointcount,failures_inhoriz,pointcount_inhoriz,error_int_numer,error_int_denom,rho_star_fix_applied,atm_resets,backup1,backup2,backup3) schedule(static)
   for(int k=kmin;k<kmax;k++)
     for(int j=jmin;j<jmax;j++)
       for(int i=imin;i<imax;i++) {
@@ -150,13 +152,16 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         PRIMS[BX_CENTER    ] = Bx[index];
         PRIMS[BY_CENTER    ] = By[index];
         PRIMS[BZ_CENTER    ] = Bz[index];
+        PRIMS[EPSILON      ] = igm_eps[index];
+        PRIMS[ENTROPY      ] = igm_entropy[index];
 
         CCTK_REAL CONSERVS[NUM_CONSERVS];
         CONSERVS[RHOSTAR  ] = rho_star[index];
         CONSERVS[STILDEX  ] = mhd_st_x[index];
         CONSERVS[STILDEY  ] = mhd_st_y[index];
         CONSERVS[STILDEZ  ] = mhd_st_z[index];
-        CONSERVS[TAUENERGY] = tau[index];
+        CONSERVS[TAUENERGY] = tau     [index];
+        CONSERVS[ENTSTAR  ] = S_star  [index];
 
         // Tabulated EOS quantities
         if( eos.is_Tabulated ) {
@@ -167,12 +172,8 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
           CONSERVS[YESTAR  ] = Ye_star[index];
         }
 
-        // If using the Palenzuela1D_entropy routine, then
-        // the entropy must read the conserved entropy
-        if( eos.c2p_routine == Palenzuela1D_entropy ) {
-          CONSERVS[ENTSTAR] = S_star[index];
-        }
-
+        // If using a con2prim routine that requires the entropy,
+        // then we must read in the conserved entropy
 
         CCTK_REAL METRIC_LAP_PSI4[NUMVARS_METRIC_AUX];
         SET_LAPSE_PSI4(METRIC_LAP_PSI4,METRIC);
@@ -260,6 +261,9 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         stats.failure_checker=0;
         stats.font_fixed=0;
         stats.atm_reset=0;
+        stats.backup[0]=0;
+        stats.backup[1]=0;
+        stats.backup[2]=0;
         if(CONSERVS[RHOSTAR]>0.0) {
           // Apply the tau floor
           apply_tau_floor(index,Psi6threshold,PRIMS,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,stats,eos,  CONSERVS);
@@ -290,19 +294,20 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         CCTK_REAL TUPMUNU[10],TDNMUNU[10];
         IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(already_computed_physical_metric_and_inverse,PRIMS,stats,eos,METRIC,g4dn,g4up, TUPMUNU,TDNMUNU,CONSERVS);
 
-
-        rho_star[index]          = CONSERVS[RHOSTAR  ];
-        mhd_st_x[index]          = CONSERVS[STILDEX  ];
-        mhd_st_y[index]          = CONSERVS[STILDEY  ];
-        mhd_st_z[index]          = CONSERVS[STILDEZ  ];
-        tau[index]               = CONSERVS[TAUENERGY];
+        rho_star   [index] = CONSERVS[RHOSTAR  ];
+        mhd_st_x   [index] = CONSERVS[STILDEX  ];
+        mhd_st_y   [index] = CONSERVS[STILDEY  ];
+        mhd_st_z   [index] = CONSERVS[STILDEZ  ];
+        tau        [index] = CONSERVS[TAUENERGY];
 
         // Set primitives, and/or provide a better guess.
-        rho_b[index]             = PRIMS[RHOB        ];
-        P[index]                 = PRIMS[PRESSURE    ];
-        vx[index]                = PRIMS[VX          ];
-        vy[index]                = PRIMS[VY          ];
-        vz[index]                = PRIMS[VZ          ];
+        rho_b      [index] = PRIMS[RHOB        ];
+        P          [index] = PRIMS[PRESSURE    ];
+        vx         [index] = PRIMS[VX          ];
+        vy         [index] = PRIMS[VY          ];
+        vz         [index] = PRIMS[VZ          ];
+        igm_eps    [index] = PRIMS[EPSILON     ];
+        igm_entropy[index] = PRIMS[ENTROPY     ];
 
         // Tabulated EOS quantities
         if( eos.is_Tabulated ) {
@@ -314,16 +319,9 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         }
 
         // Entropy evolution quantities
-        if( eos.evolve_entropy || eos.PPM_reconstructed_var == ENTROPY ) {
-          igm_entropy[index]     = PRIMS[ENTROPY     ];
+        if( eos.evolve_entropy ) {
           S_star[index]          = CONSERVS[ENTSTAR  ];
         }
-
-        // Read in epsilon if we want to reconstruct it during PPM
-        if( eos.PPM_reconstructed_var == EPSILON ) {
-          igm_eps[index]         = PRIMS[EPSILON     ];
-        }
-
 
         if(update_Tmunu) {
           ww=0;
@@ -349,12 +347,15 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
           error_int_denom += Ye_star_orig;
         }
 
-        if( eos.c2p_routine == Palenzuela1D_entropy ) {
-          error_int_numer += fabs(S_star[index]  - S_star_orig);
-          error_int_denom += S_star_orig;
-        }
+        // if( eos.c2p_routine == Palenzuela1D_entropy ) {
+        //   error_int_numer += fabs(S_star[index]  - S_star_orig);
+        //   error_int_denom += S_star_orig;
+        // }
 
         if(stats.atm_reset==1) atm_resets++;
+        if(stats.backup[0]==1) backup1++;
+        if(stats.backup[1]==1) backup2++;
+        if(stats.backup[2]==1) backup3++;
         if(stats.font_fixed==1) font_fixes++;
         vel_limited_ptcount+=stats.vel_limited;
         if(check!=0) {
@@ -369,11 +370,11 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         failure_checker[index] = stats.failure_checker;
       }
 
-
   if(CCTK_Equals(verbose, "essential") || CCTK_Equals(verbose, "essential+iteration output")) {
-    CCTK_VInfo(CCTK_THORNSTRING,"C2P: Lev: %d NumPts= %d | Fixes: Font= %d VL= %d rho*= %d ATM= %d | Failures: %d InHoriz= %d / %d | Error: %.3e, ErrDenom: %.3e",
-               (int)GetRefinementLevel(cctkGH),
-               pointcount,font_fixes,vel_limited_ptcount,rho_star_fix_applied,atm_resets,
+    CCTK_VInfo(CCTK_THORNSTRING,"C2P: Lev: %d NumPts= %d | Fixes: BU: %d %d %d Font= %d VL= %d rho*= %d ATM= %d | Failures: %d InHoriz= %d / %d | Error: %.3e, ErrDenom: %.3e",
+               (int)GetRefinementLevel(cctkGH),pointcount,
+               backup1,backup2,backup3,
+               font_fixes,vel_limited_ptcount,rho_star_fix_applied,atm_resets,
                failures,
                failures_inhoriz,pointcount_inhoriz,
                error_int_numer/error_int_denom,error_int_denom);
