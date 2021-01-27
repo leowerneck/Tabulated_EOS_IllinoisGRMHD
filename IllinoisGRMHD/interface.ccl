@@ -84,8 +84,8 @@ cctk_real diagnostic_gfs type = GF TAGS='prolongation="none" Checkpoint="no"'
 cctk_real grmhd_primitives_reconstructed_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
   ftilde_gf,temporary,
-  rho_br,Pr,vxr,vyr,vzr,Bxr,Byr,Bzr,Bx_staggerr,By_staggerr,Bz_staggerr,Yer,epsr,Sr,
-  rho_bl,Pl,vxl,vyl,vzl,Bxl,Byl,Bzl,Bx_staggerl,By_staggerl,Bz_staggerl,Yel,epsl,Sl,
+  rho_br,Pr,vxr,vyr,vzr,Bxr,Byr,Bzr,Bx_staggerr,By_staggerr,Bz_staggerr,Yer,Tr,epsr,Sr,
+  rho_bl,Pl,vxl,vyl,vzl,Bxl,Byl,Bzl,Bx_staggerl,By_staggerl,Bz_staggerl,Yel,Tl,epsl,Sl,
   vxrr,vxrl,vyrr,vyrl,vzrr,vzrl,vxlr,vxll,vylr,vyll,vzlr,vzll
 } "Temporary variables used for primitives reconstruction"
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
