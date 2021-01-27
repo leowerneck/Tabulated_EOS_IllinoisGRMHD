@@ -42,8 +42,11 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
     if( Gamma_th<0 ) {
       CCTK_VError(VERR_DEF_PARAMS,"Default Gamma_th (=-1) detected. You must set Gamma_th to the appropriate value in your initial data thorn, or your .par file!");
     }
-    if( !CCTK_EQUALS(igm_con2prim_routine,"Noble2D") ) {
-      CCTK_VError(VERR_DEF_PARAMS,"IllinoisGRMHD only supports the Noble2D con2prim routine with Hybrid EOS. ABORTING!");
+    if( !CCTK_EQUALS(igm_con2prim_routine,"Noble2D") &&
+        !CCTK_EQUALS(igm_con2prim_routine,"Noble1D") &&
+        !CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy") &&
+        !CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy2")) {
+      CCTK_VError(VERR_DEF_PARAMS,"IllinoisGRMHD only supports the Noble2D, Noble1D, Noble1D_entropy, and Noble1D_entropy2 con2prim routines with Hybrid EOS. ABORTING!");
     }
   }
 
@@ -59,9 +62,6 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
 
   // Entropy
   if( igm_evolve_entropy == false ) {
-    if( CCTK_EQUALS(igm_PPM_reconstructed_variable,"entropy") ) {
-      CCTK_VError(VERR_DEF_PARAMS,"Cannot reconstruct the entropy during PPM without evolving the entropy. Please set igm_evolve_entropy=\"yes\" in the parfile. ABORTING!");
-    }
     if( CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy") ||
         CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy2") ||
         CCTK_EQUALS(igm_con2prim_routine,"Palenzuela1D_entropy") ) {
