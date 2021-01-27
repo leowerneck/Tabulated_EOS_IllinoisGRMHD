@@ -39,6 +39,7 @@ const CCTK_INT table_key_entropy  = 2;
 const CCTK_INT have_eps  = 0;
 const CCTK_INT have_temp = 1;
 const CCTK_INT have_ent  = 2;
+const CCTK_INT have_prs  = 3;
 //--------------------------------------
 
 // EOS_Omni does not provide functions to obtain the
@@ -452,9 +453,9 @@ void check_temperature_reconstruction( const igm_eos_parameters eos,
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
         // Read in the density
-        const CCTK_REAL rho_c   = prims_center[RHOB       ].gf[index];
-        const CCTK_REAL rho_r   = prims_right[ RHOB       ].gf[index];
-        const CCTK_REAL rho_l   = prims_left[  RHOB       ].gf[index];
+        const CCTK_REAL rho_c   = prims_center[RHOB].gf[index];
+        const CCTK_REAL rho_r   = prims_right[ RHOB].gf[index];
+        const CCTK_REAL rho_l   = prims_left[  RHOB].gf[index];
 
         // For now, let us apply this "fix" only if we are in
         // a high density region. No need to worry about the
@@ -463,86 +464,49 @@ void check_temperature_reconstruction( const igm_eos_parameters eos,
             (rho_r > 1e-6*eos.rho_max) ||
             (rho_l > 1e-6*eos.rho_max) ) {
 
-          // Read in the pressure
-          const CCTK_REAL P_r   = prims_right[PRESSURE    ].gf[index];
-          const CCTK_REAL P_l   = prims_left[ PRESSURE    ].gf[index];
+          // Read in the temperature at the cell centered, which
+          // was computed during conservative-to-primitive.
+          const CCTK_REAL T_c = prims_center[TEMPERATURE].gf[index];
 
-          // Read in the electron fraction
-          const CCTK_REAL Ye_r  = prims_right[YEPRIM      ].gf[index];
-          const CCTK_REAL Ye_l  = prims_left[ YEPRIM      ].gf[index];
+          CCTK_REAL PRIMS[MAXNUMVARS];
 
-          // Read in the reconstructed temperature
-          CCTK_REAL T_c         = prims_center[TEMPERATURE].gf[index];
-          CCTK_REAL T_r         = prims_right[ TEMPERATURE].gf[index];
-          CCTK_REAL T_l         = prims_left[  TEMPERATURE].gf[index];
+          //--------------------------------------------------------
+          //---------------------- Right face ----------------------
+          //--------------------------------------------------------
+          PRIMS[RHOB       ] = prims_right[RHOB       ].gf[index];
+          PRIMS[YEPRIM     ] = prims_right[YEPRIM     ].gf[index];
+          PRIMS[TEMPERATURE] = prims_right[TEMPERATURE].gf[index];
+          PRIMS[PRESSURE   ] = prims_right[PRESSURE   ].gf[index];
+          PRIMS[EPSILON    ] = prims_right[EPSILON    ].gf[index];
+          PRIMS[ENTROPY    ] = prims_right[ENTROPY    ].gf[index];
 
-          // Now recover the temperature from (rho,Ye,P),
-          // which is normally what we would want to do
-          CCTK_REAL prs_r       = 0.0;
-          CCTK_REAL prs_l       = 0.0;
-          CCTK_REAL eps_r       = 0.0;
-          CCTK_REAL eps_l       = 0.0;
-          CCTK_REAL ent_r       = 0.0;
-          CCTK_REAL ent_l       = 0.0;
-          CCTK_REAL T_table_r   = T_c;
-          CCTK_REAL T_table_l   = T_c;
-          // Now perform the table inversions
-          get_eps_S_and_T_from_rho_Ye_and_P(eos,rho_r,Ye_r,P_r, &eps_r,&ent_r,&T_table_r);
-          get_eps_S_and_T_from_rho_Ye_and_P(eos,rho_l,Ye_l,P_l, &eps_l,&ent_l,&T_table_l);
+          // Look for the best temperature
+          find_lowest_gradient_temperature_recompute_prims(eos,T_c,PRIMS);
 
-          // Now the question is, which one is best? T_r,l or T_table_r,l?
-          // In the high density region, we do not expect high temperature
-          // gradients, so it should be natural to pick the values which
-          // are closest to the values at the cell center, which, again,
-          // came straight out of the con2prim.
+          // Update the gridfunctions
+          prims_right[TEMPERATURE].gf[index] = PRIMS[TEMPERATURE];
+          prims_right[PRESSURE   ].gf[index] = PRIMS[PRESSURE   ];
+          prims_right[EPSILON    ].gf[index] = PRIMS[EPSILON    ];
+          prims_right[ENTROPY    ].gf[index] = PRIMS[ENTROPY    ];
 
-          // Right face
-          const CCTK_REAL dT_reconstructed_r = fabs(1.0 - T_r/T_c);
-          const CCTK_REAL dT_table_r         = fabs(1.0 - T_table_r/T_c);
-          if( dT_reconstructed_r < dT_table_r ) {
-            // If the reconstructed value produces
-            // a smaller gradient, then use it!
-            prs_r = eps_r = ent_r = 0.0;
-            get_P_eps_and_S_from_rho_Ye_and_T(eos, rho_r,Ye_r,T_r, &prs_r,&eps_r,&ent_r);
-          }
-          else {
-            // Otherwise we'll use the temperature from the interpolator
-            T_r = T_table_r;
-            // The eps and S variables already have the correct values. Update P:
-            prs_r = P_r;
-          }
+          //--------------------------------------------------------
+          //---------------------- Left face -----------------------
+          //--------------------------------------------------------
+          PRIMS[RHOB       ] = prims_left[RHOB       ].gf[index];
+          PRIMS[YEPRIM     ] = prims_left[YEPRIM     ].gf[index];
+          PRIMS[TEMPERATURE] = prims_left[TEMPERATURE].gf[index];
+          PRIMS[PRESSURE   ] = prims_left[PRESSURE   ].gf[index];
+          PRIMS[EPSILON    ] = prims_left[EPSILON    ].gf[index];
+          PRIMS[ENTROPY    ] = prims_left[ENTROPY    ].gf[index];
 
+          // Look for the best temperature
+          find_lowest_gradient_temperature_recompute_prims(eos,T_c,PRIMS);
 
-          // Left face
-          const CCTK_REAL dT_reconstructed_l = fabs(1.0 - T_l/T_c);
-          const CCTK_REAL dT_table_l         = fabs(1.0 - T_table_l/T_c);
-          if( dT_reconstructed_l < dT_table_l ) {
-            // If the reconstructed value produces
-            // a smaller gradient, then use it!
-            prs_l = eps_l = ent_l = 0.0;
-            get_P_eps_and_S_from_rho_Ye_and_T(eos, rho_l,Ye_l,T_l, &prs_l,&eps_l,&ent_l);
-          }
-          else {
-            // Otherwise we'll use the temperature from the interpolator
-            T_l = T_table_l;
-            // The eps and S variables already have the correct values. Update P:
-            prs_l = P_l;
-          }
-
-          // Finally, update the relevant gridfunctions
-          // We need to update (T,P,eps,S), but not (rho,Ye)
-          prims_right[TEMPERATURE].gf[index] = T_r;
-          prims_left[ TEMPERATURE].gf[index] = T_l;
-
-          prims_right[PRESSURE   ].gf[index] = prs_r;
-          prims_left[ PRESSURE   ].gf[index] = prs_l;
-
-          prims_right[EPSILON    ].gf[index] = eps_r;
-          prims_left[ EPSILON    ].gf[index] = eps_l;
-
-          prims_right[ENTROPY    ].gf[index] = ent_r;
-          prims_left[ ENTROPY    ].gf[index] = ent_l;
-
+          // Update the gridfunctions
+          prims_left[TEMPERATURE].gf[index] = PRIMS[TEMPERATURE];
+          prims_left[PRESSURE   ].gf[index] = PRIMS[PRESSURE   ];
+          prims_left[EPSILON    ].gf[index] = PRIMS[EPSILON    ];
+          prims_left[ENTROPY    ].gf[index] = PRIMS[ENTROPY    ];
 
         }
         else {
@@ -553,3 +517,43 @@ void check_temperature_reconstruction( const igm_eos_parameters eos,
     } // for(int j=jmin;j<jmax;j++)
   } // for(int k=kmin;k<kmax;k++)
 } // check_temperature_reconstruction()
+
+void find_lowest_gradient_temperature_recompute_prims( const igm_eos_parameters eos,
+                                                       const CCTK_REAL T_center,
+                                                       CCTK_REAL *restrict PRIMS ) {
+
+  // Start by computing the primitives using the table.
+  // We will recover the temperature at the right and
+  // left faces using (rho,Ye,P), using the value of
+  // the temperature at the cell center as an initial
+  // guess for the root finding method.
+  CCTK_REAL xrho  = PRIMS[RHOB       ];
+  CCTK_REAL xye   = PRIMS[YEPRIM     ];
+  CCTK_REAL xprs  = PRIMS[PRESSURE   ];
+  CCTK_REAL xtemp = T_center;
+  CCTK_REAL xeps  = 0.0;
+  CCTK_REAL xent  = 0.0;
+
+  // Now perform the table inversion
+  get_eps_S_and_T_from_rho_Ye_and_P(eos,xrho,xye,xprs, &xeps,&xent,&xtemp);
+
+  // Then check the gradient
+  const CCTK_REAL dT_PPM = fabs(T_center - PRIMS[TEMPERATURE]);
+  const CCTK_REAL dT_EOS = fabs(T_center - xtemp);
+
+  if( dT_PPM < dT_EOS ) {
+    // In this case we use the value of T that was
+    // reconstructed. We must recompute P, eps, and S.
+    get_P_eps_and_S_from_rho_Ye_and_T(eos,
+                                      PRIMS[RHOB],PRIMS[YEPRIM],PRIMS[TEMPERATURE],
+                                      &PRIMS[PRESSURE],&PRIMS[EPSILON],&PRIMS[ENTROPY]);
+  }
+  else {
+    // In this case we keep the values obtained from the EOS
+    // interpolator, so we must update T, eps, and S
+    PRIMS[TEMPERATURE] = xtemp;
+    PRIMS[EPSILON    ] = xeps;
+    PRIMS[ENTROPY    ] = xent;
+  }
+
+}
