@@ -73,7 +73,7 @@ typedef struct _igm_eos_parameters_ {
 //------------------------------------------------
 
 void initialize_igm_eos_parameters_from_input( const CCTK_INT* igm_eos_key, const CCTK_REAL cctk_time, igm_eos_parameters &eos );
-void apply_floors_and_ceilings_to_prims__set_P_eps_and_S( const igm_eos_parameters eos, const CCTK_REAL *restrict METRIC_LAP_PSI4, CCTK_REAL *restrict PRIMS );
+void apply_floors_and_ceilings_to_prims__recompute_prims( const igm_eos_parameters eos, const CCTK_REAL *restrict METRIC_LAP_PSI4, CCTK_REAL *restrict PRIMS );
 
 //----------- Hybrid Equation of State -----------
 void print_EOS_Hybrid( igm_eos_parameters eos );
@@ -116,6 +116,14 @@ void get_P_eps_and_S_from_rho_Ye_and_T( const igm_eos_parameters eos,
                                         CCTK_REAL *restrict eps,
                                         CCTK_REAL *restrict S );
 
+void get_eps_S_and_T_from_rho_Ye_and_P( const igm_eos_parameters eos,
+                                        const CCTK_REAL rho,
+                                        const CCTK_REAL Y_e,
+                                        const CCTK_REAL P,
+                                        CCTK_REAL *restrict eps,
+                                        CCTK_REAL *restrict S,
+                                        CCTK_REAL *restrict T );
+
 void get_P_eps_and_T_from_rho_Ye_and_S( const igm_eos_parameters eos,
                                         const CCTK_REAL rho,
                                         const CCTK_REAL Y_e,
@@ -140,6 +148,13 @@ void get_P_eps_cs2_and_T_from_rho_Ye_and_S( const igm_eos_parameters eos,
                                             CCTK_REAL *restrict eps,
                                             CCTK_REAL *restrict cs2,
                                             CCTK_REAL *restrict T );
+
+void check_temperature_reconstruction( const igm_eos_parameters eos,
+                                       const cGH *restrict cctkGH,
+                                       const int *restrict cctk_lsh,
+                                       gf_and_gz_struct *restrict prims_center,
+                                       gf_and_gz_struct *restrict prims_right,
+                                       gf_and_gz_struct *restrict prims_left );
 //------------------------------------------------
 
 #endif // __EOS_HEADERS__
