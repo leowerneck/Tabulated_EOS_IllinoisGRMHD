@@ -86,39 +86,27 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   // The order here MATTERS, and must be consistent with the global variable declarations in
   //   evaluate_MHD_rhs_headers.h (look for RHOB=0, etc.)
   //   For example, in_prims[0] _must_ be rho_b.
-  in_prims[RHOB         ].gf=rho_b;           out_prims_r[RHOB       ].gf=rho_br;      out_prims_l[RHOB       ].gf=rho_bl;
-  in_prims[PRESSURE     ].gf=P;               out_prims_r[PRESSURE   ].gf=Pr;          out_prims_l[PRESSURE   ].gf=Pl;
-  in_prims[VX           ].gf=vx;              out_prims_r[VX         ].gf=vxr;         out_prims_l[VX         ].gf=vxl;
-  in_prims[VY           ].gf=vy;              out_prims_r[VY         ].gf=vyr;         out_prims_l[VY         ].gf=vyl;
-  in_prims[VZ           ].gf=vz;              out_prims_r[VZ         ].gf=vzr;         out_prims_l[VZ         ].gf=vzl;
-  in_prims[BX_CENTER    ].gf=Bx;              out_prims_r[BX_CENTER  ].gf=Bxr;         out_prims_l[BX_CENTER  ].gf=Bxl;
-  in_prims[BY_CENTER    ].gf=By;              out_prims_r[BY_CENTER  ].gf=Byr;         out_prims_l[BY_CENTER  ].gf=Byl;
-  in_prims[BZ_CENTER    ].gf=Bz;              out_prims_r[BZ_CENTER  ].gf=Bzr;         out_prims_l[BZ_CENTER  ].gf=Bzl;
-  in_prims[BX_STAGGER   ].gf=Bx_stagger;      out_prims_r[BX_STAGGER ].gf=Bx_staggerr; out_prims_l[BX_STAGGER ].gf=Bx_staggerl;
-  in_prims[BY_STAGGER   ].gf=By_stagger;      out_prims_r[BY_STAGGER ].gf=By_staggerr; out_prims_l[BY_STAGGER ].gf=By_staggerl;
-  in_prims[BZ_STAGGER   ].gf=Bz_stagger;      out_prims_r[BZ_STAGGER ].gf=Bz_staggerr; out_prims_l[BZ_STAGGER ].gf=Bz_staggerl;
-  in_prims[VXR          ].gf=vxr;             out_prims_r[VXR        ].gf=vxrr;        out_prims_l[VXR        ].gf=vxrl;
-  in_prims[VYR          ].gf=vyr;             out_prims_r[VYR        ].gf=vyrr;        out_prims_l[VYR        ].gf=vyrl;
-  in_prims[VZR          ].gf=vzr;             out_prims_r[VZR        ].gf=vzrr;        out_prims_l[VZR        ].gf=vzrl;
-  in_prims[VXL          ].gf=vxl;             out_prims_r[VXL        ].gf=vxlr;        out_prims_l[VXL        ].gf=vxll;
-  in_prims[VYL          ].gf=vyl;             out_prims_r[VYL        ].gf=vylr;        out_prims_l[VYL        ].gf=vyll;
-  in_prims[VZL          ].gf=vzl;             out_prims_r[VZL        ].gf=vzlr;        out_prims_l[VZL        ].gf=vzll;
-  in_prims[YEPRIM       ].gf=igm_Ye;          out_prims_r[YEPRIM     ].gf=Yer;         out_prims_l[YEPRIM     ].gf=Yel;
-  in_prims[TEMPERATURE  ].gf=igm_temperature; out_prims_r[TEMPERATURE].gf=Tr;          out_prims_l[TEMPERATURE].gf=Tl;
-  in_prims[EPSILON      ].gf=igm_eps;         out_prims_r[EPSILON    ].gf=epsr;        out_prims_l[EPSILON    ].gf=epsl;
-  in_prims[ENTROPY      ].gf=igm_entropy;     out_prims_r[ENTROPY    ].gf=Sr;          out_prims_l[ENTROPY    ].gf=Sl;
-
-  // Poison everything on the right and left faces.
-  // This will very quickly tell us if reconstruction
-  // is happening correctly or not
-  {
-    CCTK_INT npoints = cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2];
-    for(int w=0;w<MAXNUMVARS;w++) {
-      for(int i=0;i<npoints;i++) {
-        out_prims_r[w].gf[i] = out_prims_l[w].gf[i] = 1e300;
-      }
-    }
-  }
+  in_prims[RHOB       ].gf=rho_b;           out_prims_r[RHOB       ].gf=rho_br;      out_prims_l[RHOB       ].gf=rho_bl;
+  in_prims[PRESSURE   ].gf=P;               out_prims_r[PRESSURE   ].gf=Pr;          out_prims_l[PRESSURE   ].gf=Pl;
+  in_prims[VX         ].gf=vx;              out_prims_r[VX         ].gf=vxr;         out_prims_l[VX         ].gf=vxl;
+  in_prims[VY         ].gf=vy;              out_prims_r[VY         ].gf=vyr;         out_prims_l[VY         ].gf=vyl;
+  in_prims[VZ         ].gf=vz;              out_prims_r[VZ         ].gf=vzr;         out_prims_l[VZ         ].gf=vzl;
+  in_prims[BX_CENTER  ].gf=Bx;              out_prims_r[BX_CENTER  ].gf=Bxr;         out_prims_l[BX_CENTER  ].gf=Bxl;
+  in_prims[BY_CENTER  ].gf=By;              out_prims_r[BY_CENTER  ].gf=Byr;         out_prims_l[BY_CENTER  ].gf=Byl;
+  in_prims[BZ_CENTER  ].gf=Bz;              out_prims_r[BZ_CENTER  ].gf=Bzr;         out_prims_l[BZ_CENTER  ].gf=Bzl;
+  in_prims[BX_STAGGER ].gf=Bx_stagger;      out_prims_r[BX_STAGGER ].gf=Bx_staggerr; out_prims_l[BX_STAGGER ].gf=Bx_staggerl;
+  in_prims[BY_STAGGER ].gf=By_stagger;      out_prims_r[BY_STAGGER ].gf=By_staggerr; out_prims_l[BY_STAGGER ].gf=By_staggerl;
+  in_prims[BZ_STAGGER ].gf=Bz_stagger;      out_prims_r[BZ_STAGGER ].gf=Bz_staggerr; out_prims_l[BZ_STAGGER ].gf=Bz_staggerl;
+  in_prims[VXR        ].gf=vxr;             out_prims_r[VXR        ].gf=vxrr;        out_prims_l[VXR        ].gf=vxrl;
+  in_prims[VYR        ].gf=vyr;             out_prims_r[VYR        ].gf=vyrr;        out_prims_l[VYR        ].gf=vyrl;
+  in_prims[VZR        ].gf=vzr;             out_prims_r[VZR        ].gf=vzrr;        out_prims_l[VZR        ].gf=vzrl;
+  in_prims[VXL        ].gf=vxl;             out_prims_r[VXL        ].gf=vxlr;        out_prims_l[VXL        ].gf=vxll;
+  in_prims[VYL        ].gf=vyl;             out_prims_r[VYL        ].gf=vylr;        out_prims_l[VYL        ].gf=vyll;
+  in_prims[VZL        ].gf=vzl;             out_prims_r[VZL        ].gf=vzlr;        out_prims_l[VZL        ].gf=vzll;
+  in_prims[YEPRIM     ].gf=igm_Ye;          out_prims_r[YEPRIM     ].gf=Yer;         out_prims_l[YEPRIM     ].gf=Yel;
+  in_prims[TEMPERATURE].gf=igm_temperature; out_prims_r[TEMPERATURE].gf=Tr;          out_prims_l[TEMPERATURE].gf=Tl;
+  in_prims[EPSILON    ].gf=igm_eps;         out_prims_r[EPSILON    ].gf=epsr;        out_prims_l[EPSILON    ].gf=epsl;
+  in_prims[ENTROPY    ].gf=igm_entropy;     out_prims_r[ENTROPY    ].gf=Sr;          out_prims_l[ENTROPY    ].gf=Sl;
 
   // Prims are defined AT ALL GRIDPOINTS, so we set the # of ghostzones to zero:
   for(int i=0;i<MAXNUMVARS;i++) for(int j=1;j<=3;j++) { in_prims[i].gz_lo[j]=0; in_prims[i].gz_hi[j]=0; }
@@ -245,7 +233,6 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
         int index=CCTK_GFINDEX3D(cctkGH,i,j,k), indexim1=CCTK_GFINDEX3D(cctkGH,i-1+(i==0),j,k); /* indexim1=0 when i=0 */
         out_prims_r[BX_CENTER].gf[index]=out_prims_l[BX_CENTER].gf[index]=in_prims[BX_STAGGER].gf[indexim1]; }
-
   // Then add fluxes to RHS for hydro variables {rho_b,P,vx,vy,vz}:
   // This function is housed in the file: "add_fluxes_and_source_terms_to_hydro_rhss.C"
   add_fluxes_and_source_terms_to_hydro_rhss(eos,flux_dirn,cctkGH,cctk_lsh,cctk_nghostzones,dX,
@@ -302,7 +289,6 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
   reconstruct_set_of_prims_PPM(eos,cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
                                in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
-
   ww=0;
   // Reconstruct other primitives last!
   which_prims_to_reconstruct  [ww]=RHOB;                      ww++;
@@ -311,7 +297,6 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
     which_prims_to_reconstruct[ww]=YEPRIM;                    ww++;
     which_prims_to_reconstruct[ww]=TEMPERATURE;               ww++;
   }
-  which_prims_to_reconstruct  [ww]=eos.PPM_reconstructed_var; ww++;
   which_prims_to_reconstruct  [ww]=VX;                        ww++;
   which_prims_to_reconstruct  [ww]=VY;                        ww++;
   which_prims_to_reconstruct  [ww]=VZ;                        ww++;
@@ -421,7 +406,6 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
     which_prims_to_reconstruct[ww]=YEPRIM;                    ww++;
     which_prims_to_reconstruct[ww]=TEMPERATURE;               ww++;
   }
-  which_prims_to_reconstruct  [ww]=eos.PPM_reconstructed_var; ww++;
   which_prims_to_reconstruct  [ww]=VX;                        ww++;
   which_prims_to_reconstruct  [ww]=VY;                        ww++;
   which_prims_to_reconstruct  [ww]=VZ;                        ww++;
