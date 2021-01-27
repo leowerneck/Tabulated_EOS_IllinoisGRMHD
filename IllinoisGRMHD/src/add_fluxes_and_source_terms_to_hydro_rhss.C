@@ -90,52 +90,12 @@ static void add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters 
 	CCTK_REAL METRIC[NUMVARS_FOR_METRIC_FACEVALS]; for(int ii=0;ii<NUMVARS_FOR_METRIC_FACEVALS;ii++) METRIC[ii] = metric[ii][index];
 	CCTK_REAL METRIC_LAP_PSI4[NUMVARS_METRIC_AUX]; SET_LAPSE_PSI4(METRIC_LAP_PSI4,METRIC);
 
-	CCTK_REAL Ur[MAXNUMVARS]; for(int ii=0;ii<numvars_reconstructed;ii++) Ur[ii] = out_prims_r[ii].gf[index];
-	CCTK_REAL Ul[MAXNUMVARS]; for(int ii=0;ii<numvars_reconstructed;ii++) Ul[ii] = out_prims_l[ii].gf[index];
-        if( eos.is_Tabulated ) {
-          // In this case we also need the temperature, which *is not* reconstructed
-          // Use the value of the temperature at the cell center as a guess
-          Ur[TEMPERATURE] = Ul[TEMPERATURE] = in_prims[TEMPERATURE].gf[index];
-          if( eos.evolve_entropy ) {
-            // If evolving the entropy, use it to recover the temperature
-            // Right face
-            get_P_eps_and_T_from_rho_Ye_and_S(eos,Ur[RHOB],Ur[YEPRIM],Ur[ENTROPY], &Ur[PRESSURE],&Ur[EPSILON],&Ur[TEMPERATURE]);
-            // Left face
-            get_P_eps_and_T_from_rho_Ye_and_S(eos,Ul[RHOB],Ul[YEPRIM],Ul[ENTROPY], &Ul[PRESSURE],&Ul[EPSILON],&Ul[TEMPERATURE]);
-          }
-          else {
-            // Otherwise recover the temperature from eps
-            // Right face
-            get_P_and_T_from_rho_Ye_and_eps(eos,Ur[RHOB],Ur[YEPRIM],Ur[EPSILON], &Ur[PRESSURE],&Ur[TEMPERATURE]);
-            // Left face
-            get_P_and_T_from_rho_Ye_and_eps(eos,Ul[RHOB],Ul[YEPRIM],Ul[EPSILON], &Ul[PRESSURE],&Ul[TEMPERATURE]);
-          }
-        }
-        if( eos.is_Hybrid && eos.evolve_entropy ) {
-          // In this case we have additional work to do based
-          // on the variable that was reconstructed.
-          if( eos.PPM_reconstructed_var == PRESSURE ) {
-            // We need to compute the entropy
-            // Right face
-            CCTK_INT  index_r = find_polytropic_K_and_Gamma_index(eos,Ur[RHOB]);
-            CCTK_REAL Gamma_r = eos.Gamma_ppoly_tab[index_r];
-            Ur[ENTROPY] = Ur[PRESSURE] * pow(Ur[RHOB],1.0-Gamma_r);
-            // Left face
-            CCTK_INT  index_l = find_polytropic_K_and_Gamma_index(eos,Ul[RHOB]);
-            CCTK_REAL Gamma_l = eos.Gamma_ppoly_tab[index_l];
-            Ul[ENTROPY] = Ul[PRESSURE] * pow(Ul[RHOB],1.0-Gamma_l);
-          }
-          else if( eos.PPM_reconstructed_var == ENTROPY ) {
-            // We need to compute the pressure
-            // Right face
-            CCTK_INT  index_r = find_polytropic_K_and_Gamma_index(eos,Ur[RHOB]);
-            CCTK_REAL Gamma_r = eos.Gamma_ppoly_tab[index_r];
-            Ur[PRESSURE] = Ur[ENTROPY] * pow(Ur[RHOB],Gamma_r-1.0);
-            // Left face
-            CCTK_INT  index_l = find_polytropic_K_and_Gamma_index(eos,Ul[RHOB]);
-            CCTK_REAL Gamma_l = eos.Gamma_ppoly_tab[index_l];
-            Ul[PRESSURE] = Ul[ENTROPY] * pow(Ul[RHOB],Gamma_l-1.0);
-          }
+	CCTK_REAL Ur[MAXNUMVARS]; for(int ii=0;ii<MAXNUMVARS;ii++) Ur[ii] = out_prims_r[ii].gf[index];
+	CCTK_REAL Ul[MAXNUMVARS]; for(int ii=0;ii<MAXNUMVARS;ii++) Ul[ii] = out_prims_l[ii].gf[index];
+
+        if( (eos.is_Hybrid) && (eos.evolve_entropy) && (eos.PPM_reconstructed_var == PRESSURE) ) {
+          apply_floors_and_ceilings_to_prims__recompute_prims(eos,METRIC_LAP_PSI4,Ur);
+          apply_floors_and_ceilings_to_prims__recompute_prims(eos,METRIC_LAP_PSI4,Ul);
         }
 
 	// Read the T^{\mu \nu} gridfunction from memory, since computing T^{\mu \nu} is expensive
@@ -232,9 +192,6 @@ static void add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters 
 
       }
 
-  // Notice in the loop below that we go from 3 to cctk_lsh-3 for i, j, AND k, even though
-  //   we are only computing the flux in one direction. This is because in the end,
-  //   we only need the rhs's from 3 to cctk_lsh-3 for i, j, and k.
 #pragma omp parallel for
   for(int k=cctk_nghostzones[2];k<cctk_lsh[2]-cctk_nghostzones[2];k++) for(int j=cctk_nghostzones[1];j<cctk_lsh[1]-cctk_nghostzones[1];j++) for(int i=cctk_nghostzones[0];i<cctk_lsh[0]-cctk_nghostzones[0];i++) {
 	int index   = CCTK_GFINDEX3D(cctkGH,i,j,k);
