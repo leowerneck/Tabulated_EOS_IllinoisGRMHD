@@ -93,7 +93,7 @@ static void add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters 
 	CCTK_REAL Ur[MAXNUMVARS]; for(int ii=0;ii<MAXNUMVARS;ii++) Ur[ii] = out_prims_r[ii].gf[index];
 	CCTK_REAL Ul[MAXNUMVARS]; for(int ii=0;ii<MAXNUMVARS;ii++) Ul[ii] = out_prims_l[ii].gf[index];
 
-        if( (eos.is_Hybrid) && (eos.evolve_entropy) && (eos.PPM_reconstructed_var == PRESSURE) ) {
+        if( eos.evolve_entropy ) {
           apply_floors_and_ceilings_to_prims__recompute_prims(eos,METRIC_LAP_PSI4,Ur);
           apply_floors_and_ceilings_to_prims__recompute_prims(eos,METRIC_LAP_PSI4,Ul);
         }
