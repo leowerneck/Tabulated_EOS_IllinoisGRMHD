@@ -402,3 +402,144 @@ void get_P_cs2_and_T_from_rho_Ye_and_eps( const igm_eos_parameters eos,
 
   // FIXME: add error handling!
 }
+
+void check_temperature_reconstruction( const igm_eos_parameters eos,
+                                       const cGH *restrict cctkGH,
+                                       const int *restrict cctk_lsh,
+                                       gf_and_gz_struct *restrict prims_center,
+                                       gf_and_gz_struct *restrict prims_right,
+                                       gf_and_gz_struct *restrict prims_left ) {
+
+  // Since the default PPM reconstruction (rho,P,vx,vy,vz) is
+  // incredibly robust and has been extensively validated, we
+  // want to preserve it as much as we can. However, the nature
+  // of the EOS table is that the pressure and the specific
+  // internal energy at high density regions have a very weak
+  // temperature dependence. This can be incredibly frustrating,
+  // because a small numerical perturbation on the pressure, for
+  // example, can be greatly amplified during a table inversion
+  // and result in a temperature that is massively different than
+  // what we expect. While the difference in pressure may be of
+  // order ~0.1%,, the resulting temperature amplification
+  // may be of order ~10 or more!
+  //
+  // Our goal here is to make sure that the temperature doesn't go
+  // berserk after it has been recovered from the pressure using
+  // the EOS table interpolator. To this end, we will compare
+  // the results between the PPM reconstruction of the temperature
+  // and the one obtained from the interpolator. Choosing which
+  // one is best can be tricky, though.
+
+  const int imin = 0, imax = cctk_lsh[0];
+  const int jmin = 0, jmax = cctk_lsh[1];
+  const int kmin = 0, kmax = cctk_lsh[2];
+#pragma omp parallel for
+  for(int k=kmin;k<kmax;k++) {
+    for(int j=jmin;j<jmax;j++) {
+      for(int i=imin;i<imax;i++) {
+
+        // Current index
+        const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+
+        // Read in the density
+        const CCTK_REAL rho_c   = prims_center[RHOB       ].gf[index];
+        const CCTK_REAL rho_r   = prims_right[ RHOB       ].gf[index];
+        const CCTK_REAL rho_l   = prims_left[  RHOB       ].gf[index];
+
+        // For now, let us apply this "fix" only if we are in
+        // a high density region. No need to worry about the
+        // atmosphere.
+        if( (rho_c > 1e-6*eos.rho_max) ||
+            (rho_r > 1e-6*eos.rho_max) ||
+            (rho_l > 1e-6*eos.rho_max) ) {
+
+          // Read in the pressure
+          const CCTK_REAL P_r   = prims_right[PRESSURE    ].gf[index];
+          const CCTK_REAL P_l   = prims_left[ PRESSURE    ].gf[index];
+
+          // Read in the electron fraction
+          const CCTK_REAL Ye_r  = prims_right[YEPRIM      ].gf[index];
+          const CCTK_REAL Ye_l  = prims_left[ YEPRIM      ].gf[index];
+
+          // Read in the reconstructed temperature
+          CCTK_REAL T_c         = prims_center[TEMPERATURE].gf[index];
+          CCTK_REAL T_r         = prims_right[ TEMPERATURE].gf[index];
+          CCTK_REAL T_l         = prims_left[  TEMPERATURE].gf[index];
+
+          // Now recover the temperature from (rho,Ye,P),
+          // which is normally what we would want to do
+          CCTK_REAL prs_r       = 0.0;
+          CCTK_REAL prs_l       = 0.0;
+          CCTK_REAL eps_r       = 0.0;
+          CCTK_REAL eps_l       = 0.0;
+          CCTK_REAL ent_r       = 0.0;
+          CCTK_REAL ent_l       = 0.0;
+          CCTK_REAL T_table_r   = T_c;
+          CCTK_REAL T_table_l   = T_c;
+          // Now perform the table inversions
+          get_eps_S_and_T_from_rho_Ye_and_P(eos,rho_r,Ye_r,P_r, &eps_r,&ent_r,&T_table_r);
+          get_eps_S_and_T_from_rho_Ye_and_P(eos,rho_l,Ye_l,P_l, &eps_l,&ent_l,&T_table_l);
+
+          // Now the question is, which one is best? T_r,l or T_table_r,l?
+          // In the high density region, we do not expect high temperature
+          // gradients, so it should be natural to pick the values which
+          // are closest to the values at the cell center, which, again,
+          // came straight out of the con2prim.
+
+          // Right face
+          const CCTK_REAL dT_reconstructed_r = fabs(1.0 - T_r/T_c);
+          const CCTK_REAL dT_table_r         = fabs(1.0 - T_table_r/T_c);
+          if( dT_reconstructed_r < dT_table_r ) {
+            // If the reconstructed value produces
+            // a smaller gradient, then use it!
+            prs_r = eps_r = ent_r = 0.0;
+            get_P_eps_and_S_from_rho_Ye_and_T(eos, rho_r,Ye_r,T_r, &prs_r,&eps_r,&ent_r);
+          }
+          else {
+            // Otherwise we'll use the temperature from the interpolator
+            T_r = T_table_r;
+            // The eps and S variables already have the correct values. Update P:
+            prs_r = P_r;
+          }
+
+
+          // Left face
+          const CCTK_REAL dT_reconstructed_l = fabs(1.0 - T_l/T_c);
+          const CCTK_REAL dT_table_l         = fabs(1.0 - T_table_l/T_c);
+          if( dT_reconstructed_l < dT_table_l ) {
+            // If the reconstructed value produces
+            // a smaller gradient, then use it!
+            prs_l = eps_l = ent_l = 0.0;
+            get_P_eps_and_S_from_rho_Ye_and_T(eos, rho_l,Ye_l,T_l, &prs_l,&eps_l,&ent_l);
+          }
+          else {
+            // Otherwise we'll use the temperature from the interpolator
+            T_l = T_table_l;
+            // The eps and S variables already have the correct values. Update P:
+            prs_l = P_l;
+          }
+
+          // Finally, update the relevant gridfunctions
+          // We need to update (T,P,eps,S), but not (rho,Ye)
+          prims_right[TEMPERATURE].gf[index] = T_r;
+          prims_left[ TEMPERATURE].gf[index] = T_l;
+
+          prims_right[PRESSURE   ].gf[index] = prs_r;
+          prims_left[ PRESSURE   ].gf[index] = prs_l;
+
+          prims_right[EPSILON    ].gf[index] = eps_r;
+          prims_left[ EPSILON    ].gf[index] = eps_l;
+
+          prims_right[ENTROPY    ].gf[index] = ent_r;
+          prims_left[ ENTROPY    ].gf[index] = ent_l;
+
+
+        }
+        else {
+          // We won't fix low density regions
+          continue;
+        }
+      } // for(int i=imin;i<imax;i++)
+    } // for(int j=jmin;j<jmax;j++)
+  } // for(int k=kmin;k<kmax;k++)
+} // check_temperature_reconstruction()
