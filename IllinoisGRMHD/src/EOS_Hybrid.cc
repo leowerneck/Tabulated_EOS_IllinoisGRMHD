@@ -476,8 +476,8 @@ void print_EOS_Hybrid( igm_eos_parameters eos ) {
   printf("\n.--------------------------------------------.\n");
 #endif
          
-  printf("|                 EOS Table                  |\n"
-         ".--------------------------------------------."
+  printf("|             Hybrid EOS Details             |\n"
+         ".--------------------------------------------.\n"
          "|              rho_ppoly_tab[j]              |\n"
          ".--------------------------------------------.\n");
 
@@ -533,5 +533,5 @@ void compute_entropy_function( const igm_eos_parameters eos,
   const CCTK_INT  index = find_polytropic_K_and_Gamma_index(eos,rho);
   const CCTK_REAL Gamma = eos.Gamma_ppoly_tab[index];
   // Now compute S
-  *S = P * pow(rho,1.0-Gamma);
+  *S = P / pow(rho,Gamma-1.0);
 }
