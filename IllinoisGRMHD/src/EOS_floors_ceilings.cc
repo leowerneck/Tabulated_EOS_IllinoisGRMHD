@@ -9,7 +9,7 @@
 #include "IllinoisGRMHD_headers.h"
 #include "EOS_headers.hh"
 
-void apply_floors_and_ceilings_to_prims__set_P_eps_and_S( const igm_eos_parameters eos,
+void apply_floors_and_ceilings_to_prims__recompute_prims( const igm_eos_parameters eos,
                                                           const CCTK_REAL *restrict METRIC_LAP_PSI4,
                                                           CCTK_REAL *restrict PRIMS ) {
 
@@ -41,9 +41,7 @@ void apply_floors_and_ceilings_to_prims__set_P_eps_and_S( const igm_eos_paramete
     // Now compute eps
     PRIMS[EPSILON ] = eps_cold + (PRIMS[PRESSURE]-prs_cold)/(eos.Gamma_th-1.0)/PRIMS[RHOB];
     // If needed, recompute the entropy function
-    if( eos.evolve_entropy ) {
-      compute_entropy_function(eos,PRIMS[RHOB],PRIMS[PRESSURE],&PRIMS[ENTROPY]);
-    }
+    compute_entropy_function(eos,PRIMS[RHOB],PRIMS[PRESSURE],&PRIMS[ENTROPY]);
   }
 
   // Tabulated EOS specific floors and ceilings
