@@ -266,7 +266,9 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         stats.backup[2]=0;
         if(CONSERVS[RHOSTAR]>0.0) {
           // Apply the tau floor
-          apply_tau_floor(index,Psi6threshold,PRIMS,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,stats,eos,  CONSERVS);
+          if( eos.is_Hybrid ) {
+            apply_tau_floor(index,Psi6threshold,PRIMS,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,stats,eos,  CONSERVS);
+          }
 
           for(int ii=0;ii<3;ii++) {
             check = con2prim(eos,
