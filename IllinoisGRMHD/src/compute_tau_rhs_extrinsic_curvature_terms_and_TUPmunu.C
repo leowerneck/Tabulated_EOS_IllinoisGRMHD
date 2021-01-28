@@ -45,9 +45,9 @@ static void compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu( const igm_eos
         CCTK_REAL METRIC[NUMVARS_FOR_METRIC_FACEVALS]; for(int ii=0;ii<NUMVARS_FOR_METRIC_FACEVALS;ii++) METRIC[ii] = metric[ii][index];
         CCTK_REAL METRIC_LAP_PSI4[NUMVARS_METRIC_AUX]; SET_LAPSE_PSI4(METRIC_LAP_PSI4,METRIC);
 
-        // The "vector" U represents the primitive variables: rho, P, vx, vy, vz, Bx, By, and Bz.
-        CCTK_REAL U[8]; // 8 primitives in the set: {rho_b,P,vx,vy,vz,Bx,By,Bz}
-        for(int ii=0;ii<8;ii++) U[ii] = prims[ii].gf[index];
+        // The "vector" U represents the primitive variables
+        CCTK_REAL U[MAXNUMVARS];
+        for(int ii=0;ii<MAXNUMVARS;ii++) U[ii] = prims[ii].gf[index];
 
         struct output_stats stats; stats.failure_checker=0;
         CCTK_REAL u0L;
@@ -64,11 +64,10 @@ static void compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu( const igm_eos
 
         /***********************************************************/
         // Next compute T^{\mu \nu}:
-        //   First set h, the enthalpy:
-        CCTK_REAL h=0,  P_cold,eps_cold,dPcold_drho,eps_th,Gamma_cold; /* <- Note that in setting h, we need to define several
-                                                                        *    other variables, even though they will be unused later
-                                                                        *    in this function. */
-        compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(U,eos,P_cold,eps_cold,dPcold_drho,eps_th,h,Gamma_cold);
+        // First set h, the enthalpy. With the latest con2prim modifications,
+        // we should already have computed eps, P and rho at the cell center,
+        // so no need for additional EOS calls.
+        CCTK_REAL h = 1.0 + U[EPSILON] + U[PRESSURE]/U[RHOB];
 
         CCTK_REAL Psi6 = METRIC_LAP_PSI4[PSI2]*METRIC_LAP_PSI4[PSI4];
         CCTK_REAL Psim4 = 1.0/METRIC_LAP_PSI4[PSI4];
