@@ -88,7 +88,7 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
     CCTK_REAL uu = -CONSERVS[TAUENERGY]*METRIC_LAP_PSI4[LAPSE] - (METRIC_LAP_PSI4[LAPSE]-1.0)*CONSERVS[RHOSTAR] +
       METRIC[SHIFTX]*CONSERVS[STILDEX] + METRIC[SHIFTY]*CONSERVS[STILDEY]  + METRIC[SHIFTZ]*CONSERVS[STILDEZ]; // note the minus sign on tau
     // Compute the conserv needed by the Noble routines
-    cons[UU] = (uu - cons[RHO])  * psim6;
+    cons[UU] = (uu - CONSERVS[RHOSTAR])  * psim6;
 
   }
   else if( (c2p_key == Palenzuela1D) || (c2p_key == Palenzuela1D_entropy) ) {
