@@ -33,7 +33,7 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
    * out the EOS parameters (rho_ppoly_tab, K_ppoly_tab,
    * and Gamma_ppoly_tab) at t=0.
    */
-  if(cctk_iteration==0 && (int)GetRefinementLevel(cctkGH)==0) { print_EOS_Hybrid(eos); }
+  if( eos.is_Hybrid && cctk_iteration==0 && (int)GetRefinementLevel(cctkGH)==0) { print_EOS_Hybrid(eos); }
 
   // Perform parameter checks
 
