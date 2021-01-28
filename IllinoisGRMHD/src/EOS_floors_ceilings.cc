@@ -45,7 +45,7 @@ void apply_floors_and_ceilings_to_prims__recompute_prims( const igm_eos_paramete
   }
 
   // Tabulated EOS specific floors and ceilings
-  if( eos.is_Tabulated ) {
+  else if( eos.is_Tabulated ) {
     // Apply floors and ceilings to Y_e and T
     const CCTK_REAL xye   = MIN(MAX(PRIMS[YEPRIM     ],eos.Ye_min),eos.Ye_max);
     const CCTK_REAL xtemp = MIN(MAX(PRIMS[TEMPERATURE],eos.T_min ),eos.T_max );
@@ -54,13 +54,7 @@ void apply_floors_and_ceilings_to_prims__recompute_prims( const igm_eos_paramete
     CCTK_REAL xprs        = 0.0;
     CCTK_REAL xeps        = 0.0;
     CCTK_REAL xent        = 0.0;
-    // Recompute other hydro quantities
-    if( eos.evolve_entropy ) {
-      get_P_eps_and_S_from_rho_Ye_and_T(eos,xrho,xye,xtemp, &xprs,&xeps,&xent);
-    }
-    else {
-      get_P_and_eps_from_rho_Ye_and_T(eos,xrho,xye,xtemp, &xprs,&xeps);
-    }
+    get_P_eps_and_S_from_rho_Ye_and_T(eos,xrho,xye,xtemp, &xprs,&xeps,&xent);
     // Now update the primitives (rho has already been set)
     PRIMS[YEPRIM     ] = xye;
     PRIMS[TEMPERATURE] = xtemp;
