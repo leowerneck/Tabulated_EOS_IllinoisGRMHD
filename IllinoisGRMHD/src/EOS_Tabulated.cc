@@ -201,17 +201,17 @@ void get_P_and_eps_from_rho_Ye_and_T( const igm_eos_parameters eos,
                                       CCTK_REAL *restrict P,
                                       CCTK_REAL *restrict eps ) {
   // Set up for table call
-  CCTK_INT  npoints  = 1;
-  CCTK_INT  keyerr   = 0;
-  CCTK_INT  anyerr   = 0;
+  CCTK_INT  npoints = 1;
+  CCTK_INT  keyerr  = 0;
+  CCTK_INT  anyerr  = 0;
   // The EOS_Omni function does not like some of its arguments
   // being constant (even when they are not supposed to change).
   // We declare auxiliary variables here to avoid errors.
-  CCTK_REAL rho_in   = rho;
-  CCTK_REAL Y_e_in   = Y_e;
-  CCTK_REAL T_in     = T;
-  CCTK_REAL P_out    = 0.0;
-  CCTK_REAL eps_out  = 0.0;
+  CCTK_REAL rho_in  = rho;
+  CCTK_REAL Y_e_in  = Y_e;
+  CCTK_REAL T_in    = T;
+  CCTK_REAL P_out   = 0.0;
+  CCTK_REAL eps_out = 0.0;
 
   // Perform the table interpolations
   EOS_Omni_press( eos.key,have_temp,eos.root_finding_precision,npoints,
@@ -232,17 +232,17 @@ void get_P_and_T_from_rho_Ye_and_eps( const igm_eos_parameters eos,
                                       CCTK_REAL *restrict P,
                                       CCTK_REAL *restrict T ) {
   // Set up for table call
-  CCTK_INT  npoints  = 1;
-  CCTK_INT  keyerr   = 0;
-  CCTK_INT  anyerr   = 0;
+  CCTK_INT  npoints = 1;
+  CCTK_INT  keyerr  = 0;
+  CCTK_INT  anyerr  = 0;
   // The EOS_Omni function does not like some of its arguments
   // being constant (even when they are not supposed to change).
   // We declare auxiliary variables here to avoid errors.
-  CCTK_REAL rho_in   = rho;
-  CCTK_REAL Y_e_in   = Y_e;
-  CCTK_REAL eps_in   = eps;
-  CCTK_REAL T_out    = *T;
-  CCTK_REAL P_out    = 0.0;
+  CCTK_REAL rho_in  = rho;
+  CCTK_REAL Y_e_in  = Y_e;
+  CCTK_REAL eps_in  = eps;
+  CCTK_REAL T_out   = *T;
+  CCTK_REAL P_out   = 0.0;
 
   // Perform the table interpolations
   EOS_Omni_press( eos.key,have_eps,eos.root_finding_precision,npoints,
@@ -265,19 +265,19 @@ void get_P_eps_and_S_from_rho_Ye_and_T( const igm_eos_parameters eos,
                                         CCTK_REAL *restrict eps,
                                         CCTK_REAL *restrict S ) {
   // Set up for table call
-  CCTK_INT  npoints  = 1;
-  CCTK_INT  keyerr   = 0;
-  CCTK_INT  anyerr   = 0;
+  CCTK_INT  npoints = 1;
+  CCTK_INT  keyerr  = 0;
+  CCTK_INT  anyerr  = 0;
   // The EOS_Omni function does not like some of its arguments
   // being constant (even when they are not supposed to change).
   // We declare auxiliary variables here to avoid errors.
-  CCTK_REAL rho_in   = rho;
-  CCTK_REAL Y_e_in   = Y_e;
-  CCTK_REAL T_in     = T;
-  CCTK_REAL P_out    = 0.0;
-  CCTK_REAL eps_out  = 0.0;
-  CCTK_REAL S_out    = 0.0;
-  CCTK_REAL dummy    = 0.0;
+  CCTK_REAL rho_in  = rho;
+  CCTK_REAL Y_e_in  = Y_e;
+  CCTK_REAL T_in    = T;
+  CCTK_REAL P_out   = 0.0;
+  CCTK_REAL eps_out = 0.0;
+  CCTK_REAL S_out   = 0.0;
+  CCTK_REAL dummy   = 0.0;
 
   // Perform the table interpolations
   EOS_Omni_short( eos.key,have_temp,eos.root_finding_precision,npoints,
@@ -301,19 +301,19 @@ void get_P_eps_and_T_from_rho_Ye_and_S( const igm_eos_parameters eos,
                                         CCTK_REAL *restrict eps,
                                         CCTK_REAL *restrict T ) {
   // Set up for table call
-  CCTK_INT  npoints  = 1;
-  CCTK_INT  keyerr   = 0;
-  CCTK_INT  anyerr   = 0;
+  CCTK_INT  npoints = 1;
+  CCTK_INT  keyerr  = 0;
+  CCTK_INT  anyerr  = 0;
   // The EOS_Omni function does not like some of its arguments
   // being constant (even when they are not supposed to change).
   // We declare auxiliary variables here to avoid errors.
-  CCTK_REAL rho_in   = rho;
-  CCTK_REAL Y_e_in   = Y_e;
-  CCTK_REAL S_in     = S;
-  CCTK_REAL P_out    = 0.0;
-  CCTK_REAL eps_out  = 0.0;
-  CCTK_REAL T_out    = *T;
-  CCTK_REAL dummy    = 0.0;
+  CCTK_REAL rho_in  = rho;
+  CCTK_REAL Y_e_in  = Y_e;
+  CCTK_REAL S_in    = S;
+  CCTK_REAL P_out   = 0.0;
+  CCTK_REAL eps_out = 0.0;
+  CCTK_REAL T_out   = *T;
+  CCTK_REAL dummy   = 0.0;
 
   // Perform the table interpolations
   EOS_Omni_short( eos.key,have_ent,eos.root_finding_precision,npoints,
@@ -338,20 +338,20 @@ void get_P_eps_cs2_and_T_from_rho_Ye_and_S( const igm_eos_parameters eos,
                                             CCTK_REAL *restrict cs2,
                                             CCTK_REAL *restrict T ) {
   // Set up for table call
-  CCTK_INT  npoints  = 1;
-  CCTK_INT  keyerr   = 0;
-  CCTK_INT  anyerr   = 0;
+  CCTK_INT  npoints = 1;
+  CCTK_INT  keyerr  = 0;
+  CCTK_INT  anyerr  = 0;
   // The EOS_Omni function does not like some of its arguments
   // being constant (even when they are not supposed to change).
   // We declare auxiliary variables here to avoid errors.
-  CCTK_REAL rho_in   = rho;
-  CCTK_REAL Y_e_in   = Y_e;
-  CCTK_REAL S_in     = S;
-  CCTK_REAL P_out    = 0.0;
-  CCTK_REAL eps_out  = 0.0;
-  CCTK_REAL cs2_out  = 0.0;
-  CCTK_REAL T_out    = *T;
-  CCTK_REAL dummy    = 0.0;
+  CCTK_REAL rho_in  = rho;
+  CCTK_REAL Y_e_in  = Y_e;
+  CCTK_REAL S_in    = S;
+  CCTK_REAL P_out   = 0.0;
+  CCTK_REAL eps_out = 0.0;
+  CCTK_REAL cs2_out = 0.0;
+  CCTK_REAL T_out   = *T;
+  CCTK_REAL dummy   = 0.0;
 
   // Perform the table interpolations
   EOS_Omni_short( eos.key,have_ent,eos.root_finding_precision,npoints,
@@ -376,19 +376,19 @@ void get_P_cs2_and_T_from_rho_Ye_and_eps( const igm_eos_parameters eos,
                                           CCTK_REAL *restrict cs2,
                                           CCTK_REAL *restrict T ) {
   // Set up for table call
-  CCTK_INT  npoints  = 1;
-  CCTK_INT  keyerr   = 0;
-  CCTK_INT  anyerr   = 0;
+  CCTK_INT  npoints = 1;
+  CCTK_INT  keyerr  = 0;
+  CCTK_INT  anyerr  = 0;
   // The EOS_Omni function does not like some of its arguments
   // being constant (even when they are not supposed to change).
   // We declare auxiliary variables here to avoid errors.
-  CCTK_REAL rho_in   = rho;
-  CCTK_REAL Y_e_in   = Y_e;
-  CCTK_REAL P_out    = 0.0;
-  CCTK_REAL eps_in   = eps;
-  CCTK_REAL cs2_out  = 0.0;
-  CCTK_REAL T_out    = *T;
-  CCTK_REAL dummy    = 0.0;
+  CCTK_REAL rho_in  = rho;
+  CCTK_REAL Y_e_in  = Y_e;
+  CCTK_REAL P_out   = 0.0;
+  CCTK_REAL eps_in  = eps;
+  CCTK_REAL cs2_out = 0.0;
+  CCTK_REAL T_out   = *T;
+  CCTK_REAL dummy   = 0.0;
 
   // Perform the table interpolations
   EOS_Omni_short( eos.key,have_eps,eos.root_finding_precision,npoints,
@@ -411,7 +411,33 @@ void get_eps_S_and_T_from_rho_Ye_and_P( const igm_eos_parameters eos,
                                         CCTK_REAL *restrict eps,
                                         CCTK_REAL *restrict S,
                                         CCTK_REAL *restrict T ) {
-  // FIXME: empty function to allow the code to be compiled
+  // Set up for table call
+  CCTK_INT  npoints = 1;
+  CCTK_INT  keyerr  = 0;
+  CCTK_INT  anyerr  = 0;
+  // The EOS_Omni function does not like some of its arguments
+  // being constant (even when they are not supposed to change).
+  // We declare auxiliary variables here to avoid errors.
+  CCTK_REAL rho_in  = rho;
+  CCTK_REAL Y_e_in  = Y_e;
+  CCTK_REAL P_in    = P;
+  CCTK_REAL eps_out = 0.0;
+  CCTK_REAL ent_out = 0.0;
+  CCTK_REAL T_out   = *T;
+  CCTK_REAL dummy   = 0.0;
+
+  // Perform the table interpolations
+  EOS_Omni_short( eos.key,have_prs,eos.root_finding_precision,npoints,
+                  &rho_in,&eps_out,&T_out,&Y_e_in,&P_in,&ent_out,
+                  &dummy,&dummy,&dummy,&dummy,&dummy,
+                  &keyerr,&anyerr );
+
+  // Now update P, cs2, and T
+  *eps = eps_out;
+  *S   = ent_out;
+  *T   = T_out;
+
+  // FIXME: add error handling!
 }
 
 void check_temperature_reconstruction( const igm_eos_parameters eos,
