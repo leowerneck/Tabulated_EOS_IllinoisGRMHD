@@ -68,25 +68,24 @@ static inline void compute_cs2_and_enthalpy( const igm_eos_parameters eos,
     *enthalpy     = h;
   }
   else if( eos.is_Tabulated ) {
+
+    // We have simplified the EOS calls during MHD rhs evaluation
+    // so that we should have all quantities (including the temperature)
+    // in the right and left faces. So let's stick with the less expensive
+    // EOS call for now.
     CCTK_REAL xrho  = PRIMS[RHOB       ];
     CCTK_REAL xye   = PRIMS[YEPRIM     ];
     CCTK_REAL xtemp = PRIMS[TEMPERATURE];
     CCTK_REAL xprs  = 0.0;
-    CCTK_REAL xcs2  = 0.0;
     CCTK_REAL xeps  = 0.0;
     CCTK_REAL xent  = 0.0;
-    if( eos.evolve_entropy ) {
-      xent = PRIMS[ENTROPY];
-      get_P_eps_cs2_and_T_from_rho_Ye_and_S(eos,xrho,xye,xent, &xprs,&xeps,&xcs2,&xtemp);
-    }
-    else {
-      xeps = PRIMS[EPSILON];
-      get_P_cs2_and_T_from_rho_Ye_and_eps(eos,xrho,xye,xeps, &xprs,&xcs2,&xtemp);
-    }
-    PRIMS[PRESSURE   ] = xprs;
-    PRIMS[TEMPERATURE] = xtemp;
-    PRIMS[EPSILON    ] = xeps;
-    PRIMS[ENTROPY    ] = xent;
+    CCTK_REAL xcs2  = 0.0;
+    get_P_eps_S_and_cs2_from_rho_Ye_and_T(eos,xrho,xye,xtemp, &xprs,&xeps,&xent,&xcs2);
+
+    // There should be no need to update prims, but what the heck
+    PRIMS[PRESSURE] = xprs;
+    PRIMS[EPSILON ] = xeps;
+    PRIMS[ENTROPY ] = xent;
 
     // Now compute the enthalpy
     *enthalpy = 1.0 + xeps + xprs/xrho;
