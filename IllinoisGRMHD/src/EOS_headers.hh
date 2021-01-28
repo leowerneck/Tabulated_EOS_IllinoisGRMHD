@@ -89,6 +89,8 @@ void compute_entropy_function( const igm_eos_parameters eos,
                                const CCTK_REAL rho,
                                const CCTK_REAL P,
                                CCTK_REAL *restrict S );
+
+void reset_prims_to_atmosphere( const igm_eos_parameters eos, CCTK_REAL *restrict PRIMS );
 //------------------------------------------------
 
 //---------- Tabulated Equation of State ---------

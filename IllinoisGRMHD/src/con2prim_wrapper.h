@@ -101,9 +101,9 @@ int con2prim( const igm_eos_parameters eos,
     }
     /*************************************************************/
 
+    int font_fix_applied=0;
     if( eos.is_Hybrid ) {
     // Use the new Font fix subroutine
-      int font_fix_applied=0;
       if(check!=0) {
         font_fix_applied=1;
         CCTK_REAL u_xl=1e100, u_yl=1e100, u_zl=1e100; // Set to insane values to ensure they are overwritten.
@@ -209,6 +209,12 @@ int con2prim( const igm_eos_parameters eos,
       
     } else {
       //If we didn't find a root, then try again with a different guess.
+
+      // If we reached the last guess and we are using
+      // tabulated EOS, then reset to atmosphere.
+      if( (which_guess==2) && eos.is_Tabulated ) {
+        reset_prims_to_atmosphere( eos, PRIMS );
+      }
     }
   }
   CCTK_VInfo(CCTK_THORNSTRING,"Couldn't find root from: %e %e %e %e %e, rhob approx=%e, rho_b_atm=%e, Bx=%e, By=%e, Bz=%e, gij_phys=%e %e %e %e %e %e, alpha=%e",

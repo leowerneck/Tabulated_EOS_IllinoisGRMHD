@@ -279,13 +279,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
           }
         } else {
           stats.failure_checker+=1;
-          // Set to atmosphere if rho_star<0.
-          PRIMS[RHOB    ] =  eos.rho_atm;
-          PRIMS[PRESSURE] =  eos.P_atm;
-          PRIMS[VX      ] = -METRIC[SHIFTX];
-          PRIMS[VY      ] = -METRIC[SHIFTY];
-          PRIMS[VZ      ] = -METRIC[SHIFTZ];
-          
+          reset_prims_to_atmosphere( eos, PRIMS );
           rho_star_fix_applied++;
         }
         
