@@ -23,9 +23,9 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   // the standard conservative variables (D,tau,S_{i}). In
   // other words, we have the relationships:
   //
-  // rho_star   = alpha*sqrt(gamma) *  D
-  // tilde(tau) = alpha*sqrt(gamma) * tau
-  // tilde(S)_i = alpha*sqrt(gamma) * S_i
+  // rho_star   = sqrt(gamma) *  D
+  // tilde(tau) = sqrt(gamma) * tau
+  // tilde(S)_i = sqrt(gamma) * S_i
   //
   // Therefore the conversion between the two is straightfoward.
   //
@@ -46,76 +46,81 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   // First compute alpha*sqrt(gamma) = alpha*psi^(6)
   
   // Finally compute the remaining quantities (which are routine specific)
+
+  // Note that in the c2p routine we used to
+  // multiply the cons vector by alpha/detg.
+  // But this is equivalent to:
+  //
+  // alpha/detg = alpha/( alpha*sqrt(gamma) )
+  //            = alpha/( alpha*psi^6 )
+  //            = psi^{-6}
+  const CCTK_REAL psim6 = 1.0/METRIC_LAP_PSI4[PSI6];
+
+  //----------------------------------------
+  //----------- D, S_{i}, B^{i} ------------
+  //----------------------------------------
+  cons[DD    ] = CONSERVS[RHOSTAR] * psim6;
+  cons[S1_cov] = CONSERVS[STILDEX] * psim6;
+  cons[S2_cov] = CONSERVS[STILDEY] * psim6;
+  cons[S3_cov] = CONSERVS[STILDEZ] * psim6;
+  cons[B1_con] = PRIMS[BX_CENTER ] * ONE_OVER_SQRT_4PI;
+  cons[B2_con] = PRIMS[BY_CENTER ] * ONE_OVER_SQRT_4PI;
+  cons[B3_con] = PRIMS[BZ_CENTER ] * ONE_OVER_SQRT_4PI;
+  //----------------------------------------
+
+  //----------------------------------------
+  //------------ Energy variable -----------
+  //----------------------------------------
   if( (c2p_key == Noble2D         ) ||
       (c2p_key == Noble1D         ) ||
       (c2p_key == Noble1D_entropy ) ||
       (c2p_key == Noble1D_entropy2) ) {
 
-    // Auxiliary variable (tau to u conversion)
+    // The Noble et al. routines require the energy variable
+    // .--------------------------------.
+    // | u := ( uu - rho_star )/psi^{6} | ,
+    // .--------------------------------.
+    // where
+    // .--------------------------------------------------------------------.
+    // | uu = -tilde(tau)*alpha - (alpha-1)*rho_Star + beta^{i}tilde(S)_{i} | .
+    // .--------------------------------------------------------------------.
+    // First compute the auxiliary variable uu:
     CCTK_REAL uu = -CONSERVS[TAUENERGY]*METRIC_LAP_PSI4[LAPSE] - (METRIC_LAP_PSI4[LAPSE]-1.0)*CONSERVS[RHOSTAR] +
       METRIC[SHIFTX]*CONSERVS[STILDEX] + METRIC[SHIFTY]*CONSERVS[STILDEY]  + METRIC[SHIFTZ]*CONSERVS[STILDEZ]; // note the minus sign on tau
-
-    // Note that in the c2p routine we used to
-    // multiply the cons vector by alpha/detg.
-    // But this is equivalent to:
-    //
-    // alpha/detg = alpha/( alpha*sqrt(gamma) )
-    //            = alpha/( alpha*psi^6 )
-    //            = psi^{-6}
-    const CCTK_REAL psim6 = 1.0/ METRIC_LAP_PSI4[PSI6];
-
-    // Now convert from one system to the next
-    cons[RHO   ] = CONSERVS[RHOSTAR];
-    cons[UU    ] = (uu - cons[RHO])  * psim6;
-    cons[RHO   ] = cons[RHO]         * psim6;
-    cons[UTCON1] = CONSERVS[STILDEX] * psim6;
-    cons[UTCON2] = CONSERVS[STILDEY] * psim6;
-    cons[UTCON3] = CONSERVS[STILDEZ] * psim6;
-    cons[BCON1 ] = PRIMS[BX_CENTER ] * ONE_OVER_SQRT_4PI;
-    cons[BCON2 ] = PRIMS[BY_CENTER ] * ONE_OVER_SQRT_4PI;
-    cons[BCON3 ] = PRIMS[BZ_CENTER ] * ONE_OVER_SQRT_4PI;
-    if( (c2p_key == Noble1D_entropy ) || (c2p_key == Noble1D_entropy2) ) {
-      // Note that:
-      //
-      // S_star = alpha * sqrt(gamma) * S * u^{0}
-      //        = ( alpha * u^{0} ) * psi^{6} * S
-      //        = W_Lorentz * psi^{6} * S
-      //    .--------------------------------.
-      // => | S_star/psi^{6} = W_Lorentz * S | ,
-      //    .--------------------------------.
-      // which is the variable expeected by the Noble1D entropy routines.
-      cons[WS ]  = CONSERVS[ENTSTAR] * psim6;
-    }
+    // Compute the conserv needed by the Noble routines
+    cons[UU] = (uu - cons[RHO])  * psim6;
 
   }
   else if( (c2p_key == Palenzuela1D) || (c2p_key == Palenzuela1D_entropy) ) {
 
-    // All that is required in this case is to "undensitize"
-    // the conservative variables, i.e. divide by sqrt(-g).
+    // The Palenzuela et al. routines require the energy variable
+    // .----------------------------.
+    // | tau = tilde(tau) / psi^{6} |
+    // .----------------------------.
+    cons[TAU] = CONSERVS[TAUENERGY] * psim6;
 
-    // Auxiliary variables 1/detg = 1/( alpha*sqrt(gamma) )
-    const CCTK_REAL detg     = METRIC_LAP_PSI4[LAPSE]*METRIC_LAP_PSI4[PSI6];
-    const CCTK_REAL inv_detg = 1.0/detg;
-
-    // Now convert from one system to the next
-    cons[DD    ] = CONSERVS[RHOSTAR  ] * inv_detg;
-    cons[S1_cov] = CONSERVS[STILDEX  ] * inv_detg;
-    cons[S2_cov] = CONSERVS[STILDEY  ] * inv_detg;
-    cons[S3_cov] = CONSERVS[STILDEZ  ] * inv_detg;
-    cons[TAU   ] = CONSERVS[TAUENERGY] * inv_detg;
-    cons[B1_con] = PRIMS[BX_CENTER   ] * ONE_OVER_SQRT_4PI;
-    cons[B2_con] = PRIMS[BY_CENTER   ] * ONE_OVER_SQRT_4PI;
-    cons[B3_con] = PRIMS[BZ_CENTER   ] * ONE_OVER_SQRT_4PI;
-    cons[YE    ] = CONSERVS[YESTAR   ] * inv_detg;
-    if( c2p_key == Palenzuela1D_entropy ) {
-      cons[DS  ] = CONSERVS[ENTSTAR  ] * inv_detg;
-    }
+    // We also set the electron fraction here
+    cons[YE ] = CONSERVS[YESTAR   ] * psim6;
 
   }
-  else {
-    CCTK_VError(VERR_DEF_PARAMS,"Unknown c2p_routine! (Key: %d)",c2p_key);
+  //----------------------------------------
+
+  //----------------------------------------
+  //--------------- Entropy ----------------
+  //----------------------------------------
+  if( (c2p_key == Noble1D_entropy     ) ||
+      (c2p_key == Noble1D_entropy2    ) ||
+      (c2p_key == Palenzuela1D_entropy) ) {
+
+    // The entropy variable is given by
+    //
+    // S_star / psi^{6} = alpha * psi^{6} * S * u^{0} / psi^{6}
+    //                  = ( alpha * u^{0} ) * S
+    //                  = W * S
+    cons[WS] = CONSERVS[ENTSTAR] * psim6;
   }
-      
+  //---------------------------------------
+
 }
 
 void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
