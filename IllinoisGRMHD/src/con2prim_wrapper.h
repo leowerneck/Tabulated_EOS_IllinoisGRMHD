@@ -214,6 +214,8 @@ int con2prim( const igm_eos_parameters eos,
       // tabulated EOS, then reset to atmosphere.
       if( (which_guess==2) && eos.is_Tabulated ) {
         reset_prims_to_atmosphere( eos, PRIMS );
+        stats.atm_reset++;
+        return 0;
       }
     }
   }
