@@ -187,7 +187,7 @@ CCTK_REAL igm_eos_root_finding_precision "Root-finding precision for EOS table i
 restricted:
 CCTK_BOOLEAN igm_evolve_temperature "Do we want to evolve the temperature?"
 {
-} "no"
+} "yes"
 
 restricted:
 CCTK_BOOLEAN igm_evolve_entropy "Do we want to evolve the entropy?"
