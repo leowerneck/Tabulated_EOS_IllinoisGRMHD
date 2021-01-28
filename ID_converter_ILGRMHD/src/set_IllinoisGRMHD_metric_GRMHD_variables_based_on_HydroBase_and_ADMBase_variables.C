@@ -401,15 +401,6 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         igm_eps    [index] = PRIMS[EPSILON     ];
         igm_entropy[index] = PRIMS[ENTROPY     ];
 
-        {
-          CCTK_REAL Gamma = eos.Gamma_ppoly_tab[find_polytropic_K_and_Gamma_index(eos,PRIMS[RHOB])];
-          CCTK_REAL S = PRIMS[PRESSURE] / pow(PRIMS[RHOB],Gamma-1.0);
-          if( fabs(S-igm_entropy[index])/S > 1e-10 ) {
-            printf("%e %e %e %e : %e\n",PRIMS[PRESSURE],PRIMS[RHOB],Gamma,S,igm_entropy[index]);
-            getchar();
-          }
-        }
-
         rho_star   [index] = CONSERVS[RHOSTAR  ];
         mhd_st_x   [index] = CONSERVS[STILDEX  ];
         mhd_st_y   [index] = CONSERVS[STILDEY  ];
