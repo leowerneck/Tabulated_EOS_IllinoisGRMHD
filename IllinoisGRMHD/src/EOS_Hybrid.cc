@@ -473,7 +473,7 @@ void print_EOS_Hybrid( igm_eos_parameters eos ) {
   CCTK_VInfo(CCTK_THORNSTRING,
              "\n.--------------------------------------------.\n");
 #else
-  printf("\n.--------------------------------------------.\n");
+  printf(".--------------------------------------------.\n");
 #endif
          
   printf("|             Hybrid EOS Details             |\n"
