@@ -129,8 +129,7 @@ static const int TAU      =1;
 static const int S1_cov   =2;
 static const int S2_cov   =3;
 static const int S3_cov   =4;
-static const int DS       =9;  // Used by the Palenzuela routines
-static const int WS       =9;  // Used by the HARM routines
+static const int WS       =9;
 static const int numcons  =10; // D, tau, S_{x,y,z}, B^{x,y,z}, DYe, DS
 
 // These quantities are used by the Palenzuela routines
@@ -140,7 +139,7 @@ static const int numcons  =10; // D, tau, S_{x,y,z}, B^{x,y,z}, DYe, DS
 #define par_t (3)
 #define conDD (4)
 #define conYE (5)
-#define conDS (6) // Entropy
+#define conWS (6) // Entropy
 
 struct c2p_report {
   bool failed;
@@ -167,6 +166,7 @@ int con2prim( const igm_eos_parameters eos,
 
 int con2prim_select( const igm_eos_parameters eos,
                      const CCTK_INT c2p_key,
+                     const CCTK_REAL *restrict adm_quantities,
                      const CCTK_REAL g4dn[4][4],
                      const CCTK_REAL g4up[4][4],
                      const CCTK_REAL *restrict cons,
@@ -197,14 +197,12 @@ int con2prim_Noble1D_entropy2( const igm_eos_parameters eos,
                                CCTK_REAL *restrict prim );
 
 int con2prim_Palenzuela1D( const igm_eos_parameters eos,
-                           const CCTK_REAL g4dn[4][4],
-                           const CCTK_REAL g4up[4][4],
+                           const CCTK_REAL *restrict adm_quantities,
                            const CCTK_REAL *restrict cons,
                            CCTK_REAL *restrict prim );
 
 int con2prim_Palenzuela1D_entropy( const igm_eos_parameters eos,
-                                   const CCTK_REAL g4dn[4][4],
-                                   const CCTK_REAL g4up[4][4],
+                                   const CCTK_REAL *restrict adm_quantities,
                                    const CCTK_REAL *restrict cons,
                                    CCTK_REAL *restrict prim );
 
