@@ -18,8 +18,8 @@
 
 void palenzuela_entropy(const igm_eos_parameters eos,
                         struct c2p_report *restrict c2p_rep, const double S_squared, const double BdotS,
-                        const double B_squared, const double *restrict con, double *restrict prim, const double g_con[4][4],
-                        const double g_cov[4][4], const double tol_x, bool use_epsmin);
+                        const double B_squared, const double *restrict con, double *restrict prim,
+                        const double *restrict SU, const double tol_x, bool use_epsmin);
 
 double zbrent_entropy(double (*func)(const igm_eos_parameters, double, double *restrict, struct c2p_report *restrict, bool, double *restrict),
                       const igm_eos_parameters eos, double *restrict param,
@@ -28,7 +28,7 @@ double zbrent_entropy(double (*func)(const igm_eos_parameters, double, double *r
 void calc_prim_entropy(const igm_eos_parameters eos,
                        const double x, const double *restrict con, const double *restrict param, const double temp_guess, double *restrict prim,
                        const double S_squared, const double BdotS,
-                       const double B_squared, const double g4up[4][4], struct c2p_report * c2p_rep );
+                       const double B_squared, const double *restrict SU, struct c2p_report * c2p_rep );
 
 double func_root_entropy(const igm_eos_parameters eos, double x, double *restrict param, struct c2p_report *restrict c2p_rep, bool use_epsmin, double *restrict temp_guess);
 
@@ -46,34 +46,69 @@ double func_root_entropy(const igm_eos_parameters eos, double x, double *restric
 //
 // From the input quantities, we compute B_{i} and S^{i}
 int con2prim_Palenzuela1D_entropy( const igm_eos_parameters eos,
-                                   const CCTK_REAL g4dn[4][4],
-                                   const CCTK_REAL g4up[4][4],
+                                   const CCTK_REAL *restrict adm_quantities,
                                    const CCTK_REAL *restrict con,
                                    CCTK_REAL *restrict prim ) {
 
-  // Compute scalars needed by the con2prim routine      
-  // Lower indices - covariant
-  CCTK_REAL B1_cov = g4dn[1][1]*con[B1_con] + g4dn[1][2]*con[B2_con] + g4dn[1][3]*con[B3_con];
-  CCTK_REAL B2_cov = g4dn[2][1]*con[B1_con] + g4dn[2][2]*con[B2_con] + g4dn[2][3]*con[B3_con];
-  CCTK_REAL B3_cov = g4dn[3][1]*con[B1_con] + g4dn[3][2]*con[B2_con] + g4dn[3][3]*con[B3_con];
-  
-  // Raise indices - contravariant
-  CCTK_REAL S1_con = g4up[1][1]*con[S1_cov] + g4up[1][2]*con[S2_cov] + g4up[1][3]*con[S3_cov];
-  CCTK_REAL S2_con = g4up[2][1]*con[S1_cov] + g4up[2][2]*con[S2_cov] + g4up[2][3]*con[S3_cov];
-  CCTK_REAL S3_con = g4up[3][1]*con[S1_cov] + g4up[3][2]*con[S2_cov] + g4up[3][3]*con[S3_cov];
- 
+  // Set gamma_{ij}
+  CCTK_REAL gammaDD[3][3];
+  gammaDD[0][0] = adm_quantities[GXX];
+  gammaDD[0][1] = gammaDD[1][0] = adm_quantities[GXY];
+  gammaDD[0][2] = gammaDD[2][0] = adm_quantities[GXZ];
+  gammaDD[1][1] = adm_quantities[GYY];
+  gammaDD[1][2] = gammaDD[2][1] = adm_quantities[GYZ];
+  gammaDD[2][2] = adm_quantities[GZZ];
+
+  // Set gamma^{ij}
+  CCTK_REAL gammaUU[3][3];
+  gammaUU[0][0] = adm_quantities[GUPXX];
+  gammaUU[0][1] = gammaUU[1][0] = adm_quantities[GUPXY];
+  gammaUU[0][2] = gammaUU[2][0] = adm_quantities[GUPXZ];
+  gammaUU[1][1] = adm_quantities[GUPYY];
+  gammaUU[1][2] = gammaUU[2][1] = adm_quantities[GUPYZ];
+  gammaUU[2][2] = adm_quantities[GUPZZ];
+
+  // Read in B^{i}
+  CCTK_REAL BU[3];
+  for(int i=0;i<3;i++) BU[i] = con[B1_con+i];
+
+  // Compute B_{i} = gamma_{ij}B^{j}
+  CCTK_REAL BD[3];
+  for(int i=0;i<3;i++) {
+    BD[i] = 0;
+    for(int j=0;j<3;j++) {
+      BD[i] += gammaDD[i][j] * BU[j];
+    }
+  }
+
+  // Read in S_{i}.
+  CCTK_REAL SD[3];
+  for(int i=0;i<3;i++) SD[i] = con[S1_cov+i];
+
+  // Compute S^{i} = gamma^{ij}S_{j}
+  CCTK_REAL SU[3];
+  for(int i=0;i<3;i++) {
+    SU[i] = 0;
+    for(int j=0;j<3;j++) {
+      SU[i] += gammaUU[i][j] * SD[j];
+    }
+  }
+
   // Need to calculate for (21) and (22) in Cerda-Duran 2008
   // B * S = B^i * S_i
-  CCTK_REAL BdotS = con[B1_con]*con[S1_cov] + con[B2_con]*con[S2_cov] + con[B3_con]*con[S3_cov];
+  CCTK_REAL BdotS = 0.0;
+  for(int i=0;i<3;i++) BdotS += BU[i] * SD[i];
   
   // B^2 = B^i * B_i
-  CCTK_REAL B_squared = con[B1_con]*B1_cov + con[B2_con]*B2_cov + con[B3_con]*B3_cov;
+  CCTK_REAL B_squared = 0.0;
+  for(int i=0;i<3;i++) B_squared += BU[i] * BD[i];
   
   // S^2 = S^i * S_i
-  CCTK_REAL S_squared = S1_con*con[S1_cov] + S2_con*con[S2_cov] + S3_con*con[S3_cov];
+  CCTK_REAL S_squared = 0.0;
+  for(int i=0;i<3;i++) S_squared += SU[i] * SD[i];
 
   struct c2p_report report;
-  palenzuela_entropy( eos, &report, S_squared,BdotS,B_squared, con, prim, g4up, g4dn, 1e-12, true );
+  palenzuela_entropy( eos, &report, S_squared,BdotS,B_squared, con, prim, SU, 1e-12, true );
 
   return report.failed;
 
@@ -84,8 +119,9 @@ int con2prim_Palenzuela1D_entropy( const igm_eos_parameters eos,
 /*****************************************************************************/
 void palenzuela_entropy(const igm_eos_parameters eos,
                         struct c2p_report *restrict c2p_rep, const double S_squared, const double BdotS,
-                        const double B_squared, const double *restrict con, double *restrict prim, const double g_con[4][4],
-                        const double g_cov[4][4], const double tol_x, bool use_epsmin) {
+                        const double B_squared, const double *restrict con, double *restrict prim,
+                        const CCTK_REAL *restrict SU,
+                        const double tol_x, bool use_epsmin) {
 
   // main root finding routine
   // using scheme of Palenzuela et al. 2015, PRD, 92, 044045
@@ -104,7 +140,7 @@ void palenzuela_entropy(const igm_eos_parameters eos,
   param[par_t] = t;
   param[conDD] = con[DD];
   param[conYE] = con[YE];
-  param[conDS] = con[DS];
+  param[conWS] = con[WS];
 
   // bracket for x
   double xlow = 1.0+q-s;
@@ -120,14 +156,14 @@ void palenzuela_entropy(const igm_eos_parameters eos,
   double x = zbrent_entropy(*func_root_entropy, eos, param, &temp_guess, xlow, xup, tol_x, c2p_rep, use_epsmin);
 
   // calculate final set of primitives
-  calc_prim_entropy(eos, x, con, param, temp_guess, prim, S_squared, BdotS, B_squared, g_con, c2p_rep);
+  calc_prim_entropy(eos, x, con, param, temp_guess, prim, S_squared, BdotS, B_squared, SU, c2p_rep);
 
 }
 
 void calc_prim_entropy(const igm_eos_parameters eos,
                        const double x, const double *restrict con, const double *restrict param, const double temp_guess, double *restrict prim,
                        const double S_squared, const double BdotS,
-                       const double B_squared, const double g4up[4][4], struct c2p_report *restrict c2p_rep ) {
+                       const double B_squared, const CCTK_REAL *restrict SU, struct c2p_report *restrict c2p_rep ) {
   
   // Recover the primitive variables prim from x, r, s, t, con
   double r = param[par_r];
@@ -135,11 +171,11 @@ void calc_prim_entropy(const igm_eos_parameters eos,
   double t = param[par_t];
 
   double Wminus2 = 1.0 - ( x*x*r + (2*x+s)*t*t ) / ( x*x*(x+s)*(x+s) );
-  Wminus2 = fmin(fmax(Wminus2 ,1e-2 ), 1.0);
+  Wminus2 = fmin(fmax(Wminus2,eos.inv_W_max_squared ), 1.0);
   double W= pow(Wminus2, -0.5);
 
-  double rho   = con[DD]/W;
-  double ent   = con[DS]/W;
+  double rho   = MAX(con[DD]/W,eos.rho_min);
+  double ent   = con[WS]/W;
   double ye    = con[YE]/con[DD];
   double temp  = temp_guess;
   double press = 0.0;
@@ -152,37 +188,14 @@ void calc_prim_entropy(const igm_eos_parameters eos,
   }
 
   const CCTK_REAL Z = x*rho*W;
-  // Lower indices - covariant
-  // CCTK_REAL B1_cov = g_cov[1][1]*con[B1_con]+g_cov[1][2]*con[B2_con]+g_cov[1][3]*con[B3_con];
-  // CCTK_REAL B2_cov = g_cov[1][2]*con[B1_con]+g_cov[2][2]*con[B2_con]+g_cov[2][3]*con[B3_con];
-  // CCTK_REAL B3_cov = g_cov[1][3]*con[B1_con]+g_cov[2][3]*con[B2_con]+g_cov[3][3]*con[B3_con];
 
-  // Leo's note: The original routine output the *covariant* 3-velocity, v_{i}. This
-  // is not what we need in IGM. So instead of lowering the indices of B^{i} and computing
-  //
-  // v_{i} = S_{i}/(z+B^{2}) + (B.S)B_{i}/(z(z+B^{2})) ,
-  //
-  // which was what was originally done (see commented lines of code above), we will instead
-  // *raise* the indices of S_{i}, so that we may evaluate v^{i} using equation (24) of
-  // Siegel et al., i.e.
-  // .---------------------------------------------------.
-  // | v^{i} = S^{i}/(z+B^{2}) + (B.S)B^{i}/(z(z+B^{2})) |
-  // .---------------------------------------------------.
-  // Raise indices - contravariant
-  CCTK_REAL S1_con = g4up[1][1]*con[S1_cov] + g4up[1][2]*con[S2_cov] + g4up[1][3]*con[S3_cov];
-  CCTK_REAL S2_con = g4up[1][2]*con[S1_cov] + g4up[2][2]*con[S2_cov] + g4up[2][3]*con[S3_cov];
-  CCTK_REAL S3_con = g4up[1][3]*con[S1_cov] + g4up[2][3]*con[S2_cov] + g4up[3][3]*con[S3_cov];
-
-  // These lines of code were used to evaluate v_{i}
-  // prim[v1_cov  ] = (con[S1_cov] + (BdotS)*B1_cov/Z)/(Z+B_squared);
-  // prim[v2_cov  ] = (con[S2_cov] + (BdotS)*B2_cov/Z)/(Z+B_squared);
-  // prim[v3_cov  ] = (con[S3_cov] + (BdotS)*B3_cov/Z)/(Z+B_squared);
-  // We replaced them with the ones below, used to compute v^{i} instead
-  prim[UTCON1  ] = W*(S1_con + (BdotS)*con[B1_con]/Z)/(Z+B_squared);
-  prim[UTCON2  ] = W*(S2_con + (BdotS)*con[B2_con]/Z)/(Z+B_squared);
-  prim[UTCON3  ] = W*(S3_con + (BdotS)*con[B3_con]/Z)/(Z+B_squared);
-
-  // These lines of code are kept the same
+  // Now we compute the velocity using eq. (24) in https://arxiv.org/pdf/1712.07538.pdf.
+  // Note, however, that IllinoisGRMHD expects the velocity tilde(u)^{i} := W v^{i},
+  // and wo we already perform the conversion here (see the discussion above eq. (26) in
+  // https://arxiv.org/pdf/astro-ph/0512420.pdf for the definition of tilde(u)^{i}).
+  prim[UTCON1  ] = W*(SU[0] + (BdotS)*con[B1_con]/Z)/(Z+B_squared);
+  prim[UTCON2  ] = W*(SU[1] + (BdotS)*con[B2_con]/Z)/(Z+B_squared);
+  prim[UTCON3  ] = W*(SU[2] + (BdotS)*con[B3_con]/Z)/(Z+B_squared);
   prim[RHO     ] = rho;
   prim[EPS     ] = eps;
   prim[B1_con  ] = con[B1_con];
@@ -204,12 +217,12 @@ double func_root_entropy(const igm_eos_parameters eos, double x, double *restric
   const double t  = param[par_t];
 
   double Wminus2 = 1.0 - ( x*x*r + (2*x+s)*t*t  )/ (x*x*(x+s)*(x+s));  
-  Wminus2 = fmin(fmax(Wminus2 ,1e-2 ), 1.0);
+  Wminus2 = fmin(fmax(Wminus2,eos.inv_W_max_squared ), 1.0);
   const double W = pow(Wminus2, -0.5);
 
   double rho  = param[conDD]/W;
   double ye   = param[conYE]/param[conDD];
-  double ent  = param[conDS]/W;
+  double ent  = param[conWS]/W;
   double P    = 0.0;
   double temp = *temp_guess;
   double eps  = 0.0;
