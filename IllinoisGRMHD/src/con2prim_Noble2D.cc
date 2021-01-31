@@ -2,6 +2,7 @@
 #include "cctk_Parameters.h"
 
 #include "IllinoisGRMHD_headers.h"
+#include "EOS_headers.hh"
 #include "con2prim_headers.h"
 #include "harm_u2p_util.h"
 
@@ -240,8 +241,10 @@ int Utoprim_new_body( const igm_eos_parameters eos,
 
   harm_aux.Qtsq = harm_aux.Qsq + harm_aux.Qdotn*harm_aux.Qdotn ;
 
-  harm_aux.D = U[RHO] ;
-
+  harm_aux.D    = U[RHO];
+  if( eos.is_Tabulated ) {
+    harm_aux.ye = U[YE]/U[RHO];
+  }
 
   /* calculate W from last timestep and use for guess */
   utsq = 0. ;
@@ -263,10 +266,24 @@ int Utoprim_new_body( const igm_eos_parameters eos,
   // Always calculate rho from D and gamma so that using D in EOS remains consistent
   //   i.e. you don't get positive values for dP/d(vsq) .
   rho0 = harm_aux.D / harm_aux.gamma ;
-  u = prim[UU] ;
-  p = pressure_rho0_u(eos, rho0,u) ;
-  w = rho0 + u + p ;
+  u = prim[UU];
 
+  p = 0;
+  if( eos.is_Hybrid ) {
+    p = pressure_rho0_u(eos, rho0,u);
+  }
+  else if( eos.is_Tabulated ) {
+    CCTK_REAL xrho  = rho0;
+    CCTK_REAL xye   = harm_aux.ye;
+    CCTK_REAL xtemp = prim[TEMP];
+    CCTK_REAL xprs  = 0.0;
+    CCTK_REAL xeps  = 0.0;
+    // Now compute P and eps from (rho,Ye,T)
+    get_P_and_eps_from_rho_Ye_and_T( eos,xrho,xye,xtemp, &xprs,&xeps );
+    p = xprs;
+  }
+
+  w = rho0 + u + p ;
   W_last = w*gammasq ;
 
 
@@ -314,8 +331,25 @@ int Utoprim_new_body( const igm_eos_parameters eos,
   rho0 = harm_aux.D * gtmp;
 
   w = W * (1. - vsq) ;
-  p = pressure_rho0_w(eos, rho0,w) ;
-  u = w - (rho0 + p) ; // u = rho0 eps, w = rho0 h
+
+  if( eos.is_Hybrid ) {
+    p = pressure_rho0_w(eos, rho0,w) ;
+    u = w - (rho0 + p) ; // u = rho0 eps, w = rho0 h
+  }
+  else {
+    CCTK_REAL xrho  = rho0;
+    CCTK_REAL xye   = harm_aux.ye;
+    CCTK_REAL xprs  = -0.5*harm_aux.Bsq/(harm_aux.gamma*harm_aux.gamma)+harm_aux.Qdotn+W+harm_aux.Bsq-0.5*harm_aux.QdotBsq/(W*W);;
+    CCTK_REAL xuu   = (W-harm_aux.D*harm_aux.gamma-xprs*harm_aux.gamma*harm_aux.gamma)/(harm_aux.D*harm_aux.gamma) * rho0;
+    CCTK_REAL xeps  = xuu/xrho;
+    CCTK_REAL xtemp = prim[TEMP];
+    // Compute P and T from (rho,Ye,eps)
+    get_P_and_T_from_rho_Ye_and_eps( eos,xrho,xye,xeps, &xprs,&xtemp );
+    
+    // Update P and T in the prim array
+    prim[PRESS] = xprs;
+    prim[TEMP ] = MIN(MAX(xtemp,eos.T_atm),eos.T_max);
+  }
 
   if( (rho0 <= 0.) || (u <= 0.) ) {
     // User may want to handle this case differently, e.g. do NOT return upon
@@ -334,9 +368,9 @@ int Utoprim_new_body( const igm_eos_parameters eos,
   */
 
   prim[RHO] = rho0 ;
-  prim[UU] = u ;
+  prim[UU ] = u ;
 
-  for(i=1;i<4;i++)  Qtcon[i] = Qcon[i] + ncon[i] * harm_aux.Qdotn;
+  for(i=1;i<4;i++) Qtcon[i] = Qcon[i] + ncon[i] * harm_aux.Qdotn;
   for(i=1;i<4;i++) prim[UTCON1+i-1] = harm_aux.gamma/(W+harm_aux.Bsq) * ( Qtcon[i] + harm_aux.QdotB*Bcon[i]/W ) ;
 
   /* set field components */
@@ -380,8 +414,7 @@ CCTK_REAL vsq_calc(harm_aux_vars_struct harm_aux,CCTK_REAL W)
 
 CCTK_REAL x1_of_x0(harm_aux_vars_struct harm_aux,CCTK_REAL x0 )
 {
-  CCTK_REAL dv = 1.e-15;
-
+  CCTK_REAL dv  = 1.e-15;
   CCTK_REAL vsq = fabs(vsq_calc(harm_aux,x0)) ; // guaranteed to be positive
 
   return( ( vsq > 1. ) ? (1.0 - dv) : vsq   );
@@ -539,79 +572,66 @@ void func_vsq(igm_eos_parameters eos, harm_aux_vars_struct harm_aux, CCTK_REAL x
               CCTK_REAL jac[][NEWT_DIM], CCTK_REAL *f, CCTK_REAL *df, int n)
 {
 
+  CCTK_REAL W   = x[0];
+  CCTK_REAL vsq = x[1];
+  CCTK_REAL Wsq = W*W;
 
-  CCTK_REAL  W, vsq, Wsq, p_tmp, dPdvsq, dPdW;
-  CCTK_REAL t11;
-  CCTK_REAL t16;
-  CCTK_REAL t18;
-  CCTK_REAL t2;
-  CCTK_REAL t21;
-  CCTK_REAL t23;
-  CCTK_REAL t24;
-  CCTK_REAL t25;
-  CCTK_REAL t3;
-  CCTK_REAL t35;
-  CCTK_REAL t36;
-  CCTK_REAL t4;
-  CCTK_REAL t40;
-  CCTK_REAL t9;
+  CCTK_REAL p_tmp, dPdvsq, dPdW;
 
-  // vv TESTING vv
-  //  CCTK_REAL D,gtmp,gamma,rho0,w,p,u;
-  // ^^ TESTING ^^
+  if( eos.is_Hybrid ) {
+    p_tmp  = pressure_W_vsq( eos, W, vsq , harm_aux.D);
+    dPdW   = dpdW_calc_vsq( eos, W, vsq );
+    dPdvsq = dpdvsq_calc( eos, W, vsq, harm_aux.D );
+  }
+  else {
+    // // These modifications follow Dan Siegel's implementation
+    // const CCTK_REAL gamma_sq = harm_aux.gamma*harm_aux.gamma;
+    // const CCTK_REAL rho      = harm_aux.D / harm_aux.gamma;
+    // const CCTK_REAL xye      = harm_aux.ye;
+    // const CCTK_REAL h        = W /(rho*gamma_sq); // W := rho*h*gamma^{2}
+    // CCTK_REAL T              = eos.T_atm;
+    // CCTK_REAL prs            = 0.0;
+    // CCTK_REAL eps            = 0.0;
+    // CCTK_REAL dPdrho         = 0.0;
+    // CCTK_REAL dPdeps         = 0.0;
 
-  W = x[0];
-  vsq = x[1];
+    // // Now compute the pressure and its derivatives with respect to rho and eps
+    // get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_hm1(eos,rho,xye,h, &prs,&T,&eps,&dPdrho,&dPdeps);
 
-  Wsq = W*W;
+    // // Set P
+    // p_tmp = prs;
 
-  // vv TESTING vv
-  /*
-    D = U[RHO] ;
-    gtmp = sqrt(1. - vsq);
-    gamma = 1./gtmp ;
-    rho0 = D * gtmp;
+    // // Now compute dP/dW
+    // const CCTK_REAL dPdeps_o_rho = dPdeps/rho;
+    // dPdW = ( dPdeps_o_rho/(1.+dPdeps_o_rho) )/gamma_sq;
 
-    w = W * (1. - vsq) ;
-    p = pressure_rho0_w(eos, rho0,w) ;
-    u = w - (rho0 + p) ;
-
-    if(u<=0 && 1==1) {
-    vsq = 0.9999999 * (1.0-(rho0+p)/W);
-
-    w = W * (1. - vsq) ;
-    p = pressure_rho0_w(eos, rho0,w) ;
-    u = w - (rho0 + p) ;
-
-    //CCTK_VInfo(CCTK_THORNSTRING,"%e check",u);
-    }
-  */
-  // ^^ TESTING ^^
-
-
-  p_tmp  = pressure_W_vsq( eos, W, vsq , harm_aux.D);
-  dPdW   = dpdW_calc_vsq( eos, W, vsq );
-  dPdvsq = dpdvsq_calc( eos, W, vsq, harm_aux.D );
+    // // And finally dP/d(v^{2})
+    // const CCTK_REAL dPdvsq_1 = -0.5*harm_aux.D*harm_aux.gamma*dPdrho;
+    // const CCTK_REAL dPdvsq_2 = -0.5*(W + prs*gamma_sq)/rho;
+    // dPdvsq = (dPdvsq_1 + dPdeps*dPdvsq_2)/(1+dPdeps_o_rho);
+    fprintf(stderr,"Noble2D routine not supported with Tabulated EOS\n");
+    exit(1);
+  }
 
   // These expressions were calculated using Mathematica, but made into efficient
   // code using Maple.  Since we know the analytic form of the equations, we can
   // explicitly calculate the Newton-Raphson step:
 
-  t2 = -0.5*harm_aux.Bsq+dPdvsq;
-  t3 = harm_aux.Bsq+W;
-  t4 = t3*t3;
-  t9 = 1/Wsq;
-  t11 = harm_aux.Qtsq-vsq*t4+harm_aux.QdotBsq*(harm_aux.Bsq+2.0*W)*t9;
-  t16 = harm_aux.QdotBsq*t9;
-  t18 = -harm_aux.Qdotn-0.5*harm_aux.Bsq*(1.0+vsq)+0.5*t16-W+p_tmp;
-  t21 = 1/t3;
-  t23 = 1/W;
-  t24 = t16*t23;
-  t25 = -1.0+dPdW-t24;
-  t35 = t25*t3+(harm_aux.Bsq-2.0*dPdvsq)*(harm_aux.QdotBsq+vsq*Wsq*W)*t9*t23;
-  t36 = 1/t35;
+  CCTK_REAL t2  = -0.5*harm_aux.Bsq+dPdvsq;
+  CCTK_REAL t3  = harm_aux.Bsq+W;
+  CCTK_REAL t4  = t3*t3;
+  CCTK_REAL t9  = 1/Wsq;
+  CCTK_REAL t11 = harm_aux.Qtsq-vsq*t4+harm_aux.QdotBsq*(harm_aux.Bsq+2.0*W)*t9;
+  CCTK_REAL t16 = harm_aux.QdotBsq*t9;
+  CCTK_REAL t18 = -harm_aux.Qdotn-0.5*harm_aux.Bsq*(1.0+vsq)+0.5*t16-W+p_tmp;
+  CCTK_REAL t21 = 1/t3;
+  CCTK_REAL t23 = 1/W;
+  CCTK_REAL t24 = t16*t23;
+  CCTK_REAL t25 = -1.0+dPdW-t24;
+  CCTK_REAL t35 = t25*t3+(harm_aux.Bsq-2.0*dPdvsq)*(harm_aux.QdotBsq+vsq*Wsq*W)*t9*t23;
+  CCTK_REAL t36 = 1/t35;
+  CCTK_REAL t40 = (vsq+t24)*t3;
   dx[0] = -(t2*t11+t4*t18)*t21*t36;
-  t40 = (vsq+t24)*t3;
   dx[1] = -(-t25*t11-2.0*t40*t18)*t21*t36;
   //detJ = t3*t35; // <- set but not used...
   jac[0][0] = -2.0*t40;
