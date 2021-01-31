@@ -99,9 +99,14 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
     // .----------------------------.
     cons[TAU] = CONSERVS[TAUENERGY] * psim6;
 
-    // We also set the electron fraction here
-    cons[YE ] = CONSERVS[YESTAR   ] * psim6;
+  }
+  //----------------------------------------
 
+  //----------------------------------------
+  //----------- Electron fraction ----------
+  //----------------------------------------
+  if( eos.is_Tabulated ) {
+    cons[YE ] = CONSERVS[YESTAR   ] * psim6;
   }
   //----------------------------------------
 
@@ -218,12 +223,11 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
     prim[BCON3 ]   = cons[BCON3];
 
   }
-  else if( c2p_key == Palenzuela1D || c2p_key == Palenzuela1D_entropy ) {
+  
+  if( eos.is_Tabulated ) {
     // This one is very simple! The only guess required is the temperature
     prim[TEMP  ] = pow(10.0,(which_guess-1)) * eos.T_atm;
-  }
-  else {
-    CCTK_VError(VERR_DEF_PARAMS,"Unknown c2p_routine! (Key: %d)",c2p_key);
+    prim[YE    ] = CONSERVS[YESTAR]/CONSERVS[RHOSTAR];
   }
   
 }
