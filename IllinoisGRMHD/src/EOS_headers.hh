@@ -36,7 +36,7 @@ typedef struct _igm_eos_parameters_ {
   // Atmospheric tau
   CCTK_REAL tau_atm;
   // Maximum Lorentz factor
-  CCTK_REAL W_max;
+  CCTK_REAL W_max,inv_W_max_squared;
   //------------------------------------------------
 
   //----------- Hybrid Equation of State -----------
@@ -110,6 +110,14 @@ void get_P_and_T_from_rho_Ye_and_eps( const igm_eos_parameters eos,
                                       CCTK_REAL *restrict P,
                                       CCTK_REAL *restrict T );
 
+void get_P_S_and_T_from_rho_Ye_and_eps( const igm_eos_parameters eos,
+                                        const CCTK_REAL rho,
+                                        const CCTK_REAL Y_e,
+                                        const CCTK_REAL eps,
+                                        CCTK_REAL *restrict P,
+                                        CCTK_REAL *restrict S,
+                                        CCTK_REAL *restrict T );
+
 void get_P_eps_and_S_from_rho_Ye_and_T( const igm_eos_parameters eos,
                                         const CCTK_REAL rho,
                                         const CCTK_REAL Y_e,
@@ -142,6 +150,16 @@ void get_P_eps_S_and_cs2_from_rho_Ye_and_T( const igm_eos_parameters eos,
                                             CCTK_REAL *restrict eps,
                                             CCTK_REAL *restrict S,
                                             CCTK_REAL *restrict cs2 );
+
+void get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_hm1( const igm_eos_parameters eos,
+                                                        const CCTK_REAL rho_in,
+                                                        const CCTK_REAL Ye_in,
+                                                        const CCTK_REAL hm1_in,
+                                                        CCTK_REAL *restrict P,
+                                                        CCTK_REAL *restrict T,
+                                                        CCTK_REAL *restrict eps,
+                                                        CCTK_REAL *restrict dPdrho, 
+                                                        CCTK_REAL *restrict dPdeps );
 
 void check_temperature_reconstruction( const igm_eos_parameters eos,
                                        const cGH *restrict cctkGH,
