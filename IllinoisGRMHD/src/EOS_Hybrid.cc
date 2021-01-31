@@ -82,7 +82,6 @@ void initialize_Hybrid_EOS_parameters_from_input(igm_eos_parameters &eos) {
   eos.rho_max = rho_b_max;
   eos.P_max   = P_max;
   eos.eps_max = eps_max;
-  eos.W_max   = GAMMA_SPEED_LIMIT;
   // --------------------------------------
 
   // --------------- Floors ---------------
