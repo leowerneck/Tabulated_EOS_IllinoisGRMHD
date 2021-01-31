@@ -31,6 +31,11 @@ void initialize_igm_eos_parameters_from_input( const CCTK_INT* igm_eos_key,const
   // Whether or not to evolve the entropy
   eos.evolve_entropy = igm_evolve_entropy;
 
+  // Maximum Lorentz factor
+  eos.W_max = GAMMA_SPEED_LIMIT;
+  // Inverse of Lorentz factor squared (used by Palenzuela con2prim routines)
+  eos.inv_W_max_squared = 1.0/(SQR(eos.W_max));
+
   // EOS specific initialization
   eos.is_Hybrid      = false;
   eos.is_Tabulated   = false;
