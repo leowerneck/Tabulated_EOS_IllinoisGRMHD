@@ -7,17 +7,13 @@
 
 int con2prim_select( const igm_eos_parameters eos,
                      const CCTK_INT c2p_key,
+                     const CCTK_REAL *restrict adm_quantities,
                      const CCTK_REAL g4dn[4][4],
                      const CCTK_REAL g4up[4][4],
                      const CCTK_REAL *restrict cons,
                      CCTK_REAL *restrict prim ) {
 
   switch( c2p_key ) {
-
-    // Modified version of the Palenzuela routine (see https://arxiv.org/pdf/1712.07538.pdf)
-    case Palenzuela1D_entropy:
-      return( con2prim_Palenzuela1D_entropy(eos,g4dn,g4up,cons,prim) );
-      break;
 
     // Noble2D routine (see https://arxiv.org/pdf/astro-ph/0512420.pdf)
     case Noble2D:
@@ -39,9 +35,14 @@ int con2prim_select( const igm_eos_parameters eos,
       return( con2prim_Noble1D_entropy2(eos,g4dn,g4up,cons,prim) );
       break;
 
+    // Modified version of the Palenzuela routine (see https://arxiv.org/pdf/1712.07538.pdf)
+    case Palenzuela1D_entropy:
+      return( con2prim_Palenzuela1D_entropy(eos,adm_quantities,cons,prim) );
+      break;
+
     // Palenzuela 1D routine (see https://arxiv.org/pdf/1712.07538.pdf)
     case Palenzuela1D:
-      return( con2prim_Palenzuela1D(eos,g4dn,g4up,cons,prim) );
+      return( con2prim_Palenzuela1D(eos,adm_quantities,cons,prim) );
       break;
 
     default:
