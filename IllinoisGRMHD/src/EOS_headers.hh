@@ -151,15 +151,15 @@ void get_P_eps_S_and_cs2_from_rho_Ye_and_T( const igm_eos_parameters eos,
                                             CCTK_REAL *restrict S,
                                             CCTK_REAL *restrict cs2 );
 
-void get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_hm1( const igm_eos_parameters eos,
-                                                        const CCTK_REAL rho_in,
-                                                        const CCTK_REAL Ye_in,
-                                                        const CCTK_REAL hm1_in,
-                                                        CCTK_REAL *restrict P,
-                                                        CCTK_REAL *restrict T,
-                                                        CCTK_REAL *restrict eps,
-                                                        CCTK_REAL *restrict dPdrho, 
-                                                        CCTK_REAL *restrict dPdeps );
+void get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_h( const igm_eos_parameters eos,
+                                                      const CCTK_REAL rho_in,
+                                                      const CCTK_REAL Ye_in,
+                                                      const CCTK_REAL h_in,
+                                                      CCTK_REAL *restrict P,
+                                                      CCTK_REAL *restrict T,
+                                                      CCTK_REAL *restrict eps,
+                                                      CCTK_REAL *restrict dPdrho, 
+                                                      CCTK_REAL *restrict dPdeps );
 
 void check_temperature_reconstruction( const igm_eos_parameters eos,
                                        const cGH *restrict cctkGH,
