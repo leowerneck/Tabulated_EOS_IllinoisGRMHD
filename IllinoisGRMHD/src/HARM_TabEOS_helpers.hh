@@ -342,10 +342,7 @@ namespace HARM_TabEOS_helpers {
     double f2a_ent = exp(f2a[1])-energy_shift+exp(f2a[0])/exp(lr);
     f1=f1a_ent-leps0;
     f2=f2a_ent-leps0;
-#if DEBUG
-    printf("Bisection start: Count = %d, press = %g, eps = %g, f1a_ent = %g, f2a_ent = %g, enthalpy_in = %g\n", bcount,f1a[0], f1a[1], f1a_ent, f2a_ent, leps0);
-    printf("Count = %d, f1a_ent = %g, f2a_ent = %g, f1 = %g, f2 = %g, ltmin=%g\n", bcount,f1a_ent,f2a_ent,f1,f2,ltmin);
-#endif
+
     // iterate until we bracket the right eps, but enforce
     // dE/dt > 0, so eps(lt1) > eps(lt2)
     while(f1*f2 >= 0.0) {
@@ -365,17 +362,6 @@ namespace HARM_TabEOS_helpers {
       f1=f1a_ent-leps0;
       f2=f2a_ent-leps0;
 
-#if DEBUG
-      printf("Count = %d, press = %g, eps = %g, enthalpy_in = %g\n", bcount,f1a[0], f1a[1], leps0);
-      printf("Count = %d, press2 = %g, eps2 = %g, enthalpy_in = %g\n", bcount,f2a[0], f2a[1], leps0);
-      printf("Count = %d, lt1 = %g, lt2 = %g\n", bcount,lt1,lt2);
-      printf("Count = %d, f1a_ent = %g, f2a_ent = %g, f1 = %g, f2 = %g\n", bcount,f1a_ent,f2a_ent,f1,f2);
-#endif
-
-#if DEBUG
-      fprintf(stderr,"bisection bracketing it %d, f1: %15.6E, f2: %15.6E, lt1: %15.6E, lt2: %15.6E, f1a: %18.11E, f2a: %18.11E leps0: %18.11E\n",
-              bcount,f1,f2,lt1,lt2,f1a_ent,f2a_ent,leps0);
-#endif
       bcount++;
       if(bcount >= maxbcount && bcount2 == 0) {
         bcount2 = 1;
@@ -386,10 +372,6 @@ namespace HARM_TabEOS_helpers {
 
         double ent_min = exp(f1a[1])-energy_shift+exp(f1a[0])/exp(lr);
         leps0 = fmax(ent_min*0.99,ent_min*1.01);
-#if DEBUG
-        printf("Adjusting ent_min: Old ent = %g\n", leps0);
-        printf("Adjusting ent_min: New ent = %g\n", leps0);
-#endif      
       }
       else if(bcount >= maxbcount && bcount2 == 1) { 
         *keyerrt = 667;
@@ -399,12 +381,6 @@ namespace HARM_TabEOS_helpers {
       }
 
     } // while
-
-#if DEBUG
-    fprintf(stderr,"bisection step 2 it -1, fmid: %15.6E ltmid: %15.6E dlt: %15.6E\n",
-	    f2,lt,dlt);
-    fprintf(stderr,"ltmax: %15.6E\n",ltmax);
-#endif
 
     get_interp_spots(lr,lt1,ye,&delx,&dely,&delz,idx);
     nuc_eos_C_linterp_one(idx,delx,dely,delz,&f1a[0],0); 
@@ -434,27 +410,11 @@ namespace HARM_TabEOS_helpers {
         lt1 = ltmid;
       } 
       else {
-#if DEBUG
-        printf("Bracketing failed for bisection interval\n");
-#endif
+
       }  
-
-#if DEBUG
-      fprintf(stderr,"bisection step 2 it %d, fmid: %15.6E f2a: %15.6E lt: %15.6E ltmid: %15.6E dlt: %15.6E, crit = %15.6E,leps0_prec = %15.6E\n",
-              it,fmid,f2a_ent,lt,ltmid,dlt,fabs(leps0-f2a_ent),leps0_prec);
-#endif
-
-#if DEBUG
-      printf("It = %d, press2 = %g, eps2 = %g, enthalpy = %g, enthalpy_in = %g\n", it,f2a[0], f2a[1], f2a_ent, leps0);
-      printf("It = %d, ltmid = %g, lt0 = %g\n", it,ltmid,lt0);
-      printf("It = %d, f2a_ent = %g, err = %g\n", it,f2a_ent,fabs(1.0-f2a_ent/leps0));
-#endif
 
       if(fabs(leps0-fmida_ent) <= fabs(leps0_prec*5.0e-2)) {
 
-#if DEBUG
-        printf("Bisection found correct temp: It = %d, f2a_ent = %g, err = %g, threshold = %g\n", it,f2a_ent,fabs(leps0-f2a_ent),fabs(leps0_prec*1.0e-2));
-#endif
         *ltout = ltmid;
         return;
       } 
@@ -551,7 +511,147 @@ namespace HARM_TabEOS_helpers {
     return;
   }
 
+  static inline __attribute__((always_inline))
+  void nuc_eos_m_kt1_dpdrhoe_dpderho(const int *restrict n_in,
+                                     const double *restrict rho, 
+                                     double *restrict temp,
+                                     const double *restrict ye,
+                                     const double *restrict eps,
+                                     double *restrict dpdrhoe,
+                                     double *restrict dpderho,
+                                     const double *restrict prec,
+                                     int *restrict keyerr,
+                                     int *restrict anyerr)
+  {
+
+    using namespace nuc_eos;
+    using namespace nuc_eos_private;
+    using namespace HARM_TabEOS_helpers;
+
+    const int n = *n_in;
+    int keyerr2;
+    int anyerr2;
+    anyerr2 = 0;
+
+    for(int i=0;i<n;i++) {
+
+      // check if we are fine
+      // Note that this code now requires that the
+      // temperature guess be within the table bounds
+      keyerr2 = checkbounds_kt0_noTcheck(rho[i], ye[i]);
+      if(keyerr2 != 0) {
+        anyerr2 = 1;
+        // exit(1);
+      }
+    }
+
+    // Abort if there is any error in checkbounds.
+    // This should never happen and the program should abort with
+    // a fatal error anyway. No point in doing any further EOS calculations.
+    // if(*anyerr) return;
+
+    for(int i=0;i<n;i++) {
+      const double lr = log(rho[i]);
+      const double lt = log(MIN(MAX(temp[i],eos_tempmin),eos_tempmax));
+
+      int idx[8];
+      double delx,dely,delz;
+      get_interp_spots(lr,lt,ye[i],&delx,&dely,&delz,idx);
+      {
+	const int iv = 6;
+	nuc_eos_C_linterp_one(idx,delx,dely,delz,&(dpdrhoe[i]),iv);
+      }
+      {
+	const int iv = 7;
+	nuc_eos_C_linterp_one(idx,delx,dely,delz,&(dpderho[i]),iv);
+      }
+    }
+
+    return;
+  }
+
+  static inline __attribute__((always_inline))
+  void nuc_eos_P_from_Enthalpy(double rho, double *temp, double ye,
+                               double *enr, double *enr2, double *press,
+                               int keytemp,
+                               int *keyerr,double rfeps) 
   
-}
+  {
+
+    using namespace nuc_eos;
+    using namespace nuc_eos_private;
+    using namespace HARM_TabEOS_helpers;
+
+    int npoints = 1;
+    int anyerr = 0;
+    *keyerr = 0;
+
+    // set up local vars
+ 
+    double eps2 = 0.0;   
+    double press2 = 0.0;   
+    double eps = *enr;
+    double lr = log(rho);
+    double lt = log(*temp);
+    double lenthalpy = eps;
+
+    nuc_eos_m_kt1_press_eps_(&npoints,&rho,temp,&ye,&eps2,&press2,keyerr,&anyerr);
+
+    double enthalpy = eps2+press2/rho;
+    enthalpy = enthalpy + enthalpy*0.01;
+
+    if(keytemp == 0) {
+      double nlt = 0.0;
+      nuc_eos_findtemp_enthalpy(lr,lt,ye,lenthalpy,rfeps,&nlt,keyerr);
+      lt = nlt;
+
+      *temp = exp(lt);
+    } else if(keytemp == 1) {
+    
+    }
+
+    int idx[8];
+    double delx,dely,delz,lpress,leps;
+
+    get_interp_spots(lr,lt,ye,&delx,&dely,&delz,idx);
+    nuc_eos_C_linterp_one(idx,delx,dely,delz,&lpress,0);  
+    nuc_eos_C_linterp_one(idx,delx,dely,delz,&leps,1);  
+    // assign results
+
+    *enr2 = exp(leps) - energy_shift;
+    *press= exp(lpress);
+    return;
+  }
+
+  static inline __attribute__((always_inline))
+  void HARM_EOS_dpdrho_dpdeps_hinv( const double rf_precision,
+                                    const int npoints,
+                                    const double *restrict rho,
+                                    const double *restrict enth,
+                                    double *restrict temp,
+                                    const double *restrict ye,
+                                    double *restrict eps,
+                                    double *restrict press,
+                                    double *restrict dpdrho,
+                                    double *restrict dpdeps,
+                                    int *restrict keyerr,
+                                    int *restrict anyerr ) {
+
+    *anyerr = 0;
+
+    const int keytemp = 0;
+    anyerr = 0;
+    CCTK_REAL entm1 = *enth-1.0;
+    *keyerr = 0;
+    
+    nuc_eos_P_from_Enthalpy(*rho, temp, *ye, &entm1, eps, press,
+                            keytemp, keyerr, rf_precision);
+
+    nuc_eos_m_kt1_dpdrhoe_dpderho(&npoints,rho,temp,ye,eps,
+                                  dpdrho,dpdeps,&rf_precision,keyerr,anyerr);
+
+  }
+
+} // namespace HARM_TabEOS_helpers
 
 #endif // __HARM_TABEOS_HELPERS__
