@@ -38,6 +38,42 @@ namespace nuc_eos_private {
 
 namespace HARM_TabEOS_helpers {
 
+  int checkbounds(const double xrho, 
+                  const double xtemp, 
+                  const double xye) {
+
+    // keyerr codes:
+    // 101 -- Y_e too high
+    // 102 -- Y_e too low
+    // 103 -- temp too high (if keytemp = 1)
+    // 104 -- temp too low (if keytemp = 1)
+    // 105 -- rho too high
+    // 106 -- rho too low
+
+    // Leo says: added for easier interface with EOS_Omni
+    using namespace nuc_eos;
+
+    if(xrho > eos_rhomax) {
+      return 105;
+    }
+    if(xrho < eos_rhomin) {
+      return 106;
+    }
+    if(xye > eos_yemax) {
+      return 101;
+    }
+    if(xye < eos_yemin) {
+      return 102;
+    }
+    if(xtemp > eos_tempmax) {
+      return 103;
+    }
+    if(xtemp < eos_tempmin) {
+      return 104;
+    }
+    return 0;
+  }
+
   static inline __attribute__((always_inline))
   int checkbounds_kt0_noTcheck(const double xrho, 
                                const double xye) {
@@ -530,8 +566,7 @@ namespace HARM_TabEOS_helpers {
 
     const int n = *n_in;
     int keyerr2;
-    int anyerr2;
-    anyerr2 = 0;
+    // int anyerr2 = 0;
 
     for(int i=0;i<n;i++) {
 
@@ -540,8 +575,8 @@ namespace HARM_TabEOS_helpers {
       // temperature guess be within the table bounds
       keyerr2 = checkbounds_kt0_noTcheck(rho[i], ye[i]);
       if(keyerr2 != 0) {
-        anyerr2 = 1;
-        // exit(1);
+        // anyerr2 = 1;
+        return;
       }
     }
 
@@ -649,6 +684,101 @@ namespace HARM_TabEOS_helpers {
 
     nuc_eos_m_kt1_dpdrhoe_dpderho(&npoints,rho,temp,ye,eps,
                                   dpdrho,dpdeps,&rf_precision,keyerr,anyerr);
+
+  }
+
+  static inline __attribute__((always_inline))
+  void nuc_eos_m_kt1_dpdrhot_dedrhot(const int *restrict n_in,
+				     const double *restrict rho, 
+				     double *restrict temp,
+				     const double *restrict ye,
+				     double *restrict eps,
+				     double *restrict eps2,
+				     double *restrict press,
+				     double *restrict dpdrho,
+				     double *restrict dpdt,
+				     double *restrict dedrho,
+				     double *restrict dedt,
+				     const double *restrict prec,
+				     int *restrict keyerr,
+				     int *restrict anyerr)
+  {
+
+    using namespace nuc_eos;
+    using namespace nuc_eos_private;
+    using namespace HARM_TabEOS_helpers;
+
+    const int n = *n_in;
+    int keyerr2;
+
+    for(int i=0;i<n;i++) {
+      // check if we are fine
+      keyerr2 = checkbounds(rho[i], temp[i], ye[i]);
+      if(keyerr2 != 0) {
+        *anyerr = 1;
+      }
+    }
+
+    // Abort if there is any error in checkbounds.
+    // This should never happen and the program should abort with
+    // a fatal error anyway. No point in doing any further EOS calculations.
+    if(*anyerr) return;
+
+    for(int i=0;i<n;i++) {
+  
+      int idx[11];
+      double delx,dely,delz;
+      const double lr = log(rho[i]);
+      const double lt = log(MIN(MAX(temp[i],eos_tempmin),eos_tempmax));
+
+      get_interp_spots_d(lr,lt,ye[i],&delx,&dely,&delz,idx);
+
+      // get prs and eps derivatives by rho and temp
+
+      {
+        int iv = 0;
+        nuc_eos_C_linterp_one_d(idx,delx,dely,delz,iv,&(press[i]), &(dedrho[i]), &(dedt[i]), &(dpdrho[i]), &(dpdt[i]));
+        iv = 1;
+        nuc_eos_C_linterp_one_d(idx,delx,dely,delz,iv,&(eps[i]), &(dedrho[i]), &(dedt[i]), &(dpdrho[i]), &(dpdt[i]));
+
+        press[i] = exp(press[i]);
+        eps2[i] = exp(eps[i]);
+        eps[i] = exp(eps[i])-energy_shift;
+      }
+
+    }
+
+    return;
+  }
+
+  static inline __attribute__((always_inline))
+  void EOS_Omni_dpdrho_dpdt_dedrho_dedt(const double rho,
+                                        double *restrict temp, 
+                                        const double ye,
+                                        double *restrict eps,
+                                        double *restrict press,
+                                        double *restrict dpdrho,
+                                        double *restrict dpdt,
+                                        double *restrict dedrho, 
+                                        double *restrict dedt,
+                                        int *restrict keyerr ) {
+  
+    int anyerr     = 0;
+    int npoints    = 1;
+    double prec    = 1.0e-10;
+    double xeps2   = 0.0;
+    double xdpdrho = 0.0;
+    double xdedt   = 0.0;
+    double xdpdt   = 0.0;
+    double xdedrho = 0.0;
+
+    HARM_TabEOS_helpers::nuc_eos_m_kt1_dpdrhot_dedrhot(&npoints,&rho,temp,&ye,eps,&xeps2,press,
+                                                       &xdpdrho,&xdpdt,&xdedrho,&xdedt,&prec,keyerr,&anyerr);
+
+    *dedrho = (xeps2  / rho  ) * xdedrho;
+    *dedt   = (xeps2  / *temp) * xdedt; 
+    *dpdrho = (*press / rho  ) * xdpdrho;
+    *dpdt   = (*press / *temp) * xdpdt; 
 
   }
 
