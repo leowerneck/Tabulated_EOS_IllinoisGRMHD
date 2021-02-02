@@ -30,5 +30,6 @@ SRCS =  InitSymBound.C MoL_registration.C \
     con2prim_Noble1D_entropy.cc \
     con2prim_Noble1D_entropy2.cc \
     con2prim_Palenzuela1D.cc \
-    con2prim_Palenzuela1D_entropy.cc
+    con2prim_Palenzuela1D_entropy.cc \
+    con2prim_test_suite.cc
 
