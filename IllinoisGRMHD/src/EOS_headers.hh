@@ -171,6 +171,17 @@ void check_temperature_reconstruction( const igm_eos_parameters eos,
 void find_lowest_gradient_temperature_recompute_prims( const igm_eos_parameters eos,
                                                        const CCTK_REAL T_center,
                                                        CCTK_REAL *restrict PRIMS );
+
+void EOS_EP_dEdr_dEdt_dPdr_dPdt_2D( const double rho,
+                                    const double Ye,
+                                    const double T,
+                                    double *restrict Eprim,
+                                    double *restrict Pprim,
+                                    double *restrict dEdrho,
+                                    double *restrict dEdt,
+                                    double *restrict dPdrho,
+                                    double *restrict dPdt );
+
 //------------------------------------------------
 
 #endif // __EOS_HEADERS__
