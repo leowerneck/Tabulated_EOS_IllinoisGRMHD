@@ -66,40 +66,15 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   cons[B1_con] = PRIMS[BX_CENTER ] * ONE_OVER_SQRT_4PI;
   cons[B2_con] = PRIMS[BY_CENTER ] * ONE_OVER_SQRT_4PI;
   cons[B3_con] = PRIMS[BZ_CENTER ] * ONE_OVER_SQRT_4PI;
-  //----------------------------------------
 
-  //----------------------------------------
-  //------------ Energy variable -----------
-  //----------------------------------------
-  if( (c2p_key == Noble2D         ) ||
-      (c2p_key == Noble1D         ) ||
-      (c2p_key == Noble1D_entropy ) ||
-      (c2p_key == Noble1D_entropy2) ) {
+  // First compute the auxiliary variable uu:
+  CCTK_REAL uu = -CONSERVS[TAUENERGY]*METRIC_LAP_PSI4[LAPSE] - (METRIC_LAP_PSI4[LAPSE]-1.0)*CONSERVS[RHOSTAR] +
+    METRIC[SHIFTX]*CONSERVS[STILDEX] + METRIC[SHIFTY]*CONSERVS[STILDEY]  + METRIC[SHIFTZ]*CONSERVS[STILDEZ]; // note the minus sign on tau
+  // Compute the conserv needed by the Noble routines
+  cons[UU] = (uu - CONSERVS[RHOSTAR]) * psim6;
+  // Then set tau
+  cons[TAU] = CONSERVS[TAUENERGY] * psim6;
 
-    // The Noble et al. routines require the energy variable
-    // .--------------------------------.
-    // | u := ( uu - rho_star )/psi^{6} | ,
-    // .--------------------------------.
-    // where
-    // .--------------------------------------------------------------------.
-    // | uu = -tilde(tau)*alpha - (alpha-1)*rho_Star + beta^{i}tilde(S)_{i} | .
-    // .--------------------------------------------------------------------.
-    // First compute the auxiliary variable uu:
-    CCTK_REAL uu = -CONSERVS[TAUENERGY]*METRIC_LAP_PSI4[LAPSE] - (METRIC_LAP_PSI4[LAPSE]-1.0)*CONSERVS[RHOSTAR] +
-      METRIC[SHIFTX]*CONSERVS[STILDEX] + METRIC[SHIFTY]*CONSERVS[STILDEY]  + METRIC[SHIFTZ]*CONSERVS[STILDEZ]; // note the minus sign on tau
-    // Compute the conserv needed by the Noble routines
-    cons[UU] = (uu - CONSERVS[RHOSTAR])  * psim6;
-
-  }
-  else if( (c2p_key == Palenzuela1D) || (c2p_key == Palenzuela1D_entropy) ) {
-
-    // The Palenzuela et al. routines require the energy variable
-    // .----------------------------.
-    // | tau = tilde(tau) / psi^{6} |
-    // .----------------------------.
-    cons[TAU] = CONSERVS[TAUENERGY] * psim6;
-
-  }
   //----------------------------------------
 
   //----------------------------------------
