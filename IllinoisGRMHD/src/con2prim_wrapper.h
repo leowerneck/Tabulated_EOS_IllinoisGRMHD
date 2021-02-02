@@ -6,6 +6,8 @@ int con2prim( const igm_eos_parameters eos,
               CCTK_REAL *restrict CONSERVS,CCTK_REAL *restrict PRIMS,
               output_stats& stats ) {
 
+  DECLARE_CCTK_PARAMETERS;
+
   // declare some variables for HARM.
   CCTK_REAL cons[numcons];
   CCTK_REAL prim[numprims];
@@ -213,16 +215,21 @@ int con2prim( const igm_eos_parameters eos,
       // If we reached the last guess and we are using
       // tabulated EOS, then reset to atmosphere.
       if( (which_guess==2) && eos.is_Tabulated ) {
-        if( PRIMS[RHOB] > 1e-6*rho_max ) {
+        if( PRIMS[RHOB] > 1e-6*eos.rho_max ) {
           CCTK_VInfo(CCTK_THORNSTRING,"Couldn't find root from: %e %e %e %e %e, rhob approx=%e, rho_b_atm=%e, Bx=%e, By=%e, Bz=%e, gij_phys=%e %e %e %e %e %e, alpha=%e",
                      tau_orig,rho_star_orig,mhd_st_x_orig,mhd_st_y_orig,mhd_st_z_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
-          CCTK_VError("con2prim failure in high density region! Terminating the run.");
+          CCTK_VInfo(CCTK_THORNSTRING,"x,y,z = %e %e %e | i,j,k = %d %d %d",X[index],Y[index],Z[index],i,j,k);
+          // if( CCTK_EQUALS(con2prim_high_density_failure_action,"just warn") ) {
+          CCTK_VWARN(CCTK_WARN_ALERT,"****WARNING***** con2prim failure in high density region! ****WARNING*****");
+          // }
+          // else {
+            // CCTK_VError(VERR_DEF_PARAMS,"con2prim failure in high density region! Terminating the run.");
+          // }
         }
-        else {
-          reset_prims_to_atmosphere( eos, PRIMS );
-          stats.atm_reset++;
-          return 0;
-        }
+
+        reset_prims_to_atmosphere( eos, PRIMS );
+        stats.atm_reset++;
+        return 0;
       }
     }
   }
