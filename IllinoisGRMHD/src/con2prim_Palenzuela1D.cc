@@ -401,7 +401,7 @@ double zbrent(double (*func)(const igm_eos_parameters, double, double *, bool, d
 
   } //end for loop
 
-  if( (!std::isfinite(fb)) ) {
+  if( (!CCTK_isfinite(fb)) ) {
     *c2p_failed = true;
     return b;
   } if( (fabs(maxerror) <= tol1 || fb == 0.0)){
