@@ -16,21 +16,21 @@
 #include <string.h>
 #include <stdbool.h>
 
-void palenzuela_entropy(const igm_eos_parameters eos,
-                        struct c2p_report *restrict c2p_rep, const double S_squared, const double BdotS,
-                        const double B_squared, const double *restrict con, double *restrict prim,
-                        const double *restrict SU, const double tol_x, bool use_epsmin);
+void palenzuela_entropy( const igm_eos_parameters eos,
+                         bool *restrict c2p_failed, const double S_squared, const double BdotS,
+                         const double B_squared, const double *restrict con, double *restrict prim,
+                         const double *restrict SU, const double tol_x, bool use_epsmin );
 
-double zbrent_entropy(double (*func)(const igm_eos_parameters, double, double *restrict, struct c2p_report *restrict, bool, double *restrict),
-                      const igm_eos_parameters eos, double *restrict param,
-                      double *restrict temp_guess, double x1, double x2, double tol_x, struct c2p_report *restrict c2p_rep, bool use_epsmin);
+double zbrent_entropy( double (*func)(const igm_eos_parameters, double, double *restrict, bool, double *restrict),
+                       const igm_eos_parameters eos, double *restrict param,
+                       double *restrict temp_guess, double x1, double x2, double tol_x, bool *restrict c2p_failed, bool use_epsmin );
 
-void calc_prim_entropy(const igm_eos_parameters eos,
-                       const double x, const double *restrict con, const double *restrict param, const double temp_guess, double *restrict prim,
-                       const double S_squared, const double BdotS,
-                       const double B_squared, const double *restrict SU, struct c2p_report * c2p_rep );
+void calc_prim_entropy( const igm_eos_parameters eos,
+                        const double x, const double *restrict con, const double *restrict param, const double temp_guess, double *restrict prim,
+                        const double S_squared, const double BdotS,
+                        const double B_squared, const double *restrict SU );
 
-double func_root_entropy(const igm_eos_parameters eos, double x, double *restrict param, struct c2p_report *restrict c2p_rep, bool use_epsmin, double *restrict temp_guess);
+double func_root_entropy( const igm_eos_parameters eos, double x, double *restrict param, bool use_epsmin, double *restrict temp_guess);
 
 
 /*****************************************************************************/
@@ -47,6 +47,8 @@ double func_root_entropy(const igm_eos_parameters eos, double x, double *restric
 // From the input quantities, we compute B_{i} and S^{i}
 int con2prim_Palenzuela1D_entropy( const igm_eos_parameters eos,
                                    const CCTK_REAL *restrict adm_quantities,
+                                   // const CCTK_REAL g4up[4][4],
+                                   // const CCTK_REAL g4dn[4][4],
                                    const CCTK_REAL *restrict con,
                                    CCTK_REAL *restrict prim ) {
 
@@ -93,35 +95,35 @@ int con2prim_Palenzuela1D_entropy( const igm_eos_parameters eos,
       SU[i] += gammaUU[i][j] * SD[j];
     }
   }
-
+ 
   // Need to calculate for (21) and (22) in Cerda-Duran 2008
   // B * S = B^i * S_i
   CCTK_REAL BdotS = 0.0;
   for(int i=0;i<3;i++) BdotS += BU[i] * SD[i];
-  
+
   // B^2 = B^i * B_i
   CCTK_REAL B_squared = 0.0;
   for(int i=0;i<3;i++) B_squared += BU[i] * BD[i];
-  
+
   // S^2 = S^i * S_i
   CCTK_REAL S_squared = 0.0;
   for(int i=0;i<3;i++) S_squared += SU[i] * SD[i];
 
-  struct c2p_report report;
-  palenzuela_entropy( eos, &report, S_squared,BdotS,B_squared, con, prim, SU, 1e-12, true );
+  bool c2p_failed = false;
+  palenzuela_entropy( eos, &c2p_failed, S_squared,BdotS,B_squared, con, prim, SU, 1e-12, true );
 
-  return report.failed;
+  return c2p_failed;
 
 }
 
 /*****************************************************************************/
 /*********************** PALENZUELA CON2PRIM FUNCTIONS ***********************/
 /*****************************************************************************/
-void palenzuela_entropy(const igm_eos_parameters eos,
-                        struct c2p_report *restrict c2p_rep, const double S_squared, const double BdotS,
-                        const double B_squared, const double *restrict con, double *restrict prim,
-                        const CCTK_REAL *restrict SU,
-                        const double tol_x, bool use_epsmin) {
+void palenzuela_entropy( const igm_eos_parameters eos,
+                         bool *restrict c2p_failed, const double S_squared, const double BdotS,
+                         const double B_squared, const double *restrict con, double *restrict prim,
+                         const CCTK_REAL *restrict SU,
+                         const double tol_x, bool use_epsmin ) {
 
   // main root finding routine
   // using scheme of Palenzuela et al. 2015, PRD, 92, 044045
@@ -149,21 +151,18 @@ void palenzuela_entropy(const igm_eos_parameters eos,
   // initial guess for temperature
   double temp_guess=prim[TEMP];
 
-  // reset #EOS calls counter
-  c2p_rep->nEOScalls = 0;
-
   // find x, this is the recovery process
-  double x = zbrent_entropy(*func_root_entropy, eos, param, &temp_guess, xlow, xup, tol_x, c2p_rep, use_epsmin);
+  double x = zbrent_entropy(*func_root_entropy, eos, param, &temp_guess, xlow, xup, tol_x, c2p_failed, use_epsmin);
 
   // calculate final set of primitives
-  calc_prim_entropy(eos, x, con, param, temp_guess, prim, S_squared, BdotS, B_squared, SU, c2p_rep);
+  calc_prim_entropy(eos, x, con, param, temp_guess, prim, S_squared, BdotS, B_squared, SU);
 
 }
 
 void calc_prim_entropy(const igm_eos_parameters eos,
                        const double x, const double *restrict con, const double *restrict param, const double temp_guess, double *restrict prim,
                        const double S_squared, const double BdotS,
-                       const double B_squared, const CCTK_REAL *restrict SU, struct c2p_report *restrict c2p_rep ) {
+                       const double B_squared, const CCTK_REAL *restrict SU ) {
   
   // Recover the primitive variables prim from x, r, s, t, con
   double r = param[par_r];
@@ -209,7 +208,7 @@ void calc_prim_entropy(const igm_eos_parameters eos,
 
 }
 
-double func_root_entropy(const igm_eos_parameters eos, double x, double *restrict param, struct c2p_report *restrict c2p_rep, bool use_epsmin, double *restrict temp_guess) {
+double func_root_entropy(const igm_eos_parameters eos, double x, double *restrict param, bool use_epsmin, double *restrict temp_guess) {
 
   // computes f(x) from x and r,s,t
   const double r  = param[par_r];
@@ -249,9 +248,9 @@ double func_root_entropy(const igm_eos_parameters eos, double x, double *restric
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
 
 
-double zbrent_entropy(double (*func)(const igm_eos_parameters, double, double *restrict, struct c2p_report *restrict, bool, double *restrict),
+double zbrent_entropy(double (*func)(const igm_eos_parameters, double, double *restrict, bool, double *restrict),
                       const igm_eos_parameters eos, double *restrict param,
-                      double *restrict temp_guess, double x1, double x2, double tol_x, struct c2p_report *restrict c2p_rep, bool use_epsmin) {
+                      double *restrict temp_guess, double x1, double x2, double tol_x, bool *restrict c2p_failed, bool use_epsmin) {
 
   // Implementation of Brent’s method to find the root of a function func to accuracy tol_x. The root
   // must be bracketed by x1 and x2.
@@ -269,16 +268,13 @@ double zbrent_entropy(double (*func)(const igm_eos_parameters, double, double *r
   double temp_guess_a = *temp_guess;
   double temp_guess_b = *temp_guess;
   double temp_guess_c = *temp_guess;
-  double fa=(*func)(eos, a, param, c2p_rep, use_epsmin, &temp_guess_a);
-  double fb=(*func)(eos, b, param, c2p_rep, use_epsmin, &temp_guess_b);
+  double fa=(*func)(eos, a, param, use_epsmin, &temp_guess_a);
+  double fb=(*func)(eos, b, param, use_epsmin, &temp_guess_b);
   double fc,p,q,r,s,tol1;
 
   // root must be bracketed
   if ((fa > 0.0 && fb > 0.0) || (fa < 0.0 && fb < 0.0)) {
-    c2p_rep->failed = true;
-    c2p_rep->c2p_keyerr = 1;
-    c2p_rep->count = iter;
-
+    *c2p_failed = true;
     return b;
   }
   fc=fb;
@@ -320,9 +316,7 @@ double zbrent_entropy(double (*func)(const igm_eos_parameters, double, double *r
     // check convergence
     if (fabs(maxerror) <= tol1 || fb == 0.0){
       // we are done
-      c2p_rep->failed = false;
-      c2p_rep->c2p_keyerr = 0;
-      c2p_rep->count = iter;
+      *c2p_failed = false;
       keep_iterating = 0;
       ans = b;
     }
@@ -365,7 +359,7 @@ double zbrent_entropy(double (*func)(const igm_eos_parameters, double, double *r
       // update trial root
       if (fabs(d) > tol1)  b += d;
       else                 b += SIGN(tol1,maxerror);
-      fb=(*func)(eos, b, param, c2p_rep, use_epsmin, &temp_guess_b);
+      fb=(*func)(eos, b, param, use_epsmin, &temp_guess_b);
 
 
     } else {  
@@ -383,7 +377,7 @@ double zbrent_entropy(double (*func)(const igm_eos_parameters, double, double *r
       // update trial root
       if (fabs(d) > tol1)  b += d;
       else                 b += SIGN(tol1, maxerror);
-      fb=(*func)(eos, b, param, c2p_rep, use_epsmin, &temp_guess_b);
+      fb=(*func)(eos, b, param, use_epsmin, &temp_guess_b);
     }
 
     ++iter;
@@ -402,21 +396,17 @@ double zbrent_entropy(double (*func)(const igm_eos_parameters, double, double *r
 
   } //end for loop
 
-  c2p_rep->count = iter;
- 
   if( (!CCTK_isfinite(fb)) ) {
-    c2p_rep->failed = true;
-    c2p_rep->c2p_keyerr = 2;
+    *c2p_failed = true;
     return b;
   } if( (fabs(maxerror) <= tol1 || fb == 0.0)){
-    c2p_rep->failed = false;
+    *c2p_failed = false;
     return ans;
   } else if( (fabs(maxerror) <= tol1) && (fabs(maxerror) > tol1) ){
-    c2p_rep->failed = false;
+    *c2p_failed = false;
     return ans;
   } else {
-    c2p_rep->failed = true;
-    c2p_rep->c2p_keyerr = 1;
+    *c2p_failed = true;
     return b;
   }
 
