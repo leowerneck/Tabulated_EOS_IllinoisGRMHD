@@ -16,21 +16,21 @@
 #include <string.h>
 #include <stdbool.h>
 
-void palenzuela(const igm_eos_parameters eos,
-                struct c2p_report *restrict c2p_rep, const double S_squared, const double BdotS,
-                const double B_squared, const double *restrict con, double *restrict prim,
-                const double *restrict SU, const double tol_x, bool use_epsmin);
+void palenzuela( const igm_eos_parameters eos,
+                 bool *restrict c2p_failed, const double S_squared, const double BdotS,
+                 const double B_squared, const double *restrict con, double *restrict prim,
+                 const double *restrict SU, const double tol_x, bool use_epsmin );
 
-double zbrent(double (*func)(const igm_eos_parameters, double, double *restrict, struct c2p_report *restrict, bool, double *restrict),
-              const igm_eos_parameters eos, double *restrict param,
-              double *restrict temp_guess, double x1, double x2, double tol_x, struct c2p_report * c2p_rep, bool use_epsmin);
+double zbrent( double (*func)(const igm_eos_parameters, double, double *restrict, bool, double *restrict),
+               const igm_eos_parameters eos, double *restrict param,
+               double *restrict temp_guess, double x1, double x2, double tol_x, bool *restrict c2p_failed, bool use_epsmin );
 
-void calc_prim(const igm_eos_parameters eos,
-               const double x, const double *restrict con, const double * param, const double temp_guess, double *restrict prim,
-               const double S_squared, const double BdotS,
-               const double B_squared, const double *restrict SU, struct c2p_report *restrict c2p_rep );
+void calc_prim( const igm_eos_parameters eos,
+                const double x, const double *restrict con, const double * param, const double temp_guess, double *restrict prim,
+                const double S_squared, const double BdotS,
+                const double B_squared, const double *restrict SU );
 
-double func_root(const igm_eos_parameters eos, double x, double *restrict param, struct c2p_report *restrict c2p_rep, bool use_epsmin, double *restrict temp_guess);
+double func_root( const igm_eos_parameters eos, double x, double *restrict param, bool use_epsmin, double *restrict temp_guess );
 
 
 /*****************************************************************************/
@@ -107,10 +107,10 @@ int con2prim_Palenzuela1D( const igm_eos_parameters eos,
   CCTK_REAL S_squared = 0.0;
   for(int i=0;i<3;i++) S_squared += SU[i] * SD[i];
 
-  struct c2p_report report;
-  palenzuela( eos, &report, S_squared,BdotS,B_squared, con, prim, SU, 1e-12, true );
+  bool c2p_failed = false;
+  palenzuela( eos, &c2p_failed, S_squared,BdotS,B_squared, con, prim, SU, 1e-12, true );
 
-  return report.failed;
+  return c2p_failed;
 
 }
 
@@ -118,7 +118,7 @@ int con2prim_Palenzuela1D( const igm_eos_parameters eos,
 /*********************** PALENZUELA CON2PRIM FUNCTIONS ***********************/
 /*****************************************************************************/
 void palenzuela(const igm_eos_parameters eos,
-                struct c2p_report *restrict c2p_rep, const double S_squared, const double BdotS,
+                bool *restrict c2p_failed, const double S_squared, const double BdotS,
                 const double B_squared, const double * con, double *restrict prim,
                 const CCTK_REAL *restrict SU, const double tol_x, bool use_epsmin)
 {
@@ -148,21 +148,18 @@ void palenzuela(const igm_eos_parameters eos,
   // initial guess for temperature
   double temp_guess=prim[TEMP];
 
-  // reset #EOS calls counter
-  c2p_rep->nEOScalls = 0;
-
   // find x, this is the recovery process
-  double x = zbrent(*func_root, eos, param, &temp_guess, xlow, xup, tol_x, c2p_rep, use_epsmin);
+  double x = zbrent(*func_root, eos, param, &temp_guess, xlow, xup, tol_x, c2p_failed, use_epsmin);
 
   // calculate final set of primitives
-  calc_prim(eos, x, con, param, temp_guess, prim, S_squared, BdotS, B_squared, SU, c2p_rep);
+  calc_prim(eos, x, con, param, temp_guess, prim, S_squared, BdotS, B_squared, SU);
 
 }
 
 void calc_prim(const igm_eos_parameters eos,
                const double x, const double *restrict con, const double *restrict param, const double temp_guess, double *restrict prim,
                const double S_squared, const double BdotS,
-               const double B_squared, const double *restrict SU, struct c2p_report *restrict c2p_rep ) {
+               const double B_squared, const double *restrict SU ) {
   
   // Recover the primitive variables prim from x, q, r, s, t, con
 
@@ -211,7 +208,7 @@ void calc_prim(const igm_eos_parameters eos,
   prim[ENT     ] = ent;
 }
 
-double func_root(const igm_eos_parameters eos, double x, double *restrict param, struct c2p_report *restrict c2p_rep, bool use_epsmin, double *restrict temp_guess) {
+double func_root(const igm_eos_parameters eos, double x, double *restrict param, bool use_epsmin, double *restrict temp_guess) {
 
   // computes f(x) from x and q,r,s,t
 
@@ -241,14 +238,6 @@ double func_root(const igm_eos_parameters eos, double x, double *restrict param,
   }
 
   // (iv)
-  int nEOScalls=0;
-  // Original:
-  // EOS_press(c2p.eoskey,keytemp,rho,&eps,&temp,ye,&P,&keyerr,&nEOScalls);
-  // Adaptation
-
-  c2p_rep->nEOScalls += nEOScalls;
-  
-  
   double ans = x- (1.0 + eps + P/rho)*W;
 
   return ans;
@@ -263,9 +252,9 @@ double func_root(const igm_eos_parameters eos, double x, double *restrict param,
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
 
 
-double zbrent(double (*func)(const igm_eos_parameters, double, double *, struct c2p_report *restrict, bool, double *restrict),
+double zbrent(double (*func)(const igm_eos_parameters, double, double *, bool, double *restrict),
               const igm_eos_parameters eos, double *restrict param,
-              double * temp_guess, double x1, double x2, double tol_x, struct c2p_report *restrict c2p_rep, bool use_epsmin)
+              double * temp_guess, double x1, double x2, double tol_x, bool *restrict c2p_failed, bool use_epsmin)
 {
 
   // Implementation of Brent’s method to find the root of a function func to accuracy tol_x. The root
@@ -284,16 +273,13 @@ double zbrent(double (*func)(const igm_eos_parameters, double, double *, struct 
   double temp_guess_a = *temp_guess;
   double temp_guess_b = *temp_guess;
   double temp_guess_c = *temp_guess;
-  double fa=(*func)(eos, a, param, c2p_rep, use_epsmin, &temp_guess_a);
-  double fb=(*func)(eos, b, param, c2p_rep, use_epsmin, &temp_guess_b);
+  double fa=(*func)(eos, a, param, use_epsmin, &temp_guess_a);
+  double fb=(*func)(eos, b, param, use_epsmin, &temp_guess_b);
   double fc,p,q,r,s,tol1;
 
   // root must be bracketed
   if ((fa > 0.0 && fb > 0.0) || (fa < 0.0 && fb < 0.0)) {
-    c2p_rep->failed = true;
-    c2p_rep->c2p_keyerr = 1;
-    c2p_rep->count = iter;
-
+    *c2p_failed = true;
     return b;
   }
   fc=fb;
@@ -335,9 +321,7 @@ double zbrent(double (*func)(const igm_eos_parameters, double, double *, struct 
     // check convergence
     if (fabs(maxerror) <= tol1 || fb == 0.0){
       // we are done
-      c2p_rep->failed = false;
-      c2p_rep->c2p_keyerr = 0;
-      c2p_rep->count = iter;
+      *c2p_failed = false;
       keep_iterating = 0;
       ans = b;
     }
@@ -380,7 +364,7 @@ double zbrent(double (*func)(const igm_eos_parameters, double, double *, struct 
       // update trial root
       if (fabs(d) > tol1)  b += d;
       else                 b += SIGN(tol1,maxerror);
-      fb=(*func)(eos, b, param, c2p_rep, use_epsmin, &temp_guess_b);
+      fb=(*func)(eos, b, param, use_epsmin, &temp_guess_b);
 
 
     } else {  
@@ -398,7 +382,7 @@ double zbrent(double (*func)(const igm_eos_parameters, double, double *, struct 
       // update trial root
       if (fabs(d) > tol1)  b += d;
       else                 b += SIGN(tol1, maxerror);
-      fb=(*func)(eos, b, param, c2p_rep, use_epsmin, &temp_guess_b);
+      fb=(*func)(eos, b, param, use_epsmin, &temp_guess_b);
     }
 
     ++iter;
@@ -417,21 +401,17 @@ double zbrent(double (*func)(const igm_eos_parameters, double, double *, struct 
 
   } //end for loop
 
-  c2p_rep->count = iter;
- 
   if( (!std::isfinite(fb)) ) {
-    c2p_rep->failed = true;
-    c2p_rep->c2p_keyerr = 2;
+    *c2p_failed = true;
     return b;
   } if( (fabs(maxerror) <= tol1 || fb == 0.0)){
-    c2p_rep->failed = false;
+    *c2p_failed = false;
     return ans;
   } else if( (fabs(maxerror) <= tol1) && (fabs(maxerror) > tol1) ){
-    c2p_rep->failed = false;
+    *c2p_failed = false;
     return ans;
   } else {
-    c2p_rep->failed = true;
-    c2p_rep->c2p_keyerr = 1;
+    *c2p_failed = true;
     return b;
   }
 
