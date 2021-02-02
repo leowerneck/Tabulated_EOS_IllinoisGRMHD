@@ -35,6 +35,10 @@ int con2prim_select( const igm_eos_parameters eos,
       return( con2prim_Noble1D_entropy2(eos,g4dn,g4up,cons,prim) );
       break;
 
+    // Cerda-Duran et al. 2D routine (see https://arxiv.org/pdf/0804.4572.pdf)
+    case CerdaDuran2D:
+      return( con2prim_CerdaDuran2D(eos,adm_quantities,cons,prim) );
+
     // Modified version of the Palenzuela routine (see https://arxiv.org/pdf/1712.07538.pdf)
     case Palenzuela1D_entropy:
       return( con2prim_Palenzuela1D_entropy(eos,adm_quantities,cons,prim) );
