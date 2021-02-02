@@ -567,180 +567,31 @@ void find_lowest_gradient_temperature_recompute_prims( const igm_eos_parameters 
 
 
 // This is from Dan Siegel's repo, modified to suit our needs
-// void get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_hm1( const igm_eos_parameters eos,
-//                                                         const CCTK_REAL rho_in,
-//                                                         const CCTK_REAL Ye_in,
-//                                                         const CCTK_REAL h_in,
-//                                                         CCTK_REAL *restrict P,
-//                                                         CCTK_REAL *restrict T,
-//                                                         CCTK_REAL *restrict eps,
-//                                                         CCTK_REAL *restrict dPdrho, 
-//                                                         CCTK_REAL *restrict dPdeps ) {
-//   CCTK_INT keyerr    = 0;
-//   CCTK_INT anyerr    = 0;
-//   CCTK_REAL xtemp    = *T;  
-//   CCTK_REAL xeps     = 0.0;
-//   CCTK_REAL xprs     = 0.0;
-//   CCTK_REAL xdpdeps  = 0.0;
-//   CCTK_REAL xdpdrho  = 0.0;
+void get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_h( const igm_eos_parameters eos,
+                                                      const CCTK_REAL rho_in,
+                                                      const CCTK_REAL Ye_in,
+                                                      const CCTK_REAL h_in,
+                                                      CCTK_REAL *restrict P,
+                                                      CCTK_REAL *restrict T,
+                                                      CCTK_REAL *restrict eps,
+                                                      CCTK_REAL *restrict dPdrho, 
+                                                      CCTK_REAL *restrict dPdeps ) {
+  int keyerr    = 0;
+  int anyerr    = 0;
+  CCTK_REAL xtemp    = *T;  
+  CCTK_REAL xeps     = 0.0;
+  CCTK_REAL xprs     = 0.0;
+  CCTK_REAL xdpdeps  = 0.0;
+  CCTK_REAL xdpdrho  = 0.0;
 
-//   EOS_Omni_dpderho_dpdrhoe_hinv(eos.root_finding_precision,1,
-//                                 &rho_in,&h_in,&xtemp,&Ye_in,&xeps,&xprs,&xdpdrho,&xdpdeps,
-//                                 &keyerr,&anyerr);
-
+  HARM_TabEOS_helpers::HARM_EOS_dpdrho_dpdeps_hinv(eos.root_finding_precision,1,
+                                                   &rho_in,&h_in,&xtemp,&Ye_in,&xeps,&xprs,&xdpdrho,&xdpdeps,
+                                                   &keyerr,&anyerr);
   
-//   *P      = xprs;
-//   *T      = xtemp;
-//   *eps    = xeps;
-//   *dPdeps = xdpdeps;
-//   *dPdrho = xdpdrho;
+  *P      = xprs;
+  *T      = xtemp;
+  *eps    = xeps;
+  *dPdeps = xdpdeps;
+  *dPdrho = xdpdrho;
   
-// }
-
-// void nuc_eos_m_kt1_dpdrhoe_dpderho(const int *restrict n_in,
-//                                    const double *restrict rho, 
-//                                    double *restrict temp,
-//                                    const double *restrict ye,
-//                                    const double *restrict eps,
-//                                    double *restrict dpdrhoe,
-//                                    double *restrict dpderho,
-//                                    const double *restrict prec,
-//                                    int *restrict keyerr,
-//                                    int *restrict anyerr)
-// {
-
-//   using namespace nuc_eos;
-//   using namespace nuc_eos_private;
-//   using namespace HARM_TabEOS_helpers;
-
-//   const int n = *n_in;
-//   int keyerr2;
-
-//   *anyerr = 0;
-
-//   for(int i=0;i<n;i++) {
-
-//     // check if we are fine
-//     // Note that this code now requires that the
-//     // temperature guess be within the table bounds
-//     keyerr2 = checkbounds_kt0_noTcheck(rho[i], ye[i]);
-//     if(keyerr2 != 0) {
-//          *anyerr = 1;
-//          printf("Inside nuc_eos_m_kt1_dpdrhoe_dpderho kt1 checkbounds,%g, %g, %g",rho[i], temp[i], ye[i]);
-//          exit(EXIT_FAILURE);
-//     }
-//   }
-
-//   // Abort if there is any error in checkbounds.
-//   // This should never happen and the program should abort with
-//   // a fatal error anyway. No point in doing any further EOS calculations.
-//   if(*anyerr) return;
-
-//   for(int i=0;i<n;i++) {
-//     const double lr = log(rho[i]);
-//     const double lt = log(MIN(MAX(temp[i],eos_tempmin),eos_tempmax));
-
-//     int idx[8];
-//     double delx,dely,delz;
-//     get_interp_spots(lr,lt,ye[i],&delx,&dely,&delz,idx);
-//      {
-// 	const int iv = 6;
-// 	nuc_eos_C_linterp_one(idx,delx,dely,delz,&(dpdrhoe[i]),iv);
-//      }
-//      {
-// 	const int iv = 7;
-// 	nuc_eos_C_linterp_one(idx,delx,dely,delz,&(dpderho[i]),iv);
-//      }
-//   }
-
-//   return;
-// }
-
-// void nuc_eos_P_from_Enthalpy(double rho, double *temp, double ye,
-//                              double *enr, double *enr2, double *press,
-//                              int keytemp,
-//                              int *keyerr,double rfeps) 
-  
-// {
-
-//   using namespace nuc_eos;
-//   using namespace nuc_eos_private;
-//   using namespace HARM_TabEOS_helpers;
-
-//   int npoints = 1;
-//   int anyerr = 0;
-//   *keyerr = 0;
-
-//   // set up local vars
- 
-//   double eps2 = 0.0;   
-//   double press2 = 0.0;   
-//   double eps = *enr;
-//   double lr = log(rho);
-//   double lt = log(*temp);
-//   double lenthalpy = eps;
-
-
-//   nuc_eos::nuc_eos_m_kt1_press_eps_(&npoints,&rho,temp,&ye,&eps2,&press2,keyerr,&anyerr);
-
-//   //fprintf(stderr, "After nuc_eos_m_kt1_press_eps!\n");
-
-//   double enthalpy = eps2+press2/rho;
-//   enthalpy = enthalpy + enthalpy*0.01;
-
-//   if(keytemp == 0) {
-//     //printf("here Temp: %g Rho: %g Eps: %g Ye: %g\n",*temp,rho,eps,ye);
-//     double nlt = 0.0;
-//     nuc_eos_findtemp_enthalpy(lr,lt,ye,lenthalpy,rfeps,&nlt,keyerr);
-//     if(*keyerr != 0) {
-//       printf("3 Keyerr: %d, Temp: %g Rho: %g Eps: %g Ye: %g\n",*keyerr,*temp,rho,eps,ye); 
-//     }
-//     lt = nlt;
-
-//     *temp = exp(lt);
-//   } else if(keytemp == 1) {
-    
-//   }
-
-//   int idx[8];
-//   double delx,dely,delz,lpress,leps;
-
-//   get_interp_spots(lr,lt,ye,&delx,&dely,&delz,idx);
-//   nuc_eos_C_linterp_one(idx,delx,dely,delz,&lpress,0);  
-//   nuc_eos_C_linterp_one(idx,delx,dely,delz,&leps,1);  
-//   // assign results
-
-//   *enr2 = exp(leps) - energy_shift;
-//   *press= exp(lpress);
-//   return;
-// }
-
-// void HARM_EOS_dpdrho_dpdeps_hinv( const double rf_precision,
-//                                   const int npoints,
-//                                   const double *restrict rho,
-//                                   const double *restrict enth,
-//                                   double *restrict temp,
-//                                   const double *restrict ye,
-//                                   double *restrict eps,
-//                                   double *restrict press,
-//                                   double *restrict dpdrho,
-//                                   double *restrict dpdeps,
-//                                   int *restrict keyerr,
-//                                   int *restrict anyerr ) {
-
-
-//   const int keytemp = 0;
-//   anyerr = 0;
-//   for(int i=0;i<npoints;i++) {
-//     CCTK_REAL entm1 = enth[i]-1.0;
-//     keyerr[i] = 0;
-
-//     nuc_eos_P_from_Enthalpy(rho[i], &temp[i], ye[i], &entm1, &eps[i], &press[i],
-//                             keytemp, &keyerr[i], rf_precision);
-
-//     nuc_eos_m_kt1_dpdrhoe_dpderho(&npoints,&rho[i],&temp[i],&ye[i],&eps[i],
-//                                   &dpdrho[i],&dpdeps[i],&rf_precision,&keyerr[i],anyerr);
-//   }
-
-    
-// }
+}
