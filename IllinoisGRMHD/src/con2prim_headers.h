@@ -125,12 +125,12 @@ static const int numprims =13; // rho, eps, v^{x,y,z}, B^{x,y,z}, Ye, T, P, W, S
 
 /* Also for conservative variables */
 static const int DD       =0;
-static const int TAU      =1;
 static const int S1_cov   =2;
 static const int S2_cov   =3;
 static const int S3_cov   =4;
-static const int WS       =9;
-static const int numcons  =10; // D, tau, S_{x,y,z}, B^{x,y,z}, DYe, DS
+static const int TAU      =9;
+static const int WS       =10;
+static const int numcons  =11; // D, UU, S_{x,y,z}, B^{x,y,z}, DYe, tau, DS
 
 // These quantities are used by the Palenzuela routines
 #define par_q (0)
@@ -140,16 +140,6 @@ static const int numcons  =10; // D, tau, S_{x,y,z}, B^{x,y,z}, DYe, DS
 #define conDD (4)
 #define conYE (5)
 #define conWS (6) // Entropy
-
-struct c2p_report {
-  bool failed;
-  bool adjust_cons;
-  char err_msg[200];
-  int count;
-  bool retry;
-  int c2p_keyerr;
-  int nEOScalls;
-};
 
 /********************************************************************************************/
 // Function prototype declarations:
