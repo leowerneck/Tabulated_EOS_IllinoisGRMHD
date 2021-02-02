@@ -595,3 +595,40 @@ void get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_h( const igm_eos_parameters e
   *dPdrho = xdpdrho;
   
 }
+
+void EOS_EP_dEdr_dEdt_dPdr_dPdt_2D( const double rho,
+                                    const double Ye,
+                                    const double T,
+                                    double *restrict Eprim,
+                                    double *restrict Pprim,
+                                    double *restrict dEdrho,
+                                    double *restrict dEdt,
+                                    double *restrict dPdrho,
+                                    double *restrict dPdt ) {
+
+  // Compute partial derivatives of specific internal energy and pressure with respect
+  // to density and temperature, based on primitives computed from Newton-Raphson state
+  // vector x and conservatives
+
+  CCTK_INT keyerr   = 0;
+  CCTK_REAL xrho    = rho;
+  CCTK_REAL xye     = Ye;
+  CCTK_REAL xtemp   = T;
+  CCTK_REAL xeps    = 0.0;
+  CCTK_REAL xprs    = 0.0;
+  CCTK_REAL xdedrho = 0.0;
+  CCTK_REAL xdpdrho = 0.0;
+  CCTK_REAL xdedt   = 0.0;
+  CCTK_REAL xdpdt   = 0.0;
+
+  HARM_TabEOS_helpers::EOS_Omni_dpdrho_dpdt_dedrho_dedt(xrho, &xtemp, xye, &xeps, &xprs, &xdpdrho,
+                                                        &xdpdt, &xdedrho, &xdedt, &keyerr);
+
+  *dEdrho = xdedrho;
+  *dEdt   = xdedt;
+  *dPdrho = xdpdrho;
+  *dPdt   = xdpdt;
+  *Eprim  = xeps;
+  *Pprim  = xprs;
+
+}
