@@ -230,3 +230,15 @@ CCTK_REAL igm_freeze_T_evolution_until_cctk_time "Freeze temperature evolution u
 {
   0.0:* :: "Positive"
 } 0.0
+
+restricted:
+CCTK_BOOLEAN igm_con2prim_standalone "Whether or not to perform a con2prim standalone test"
+{
+} "no"
+
+restricted:
+CCTK_STRING con2prim_high_density_failure_action "What to do if we get a con2prim failure in a high density region"
+{
+  "terminate" :: "Terminate the run"
+  "just warn" :: "Only warn"
+} "terminate"
