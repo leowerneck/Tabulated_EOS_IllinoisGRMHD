@@ -52,18 +52,16 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
 
   // Tabulated EOS
   if( CCTK_EQUALS(igm_eos_type,"Tabulated") || CCTK_EQUALS(igm_eos_type,"nuc_eos") ) {
-    if( CCTK_EQUALS(igm_con2prim_routine,"Noble1D"         ) ||
-        CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy" ) ||
-        CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy2") ) {
-      CCTK_VError(VERR_DEF_PARAMS,"IllinoisGRMHD only supports the Noble2D, Palenzuela1D and Palenzuela1D_entropy con2prim routine with Tabulated EOS. ABORTING!");
+    if( !CCTK_EQUALS(igm_con2prim_routine,"Palenzuela1D") ) {
+      CCTK_VError(VERR_DEF_PARAMS,"IllinoisGRMHD only supports the Palenzuela1D con2prim routine with Tabulated EOS. ABORTING!");
     }
   }
 
   // Entropy
   if( igm_evolve_entropy == false ) {
-    if( CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy") ||
+    if( CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy" ) ||
         CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy2") ||
-        CCTK_EQUALS(igm_con2prim_routine,"Palenzuela1D_entropy") ) {
+        CCTK_EQUALS(igm_con2prim_routine,"Palenzuela1D"    ) ) {
       CCTK_VError(VERR_DEF_PARAMS,"Cannot use the an entropy con2prim routine without evolving the entropy. Please set igm_evolve_entropy=\"yes\" in the parfile. ABORTING!");
     }
   }
