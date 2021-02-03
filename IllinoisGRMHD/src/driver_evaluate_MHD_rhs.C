@@ -210,7 +210,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   which_prims_to_reconstruct  [ww]=eos.PPM_reconstructed_var; ww++;
   if( eos.is_Tabulated ) {
     which_prims_to_reconstruct[ww]=YEPRIM;                    ww++;
-    which_prims_to_reconstruct[ww]=TEMPERATURE;               ww++;
+    // which_prims_to_reconstruct[ww]=TEMPERATURE;               ww++;
   }
   which_prims_to_reconstruct  [ww]=VX;                        ww++;
   which_prims_to_reconstruct  [ww]=VY;                        ww++;
@@ -224,7 +224,8 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
                                in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
 
   if( eos.is_Tabulated ) {
-    check_temperature_reconstruction(eos,cctkGH,cctk_lsh,in_prims,out_prims_r,out_prims_l);
+    // check_temperature_reconstruction(eos,cctkGH,cctk_lsh,in_prims,out_prims_r,out_prims_l);
+    compute_remaining_prims_on_right_and_left_face(eos,cctkGH,cctk_lsh,in_prims,out_prims_r,out_prims_l);
   }
 
   //Right and left face values of BI_CENTER are used in mhdflux computation (first to compute b^a).
@@ -295,7 +296,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   which_prims_to_reconstruct  [ww]=eos.PPM_reconstructed_var; ww++;
   if( eos.is_Tabulated ) {
     which_prims_to_reconstruct[ww]=YEPRIM;                    ww++;
-    which_prims_to_reconstruct[ww]=TEMPERATURE;               ww++;
+    // which_prims_to_reconstruct[ww]=TEMPERATURE;               ww++;
   }
   which_prims_to_reconstruct  [ww]=VX;                        ww++;
   which_prims_to_reconstruct  [ww]=VY;                        ww++;
@@ -310,7 +311,8 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
                                in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
 
   if( eos.is_Tabulated ) {
-    check_temperature_reconstruction(eos,cctkGH,cctk_lsh,in_prims,out_prims_r,out_prims_l);
+    // check_temperature_reconstruction(eos,cctkGH,cctk_lsh,in_prims,out_prims_r,out_prims_l);
+    compute_remaining_prims_on_right_and_left_face(eos,cctkGH,cctk_lsh,in_prims,out_prims_r,out_prims_l);
   }
 
   //Right and left face values of BI_CENTER are used in mhdflux computation (first to compute b^a).
@@ -404,7 +406,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   which_prims_to_reconstruct  [ww]=eos.PPM_reconstructed_var; ww++;
   if( eos.is_Tabulated ) {
     which_prims_to_reconstruct[ww]=YEPRIM;                    ww++;
-    which_prims_to_reconstruct[ww]=TEMPERATURE;               ww++;
+    // which_prims_to_reconstruct[ww]=TEMPERATURE;               ww++;
   }
   which_prims_to_reconstruct  [ww]=VX;                        ww++;
   which_prims_to_reconstruct  [ww]=VY;                        ww++;
@@ -419,7 +421,8 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
                                in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
 
   if( eos.is_Tabulated ) {
-    check_temperature_reconstruction(eos,cctkGH,cctk_lsh,in_prims,out_prims_r,out_prims_l);
+    // check_temperature_reconstruction(eos,cctkGH,cctk_lsh,in_prims,out_prims_r,out_prims_l);
+    compute_remaining_prims_on_right_and_left_face(eos,cctkGH,cctk_lsh,in_prims,out_prims_r,out_prims_l);
   }
 
   //Right and left face values of BI_CENTER are used in mhdflux computation (first to compute b^a).
