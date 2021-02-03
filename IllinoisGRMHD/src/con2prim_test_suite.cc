@@ -69,17 +69,23 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
   //  T  will vary between  T_min  and  T_max  (uniformly in log space)
 
   // Number of points in the discretization of rho and T
-  const CCTK_INT npoints  = pow(2,8);
+  const CCTK_INT npoints       = igm_con2prim_standalone_npoints;
+
+  const CCTK_REAL test_rho_min = igm_con2prim_standalone_rho_min;
+  const CCTK_REAL test_rho_max = igm_con2prim_standalone_rho_max;
+
+  const CCTK_REAL test_T_min   = igm_con2prim_standalone_T_min;
+  const CCTK_REAL test_T_max   = igm_con2prim_standalone_T_max;
 
   // Compute the density step size
-  const CCTK_REAL lrmin   = log(eos.rho_min);
-  const CCTK_REAL lrmax   = log(eos.rho_max);
-  const CCTK_REAL dlr     = (lrmax - lrmin)/npoints;
+  const CCTK_REAL lrmin        = log(test_rho_min);
+  const CCTK_REAL lrmax        = log(test_rho_max);
+  const CCTK_REAL dlr          = (lrmax - lrmin)/npoints;
 
   // Compute the temperature step size
-  const CCTK_REAL ltmin   = log(eos.T_min);
-  const CCTK_REAL ltmax   = log(eos.T_max);
-  const CCTK_REAL dlt     = (ltmax - ltmin)/npoints;
+  const CCTK_REAL ltmin        = log(test_T_min);
+  const CCTK_REAL ltmax        = log(test_T_max);
+  const CCTK_REAL dlt          = (ltmax - ltmin)/npoints;
   
   // Fix Y_e
   const CCTK_REAL Ye_test = 0.1;
@@ -169,9 +175,9 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
         PRIMS[VX         ] = vx;
         PRIMS[VY         ] = vy;
         PRIMS[VZ         ] = vz;
-        PRIMS[BX_CENTER  ] = 0;//Bx;
-        PRIMS[BY_CENTER  ] = 0;//By;
-        PRIMS[BZ_CENTER  ] = 0;//Bz;
+        PRIMS[BX_CENTER  ] = Bx;
+        PRIMS[BY_CENTER  ] = By;
+        PRIMS[BZ_CENTER  ] = Bz;
 
         // Store original prims
         CCTK_REAL PRIMS_ORIG[MAXNUMVARS];
@@ -227,16 +233,34 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
         // in between time steps, and therefore our guesses are *not* the
         // values of the primitives in the previous time level. Instead, we provide
         // guesses based on the conservative variables.
-        CCTK_INT  which_guess=1; // this is essentially a dummy variable as far as this test is concerned
+        CCTK_INT  check = 0;
         CCTK_REAL prim[numprims];
-        set_prim_from_PRIMS_and_CONSERVS(eos,con2prim_test_keys[which_routine],which_guess,
-                                         METRIC,METRIC_LAP_PSI4,
-                                         PRIMS,CONSERVS,cons, prim);
+        for(int which_guess=1;which_guess<=2;which_guess++) {
+          set_prim_from_PRIMS_and_CONSERVS(eos,con2prim_test_keys[which_routine],which_guess,
+                                           METRIC,METRIC_LAP_PSI4,
+                                           PRIMS,CONSERVS,cons, prim);
+          // for(int i=0;i<numprims;i++) prim[i] = 1e300;
+          // prim[TEMP] = eos.T_max;
+          // prim[RHO     ] = PRIMS[RHOB       ];
+          // prim[YE      ] = PRIMS[YEPRIM     ];
+          // prim[TEMP    ] = PRIMS[TEMPERATURE];
+          // prim[UTCON1  ] = PRIMS[VX         ];
+          // prim[UTCON2  ] = PRIMS[VY         ];
+          // prim[UTCON3  ] = PRIMS[VZ         ];
+          // prim[WLORENTZ] = W_test;
+          // prim[B1_con  ] = PRIMS[BX_CENTER  ];
+          // prim[B2_con  ] = PRIMS[BY_CENTER  ];
+          // prim[B3_con  ] = PRIMS[BZ_CENTER  ];
+          check = con2prim_select(&eos,con2prim_test_keys[which_routine],METRIC_PHYS,g4dn,g4up,cons,prim);
+          which_guess = 4;
+          // if( check == 0 ) which_guess = 4;
+        }
 
-        // Now perform the primitive recovery
-        int check = con2prim_select(eos,con2prim_test_keys[which_routine],METRIC_PHYS,g4dn,g4up,cons,prim);
+        CCTK_REAL ERRORS[MAXNUMVARS],accumulated_error = 0.0;
         if( check != 0 ) {
           failures++;
+          CCTK_VInfo(CCTK_THORNSTRING,"Recovery FAILED!\n");
+          accumulated_error = 1e300;
         }
         else {
 
@@ -266,22 +290,16 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
           CCTK_REAL xtemp = PRIMS[TEMPERATURE];
           get_P_and_eps_from_rho_Ye_and_T(eos,xrho,xye,xtemp, &xprs,&xeps);
 
-          printf("eps_orig = %e | eps_out = %e | eps_eos = %e\n",PRIMS_ORIG[EPSILON],PRIMS[EPSILON],xeps);
-          
+          CCTK_VInfo(CCTK_THORNSTRING,"Recovery SUCCEEDED!");
+          for(int which_prim=0;which_prim<num_prims_in_error;which_prim++) {
+            int primL = which_prims_in_error[which_prim];
+            ERRORS[primL] = relative_error(PRIMS[primL],PRIMS_ORIG[primL]);
+            CCTK_VInfo(CCTK_THORNSTRING,"Relative error for prim %s: %.3e",primnames[primL],ERRORS[primL]);
+            accumulated_error += ERRORS[primL];
+          }
+          CCTK_VInfo(CCTK_THORNSTRING,"Total accumulated error    : %e\n",accumulated_error);
         }
-
-        // Now compute the con2prim errors
-        CCTK_REAL ERRORS[MAXNUMVARS];
-        CCTK_REAL accumulated_error = 0.0;
-        for(int which_prim=0;which_prim<num_prims_in_error;which_prim++) {
-          int primL = which_prims_in_error[which_prim];
-          ERRORS[primL] = relative_error(PRIMS[primL],PRIMS_ORIG[primL]);
-          CCTK_VInfo(CCTK_THORNSTRING,"(INFO) Relative error for prim %s: %.3e",primnames[primL],ERRORS[primL]);
-          accumulated_error += ERRORS[primL];
-        }
-        CCTK_VInfo(CCTK_THORNSTRING,"(INFO) Total accumulated error    : %e\n",accumulated_error);
-
-        fprintf(outfile,"%e %e %e %e\n",PRIMS_ORIG[RHOB],PRIMS_ORIG[TEMPERATURE],ERRORS[TEMPERATURE],accumulated_error);
+        fprintf(outfile,"%e %e %e\n",log10(PRIMS_ORIG[RHOB]),log10(PRIMS_ORIG[TEMPERATURE]),log10(MAX(accumulated_error,1e-16)));
       }
       fprintf(outfile,"\n");
     }
