@@ -1,4 +1,4 @@
-int con2prim( const igm_eos_parameters eos,
+int con2prim( igm_eos_parameters *restrict eos,
               const int index,const int i,const int j,const int k,
               const CCTK_REAL *restrict X,const CCTK_REAL *restrict Y,const CCTK_REAL *restrict Z,
               const CCTK_REAL *restrict METRIC,const CCTK_REAL *restrict METRIC_PHYS,const CCTK_REAL *restrict METRIC_LAP_PSI4,
@@ -64,47 +64,47 @@ int con2prim( const igm_eos_parameters eos,
   for(int which_guess=startguess;which_guess<3;which_guess++) {
 
     // Set the conserved variables required by the con2prim routine
-    set_cons_from_PRIMS_and_CONSERVS( eos, eos.c2p_routine, METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
+    set_cons_from_PRIMS_and_CONSERVS( *eos, eos->c2p_routine, METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
 
     // Set primitive guesses
-    set_prim_from_PRIMS_and_CONSERVS( eos, eos.c2p_routine, which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
+    set_prim_from_PRIMS_and_CONSERVS( *eos, eos->c2p_routine, which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
 
     /************* Conservative-to-primitive recovery ************/
-    int check = con2prim_select(eos,eos.c2p_routine,METRIC_PHYS,g4dn,g4up,cons,prim);
+    int check = con2prim_select(eos,eos->c2p_routine,METRIC_PHYS,g4dn,g4up,cons,prim);
 
-    if( (check != 0) && (eos.c2p_backup[0] != None) ) {
+    if( (check != 0) && (eos->c2p_backup[0] != None) ) {
       // Backup 1 triggered
       stats.backup[0] = 1;
       // Recompute guesses
-      set_cons_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[0], METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
-      set_prim_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[0], which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
+      set_cons_from_PRIMS_and_CONSERVS( *eos,eos->c2p_backup[0], METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
+      set_prim_from_PRIMS_and_CONSERVS( *eos,eos->c2p_backup[0], which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
       // Backup routine #1
-      check = con2prim_select(eos,eos.c2p_backup[0],METRIC_PHYS,g4dn,g4up,cons,prim);
+      check = con2prim_select(eos,eos->c2p_backup[0],METRIC_PHYS,g4dn,g4up,cons,prim);
 
-      if( (check != 0) && (eos.c2p_backup[1] != None) ) {
+      if( (check != 0) && (eos->c2p_backup[1] != None) ) {
         // Backup 1 triggered
         stats.backup[1] = 1;
         // Recompute guesses
-        set_cons_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[1], METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
-        set_prim_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[1], which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
+        set_cons_from_PRIMS_and_CONSERVS( *eos,eos->c2p_backup[1], METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
+        set_prim_from_PRIMS_and_CONSERVS( *eos,eos->c2p_backup[1], which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
         // Backup routine #2
-        check = con2prim_select(eos,eos.c2p_backup[1],METRIC_PHYS,g4dn,g4up,cons,prim);
+        check = con2prim_select(eos,eos->c2p_backup[1],METRIC_PHYS,g4dn,g4up,cons,prim);
 
-        if( (check != 0) && (eos.c2p_backup[2] != None) ) {
+        if( (check != 0) && (eos->c2p_backup[2] != None) ) {
           // Backup 1 triggered
           stats.backup[2] = 1;
           // Recompute guesses
-          set_cons_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[2], METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
-          set_prim_from_PRIMS_and_CONSERVS( eos,eos.c2p_backup[2], which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
+          set_cons_from_PRIMS_and_CONSERVS( *eos,eos->c2p_backup[2], METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons );
+          set_prim_from_PRIMS_and_CONSERVS( *eos,eos->c2p_backup[2], which_guess,METRIC,METRIC_LAP_PSI4,PRIMS,CONSERVS, cons,prim );
           // Backup routine #3
-          check = con2prim_select(eos,eos.c2p_backup[2],METRIC_PHYS,g4dn,g4up,cons,prim);
+          check = con2prim_select(eos,eos->c2p_backup[2],METRIC_PHYS,g4dn,g4up,cons,prim);
         }
       }
     }
     /*************************************************************/
 
     int font_fix_applied=0;
-    if( eos.is_Hybrid ) {
+    if( eos->is_Hybrid ) {
     // Use the new Font fix subroutine
       if(check!=0) {
         font_fix_applied=1;
@@ -112,7 +112,7 @@ int con2prim( const igm_eos_parameters eos,
         /************************
          * New Font fix routine *
          ************************/
-        check = font_fix__hybrid_EOS(eos,METRIC_PHYS,METRIC_LAP_PSI4,CONSERVS,PRIMS, u_xl,u_yl,u_zl);
+        check = font_fix__hybrid_EOS(*eos,METRIC_PHYS,METRIC_LAP_PSI4,CONSERVS,PRIMS, u_xl,u_yl,u_zl);
 
         //Translate to HARM primitive now:
         prim[UTCON1] = METRIC_PHYS[GUPXX]*u_xl + METRIC_PHYS[GUPXY]*u_yl + METRIC_PHYS[GUPXZ]*u_zl;
@@ -145,8 +145,8 @@ int con2prim( const igm_eos_parameters eos,
 
       // *** Limit velocity
       stats.vel_limited=0;
-      if (au0m1 > 0.9999999*(eos.W_max-1.0)) {
-        CCTK_REAL fac = sqrt((SQR(eos.W_max)-1.0)/(SQR(1.0+au0m1) - 1.0));
+      if (au0m1 > 0.9999999*(eos->W_max-1.0)) {
+        CCTK_REAL fac = sqrt((SQR(eos->W_max)-1.0)/(SQR(1.0+au0m1) - 1.0));
         utx_new *= fac;
         uty_new *= fac;
         utz_new *= fac;
@@ -161,7 +161,7 @@ int con2prim( const igm_eos_parameters eos,
 
 
       //The Font fix only sets the velocities.  Here we set the pressure & density HARM primitives.
-      if( eos.is_Hybrid ) {
+      if( eos->is_Hybrid ) {
         if(font_fix_applied==1) {
           prim[RHO] = rho_star_orig/(METRIC_LAP_PSI4[LAPSE]*u0L*METRIC_LAP_PSI4[PSI6]);
           //Next set P = P_cold:
@@ -177,9 +177,9 @@ int con2prim( const igm_eos_parameters eos,
            * Gamma and K parameters to be used
            * within this function.
            */
-          int polytropic_index = find_polytropic_K_and_Gamma_index(eos,prim[RHO]);
-          K_ppoly_tab     = eos.K_ppoly_tab[polytropic_index];
-          Gamma_ppoly_tab = eos.Gamma_ppoly_tab[polytropic_index];
+          int polytropic_index = find_polytropic_K_and_Gamma_index(*eos,prim[RHO]);
+          K_ppoly_tab     = eos->K_ppoly_tab[polytropic_index];
+          Gamma_ppoly_tab = eos->Gamma_ppoly_tab[polytropic_index];
 
           // After that, we compute P_cold
           P_cold = K_ppoly_tab*pow(prim[RHO],Gamma_ppoly_tab);
@@ -191,10 +191,10 @@ int con2prim( const igm_eos_parameters eos,
       /* Set rho_b */
       PRIMS[RHOB] = prim[RHO];
 
-      if( eos.is_Hybrid ) {
-        PRIMS[PRESSURE] = pressure_rho0_u(eos, prim[RHO],prim[UU]);
+      if( eos->is_Hybrid ) {
+        PRIMS[PRESSURE] = pressure_rho0_u(*eos, prim[RHO],prim[UU]);
       }
-      else if( eos.is_Tabulated ) {
+      else if( eos->is_Tabulated ) {
         PRIMS[YEPRIM     ] = prim[YE   ];
         PRIMS[TEMPERATURE] = prim[TEMP ];
         PRIMS[PRESSURE   ] = prim[PRESS];
@@ -214,10 +214,10 @@ int con2prim( const igm_eos_parameters eos,
 
       // If we reached the last guess and we are using
       // tabulated EOS, then reset to atmosphere.
-      if( (which_guess==2) && eos.is_Tabulated ) {
-        if( PRIMS[RHOB] > 1e-6*eos.rho_max ) {
+      if( (which_guess==2) && eos->is_Tabulated ) {
+        if( PRIMS[RHOB] > 1e-6 ) {
           CCTK_VInfo(CCTK_THORNSTRING,"Couldn't find root from: %e %e %e %e %e, rhob approx=%e, rho_b_atm=%e, Bx=%e, By=%e, Bz=%e, gij_phys=%e %e %e %e %e %e, alpha=%e",
-                     tau_orig,rho_star_orig,mhd_st_x_orig,mhd_st_y_orig,mhd_st_z_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
+                     tau_orig,rho_star_orig,mhd_st_x_orig,mhd_st_y_orig,mhd_st_z_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos->rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
           CCTK_VInfo(CCTK_THORNSTRING,"x,y,z = %e %e %e | i,j,k = %d %d %d",X[index],Y[index],Z[index],i,j,k);
           // if( CCTK_EQUALS(con2prim_high_density_failure_action,"just warn") ) {
           CCTK_VWARN(CCTK_WARN_ALERT,"****WARNING***** con2prim failure in high density region! ****WARNING*****");
@@ -227,14 +227,14 @@ int con2prim( const igm_eos_parameters eos,
           // }
         }
 
-        reset_prims_to_atmosphere( eos, PRIMS );
+        reset_prims_to_atmosphere( *eos, PRIMS );
         stats.atm_reset++;
         return 0;
       }
     }
   }
   CCTK_VInfo(CCTK_THORNSTRING,"Couldn't find root from: %e %e %e %e %e, rhob approx=%e, rho_b_atm=%e, Bx=%e, By=%e, Bz=%e, gij_phys=%e %e %e %e %e %e, alpha=%e",
-	     tau_orig,rho_star_orig,mhd_st_x_orig,mhd_st_y_orig,mhd_st_z_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
+	     tau_orig,rho_star_orig,mhd_st_x_orig,mhd_st_y_orig,mhd_st_z_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos->rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
   return 1;
 }
 
