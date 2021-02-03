@@ -1,3 +1,4 @@
+
 /* We evolve forward in time a set of functions called the
  *  "conservative variables", and any time the conserv's
  *  are updated, we must solve for the primitive variables
@@ -112,10 +113,12 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   int jmin=0,jmax=cctk_lsh[1];
   int kmin=0,kmax=cctk_lsh[2];
 
+  // This is for testing purposes and should be removed later
+  // FILE* c2pmaskfile = fopen("c2pmask.asc","w");
 
 #pragma omp parallel for reduction(+:failures,vel_limited_ptcount,font_fixes,pointcount,failures_inhoriz,pointcount_inhoriz,error_int_numer,error_int_denom,rho_star_fix_applied,atm_resets,backup1,backup2,backup3) schedule(static)
-  for(int k=kmin;k<kmax;k++)
-    for(int j=jmin;j<jmax;j++)
+  for(int k=kmin;k<kmax;k++) {
+    for(int j=jmin;j<jmax;j++) {
       for(int i=imin;i<imax;i++) {
         int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
@@ -246,12 +249,8 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         CCTK_REAL mhd_st_z_orig = CONSERVS[STILDEZ  ];
         CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
         CCTK_REAL Ye_star_orig  = 0.0;
-        CCTK_REAL S_star_orig   = 0.0;
         if( eos.is_Tabulated) {
           Ye_star_orig          = CONSERVS[YESTAR   ];
-        }
-        if( eos.c2p_routine == Palenzuela1D_entropy ) {
-          S_star_orig           = CONSERVS[ENTSTAR  ];
         }
 
 
@@ -271,7 +270,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
           }
 
           for(int ii=0;ii<3;ii++) {
-            check = con2prim(eos,
+            check = con2prim(&eos,
                              index,i,j,k,x,y,z,
                              METRIC,METRIC_PHYS,METRIC_LAP_PSI4,g4dn,g4up,
                              CONSERVS,PRIMS,
@@ -308,15 +307,15 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         // Tabulated EOS quantities
         if( eos.is_Tabulated ) {
           // Primitives
-          igm_Ye[index]          = PRIMS[YEPRIM      ];
-          igm_temperature[index] = PRIMS[TEMPERATURE ];
+          igm_Ye[index]          = PRIMS[YEPRIM     ];
+          igm_temperature[index] = PRIMS[TEMPERATURE];
           // Conservatives
-          Ye_star[index]         = CONSERVS[YESTAR   ];
+          Ye_star[index]         = CONSERVS[YESTAR  ];
         }
 
         // Entropy evolution quantities
         if( eos.evolve_entropy ) {
-          S_star[index]          = CONSERVS[ENTSTAR  ];
+          S_star[index]          = CONSERVS[ENTSTAR ];
         }
 
         if(update_Tmunu) {
@@ -343,12 +342,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
           error_int_denom += Ye_star_orig;
         }
 
-        // if( eos.c2p_routine == Palenzuela1D_entropy ) {
-        //   error_int_numer += fabs(S_star[index]  - S_star_orig);
-        //   error_int_denom += S_star_orig;
-        // }
-
-        if(stats.atm_reset==1) atm_resets++;
+        if(stats.atm_reset==1) { atm_resets++; eos.c2p_used = -1; }
         if(stats.backup[0]==1) backup1++;
         if(stats.backup[1]==1) backup2++;
         if(stats.backup[2]==1) backup3++;
@@ -364,7 +358,15 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         pointcount++;
         /***************************************************************************************************************************/
         failure_checker[index] = stats.failure_checker;
-      }
+
+        // if( k == cctk_lsh[2]/2 ) fprintf(c2pmaskfile,"%e %e %d\n",x[index],y[index],eos.c2p_used);
+
+      } // for(int i=imin;i<imax;i++)
+      // if( k == cctk_lsh[2]/2 ) fprintf(c2pmaskfile,"\n");
+    } // for(int j=jmin;j<jmax;j++)
+  } // for(int k=kmin;k<kmax;k++)
+
+  // fclose(c2pmaskfile);
 
   if(CCTK_Equals(verbose, "essential") || CCTK_Equals(verbose, "essential+iteration output")) {
     CCTK_VInfo(CCTK_THORNSTRING,"C2P: Lev: %d NumPts= %d | Fixes: BU: %d %d %d Font= %d VL= %d rho*= %d ATM= %d | Failures: %d InHoriz= %d / %d | Error: %.3e, ErrDenom: %.3e",
