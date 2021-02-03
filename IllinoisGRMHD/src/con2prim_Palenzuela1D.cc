@@ -16,21 +16,21 @@
 #include <string.h>
 #include <stdbool.h>
 
-void palenzuela( const igm_eos_parameters eos,
+void palenzuela( igm_eos_parameters *restrict eos,
                  bool *restrict c2p_failed, const double S_squared, const double BdotS,
                  const double B_squared, const double *restrict con, double *restrict prim,
                  const double *restrict SU, const double tol_x, bool use_epsmin );
 
-double zbrent( double (*func)(const igm_eos_parameters, double, double *restrict, bool, double *restrict),
-               const igm_eos_parameters eos, double *restrict param,
+double zbrent( double (*func)(igm_eos_parameters *restrict, double, double *restrict, bool, double *restrict),
+               igm_eos_parameters *restrict eos, double *restrict param,
                double *restrict temp_guess, double x1, double x2, double tol_x, bool *restrict c2p_failed, bool use_epsmin );
 
-void calc_prim( const igm_eos_parameters eos,
+void calc_prim( igm_eos_parameters *restrict eos,
                 const double x, const double *restrict con, const double * param, const double temp_guess, double *restrict prim,
                 const double S_squared, const double BdotS,
                 const double B_squared, const double *restrict SU );
 
-double func_root( const igm_eos_parameters eos, double x, double *restrict param, bool use_epsmin, double *restrict temp_guess );
+double func_root( igm_eos_parameters *restrict eos, double x, double *restrict param, bool use_epsmin, double *restrict temp_guess );
 
 
 /*****************************************************************************/
@@ -45,7 +45,7 @@ double func_root( const igm_eos_parameters eos, double x, double *restrict param
 // -> S_{i} = \tilde{S}_{i} / sqrt(gamma)
 //
 // From the input quantities, we compute B_{i} and S^{i}
-int con2prim_Palenzuela1D( const igm_eos_parameters eos,
+int con2prim_Palenzuela1D( igm_eos_parameters *restrict eos,
                            const CCTK_REAL *restrict adm_quantities,
                            const CCTK_REAL *restrict con,
                            CCTK_REAL *restrict prim ) {
@@ -108,7 +108,7 @@ int con2prim_Palenzuela1D( const igm_eos_parameters eos,
   for(int i=0;i<3;i++) S_squared += SU[i] * SD[i];
 
   bool c2p_failed = false;
-  palenzuela( eos, &c2p_failed, S_squared,BdotS,B_squared, con, prim, SU, 1e-12, true );
+  palenzuela( eos, &c2p_failed, S_squared,BdotS,B_squared, con, prim, SU, 5e-15, true );
 
   return c2p_failed;
 
@@ -117,7 +117,7 @@ int con2prim_Palenzuela1D( const igm_eos_parameters eos,
 /*****************************************************************************/
 /*********************** PALENZUELA CON2PRIM FUNCTIONS ***********************/
 /*****************************************************************************/
-void palenzuela(const igm_eos_parameters eos,
+void palenzuela(igm_eos_parameters *restrict eos,
                 bool *restrict c2p_failed, const double S_squared, const double BdotS,
                 const double B_squared, const double * con, double *restrict prim,
                 const CCTK_REAL *restrict SU, const double tol_x, bool use_epsmin)
@@ -133,13 +133,14 @@ void palenzuela(const igm_eos_parameters eos,
   double s = B_squared/con[DD];
   double t = BdotS/(pow(con[DD],1.5));
 
-  double param[6];
+  double param[7];
   param[par_q] = q;
   param[par_r] = r;
   param[par_s] = s;
   param[par_t] = t;
   param[conDD] = con[DD];
   param[conYE] = con[YE];
+  param[conWS] = con[WS];
 
   // bracket for x
   double xlow = 1.0+q-s;
@@ -156,7 +157,7 @@ void palenzuela(const igm_eos_parameters eos,
 
 }
 
-void calc_prim(const igm_eos_parameters eos,
+void calc_prim(igm_eos_parameters *restrict eos,
                const double x, const double *restrict con, const double *restrict param, const double temp_guess, double *restrict prim,
                const double S_squared, const double BdotS,
                const double B_squared, const double *restrict SU ) {
@@ -169,22 +170,41 @@ void calc_prim(const igm_eos_parameters eos,
   double t = param[par_t];
 
   double Wminus2 = 1.0 - ( x*x*r + (2*x+s)*t*t ) / ( x*x*(x+s)*(x+s) );
-  Wminus2 = fmin(fmax(Wminus2,eos.inv_W_max_squared ), 1.0);
+  Wminus2 = fmin(fmax(Wminus2,eos->inv_W_max_squared ), 1.0);
   double W= pow(Wminus2, -0.5);
 
-  double rho   = con[DD]/W;
-  double ye    = con[YE]/con[DD];
-  double temp  = temp_guess;
-  double press = 0.0;
-  double eps   = 0.0;
-  double ent   = 0.0;
-  if( eos.evolve_T ) {
+  double rho    = con[DD]/W;
+  double ye     = con[YE]/con[DD];
+  double temp   = temp_guess;
+  double press  = 0.0;
+  double eps    = 0.0;
+  double ent    = 0.0;
+  double depsdT = 0.0;
+  if( eos->evolve_T ) {
+
+    // Start by using the default Palenzuela algorithm, which is to
+    // compute eps from the conservs and obtain the the other hydro
+    // quantities from it. Notice, however, that we also compute
+    // deps/dT, which differs from the original algorithm.
     eps = W - 1.0 + (1.0-W*W)*x/W + W*(q - s + t*t/(2*x*x) + s/(2*W*W)  );
-    eps=fmax(eps, eos.eps_min);
-    get_P_S_and_T_from_rho_Ye_and_eps( eos, rho,ye,eps, &press,&ent,&temp );
+    eps=fmax(eps, eos->eps_min);
+    get_P_S_T_and_depsdT_from_rho_Ye_and_eps( *eos, rho,ye,eps, &press,&ent,&temp,&depsdT );
+    
+    if( (con[DD] > eos->rho_threshold) || (depsdT < eos->depsdT_threshold) ) {
+      // If the dependency of eps on the temperature is weak or we are
+      // above a certain density threshold,then we recompute the hydro
+      // quantities using the entropy.
+      ent = con[WS]/con[DD];
+      get_P_eps_and_T_from_rho_Ye_and_S( *eos,rho,ye,ent, &press,&eps,&temp );
+      eos->c2p_used = Palenzuela1D_entropy;
+    }
+    else {
+      eos->c2p_used = Palenzuela1D;
+    }
+
   }
   else {
-    get_P_eps_and_S_from_rho_Ye_and_T( eos, rho,ye,temp, &press,&eps,&ent );
+    get_P_eps_and_S_from_rho_Ye_and_T( *eos, rho,ye,temp, &press,&eps,&ent );
   }
 
   const CCTK_REAL Z = x*rho*W;
@@ -208,7 +228,7 @@ void calc_prim(const igm_eos_parameters eos,
   prim[ENT     ] = ent;
 }
 
-double func_root(const igm_eos_parameters eos, double x, double *restrict param, bool use_epsmin, double *restrict temp_guess) {
+double func_root(igm_eos_parameters *restrict eos, double x, double *restrict param, bool use_epsmin, double *restrict temp_guess) {
 
   // computes f(x) from x and q,r,s,t
 
@@ -219,26 +239,42 @@ double func_root(const igm_eos_parameters eos, double x, double *restrict param,
 
   // (i)
   double Wminus2 = 1.0 - ( x*x*r + (2*x+s)*t*t  )/ (x*x*(x+s)*(x+s));
-  Wminus2 = fmin(fmax(Wminus2,eos.inv_W_max_squared ), 1.0);
+  Wminus2 = fmin(fmax(Wminus2,eos->inv_W_max_squared ), 1.0);
   const double W= pow(Wminus2, -0.5);
 
   // (ii)
-  double rho  = param[conDD]/W;
-  double ye   = param[conYE]/param[conDD];
-  double temp = *temp_guess;
-  double P    = 0.0;
-  double eps  = 0.0;
-  if( eos.evolve_T ) {
-    eps = W - 1.0 + (1.0-W*W)*x/W + W*(q - s + t*t/(2*x*x) + s/(2*W*W));
-    eps = fmax(eps, eos.eps_min);
-    get_P_and_T_from_rho_Ye_and_eps( eos,rho,ye,eps, &P, &temp );
+  double rho    = param[conDD]/W;
+  double ye     = param[conYE]/param[conDD];
+  double temp   = *temp_guess;
+  double P      = 0.0;
+  double eps    = 0.0;
+  double ent    = 0.0;
+  double depsdT = 0.0;
+  if( eos->evolve_T ) {
+
+    // Start by using the default Palenzuela algorithm, which is to
+    // compute eps from the conservs and obtain the the other hydro
+    // quantities from it. Notice, however, that we also compute
+    // deps/dT, which differs from the original algorithm.
+    eps = W - 1.0 + (1.0-W*W)*x/W + W*(q - s + t*t/(2*x*x) + s/(2*W*W)  );
+    eps=fmax(eps, eos->eps_min);
+    get_P_S_T_and_depsdT_from_rho_Ye_and_eps( *eos, rho,ye,eps, &P,&ent,&temp,&depsdT );
+    
+    if( (param[conDD] > eos->rho_threshold) || (depsdT < eos->depsdT_threshold) ) {
+      // If the dependency of eps on the temperature is weak or we are
+      // above a certain density threshold,then we recompute the hydro
+      // quantities using the entropy.
+      ent = param[conWS]/param[conDD];
+      get_P_eps_and_T_from_rho_Ye_and_S( *eos,rho,ye,ent, &P,&eps,&temp );
+    }
+
   }
   else {
-    get_P_and_eps_from_rho_Ye_and_T( eos,rho,ye,eps, &P, &temp );
+    get_P_and_eps_from_rho_Ye_and_T( *eos,rho,ye,eps, &P, &temp );
   }
 
   // (iv)
-  double ans = x- (1.0 + eps + P/rho)*W;
+  double ans = x - (1.0 + eps + P/rho)*W;
 
   return ans;
 }
@@ -252,8 +288,8 @@ double func_root(const igm_eos_parameters eos, double x, double *restrict param,
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
 
 
-double zbrent(double (*func)(const igm_eos_parameters, double, double *, bool, double *restrict),
-              const igm_eos_parameters eos, double *restrict param,
+double zbrent(double (*func)(igm_eos_parameters *restrict, double, double *, bool, double *restrict),
+              igm_eos_parameters *restrict eos, double *restrict param,
               double * temp_guess, double x1, double x2, double tol_x, bool *restrict c2p_failed, bool use_epsmin)
 {
 
