@@ -171,6 +171,11 @@ void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,i
   eos.S_min   = eos_entmin  * igm_eos_table_floor_safety_factor;
   // --------------------------------------
 
+  // ----- con2prim threshold values ------
+  eos.rho_threshold    = palenzuela_rho_threshold;
+  eos.depsdT_threshold = palenzuela_depsdT_threshold;
+  // --------------------------------------
+
   // All done!
 
 }
@@ -631,4 +636,101 @@ void EOS_EP_dEdr_dEdt_dPdr_dPdt_2D( const double rho,
   *Eprim  = xeps;
   *Pprim  = xprs;
 
+}
+
+void compute_remaining_prims_on_right_and_left_face( const igm_eos_parameters eos,
+                                                     const cGH *restrict cctkGH,
+                                                     const CCTK_INT *restrict cctk_lsh,
+                                                     const gf_and_gz_struct *restrict in_prims,
+                                                     gf_and_gz_struct *restrict out_prims_r,
+                                                     gf_and_gz_struct *restrict out_prims_l ) {
+
+#pragma omp parallel for
+  for(int k=0;k<cctk_lsh[2];k++)
+    for(int j=0;j<cctk_lsh[1];j++)
+      for(int i=0;i<cctk_lsh[0];i++) {        
+        CCTK_INT index  = CCTK_GFINDEX3D(cctkGH,i,j,k);
+
+        //---------- Left face ----------
+        CCTK_REAL xrhoR  = out_prims_r[RHOB    ].gf[index];
+        CCTK_REAL xyeR   = out_prims_r[YEPRIM  ].gf[index];
+        CCTK_REAL xtempR = in_prims[TEMPERATURE].gf[index];
+        CCTK_REAL xentR  = 0.0;
+        if( eos.PPM_reconstructed_var == PRESSURE ) {
+          CCTK_REAL xprsR  = out_prims_r[PRESSURE].gf[index];
+          CCTK_REAL xepsR  = 0.0;
+          get_eps_S_and_T_from_rho_Ye_and_P( eos,xrhoR,xyeR,xprsR, &xepsR,&xentR,&xtempR );
+          out_prims_r[EPSILON  ].gf[index] = xepsR;
+        }
+        else if( eos.PPM_reconstructed_var == EPSILON ) {
+          CCTK_REAL xprsR  = 0.0;
+          CCTK_REAL xepsR  = out_prims_r[EPSILON].gf[index];
+          get_P_S_and_T_from_rho_Ye_and_eps( eos,xrhoR,xyeR,xepsR, &xprsR,&xentR,&xtempR );
+          out_prims_r[PRESSURE ].gf[index] = xprsR;
+        }
+        out_prims_r[TEMPERATURE].gf[index] = xtempR;
+        out_prims_r[ENTROPY    ].gf[index] = xentR;
+        //-------------------------------
+
+        //---------- Right face ---------
+        CCTK_REAL xrhoL  = out_prims_l[RHOB    ].gf[index];
+        CCTK_REAL xyeL   = out_prims_l[YEPRIM  ].gf[index];
+        CCTK_REAL xtempL = in_prims[TEMPERATURE].gf[index];
+        CCTK_REAL xentL  = 0.0;
+        if( eos.PPM_reconstructed_var == PRESSURE ) {
+          CCTK_REAL xprsL  = out_prims_l[PRESSURE].gf[index];
+          CCTK_REAL xepsL  = 0.0;
+          get_eps_S_and_T_from_rho_Ye_and_P( eos,xrhoL,xyeL,xprsL, &xepsL,&xentL,&xtempL );
+          out_prims_l[EPSILON  ].gf[index] = xepsL;
+        }
+        else if( eos.PPM_reconstructed_var == EPSILON ) {
+          CCTK_REAL xprsL  = 0.0;
+          CCTK_REAL xepsL  = out_prims_l[EPSILON].gf[index];
+          get_P_S_and_T_from_rho_Ye_and_eps( eos,xrhoL,xyeL,xepsL, &xprsL,&xentL,&xtempL );
+          out_prims_l[PRESSURE ].gf[index] = xprsL;
+        }
+        out_prims_l[TEMPERATURE].gf[index] = xtempL;
+        out_prims_l[ENTROPY    ].gf[index] = xentL;
+        //-------------------------------
+      }
+
+}
+
+void get_P_S_T_and_depsdT_from_rho_Ye_and_eps( const igm_eos_parameters eos,
+                                               const CCTK_REAL rho,
+                                               const CCTK_REAL Y_e,
+                                               const CCTK_REAL eps,
+                                               CCTK_REAL *restrict P,
+                                               CCTK_REAL *restrict S,
+                                               CCTK_REAL *restrict T,
+                                               CCTK_REAL *restrict depsdT ) {
+  // Set up for table call
+  CCTK_INT  npoints    = 1;
+  CCTK_INT  keyerr     = 0;
+  CCTK_INT  anyerr     = 0;
+  // The EOS_Omni function does not like some of its arguments
+  // being constant (even when they are not supposed to change).
+  // We declare auxiliary variables here to avoid errors.
+  CCTK_REAL rho_in     = rho;
+  CCTK_REAL Y_e_in     = Y_e;
+  CCTK_REAL eps_in     = eps;
+  CCTK_REAL prs_out    = 0.0;
+  CCTK_REAL S_out      = 0.0;
+  CCTK_REAL T_out      = *T;
+  CCTK_REAL depsdT_out = 0.0;
+  CCTK_REAL dummy      = 0.0;
+
+  // Perform the table interpolations
+  EOS_Omni_short( eos.key,have_eps,eos.root_finding_precision,npoints,
+                  &rho_in,&eps_in,&T_out,&Y_e_in,&prs_out,&S_out,
+                  &dummy,&depsdT_out,&dummy,&dummy,&dummy,
+                  &keyerr,&anyerr );
+
+  // Now update P and eps
+  *P      = prs_out;
+  *S      = S_out;
+  *T      = T_out;
+  *depsdT = depsdT_out;
+
+  // FIXME: add error handling!  
 }
