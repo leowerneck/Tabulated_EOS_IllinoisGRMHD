@@ -17,7 +17,7 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
                                        const CCTK_REAL *restrict METRIC_LAP_PSI4,
                                        const CCTK_REAL *restrict PRIMS,
                                        const CCTK_REAL *restrict CONSERVS,
-                                       CCTK_REAL *restrict cons) {
+                                       CCTK_REAL *restrict cons ) {
 
   // IllinoisGRMHD's variable is the "densitised" version of
   // the standard conservative variables (D,tau,S_{i}). In
@@ -88,9 +88,9 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   //----------------------------------------
   //--------------- Entropy ----------------
   //----------------------------------------
-  if( (c2p_key == Noble1D_entropy     ) ||
-      (c2p_key == Noble1D_entropy2    ) ||
-      (c2p_key == Palenzuela1D_entropy) ) {
+  if( (c2p_key == Noble1D_entropy ) ||
+      (c2p_key == Noble1D_entropy2) ||
+      (c2p_key == Palenzuela1D    ) ) {
 
     // The entropy variable is given by
     //
@@ -127,7 +127,8 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   if( (c2p_key == Noble2D         ) ||
       (c2p_key == Noble1D         ) ||
       (c2p_key == Noble1D_entropy ) ||
-      (c2p_key == Noble1D_entropy2) ) {
+      (c2p_key == Noble1D_entropy2) ||
+      (c2p_key == CerdaDuran2D    ) ) {
 
     if(which_guess==1) {
       //Use a different initial guess:
@@ -188,21 +189,27 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
     CCTK_REAL utyL = u0L*(vyL + METRIC[SHIFTY]);
     CCTK_REAL utzL = u0L*(vzL + METRIC[SHIFTZ]);
 
-    prim[RHO   ]   = rho_b_oldL;
-    prim[UU    ]   = uL;
-    prim[UTCON1]   = utxL;
-    prim[UTCON2]   = utyL;
-    prim[UTCON3]   = utzL;
-    prim[BCON1 ]   = cons[BCON1];
-    prim[BCON2 ]   = cons[BCON2];
-    prim[BCON3 ]   = cons[BCON3];
+    prim[RHO     ] = rho_b_oldL;
+    prim[UU      ] = uL;
+    prim[UTCON1  ] = utxL;
+    prim[UTCON2  ] = utyL;
+    prim[UTCON3  ] = utzL;
+    prim[BCON1   ] = cons[BCON1];
+    prim[BCON2   ] = cons[BCON2];
+    prim[BCON3   ] = cons[BCON3];
+    prim[WLORENTZ] = METRIC_LAP_PSI4[LAPSE] * u0L;
 
   }
   
   if( eos.is_Tabulated ) {
     // This one is very simple! The only guess required is the temperature
-    prim[TEMP  ] = pow(10.0,(which_guess-1)) * eos.T_atm;
-    prim[YE    ] = CONSERVS[YESTAR]/CONSERVS[RHOSTAR];
+    if( which_guess == 1 ) {
+      prim[TEMP  ] = eos.T_max;
+    }
+    else {
+      prim[TEMP  ] = eos.T_atm;
+    }
+    prim[YE      ] = CONSERVS[YESTAR]/CONSERVS[RHOSTAR];
   }
   
 }
