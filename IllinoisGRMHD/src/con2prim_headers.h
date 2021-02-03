@@ -75,8 +75,8 @@ static const CCTK_REAL G_ISOTHERMAL = 1.0;
 
 static const int MAX_NEWT_ITER       = 30;     /* Max. # of Newton-Raphson iterations for find_root_2D(); */
 static const int EXTRA_NEWT_ITER     = 0; /* ZACH SAYS: Original value = 2. But I don't think this parameter > 0 is warranted. Just slows the code for no reason, since our tolerances are fine. */
-static const CCTK_REAL NEWT_TOL      = 1.0e-10;    /* Min. of tolerance allowed for Newton-Raphson iterations */
-static const CCTK_REAL MIN_NEWT_TOL  = 1.0e-10;    /* Max. of tolerance allowed for Newton-Raphson iterations */
+static const CCTK_REAL NEWT_TOL      = 5e-9;    /* Min. of tolerance allowed for Newton-Raphson iterations */
+static const CCTK_REAL MIN_NEWT_TOL  = 5e-9;    /* Max. of tolerance allowed for Newton-Raphson iterations */
 
 static const CCTK_REAL NEWT_TOL2     = 1.0e-15;      /* TOL of new 1D^*_{v^2} gnr2 method */
 static const CCTK_REAL MIN_NEWT_TOL2 = 1.0e-10;  /* TOL of new 1D^*_{v^2} gnr2 method */
@@ -147,7 +147,7 @@ static const int numcons  =11; // D, UU, S_{x,y,z}, B^{x,y,z}, DYe, tau, DS
 
 CCTK_INT con2prim_get_key( const char* routine_name );
 
-int con2prim( const igm_eos_parameters eos,
+int con2prim( igm_eos_parameters *restrict eos,
               const int index,const int i,const int j,const int k,
               const CCTK_REAL *restrict X,const CCTK_REAL *restrict Y,const CCTK_REAL *restrict Z,
               const CCTK_REAL *restrict METRIC,const CCTK_REAL *restrict METRIC_PHYS,const CCTK_REAL *restrict METRIC_LAP_PSI4,
@@ -155,7 +155,7 @@ int con2prim( const igm_eos_parameters eos,
               CCTK_REAL *restrict CONSERVS,CCTK_REAL *restrict PRIMS,
               output_stats& stats );
 
-int con2prim_select( const igm_eos_parameters eos,
+int con2prim_select( igm_eos_parameters *restrict eos,
                      const CCTK_INT c2p_key,
                      const CCTK_REAL *restrict adm_quantities,
                      const CCTK_REAL g4dn[4][4],
@@ -192,15 +192,10 @@ int con2prim_Noble1D_entropy2( const igm_eos_parameters eos,
                                const CCTK_REAL *restrict cons,
                                CCTK_REAL *restrict prim );
 
-int con2prim_Palenzuela1D( const igm_eos_parameters eos,
+int con2prim_Palenzuela1D( igm_eos_parameters *restrict eos,
                            const CCTK_REAL *restrict adm_quantities,
                            const CCTK_REAL *restrict cons,
                            CCTK_REAL *restrict prim );
-
-int con2prim_Palenzuela1D_entropy( const igm_eos_parameters eos,
-                                   const CCTK_REAL *restrict adm_quantities,
-                                   const CCTK_REAL *restrict cons,
-                                   CCTK_REAL *restrict prim );
 
 int font_fix__hybrid_EOS( const igm_eos_parameters eos,
                           const CCTK_REAL *restrict METRIC_PHYS,const CCTK_REAL *restrict METRIC_LAP_PSI4,
