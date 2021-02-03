@@ -194,7 +194,7 @@ void calc_prim(igm_eos_parameters *restrict eos,
       // If the dependency of eps on the temperature is weak or we are
       // above a certain density threshold,then we recompute the hydro
       // quantities using the entropy.
-      ent = con[WS]/con[DD];
+      ent = con[WS]/W;
       get_P_eps_and_T_from_rho_Ye_and_S( *eos,rho,ye,ent, &press,&eps,&temp );
       eos->c2p_used = Palenzuela1D_entropy;
     }
@@ -264,7 +264,7 @@ double func_root(igm_eos_parameters *restrict eos, double x, double *restrict pa
       // If the dependency of eps on the temperature is weak or we are
       // above a certain density threshold,then we recompute the hydro
       // quantities using the entropy.
-      ent = param[conWS]/param[conDD];
+      ent = param[conWS]/W;
       get_P_eps_and_T_from_rho_Ye_and_S( *eos,rho,ye,ent, &P,&eps,&temp );
     }
 
