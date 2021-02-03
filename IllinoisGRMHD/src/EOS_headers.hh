@@ -27,6 +27,8 @@ typedef struct _igm_eos_parameters_ {
   CCTK_INT c2p_routine;
   // con2prim backup routines keys
   CCTK_INT c2p_backup[3];
+  // Which con2prim routine was used (debugging purposes)
+  CCTK_INT c2p_used;
   // Which variable to reconstruct in PPM
   CCTK_INT PPM_reconstructed_var;
   // Whether or not to evolve the entropy
@@ -67,6 +69,8 @@ typedef struct _igm_eos_parameters_ {
   CCTK_REAL S_atm  , S_min  , S_max  ;
   // Root-finding precision for table inversions
   CCTK_REAL root_finding_precision;
+  // These thresholds are used for selecting the appropriate con2prim routine
+  CCTK_REAL rho_threshold,depsdT_threshold;
   //------------------------------------------------
 
 } igm_eos_parameters;
@@ -168,6 +172,13 @@ void check_temperature_reconstruction( const igm_eos_parameters eos,
                                        gf_and_gz_struct *restrict prims_right,
                                        gf_and_gz_struct *restrict prims_left );
 
+void compute_remaining_prims_on_right_and_left_face( const igm_eos_parameters eos,
+                                                     const cGH *restrict cctkGH,
+                                                     const CCTK_INT *restrict cctk_lsh,
+                                                     const gf_and_gz_struct *restrict in_prims,
+                                                     gf_and_gz_struct *restrict out_prims_r,
+                                                     gf_and_gz_struct *restrict out_prims_l );
+
 void find_lowest_gradient_temperature_recompute_prims( const igm_eos_parameters eos,
                                                        const CCTK_REAL T_center,
                                                        CCTK_REAL *restrict PRIMS );
@@ -181,6 +192,15 @@ void EOS_EP_dEdr_dEdt_dPdr_dPdt_2D( const double rho,
                                     double *restrict dEdt,
                                     double *restrict dPdrho,
                                     double *restrict dPdt );
+
+void get_P_S_T_and_depsdT_from_rho_Ye_and_eps( const igm_eos_parameters eos,
+                                               const CCTK_REAL rho,
+                                               const CCTK_REAL Y_e,
+                                               const CCTK_REAL eps,
+                                               CCTK_REAL *restrict P,
+                                               CCTK_REAL *restrict S,
+                                               CCTK_REAL *restrict T,
+                                               CCTK_REAL *restrict depsdT );
 
 //------------------------------------------------
 
