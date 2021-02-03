@@ -21,11 +21,11 @@ CCTK_INT con2prim_get_key( const char* routine_name ) {
   else if( CCTK_EQUALS(routine_name,"Noble1D_entropy2") ) {
     return Noble1D_entropy2;
   }
+  else if( CCTK_EQUALS(routine_name,"CerdaDuran2D") ) {
+    return CerdaDuran2D;
+  }
   else if( CCTK_EQUALS(routine_name,"Palenzuela1D") ) {
     return Palenzuela1D;
-  }
-  else if( CCTK_EQUALS(routine_name,"Palenzuela1D_entropy") ) {
-    return Palenzuela1D_entropy;
   }
   else {
     CCTK_VError(VERR_DEF_PARAMS,"Unknown con2prim routine: %s. Please check your parameter file. ABORTING!",routine_name);
