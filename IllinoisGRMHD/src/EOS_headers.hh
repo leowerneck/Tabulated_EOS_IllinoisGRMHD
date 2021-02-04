@@ -69,8 +69,8 @@ typedef struct _igm_eos_parameters_ {
   CCTK_REAL S_atm  , S_min  , S_max  ;
   // Root-finding precision for table inversions
   CCTK_REAL root_finding_precision;
-  // These thresholds are used for selecting the appropriate con2prim routine
-  CCTK_REAL rho_threshold,depsdT_threshold;
+  // This threshold is used by the Palenzuela con2prim routine
+  CCTK_REAL depsdT_threshold;
   //------------------------------------------------
 
 } igm_eos_parameters;

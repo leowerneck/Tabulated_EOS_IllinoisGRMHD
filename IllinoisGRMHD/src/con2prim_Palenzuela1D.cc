@@ -190,7 +190,7 @@ void calc_prim(igm_eos_parameters *restrict eos,
     eps=fmax(eps, eos->eps_min);
     get_P_S_T_and_depsdT_from_rho_Ye_and_eps( *eos, rho,ye,eps, &press,&ent,&temp,&depsdT );
     
-    if( (con[DD] > eos->rho_threshold) || (depsdT < eos->depsdT_threshold) ) {
+    if( depsdT < eos->depsdT_threshold ) {
       // If the dependency of eps on the temperature is weak or we are
       // above a certain density threshold,then we recompute the hydro
       // quantities using the entropy.
@@ -260,7 +260,7 @@ double func_root(igm_eos_parameters *restrict eos, double x, double *restrict pa
     eps=fmax(eps, eos->eps_min);
     get_P_S_T_and_depsdT_from_rho_Ye_and_eps( *eos, rho,ye,eps, &P,&ent,&temp,&depsdT );
     
-    if( (param[conDD] > eos->rho_threshold) || (depsdT < eos->depsdT_threshold) ) {
+    if( depsdT < eos->depsdT_threshold ) {
       // If the dependency of eps on the temperature is weak or we are
       // above a certain density threshold,then we recompute the hydro
       // quantities using the entropy.

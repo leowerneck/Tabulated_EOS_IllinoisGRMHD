@@ -211,7 +211,6 @@ CCTK_STRING igm_con2prim_routine "What con2prim routine is used"
   "Noble1D_entropy2"     :: "1Dw routine in https://arxiv.org/pdf/astro-ph/0512420.pdf, but uses the entropy and eq. (27)"
   "CerdaDuran2D"         :: "See https://arxiv.org/pdf/0804.4572.pdf"
   "Palenzuela1D"         :: "https://arxiv.org/pdf/1505.01607.pdf (see also https://arxiv.org/pdf/1712.07538.pdf for an excellent review)"
-  "Palenzuela1D_entropy" :: "Modified version of the above routine, by Leonardo Werneck"
 } "Noble2D"
 
 restricted:
@@ -224,7 +223,6 @@ CCTK_STRING igm_con2prim_backup_routine[3] "We allow up to 3 backup routines"
   "Noble1D_entropy2"     :: "1Dw routine in https://arxiv.org/pdf/astro-ph/0512420.pdf, but uses the entropy and eq. (27)"
   "CerdaDuran2D"         :: "See https://arxiv.org/pdf/0804.4572.pdf"
   "Palenzuela1D"         :: "https://arxiv.org/pdf/1505.01607.pdf (see also https://arxiv.org/pdf/1712.07538.pdf for an excellent review)"
-  "Palenzuela1D_entropy" :: "Modified version of the above routine, by Leonardo Werneck"
 } "None"
 
 restricted:
@@ -267,12 +265,6 @@ CCTK_REAL igm_con2prim_standalone_T_max "Maximum temperature for the con2prim st
 {
   0.0:* :: "Positive"
 } 1e+2
-
-restricted:
-CCTK_REAL palenzuela_rho_threshold "Above this density, the code will use the entropy instead of energy during con2prim"
-{
-  0.0:* :: "Positive"
-} 1e-6
 
 restricted:
 CCTK_REAL palenzuela_depsdT_threshold "Below this value, the code will use the entropy instead of energy during con2prim"

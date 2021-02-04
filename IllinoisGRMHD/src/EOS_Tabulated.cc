@@ -172,7 +172,6 @@ void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,i
   // --------------------------------------
 
   // ----- con2prim threshold values ------
-  eos.rho_threshold    = palenzuela_rho_threshold;
   eos.depsdT_threshold = palenzuela_depsdT_threshold;
   // --------------------------------------
 
