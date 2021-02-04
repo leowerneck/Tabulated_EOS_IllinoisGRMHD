@@ -1,0 +1,178 @@
+# Schedule definitions for thorn ZelmaniLeak
+
+STORAGE: munu
+
+if(do_tau || force_tau_interp) {
+   STORAGE: zelmani_interpolated_variables
+   STORAGE: zelmani_tau_scalars
+   STORAGE: zelmani_tau
+   STORAGE: zelmani_heating_energies
+   STORAGE: rad,phi,theta
+   STORAGE: tau3D[1]
+   STORAGE: zelmani_leak_account_local[3]
+   STORAGE: ZLtau_grr[3]
+   STORAGE: have_interp_data
+}
+
+
+# energycheck is a variable that may be used to compute the integrated
+# energy change due to fake neutrinos. It is off by default.
+# note that, when active, one needs to sync energycheck 
+#STORAGE: energycheck[3]
+
+if(do_pnu) {
+  STORAGE: pnu
+}
+
+schedule group ZelmaniLeakChangeYe AT CCTK_EVOL AFTER (MoL_Evolution,MoL_PseudoEvolution)
+{
+} "Adjust Y_e according to Y_e(rho) prebounce"
+
+schedule ZelmaniLeak_ye_of_rho IN ZelmaniLeakChangeYe
+{
+ LANG: Fortran
+ # we do not sync here, because sync happens in the boundary call
+} "Change Y_e"
+
+schedule group HydroBase_Prim2ConInitial IN ZelmaniLeakChangeYe AFTER ZelmaniLeak_ye_of_rho
+{
+} "Do some fun Prim2Con-ing"
+
+schedule group HydroBase_Boundaries IN ZelmaniLeakChangeYe AFTER ZelmaniLeak_ye_of_rho
+{
+} "Do the boundaries after Y_e change"
+
+# Need to sync primitives as well!
+if (sync_conserved_only)
+{
+   schedule group GRHydro_PrimitiveBoundaries IN ZelmaniLeakChangeYe AFTER ZelmaniLeak_ye_of_rho BEFORE HydroBase_Boundaries
+   {
+   } "Do primitive boundaries after Y_e change!"
+}
+
+schedule ZelmaniLeak_ParamCheck IN CCTK_PARAMCHECK
+{
+  LANG: C
+  OPTIONS: global
+} "check consistency of parameters"
+
+if(do_pnu) {
+  schedule ZelmaniLeak_NeutrinoPressureWrap IN MoL_PostRHS BEFORE CheapExcision IF GRHydro::execute_MoL_Step
+  {
+   LANG: C
+  } "Add neutrino pressure to the RHS"
+
+  if(pnu_in_tmunu) {
+    schedule ZelmaniLeak_Tmunu IN AddToTmunu
+    {
+     LANG: Fortran
+    } "Add neutrino pressure to Tmunu"
+  }
+}
+
+  schedule ZelmaniLeak_Startup AT BASEGRID
+  {
+   LANG: Fortran
+  } "Initialize some things"
+
+  schedule ZelmaniLeak_Startup AT POST_RECOVER_VARIABLES
+  {
+   LANG: Fortran
+  } "Initialize some things"
+
+  schedule ZelmaniLeak_Startup_global AT BASEGRID
+  {
+   LANG: Fortran
+   OPTION: global
+  } "Initialize some things"
+
+  schedule ZelmaniLeak_Startup_global AT POST_RECOVER_VARIABLES
+  {
+   LANG: Fortran
+   OPTION: global
+  } "Initialize some things"
+
+
+if(do_tau||force_tau_interp) {
+
+  schedule ZLtau_register in MoL_Register
+  {
+   LANG: C
+   OPTION: global
+  } "register variables"
+
+  schedule ZLtau_set_origin_init AT BASEGRID
+  {
+   LANG: C
+   OPTION: global
+  } "Initialize leakage origin"
+
+  schedule ZLtau_setup AT CCTK_INITIAL 
+  {
+   LANG: C
+   OPTION: global
+  } "Set up drad,dtheta,dphi"
+
+  schedule ZLtau_setup AT POST_RECOVER_VARIABLES
+  {
+   LANG: C
+   OPTION: global
+  } "Set up drad,dtheta,dphi"
+
+  schedule ZLtau_setup_local AT CCTK_INITIAL
+  {
+   LANG: C
+  } "Initialize"
+
+  if(start_with_clean_tau) {	
+    schedule ZLtau_setup_local AT POST_RECOVER_VARIABLES
+    {
+     LANG: C
+    } "Initialize"
+
+    schedule ZLtau_set_origin_init AT POST_RECOVER_VARIABLES
+    {
+     LANG: C
+     OPTION: global
+    } "Initialize leakage origin"
+  }
+
+  schedule ZLtau_calc_grr in MoL_PseudoEvolution
+  {
+    LANG: C
+  } "compute grr"
+
+  schedule ZLtau_calc_grr AT POST_RECOVER_VARIABLES
+  {
+    LANG: C
+  } "compute grr"
+
+  schedule ZLtau_calc_grr AT POSTREGRID 
+  {
+    LANG: C
+  } "compute grr"
+
+  schedule ZLtau_get_rays AT CCTK_EVOL AFTER (MoL_Evolution,MoL_PseudoEvolution)
+  {
+   LANG: C
+   OPTION: global
+  } "Get rays for tau calculation"
+
+  schedule ZelmaniLeak_CalcTau AT CCTK_EVOL AFTER (MoL_Evolution,ZLtau_get_rays)
+  {
+   LANG: Fortran
+   OPTION: global
+  } "Compute the Optical Depth"
+
+  schedule ZelmaniLeak_CalcLeak AT CCTK_EVOL AFTER ZelmaniLeak_CalcTau
+  {
+   LANG: Fortran
+   SYNC: zelmani_leak_account_local	
+  } "Compute Leakage"
+
+  schedule group HydroBase_Prim2ConInitial AT CCTK_EVOL AFTER ZelmaniLeak_CalcLeak
+  {
+  } "Do some fun Prim2Con-ing"
+
+
+}
