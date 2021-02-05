@@ -468,17 +468,11 @@ void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(CCTK_REAL *U, 
 void print_EOS_Hybrid( igm_eos_parameters eos ) {
 
   /* Start by printint a header t the table */
-#ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
-  CCTK_VInfo(CCTK_THORNSTRING,
-             "\n.--------------------------------------------.\n");
-#else
-  printf(".--------------------------------------------.\n");
-#endif
-         
-  printf("|             Hybrid EOS Details             |\n"
-         ".--------------------------------------------.\n"
-         "|              rho_ppoly_tab[j]              |\n"
-         ".--------------------------------------------.\n");
+  CCTK_VInfo(CCTK_THORNSTRING,"\n.--------------------------------------------.");
+  CCTK_VInfo(CCTK_THORNSTRING,"|             Hybrid EOS Details             |");
+  CCTK_VInfo(CCTK_THORNSTRING,".--------------------------------------------.");
+  CCTK_VInfo(CCTK_THORNSTRING,"|              rho_ppoly_tab[j]              |");
+  CCTK_VInfo(CCTK_THORNSTRING,".--------------------------------------------.");
 
   /* Adjust the maximum index of rhob to
    * allow for single polytropes as well
@@ -493,29 +487,29 @@ void print_EOS_Hybrid( igm_eos_parameters eos ) {
 
   /* Print out rho_pppoly_tab */
   for(int jj=0; jj<=max_rho_index; jj++) {
-    printf("|  rho_ppoly_tab[%d] = %.15e  |\n",jj,eos.rho_ppoly_tab[jj]);
+    CCTK_VInfo(CCTK_THORNSTRING,"|  rho_ppoly_tab[%d] = %.15e  |\n",jj,eos.rho_ppoly_tab[jj]);
     if(jj == eos.neos-2) {
-      printf(".--------------------------------------------.\n");
+      CCTK_VInfo(CCTK_THORNSTRING,".--------------------------------------------.");
     }
   }
 
   /* Print out Gamma_ppoly_tab */
-  printf("|             Gamma_ppoly_tab[j]             |\n"
-         ".--------------------------------------------.\n");
+  CCTK_VInfo(CCTK_THORNSTRING,"|             Gamma_ppoly_tab[j]             |");
+  CCTK_VInfo(CCTK_THORNSTRING,".--------------------------------------------.");
   for(int jj=0; jj<=eos.neos-1; jj++) {
-    printf("| Gamma_ppoly_tab[%d] = %.15e |\n",jj,eos.Gamma_ppoly_tab[jj]);
+    CCTK_VInfo(CCTK_THORNSTRING,"| Gamma_ppoly_tab[%d] = %.15e |",jj,eos.Gamma_ppoly_tab[jj]);
     if(jj == eos.neos-1) {
-      printf(".--------------------------------------------.\n");
+      CCTK_VInfo(CCTK_THORNSTRING,".--------------------------------------------.");
     }
   }
 
   /* Print out K_ppoly_tab */
-  printf("|               K_ppoly_tab[j]               |\n"
-         ".--------------------------------------------.\n");
+  CCTK_VInfo(CCTK_THORNSTRING,"|               K_ppoly_tab[j]               |");
+  CCTK_VInfo(CCTK_THORNSTRING,".--------------------------------------------.");
   for(int jj=0; jj<=eos.neos-1; jj++) {
-    printf("|   K_ppoly_tab[%d] = %.15e   |\n",jj,eos.K_ppoly_tab[jj]);
+    CCTK_VInfo(CCTK_THORNSTRING,"|   K_ppoly_tab[%d] = %.15e   |\n",jj,eos.K_ppoly_tab[jj]);
     if(jj == eos.neos-1) {
-      printf(".--------------------------------------------.\n\n");
+      CCTK_VInfo(CCTK_THORNSTRING,".--------------------------------------------.\n");
     }
   }
 }

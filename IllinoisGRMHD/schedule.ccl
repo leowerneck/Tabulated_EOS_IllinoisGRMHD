@@ -11,10 +11,18 @@ STORAGE: grmhd_primitives_allbutBi,grmhd_primitives_Bi,grmhd_primitives_Bi_stagg
 schedule IllinoisGRMHD_EOS_get_key at BASEGRID after EOS_OMNI_get_energy_shift before IllinoisGRMHD_con2prim_test_suit
 {
   LANG: C
-  OPTIONS: LOCAL
+  OPTIONS: GLOBAL
 } "Get EOS handle for IllinoisGRMHD's interface with EOS_Omni"
 
 STORAGE: igm_eos_key
+
+####################
+# PARAMETER CHECK
+schedule IllinoisGRMHD_parameter_check at BASEGRID after IllinoisGRMHD_EOS_get_key
+{
+  LANG: C
+  OPTIONS: GLOBAL
+} "Check input parameters"
 
 # Con2prim standalone test suite
 if( igm_con2prim_standalone ) {

@@ -29,12 +29,6 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
   igm_eos_parameters eos;
   initialize_igm_eos_parameters_from_input(igm_eos_key,cctk_time,eos);
 
-  /* For diagnostic and user convenience purposes, we print
-   * out the EOS parameters (rho_ppoly_tab, K_ppoly_tab,
-   * and Gamma_ppoly_tab) at t=0.
-   */
-  if( eos.is_Hybrid && cctk_iteration==0 && (int)GetRefinementLevel(cctkGH)==0) { print_EOS_Hybrid(eos); }
-
   // Perform parameter checks
 
   // Hybrid EOS
