@@ -17,20 +17,45 @@
 #include <stdbool.h>
 
 void palenzuela( igm_eos_parameters *restrict eos,
-                 bool *restrict c2p_failed, const double S_squared, const double BdotS,
-                 const double B_squared, const double *restrict con, double *restrict prim,
-                 const double *restrict SU, const double tol_x, bool use_epsmin );
+                 bool *restrict c2p_failed,
+                 const double S_squared,
+                 const double BdotS,
+                 const double B_squared,
+                 const double *restrict con,
+                 double *restrict prim,
+                 const double *restrict SU,
+                 const double tol_x,
+                 bool use_epsmin,
+                 bool use_entropy_if_needed );
 
-double zbrent( double (*func)(igm_eos_parameters *restrict, double, double *restrict, bool, double *restrict),
-               igm_eos_parameters *restrict eos, double *restrict param,
-               double *restrict temp_guess, double x1, double x2, double tol_x, bool *restrict c2p_failed, bool use_epsmin );
+double zbrent( double (*func)(igm_eos_parameters *restrict, double, double *restrict, bool, double *restrict, bool),
+               igm_eos_parameters *restrict eos,
+               double *restrict param,
+               double *restrict temp_guess,
+               double x1,
+               double x2,
+               double tol_x,
+               bool *restrict c2p_failed,
+               bool use_epsmin,
+               bool use_entropy_if_needed );
 
 void calc_prim( igm_eos_parameters *restrict eos,
-                const double x, const double *restrict con, const double * param, const double temp_guess, double *restrict prim,
-                const double S_squared, const double BdotS,
-                const double B_squared, const double *restrict SU );
+                const double x,
+                const double *restrict con,
+                const double * param,
+                const double temp_guess,
+                double *restrict prim,
+                const double S_squared,
+                const double BdotS,
+                const double B_squared,
+                const double *restrict SU,
+                bool use_entropy_if_needed );
 
-double func_root( igm_eos_parameters *restrict eos, double x, double *restrict param, bool use_epsmin, double *restrict temp_guess );
+double func_root( igm_eos_parameters *restrict eos,
+                  double x, double *restrict param,
+                  bool use_epsmin,
+                  double *restrict temp_guess,
+                  bool use_entropy_if_needed );
 
 
 /*****************************************************************************/
@@ -108,7 +133,11 @@ int con2prim_Palenzuela1D( igm_eos_parameters *restrict eos,
   for(int i=0;i<3;i++) S_squared += SU[i] * SD[i];
 
   bool c2p_failed = false;
-  palenzuela( eos, &c2p_failed, S_squared,BdotS,B_squared, con, prim, SU, 5e-15, true );
+  palenzuela( eos, &c2p_failed, S_squared,BdotS,B_squared, con, prim, SU, 5e-15, true, true );
+
+  if( (c2p_failed) == true && eos->c2p_used == Palenzuela1D_entropy ) {
+    palenzuela( eos, &c2p_failed, S_squared,BdotS,B_squared, con, prim, SU, 5e-15, true, false );
+  }
 
   return c2p_failed;
 
@@ -117,10 +146,17 @@ int con2prim_Palenzuela1D( igm_eos_parameters *restrict eos,
 /*****************************************************************************/
 /*********************** PALENZUELA CON2PRIM FUNCTIONS ***********************/
 /*****************************************************************************/
-void palenzuela(igm_eos_parameters *restrict eos,
-                bool *restrict c2p_failed, const double S_squared, const double BdotS,
-                const double B_squared, const double * con, double *restrict prim,
-                const CCTK_REAL *restrict SU, const double tol_x, bool use_epsmin)
+void palenzuela( igm_eos_parameters *restrict eos,
+                 bool *restrict c2p_failed,
+                 const double S_squared,
+                 const double BdotS,
+                 const double B_squared,
+                 const double * con,
+                 double *restrict prim,
+                 const CCTK_REAL *restrict SU,
+                 const double tol_x,
+                 bool use_epsmin,
+                 bool use_entropy_if_needed )
 {
 
   // main root finding routine
@@ -150,17 +186,24 @@ void palenzuela(igm_eos_parameters *restrict eos,
   double temp_guess=prim[TEMP];
 
   // find x, this is the recovery process
-  double x = zbrent(*func_root, eos, param, &temp_guess, xlow, xup, tol_x, c2p_failed, use_epsmin);
+  double x = zbrent(*func_root, eos, param, &temp_guess, xlow, xup, tol_x, c2p_failed, use_epsmin,use_entropy_if_needed);
 
   // calculate final set of primitives
-  calc_prim(eos, x, con, param, temp_guess, prim, S_squared, BdotS, B_squared, SU);
+  calc_prim(eos, x, con, param, temp_guess, prim, S_squared, BdotS, B_squared, SU, use_entropy_if_needed);
 
 }
 
-void calc_prim(igm_eos_parameters *restrict eos,
-               const double x, const double *restrict con, const double *restrict param, const double temp_guess, double *restrict prim,
-               const double S_squared, const double BdotS,
-               const double B_squared, const double *restrict SU ) {
+void calc_prim( igm_eos_parameters *restrict eos,
+                const double x,
+                const double *restrict con,
+                const double *restrict param,
+                const double temp_guess,
+                double *restrict prim,
+                const double S_squared,
+                const double BdotS,
+                const double B_squared,
+                const double *restrict SU,
+                bool use_entropy_if_needed ) {
   
   // Recover the primitive variables prim from x, q, r, s, t, con
 
@@ -190,7 +233,7 @@ void calc_prim(igm_eos_parameters *restrict eos,
     eps=fmax(eps, eos->eps_min);
     get_P_S_T_and_depsdT_from_rho_Ye_and_eps( *eos, rho,ye,eps, &press,&ent,&temp,&depsdT );
     
-    if( depsdT < eos->depsdT_threshold ) {
+    if( (use_entropy_if_needed == true) && (depsdT < eos->depsdT_threshold) ) {
       // If the dependency of eps on the temperature is weak or we are
       // above a certain density threshold,then we recompute the hydro
       // quantities using the entropy.
@@ -228,7 +271,12 @@ void calc_prim(igm_eos_parameters *restrict eos,
   prim[ENT     ] = ent;
 }
 
-double func_root(igm_eos_parameters *restrict eos, double x, double *restrict param, bool use_epsmin, double *restrict temp_guess) {
+double func_root( igm_eos_parameters *restrict eos,
+                  double x,
+                  double *restrict param,
+                  bool use_epsmin,
+                  double *restrict temp_guess,
+                  bool use_entropy_if_needed ) {
 
   // computes f(x) from x and q,r,s,t
 
@@ -260,7 +308,7 @@ double func_root(igm_eos_parameters *restrict eos, double x, double *restrict pa
     eps=fmax(eps, eos->eps_min);
     get_P_S_T_and_depsdT_from_rho_Ye_and_eps( *eos, rho,ye,eps, &P,&ent,&temp,&depsdT );
     
-    if( depsdT < eos->depsdT_threshold ) {
+    if( (use_entropy_if_needed == true) && (depsdT < eos->depsdT_threshold) ) {
       // If the dependency of eps on the temperature is weak or we are
       // above a certain density threshold,then we recompute the hydro
       // quantities using the entropy.
@@ -288,10 +336,16 @@ double func_root(igm_eos_parameters *restrict eos, double x, double *restrict pa
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
 
 
-double zbrent(double (*func)(igm_eos_parameters *restrict, double, double *, bool, double *restrict),
-              igm_eos_parameters *restrict eos, double *restrict param,
-              double * temp_guess, double x1, double x2, double tol_x, bool *restrict c2p_failed, bool use_epsmin)
-{
+double zbrent( double (*func)(igm_eos_parameters *restrict, double, double *, bool, double *restrict, bool),
+               igm_eos_parameters *restrict eos,
+               double *restrict param,
+               double * temp_guess,
+               double x1,
+               double x2,
+               double tol_x,
+               bool *restrict c2p_failed,
+               bool use_epsmin,
+               bool use_entropy_if_needed ) {
 
   // Implementation of Brent’s method to find the root of a function func to accuracy tol_x. The root
   // must be bracketed by x1 and x2.
@@ -309,8 +363,8 @@ double zbrent(double (*func)(igm_eos_parameters *restrict, double, double *, boo
   double temp_guess_a = *temp_guess;
   double temp_guess_b = *temp_guess;
   double temp_guess_c = *temp_guess;
-  double fa=(*func)(eos, a, param, use_epsmin, &temp_guess_a);
-  double fb=(*func)(eos, b, param, use_epsmin, &temp_guess_b);
+  double fa=(*func)(eos, a, param, use_epsmin, &temp_guess_a,use_entropy_if_needed);
+  double fb=(*func)(eos, b, param, use_epsmin, &temp_guess_b,use_entropy_if_needed);
   double fc,p,q,r,s,tol1;
 
   // root must be bracketed
@@ -400,7 +454,7 @@ double zbrent(double (*func)(igm_eos_parameters *restrict, double, double *, boo
       // update trial root
       if (fabs(d) > tol1)  b += d;
       else                 b += SIGN(tol1,maxerror);
-      fb=(*func)(eos, b, param, use_epsmin, &temp_guess_b);
+      fb=(*func)(eos, b, param, use_epsmin, &temp_guess_b,use_entropy_if_needed);
 
 
     } else {  
@@ -418,7 +472,7 @@ double zbrent(double (*func)(igm_eos_parameters *restrict, double, double *, boo
       // update trial root
       if (fabs(d) > tol1)  b += d;
       else                 b += SIGN(tol1, maxerror);
-      fb=(*func)(eos, b, param, use_epsmin, &temp_guess_b);
+      fb=(*func)(eos, b, param, use_epsmin, &temp_guess_b,use_entropy_if_needed);
     }
 
     ++iter;
