@@ -202,6 +202,24 @@ void get_P_S_T_and_depsdT_from_rho_Ye_and_eps( const igm_eos_parameters eos,
                                                CCTK_REAL *restrict T,
                                                CCTK_REAL *restrict depsdT );
 
+void get_P_eps_and_depsdT_from_rho_Ye_and_T( const igm_eos_parameters eos,
+                                             const CCTK_REAL rho,
+                                             const CCTK_REAL Y_e,
+                                             const CCTK_REAL T,
+                                             CCTK_REAL *restrict P,
+                                             CCTK_REAL *restrict eps,
+                                             CCTK_REAL *restrict depsdT );
+
+void get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_S( const igm_eos_parameters eos,
+                                                      const CCTK_REAL rho,
+                                                      const CCTK_REAL Ye,
+                                                      const CCTK_REAL S,
+                                                      CCTK_REAL *restrict P,
+                                                      CCTK_REAL *restrict eps,
+                                                      CCTK_REAL *restrict T,
+                                                      CCTK_REAL *restrict dPdrho, 
+                                                      CCTK_REAL *restrict dPdeps );
+
 //------------------------------------------------
 
 #endif // __EOS_HEADERS__
