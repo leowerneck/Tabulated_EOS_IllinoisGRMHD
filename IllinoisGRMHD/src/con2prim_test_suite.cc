@@ -251,9 +251,8 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
           // prim[B1_con  ] = PRIMS[BX_CENTER  ];
           // prim[B2_con  ] = PRIMS[BY_CENTER  ];
           // prim[B3_con  ] = PRIMS[BZ_CENTER  ];
-          check = con2prim_select(&eos,con2prim_test_keys[which_routine],METRIC_PHYS,g4dn,g4up,cons,prim);
-          which_guess = 4;
-          // if( check == 0 ) which_guess = 4;
+          check = con2prim_select(&eos,con2prim_test_keys[which_routine],METRIC_PHYS,g4dn,g4up,cons,prim);  
+          if( check == 0 ) which_guess = 4;
         }
 
         CCTK_REAL ERRORS[MAXNUMVARS],accumulated_error = 0.0;
