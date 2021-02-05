@@ -118,6 +118,21 @@ int con2prim_Palenzuela1D( igm_eos_parameters *restrict eos,
       SU[i] += gammaUU[i][j] * SD[j];
     }
   }
+
+  // S^2 = S^i * S_i
+  CCTK_REAL S_squared = 0.0;
+  for(int i=0;i<3;i++) S_squared += SU[i] * SD[i];
+
+  // Enforce inequality (A5) of Palenzuela et al. (https://arxiv.org/pdf/1505.01607.pdf)
+  CCTK_REAL S_squared_max = SQR( con[DD] + con[TAU] );
+  if( S_squared > 0.9999 * S_squared_max ) {
+    CCTK_REAL rescale_factor = sqrt(0.9999*S_squared_max/S_squared);
+    S_squared = S_squared_max;
+    for(int i=0;i<3;i++) {
+      SD[i]  *= rescale_factor;
+      SU[i]  *= rescale_factor;
+    }
+  }
  
   // Need to calculate for (21) and (22) in Cerda-Duran 2008
   // B * S = B^i * S_i
@@ -127,10 +142,6 @@ int con2prim_Palenzuela1D( igm_eos_parameters *restrict eos,
   // B^2 = B^i * B_i
   CCTK_REAL B_squared = 0.0;
   for(int i=0;i<3;i++) B_squared += BU[i] * BD[i];
-  
-  // S^2 = S^i * S_i
-  CCTK_REAL S_squared = 0.0;
-  for(int i=0;i<3;i++) S_squared += SU[i] * SD[i];
 
   bool c2p_failed = false;
   palenzuela( eos, &c2p_failed, S_squared,BdotS,B_squared, con, prim, SU, 5e-15, true, true );
