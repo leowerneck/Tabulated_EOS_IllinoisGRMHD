@@ -31,6 +31,7 @@
 // arguments.
 typedef struct _harm_auxiliary_vars_ {
   CCTK_REAL Bsq,QdotBsq,Qsq,Qtsq,Qdotn,QdotB,D,gamma,gamma_times_S,ye;
+  bool use_entropy;
 } harm_aux_vars_struct;
 
 
