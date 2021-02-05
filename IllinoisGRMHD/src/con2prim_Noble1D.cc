@@ -71,21 +71,21 @@ int Utoprim_new_body_1d( const igm_eos_parameters eos,
                          const CCTK_REAL gcon[NDIM][NDIM],
                          CCTK_REAL *restrict prim );
 
-int newton_raphson_1d( CCTK_REAL x[], int n, igm_eos_parameters eos, harm_aux_vars_struct harm_aux, CCTK_REAL indep_var_in,
+int newton_raphson_1d( CCTK_REAL x[], int n, igm_eos_parameters eos, harm_aux_vars_struct& harm_aux, CCTK_REAL indep_var_in,
                        void (*funcd) (CCTK_REAL [], CCTK_REAL [], CCTK_REAL [],
                                       CCTK_REAL [][NEWT_DIM], CCTK_REAL *,
                                       CCTK_REAL *, int,
-                                      igm_eos_parameters, harm_aux_vars_struct, CCTK_REAL));
+                                      igm_eos_parameters, harm_aux_vars_struct&, CCTK_REAL));
 
 void func_1d_orig(CCTK_REAL x[], CCTK_REAL dx[], CCTK_REAL resid[],
                   CCTK_REAL jac[][NEWT_DIM], CCTK_REAL *f, CCTK_REAL *df, int n,
-                  igm_eos_parameters eos, harm_aux_vars_struct harm_aux, CCTK_REAL dummy);
+                  igm_eos_parameters eos, harm_aux_vars_struct& harm_aux, CCTK_REAL dummy);
 
-CCTK_REAL vsq_calc(harm_aux_vars_struct harm_aux,CCTK_REAL W);
+CCTK_REAL vsq_calc(harm_aux_vars_struct& harm_aux,CCTK_REAL W);
 CCTK_REAL pressure_W_vsq(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_REAL &D) ;
 CCTK_REAL dpdW_calc_vsq(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq);
 CCTK_REAL dpdvsq_calc(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_REAL &D);
-CCTK_REAL dvsq_dW(harm_aux_vars_struct harm_aux, CCTK_REAL W);
+CCTK_REAL dvsq_dW(harm_aux_vars_struct& harm_aux, CCTK_REAL W);
 
 /**********************************************************************/
 /******************************************************************
@@ -364,7 +364,7 @@ int Utoprim_new_body_1d( const igm_eos_parameters eos,
 *********************************************************************************/
 void func_1d_orig(CCTK_REAL x[], CCTK_REAL dx[], CCTK_REAL resid[],
                   CCTK_REAL jac[][NEWT_DIM], CCTK_REAL *f, CCTK_REAL *df, int n,
-                  igm_eos_parameters eos, harm_aux_vars_struct harm_aux, CCTK_REAL dummy) {
+                  igm_eos_parameters eos, harm_aux_vars_struct& harm_aux, CCTK_REAL dummy) {
 
   // Set W from input
   CCTK_REAL W = x[0];
@@ -406,7 +406,7 @@ void func_1d_orig(CCTK_REAL x[], CCTK_REAL dx[], CCTK_REAL resid[],
       -- evaluate the partial derivative of v^2 w.r.t. W
 
 ****************************************************************************/
-CCTK_REAL dvsq_dW(harm_aux_vars_struct harm_aux, CCTK_REAL W)
+CCTK_REAL dvsq_dW(harm_aux_vars_struct& harm_aux, CCTK_REAL W)
 {
 
   CCTK_REAL X  = harm_aux.Bsq + W;
@@ -425,11 +425,11 @@ CCTK_REAL dvsq_dW(harm_aux_vars_struct harm_aux, CCTK_REAL W)
     -- inspired in part by Num. Rec.'s routine newt();
 
 *****************************************************************/
-int newton_raphson_1d( CCTK_REAL x[], int n, igm_eos_parameters eos, harm_aux_vars_struct harm_aux, CCTK_REAL indep_var_in,
+int newton_raphson_1d( CCTK_REAL x[], int n, igm_eos_parameters eos, harm_aux_vars_struct& harm_aux, CCTK_REAL indep_var_in,
                        void (*funcd) (CCTK_REAL [], CCTK_REAL [], CCTK_REAL [],
                                       CCTK_REAL [][NEWT_DIM], CCTK_REAL *,
                                       CCTK_REAL *, int,
-                                      igm_eos_parameters, harm_aux_vars_struct, CCTK_REAL))
+                                      igm_eos_parameters, harm_aux_vars_struct&, CCTK_REAL))
 {
   // Initialize various parameters and variables:
   CCTK_REAL errx  = 1.0;

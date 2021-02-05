@@ -77,15 +77,15 @@ utoprim_2d.c:
 #define NEWT_DIM (2)
 
 // Declarations:
-CCTK_REAL vsq_calc(harm_aux_vars_struct harm_aux,CCTK_REAL W);
+CCTK_REAL vsq_calc(harm_aux_vars_struct& harm_aux,CCTK_REAL W);
 
-int general_newton_raphson( igm_eos_parameters eos, harm_aux_vars_struct harm_aux,
+int general_newton_raphson( igm_eos_parameters eos, harm_aux_vars_struct& harm_aux,
                             CCTK_REAL x[], int n,
-                            void (*funcd)(igm_eos_parameters, harm_aux_vars_struct,CCTK_REAL [], CCTK_REAL [], CCTK_REAL [], CCTK_REAL [][NEWT_DIM], CCTK_REAL *, CCTK_REAL *, int) );
+                            void (*funcd)(igm_eos_parameters, harm_aux_vars_struct&,CCTK_REAL [], CCTK_REAL [], CCTK_REAL [], CCTK_REAL [][NEWT_DIM], CCTK_REAL *, CCTK_REAL *, int) );
 
-void func_vsq( igm_eos_parameters eos, harm_aux_vars_struct harm_aux,CCTK_REAL [], CCTK_REAL [], CCTK_REAL [], CCTK_REAL [][NEWT_DIM], CCTK_REAL *f, CCTK_REAL *df, int n);
+void func_vsq( igm_eos_parameters eos, harm_aux_vars_struct& harm_aux,CCTK_REAL [], CCTK_REAL [], CCTK_REAL [], CCTK_REAL [][NEWT_DIM], CCTK_REAL *f, CCTK_REAL *df, int n);
 
-CCTK_REAL x1_of_x0(harm_aux_vars_struct harm_aux,CCTK_REAL x0 ) ;
+CCTK_REAL x1_of_x0(harm_aux_vars_struct& harm_aux,CCTK_REAL x0 ) ;
 
 CCTK_REAL pressure_W_vsq(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_REAL &D) ;
 CCTK_REAL dpdW_calc_vsq(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq);
@@ -197,16 +197,8 @@ int Utoprim_new_body( const igm_eos_parameters eos,
   CCTK_REAL rho0,u,p,w,gammasq,gtmp,W_last,W,utsq,vsq;
   int i,j, n, retval, i_increase;
 
-  // printf("Starting Noble2D con2prim\n");
-  // printf("U:\n");
-  // for(int i=0;i<numcons;i++) printf("%e\n",U[i]);
-  // printf("prim:\n");
-  // for(int i=0;i<numprims;i++) printf("%e\n",prim[i]);
-
-  // Contains Bsq,QdotBsq,Qsq,Qtsq,Qdotn,QdotB,D,gamma,gamma_times_S
+  // Contains Bsq,QdotBsq,Qsq,Qtsq,Qdotn,QdotB,D,gamma,gamma_times_S,ye
   harm_aux_vars_struct harm_aux;
-  // We don't need gamma_times_S, but this will silence compiler warnings
-  harm_aux.gamma_times_S = 0.0;
 
   n = NEWT_DIM ;
 
@@ -275,26 +267,27 @@ int Utoprim_new_body( const igm_eos_parameters eos,
     p = pressure_rho0_u(eos, rho0,u);
   }
   else if( eos.is_Tabulated ) {
-    harm_aux.ye = U[YE]/U[RHO];
-    CCTK_REAL xrho  = rho0;
-    CCTK_REAL xye   = harm_aux.ye;
-    CCTK_REAL xtemp = prim[TEMP];
-    CCTK_REAL xprs  = 0.0;
-    CCTK_REAL xeps  = 0.0;
+    harm_aux.ye            = U[YE]/U[RHO];
+    harm_aux.gamma_times_S = U[WS];
+    harm_aux.use_entropy   = false;
+    CCTK_REAL xrho         = rho0;
+    CCTK_REAL xye          = harm_aux.ye;
+    CCTK_REAL xtemp        = prim[TEMP];
+    CCTK_REAL xprs         = 0.0;
+    CCTK_REAL xeps         = 0.0;
+    CCTK_REAL xdepsdT      = 0.0;
 
-    // printf("EOS call in : xrho, xye, xtemp = %e %e %e\n",xrho,xye,xtemp);
-    
-    // Now compute P and eps from (rho,Ye,T)
-    get_P_and_eps_from_rho_Ye_and_T( eos,xrho,xye,xtemp, &xprs,&xeps );
+    // Now compute P and eps from (rho,Ye,T). Note that
+    // at this point we do not know W, so we do not
+    // use the entropy in this function call.
+    get_P_eps_and_depsdT_from_rho_Ye_and_T( eos,xrho,xye,xtemp, &xprs,&xeps,&xdepsdT );
     p = xprs;
     u = xeps*xrho;
-    // printf("EOS call out: xprs = %e\n",xprs);
+    if( xdepsdT < eos.depsdT_threshold ) harm_aux.use_entropy = true;
   }
 
   w = rho0 + u + p ;
   W_last = w*gammasq ;
-
-  // printf("rho0,u,p,gamma,gamma_sq,w,W_last = %e,%e,%e,%e,%e,%e,%e\n",rho0,u,p,harm_aux.gamma,gammasq,w,W_last);
 
   // Make sure that W is large enough so that v^2 < 1 :
   i_increase = 0;
@@ -305,26 +298,10 @@ int Utoprim_new_body( const igm_eos_parameters eos,
     i_increase++;
   }
 
-  // printf("i_increase, W_last = %d %e\n",i_increase,W_last);
-
   // Calculate W and vsq:
   x_2d[0] =  fabs( W_last );
   x_2d[1] = x1_of_x0( harm_aux,W_last ) ;
 
-  // printf("About to call NR. Variable checkup:\n");
-  // printf("%e %e %e %e %e %e %e %e %e\n",
-         // harm_aux.Bsq,
-         // harm_aux.QdotBsq,
-         // harm_aux.Qsq,
-         // harm_aux.Qtsq,
-         // harm_aux.Qdotn,
-         // harm_aux.QdotB,
-         // harm_aux.D,
-         // harm_aux.gamma,
-         // harm_aux.ye);
-
-  // printf("NR guesses: %e %e\n",x_2d[0],x_2d[1]);
-  
   retval = general_newton_raphson( eos, harm_aux,x_2d, n, func_vsq) ;
 
   W = x_2d[0];
@@ -366,12 +343,18 @@ int Utoprim_new_body( const igm_eos_parameters eos,
   else {
     CCTK_REAL xrho  = rho0;
     CCTK_REAL xye   = harm_aux.ye;
-    CCTK_REAL xprs  = -0.5*harm_aux.Bsq/(harm_aux.gamma*harm_aux.gamma)+harm_aux.Qdotn+W+harm_aux.Bsq-0.5*harm_aux.QdotBsq/(W*W);;
-    CCTK_REAL xuu   = (W-harm_aux.D*harm_aux.gamma-xprs*harm_aux.gamma*harm_aux.gamma)/(harm_aux.D*harm_aux.gamma) * rho0;
-    CCTK_REAL xeps  = xuu/xrho;
     CCTK_REAL xtemp = prim[TEMP];
-    // Compute P and T from (rho,Ye,eps)
-    get_P_and_T_from_rho_Ye_and_eps( eos,xrho,xye,xeps, &xprs,&xtemp );
+    CCTK_REAL xent  = harm_aux.gamma_times_S / W;
+    CCTK_REAL xprs=0,xuu=0,xeps=0;
+    if( harm_aux.use_entropy ) {
+      get_P_eps_and_T_from_rho_Ye_and_S( eos,xrho,xye,xent, &xprs,&xeps,&xtemp );
+    }
+    else {
+      xprs  = -0.5*harm_aux.Bsq/(harm_aux.gamma*harm_aux.gamma)+harm_aux.Qdotn+W+harm_aux.Bsq-0.5*harm_aux.QdotBsq/(W*W);;
+      xuu   = (W-harm_aux.D*harm_aux.gamma-xprs*harm_aux.gamma*harm_aux.gamma)/(harm_aux.D*harm_aux.gamma) * rho0;
+      xeps  = xuu/xrho;
+      get_P_S_and_T_from_rho_Ye_and_eps( eos,xrho,xye,xeps, &xprs,&xent,&xtemp );      
+    }
     
     // Update P and T in the prim array
     prim[RHO  ] = xrho;
@@ -379,6 +362,7 @@ int Utoprim_new_body( const igm_eos_parameters eos,
     prim[TEMP ] = MIN(MAX(xtemp,eos.T_atm),eos.T_max);
     prim[PRESS] = xprs;
     prim[EPS  ] = xeps;
+    prim[ENT  ] = xent;
   }
 
   if( (rho0 <= 0.) || (u <= 0.) ) {
@@ -388,15 +372,6 @@ int Utoprim_new_body( const igm_eos_parameters eos,
     retval = 5;
     //return(retval) ;
   }
-
-  /*
-    if(retval==5 && fabs(u)<1e-16) {
-    u = fabs(u);
-    CCTK_VInfo(CCTK_THORNSTRING,"%e\t%e\t%e",1.0-w/(rho0 + p),rho0,p);
-    retval=0;
-    }
-  */
-
 
   for(i=1;i<4;i++) Qtcon[i] = Qcon[i] + ncon[i] * harm_aux.Qdotn;
   for(i=1;i<4;i++) prim[UTCON1+i-1] = harm_aux.gamma/(W+harm_aux.Bsq) * ( Qtcon[i] + harm_aux.QdotB*Bcon[i]/W ) ;
@@ -419,7 +394,7 @@ int Utoprim_new_body( const igm_eos_parameters eos,
             W = \gamma^2 w
 
 ****************************************************************************/
-CCTK_REAL vsq_calc(harm_aux_vars_struct harm_aux,CCTK_REAL W)
+CCTK_REAL vsq_calc(harm_aux_vars_struct& harm_aux,CCTK_REAL W)
 {
   CCTK_REAL Wsq = W*W ;
   CCTK_REAL Xsq = (harm_aux.Bsq + W) * (harm_aux.Bsq + W);
@@ -439,7 +414,7 @@ CCTK_REAL vsq_calc(harm_aux_vars_struct harm_aux,CCTK_REAL W)
 
 *********************************************************************/
 
-CCTK_REAL x1_of_x0(harm_aux_vars_struct harm_aux,CCTK_REAL x0 )
+CCTK_REAL x1_of_x0(harm_aux_vars_struct& harm_aux,CCTK_REAL x0 )
 {
   CCTK_REAL dv  = 1.e-15;
   CCTK_REAL vsq = fabs(vsq_calc(harm_aux,x0)) ; // guaranteed to be positive
@@ -484,17 +459,17 @@ void validate_x(CCTK_REAL x[2], CCTK_REAL x0[2] )
     -- inspired in part by Num. Rec.'s routine newt();
 
 *****************************************************************/
-int general_newton_raphson( igm_eos_parameters eos, harm_aux_vars_struct harm_aux,
+int general_newton_raphson( igm_eos_parameters eos, harm_aux_vars_struct& harm_aux,
                             CCTK_REAL x[], int n,
-                            void (*funcd)(igm_eos_parameters, harm_aux_vars_struct,CCTK_REAL [], CCTK_REAL [], CCTK_REAL [],
+                            void (*funcd)(igm_eos_parameters, harm_aux_vars_struct&,CCTK_REAL [], CCTK_REAL [], CCTK_REAL [],
                                           CCTK_REAL [][NEWT_DIM], CCTK_REAL *, CCTK_REAL *, int) )
 {
   CCTK_REAL f, df, dx[NEWT_DIM], x_old[NEWT_DIM];
   CCTK_REAL resid[NEWT_DIM], jac[NEWT_DIM][NEWT_DIM];
   CCTK_REAL errx, x_orig[NEWT_DIM];
-  int    id, i_extra, doing_extra;
+  int id, i_extra, doing_extra;
   int n_iter;
-  int   keep_iterating;
+  int keep_iterating;
 
 
   // Initialize various parameters and variables:
@@ -595,7 +570,7 @@ int general_newton_raphson( igm_eos_parameters eos, harm_aux_vars_struct harm_au
          n    = dimension of x[];
 *********************************************************************************/
 
-void func_vsq(igm_eos_parameters eos, harm_aux_vars_struct harm_aux, CCTK_REAL x[], CCTK_REAL dx[], CCTK_REAL resid[],
+void func_vsq(igm_eos_parameters eos, harm_aux_vars_struct& harm_aux, CCTK_REAL x[], CCTK_REAL dx[], CCTK_REAL resid[],
               CCTK_REAL jac[][NEWT_DIM], CCTK_REAL *f, CCTK_REAL *df, int n)
 {
 
@@ -611,7 +586,8 @@ void func_vsq(igm_eos_parameters eos, harm_aux_vars_struct harm_aux, CCTK_REAL x
     dPdvsq = dpdvsq_calc( eos, W, vsq, harm_aux.D );
   }
   else {
-    // Follow HARM's modifications:
+    // Here we must compute dPdW and dPdvsq for tabulated EOS.
+    // We will be using the expressions 
     CCTK_REAL gamma_sq = 1.0/(1.0-vsq);
     harm_aux.gamma     = sqrt(gamma_sq);
     if( harm_aux.gamma > eos.W_max ) {
@@ -619,23 +595,23 @@ void func_vsq(igm_eos_parameters eos, harm_aux_vars_struct harm_aux, CCTK_REAL x
       gamma_sq       = harm_aux.gamma * harm_aux.gamma;
     }
     
-    const CCTK_REAL rho      = MAX(harm_aux.D / harm_aux.gamma,eos.rho_min);
-    const CCTK_REAL xye      = harm_aux.ye;
-    const CCTK_REAL h        = fabs(W /(rho*gamma_sq)); // W := rho*h*gamma^{2}
-    CCTK_REAL T              = eos.T_atm;
-    CCTK_REAL prs            = 0.0;
-    CCTK_REAL eps            = 0.0;
-    CCTK_REAL dPdrho         = 0.0;
-    CCTK_REAL dPdeps         = 0.0;
-
-    // printf("rho,gamma_sq,gamma,ye0,enth,W = %e,%e,%e,%e,%e,%e\n",rho,gamma_sq,harm_aux.gamma,harm_aux.ye,h,W);
-
-    // printf("In EOS : %e %e %e %e\n",rho,h,T,xye);  
+    const CCTK_REAL rho = MAX(harm_aux.D / harm_aux.gamma,eos.rho_min);
+    const CCTK_REAL xye = harm_aux.ye;
+    const CCTK_REAL h   = fabs(W /(rho*gamma_sq)); // W := rho*h*gamma^{2}
+    const CCTK_REAL ent = harm_aux.gamma_times_S / harm_aux.gamma;
+    CCTK_REAL T         = eos.T_atm;
+    CCTK_REAL prs       = 0.0;
+    CCTK_REAL eps       = 0.0;
+    CCTK_REAL dPdrho    = 0.0;
+    CCTK_REAL dPdeps    = 0.0;
 
     // Now compute the pressure and its derivatives with respect to rho and eps
-    get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_h(eos,rho,xye,h, &prs,&T,&eps,&dPdrho,&dPdeps);
-
-    // printf("Out EOS: %e %e %e %e\n",prs,eps,dPdrho,dPdeps);
+    if( harm_aux.use_entropy ) {
+      get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_S(eos,rho,xye,ent, &prs,&T,&eps,&dPdrho,&dPdeps);
+    }
+    else {
+      get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_h(eos,rho,xye,h, &prs,&eps,&T,&dPdrho,&dPdeps);
+    }
 
     // Set P
     p_tmp = prs;
@@ -649,9 +625,6 @@ void func_vsq(igm_eos_parameters eos, harm_aux_vars_struct harm_aux, CCTK_REAL x
     const CCTK_REAL dPdvsq_2 = -0.5*(W + prs*gamma_sq)/rho;
     dPdvsq = (dPdvsq_1 + dPdeps*dPdvsq_2)/(1+dPdeps_o_rho);
   }
-
-  // printf("%e %e %e %e %e\n",W,vsq,dPdW,dPdvsq,p_tmp);
-  // getchar();
 
   // These expressions were calculated using Mathematica, but made into efficient
   // code using Maple.  Since we know the analytic form of the equations, we can

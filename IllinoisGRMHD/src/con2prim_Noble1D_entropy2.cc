@@ -102,15 +102,15 @@ int Utoprim_new_body_1d_ee2( const igm_eos_parameters eos,
                              const CCTK_REAL gcon[NDIM][NDIM],
                              CCTK_REAL *restrict prim );
 
-int newton_raphson_1d( CCTK_REAL x[], int n, igm_eos_parameters eos, harm_aux_vars_struct harm_aux, CCTK_REAL indep_var_in,
+int newton_raphson_1d( CCTK_REAL x[], int n, igm_eos_parameters eos, harm_aux_vars_struct& harm_aux, CCTK_REAL indep_var_in,
                        void (*funcd) (CCTK_REAL [], CCTK_REAL [], CCTK_REAL [],
                                       CCTK_REAL [][NEWT_DIM], CCTK_REAL *,
                                       CCTK_REAL *, int,
-                                      igm_eos_parameters, harm_aux_vars_struct, CCTK_REAL));
+                                      igm_eos_parameters, harm_aux_vars_struct&, CCTK_REAL));
 
 void func_rho2(CCTK_REAL x[], CCTK_REAL dx[], CCTK_REAL resid[],
                CCTK_REAL jac[][NEWT_DIM], CCTK_REAL *f, CCTK_REAL *df, int n,
-               igm_eos_parameters eos, harm_aux_vars_struct harm_aux, CCTK_REAL W_in);
+               igm_eos_parameters eos, harm_aux_vars_struct& harm_aux, CCTK_REAL W_in);
 
 /**********************************************************************/
 /******************************************************************
@@ -402,7 +402,7 @@ int Utoprim_new_body_1d_ee2( const igm_eos_parameters eos,
 *********************************************************************************/
 void func_rho2(CCTK_REAL x[], CCTK_REAL dx[], CCTK_REAL resid[],
                CCTK_REAL jac[][NEWT_DIM], CCTK_REAL *f, CCTK_REAL *df, int n,
-               igm_eos_parameters eos, harm_aux_vars_struct harm_aux, CCTK_REAL W_in)
+               igm_eos_parameters eos, harm_aux_vars_struct& harm_aux, CCTK_REAL W_in)
 {
 
 
