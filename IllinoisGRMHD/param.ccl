@@ -44,7 +44,7 @@ BOOLEAN update_Tmunu "Update Tmunu, for RHS of Einstein's equations?" STEERABLE=
 # Limiters on tau and rho_b:
 REAL tau_atm "Floor value on the energy variable tau (cf. tau_stildefix_enable). Given the variety of systems this code may encounter, there *is no reasonable default*. Effectively the current (enormous) value should disable the tau_atm floor. Please set this in your initial data thorn, and reset at will during evolutions." STEERABLE=ALWAYS
 {
- 0:* :: "Positive"
+ *:* :: "Anything goes"
 } 1e100
 
 REAL rho_b_atm "Floor value on the baryonic rest mass density rho_b (atmosphere). Given the variety of systems this code may encounter, there *is no reasonable default*. Your run will die unless you override this default value in your initial data thorn." STEERABLE=ALWAYS
