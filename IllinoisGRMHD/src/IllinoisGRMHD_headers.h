@@ -57,7 +57,7 @@ struct gf_and_gz_struct {
 };
 
 struct output_stats {
-  int font_fixed,vel_limited,failure_checker,atm_reset,backup[3];
+  int font_fixed,vel_limited,failure_checker,atm_reset,backup[3],which_routine,c2p_failed;
 };
 
 

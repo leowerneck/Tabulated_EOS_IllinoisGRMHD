@@ -27,8 +27,6 @@ typedef struct _igm_eos_parameters_ {
   CCTK_INT c2p_routine;
   // con2prim backup routines keys
   CCTK_INT c2p_backup[3];
-  // Which con2prim routine was used (debugging purposes)
-  CCTK_INT c2p_used;
   // Which variable to reconstruct in PPM
   CCTK_INT PPM_reconstructed_var;
   // Whether or not to evolve the entropy

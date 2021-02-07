@@ -263,6 +263,8 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         stats.backup[0]=0;
         stats.backup[1]=0;
         stats.backup[2]=0;
+        stats.which_routine=None;
+        stats.c2p_failed=0;
         if(CONSERVS[RHOSTAR]>0.0) {
           // Apply the tau floor
           if( eos.is_Hybrid ) {
@@ -270,7 +272,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
           }
 
           for(int ii=0;ii<3;ii++) {
-            check = con2prim(&eos,
+            check = con2prim(eos,
                              index,i,j,k,x,y,z,
                              METRIC,METRIC_PHYS,METRIC_LAP_PSI4,g4dn,g4up,
                              CONSERVS,PRIMS,
@@ -342,7 +344,11 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
           error_int_denom += Ye_star_orig;
         }
 
-        if(stats.atm_reset==1) { atm_resets++; eos.c2p_used = -1; }
+        if(stats.atm_reset==1) {
+          atm_resets++;
+          stats.which_routine = -1;
+        }
+        igm_c2p_mask[index] = stats.which_routine;
         if(stats.backup[0]==1) backup1++;
         if(stats.backup[1]==1) backup2++;
         if(stats.backup[2]==1) backup3++;

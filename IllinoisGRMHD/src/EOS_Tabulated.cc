@@ -128,7 +128,7 @@ void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,i
                                      &eos.P_atm,&eos.eps_atm );
   }
   // Atmospheric tau
-  eos.tau_atm = tau_atm;
+  eos.tau_atm = 1.1*tau_atm;
   // --------------------------------------
 
   // -------------- Ceilings --------------

@@ -42,7 +42,8 @@ void NR_2D_WT( const igm_eos_parameters eos,
 int con2prim_CerdaDuran2D( const igm_eos_parameters eos,
                            const CCTK_REAL *restrict adm_quantities,
                            const CCTK_REAL *restrict con,
-                           CCTK_REAL *restrict prim ) {
+                           CCTK_REAL *restrict prim,
+                           output_stats& stats ) {
 
   // Set gamma_{ij}
   CCTK_REAL gammaDD[3][3];

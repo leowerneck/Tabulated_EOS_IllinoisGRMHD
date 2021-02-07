@@ -159,7 +159,8 @@ int con2prim_Noble1D_entropy2( const igm_eos_parameters eos,
                                const CCTK_REAL g4dn[4][4],
                                const CCTK_REAL g4up[4][4],
                                const CCTK_REAL *restrict cons,
-                               CCTK_REAL *restrict prim ) {
+                               CCTK_REAL *restrict prim,
+                               output_stats& stats ) {
 
   return( Utoprim_new_body_1d_ee2(eos, cons, g4dn, g4up, prim) );
 

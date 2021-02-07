@@ -51,7 +51,7 @@ cctk_real em_psi6phi type = GF Timelevels=3 tags='Prolongation="STAGGER111"'
 # TODO: split into groups with well defined symmetry properties: (rho_b, P, u0), (vx,vy,vz)
 cctk_real grmhd_primitives_allbutBi type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
 {
-  rho_b,P,vx,vy,vz,igm_Ye,igm_temperature,igm_eps,igm_entropy
+  rho_b,P,vx,vy,vz,igm_Ye,igm_temperature,igm_eps,igm_entropy,igm_c2p_mask
 } "Primitive variables density, pressure, and components of three velocity v^i. Note that v^i is defined in terms of 4-velocity as: v^i = u^i/u^0. Note that this definition differs from the Valencia formalism."
 # It is useful to split Bi from Bi_stagger, since we're generally only interested in outputting Bi for diagnostics
 cctk_real grmhd_primitives_Bi type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'

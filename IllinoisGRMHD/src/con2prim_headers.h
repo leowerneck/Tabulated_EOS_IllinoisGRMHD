@@ -147,7 +147,7 @@ static const int numcons  =11; // D, UU, S_{x,y,z}, B^{x,y,z}, DYe, tau, DS
 
 CCTK_INT con2prim_get_key( const char* routine_name );
 
-int con2prim( igm_eos_parameters *restrict eos,
+int con2prim( const igm_eos_parameters eos,
               const int index,const int i,const int j,const int k,
               const CCTK_REAL *restrict X,const CCTK_REAL *restrict Y,const CCTK_REAL *restrict Z,
               const CCTK_REAL *restrict METRIC,const CCTK_REAL *restrict METRIC_PHYS,const CCTK_REAL *restrict METRIC_LAP_PSI4,
@@ -155,47 +155,54 @@ int con2prim( igm_eos_parameters *restrict eos,
               CCTK_REAL *restrict CONSERVS,CCTK_REAL *restrict PRIMS,
               output_stats& stats );
 
-int con2prim_select( igm_eos_parameters *restrict eos,
+int con2prim_select( const igm_eos_parameters eos,
                      const CCTK_INT c2p_key,
                      const CCTK_REAL *restrict adm_quantities,
                      const CCTK_REAL g4dn[4][4],
                      const CCTK_REAL g4up[4][4],
                      const CCTK_REAL *restrict cons,
-                     CCTK_REAL *restrict prim );
+                     CCTK_REAL *restrict prim,
+                     output_stats& stats);
 
 int con2prim_CerdaDuran2D( const igm_eos_parameters eos,
                            const CCTK_REAL *restrict adm_quantities,
                            const CCTK_REAL *restrict con,
-                           CCTK_REAL *restrict prim );
+                           CCTK_REAL *restrict prim,
+                           output_stats& stats );
 
 int con2prim_Noble2D( const igm_eos_parameters eos,
                       const CCTK_REAL g4dn[4][4],
                       const CCTK_REAL g4up[4][4],
                       const CCTK_REAL *restrict cons,
-                      CCTK_REAL *restrict prim );
+                      CCTK_REAL *restrict prim,
+                      output_stats& stats );
 
 int con2prim_Noble1D( const igm_eos_parameters eos,
                       const CCTK_REAL g4dn[4][4],
                       const CCTK_REAL g4up[4][4],
                       const CCTK_REAL *restrict cons,
-                      CCTK_REAL *restrict prim );
+                      CCTK_REAL *restrict prim,
+                      output_stats& stats );
 
 int con2prim_Noble1D_entropy( const igm_eos_parameters eos,
                               const CCTK_REAL g4dn[4][4],
                               const CCTK_REAL g4up[4][4],
                               const CCTK_REAL *restrict cons,
-                              CCTK_REAL *restrict prim );
+                              CCTK_REAL *restrict prim,
+                              output_stats& stats );
 
 int con2prim_Noble1D_entropy2( const igm_eos_parameters eos,
                                const CCTK_REAL g4dn[4][4],
                                const CCTK_REAL g4up[4][4],
                                const CCTK_REAL *restrict cons,
-                               CCTK_REAL *restrict prim );
+                               CCTK_REAL *restrict prim,
+                               output_stats& stats );
 
-int con2prim_Palenzuela1D( igm_eos_parameters *restrict eos,
+int con2prim_Palenzuela1D( const igm_eos_parameters eos,
                            const CCTK_REAL *restrict adm_quantities,
                            const CCTK_REAL *restrict cons,
-                           CCTK_REAL *restrict prim );
+                           CCTK_REAL *restrict prim,
+                           output_stats& stats );
 
 int font_fix__hybrid_EOS( const igm_eos_parameters eos,
                           const CCTK_REAL *restrict METRIC_PHYS,const CCTK_REAL *restrict METRIC_LAP_PSI4,
