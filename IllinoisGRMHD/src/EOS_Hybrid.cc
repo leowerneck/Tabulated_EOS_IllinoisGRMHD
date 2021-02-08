@@ -468,7 +468,8 @@ void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(CCTK_REAL *U, 
 void print_EOS_Hybrid( igm_eos_parameters eos ) {
 
   /* Start by printint a header t the table */
-  CCTK_VInfo(CCTK_THORNSTRING,"\n.--------------------------------------------.");
+  printf("\n");
+  CCTK_VInfo(CCTK_THORNSTRING,".--------------------------------------------.");
   CCTK_VInfo(CCTK_THORNSTRING,"|             Hybrid EOS Details             |");
   CCTK_VInfo(CCTK_THORNSTRING,".--------------------------------------------.");
   CCTK_VInfo(CCTK_THORNSTRING,"|              rho_ppoly_tab[j]              |");
@@ -487,7 +488,7 @@ void print_EOS_Hybrid( igm_eos_parameters eos ) {
 
   /* Print out rho_pppoly_tab */
   for(int jj=0; jj<=max_rho_index; jj++) {
-    CCTK_VInfo(CCTK_THORNSTRING,"|  rho_ppoly_tab[%d] = %.15e  |\n",jj,eos.rho_ppoly_tab[jj]);
+    CCTK_VInfo(CCTK_THORNSTRING,"|  rho_ppoly_tab[%d] = %.15e  |",jj,eos.rho_ppoly_tab[jj]);
     if(jj == eos.neos-2) {
       CCTK_VInfo(CCTK_THORNSTRING,".--------------------------------------------.");
     }
@@ -507,7 +508,7 @@ void print_EOS_Hybrid( igm_eos_parameters eos ) {
   CCTK_VInfo(CCTK_THORNSTRING,"|               K_ppoly_tab[j]               |");
   CCTK_VInfo(CCTK_THORNSTRING,".--------------------------------------------.");
   for(int jj=0; jj<=eos.neos-1; jj++) {
-    CCTK_VInfo(CCTK_THORNSTRING,"|   K_ppoly_tab[%d] = %.15e   |\n",jj,eos.K_ppoly_tab[jj]);
+    CCTK_VInfo(CCTK_THORNSTRING,"|   K_ppoly_tab[%d] = %.15e   |",jj,eos.K_ppoly_tab[jj]);
     if(jj == eos.neos-1) {
       CCTK_VInfo(CCTK_THORNSTRING,".--------------------------------------------.\n");
     }
