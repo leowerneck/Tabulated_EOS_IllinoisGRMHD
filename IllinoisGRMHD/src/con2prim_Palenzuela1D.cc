@@ -179,7 +179,7 @@ int con2prim_Palenzuela1D( const igm_eos_parameters eos,
     S_squared = 0.0;
     for(int i=0;i<3;i++) S_squared += SU[i] * SD[i];
     // Check if the fix was successful
-    if( S_squared > 0.9999 * S_squared_max ) CCTK_VError(VERR_DEF_PARAMS,"Incompatible values of S_squared after rescaling: %e %e\n",S_squared,0.999*S_squared_max);
+    if( fabs(S_squared - 0.9999 * S_squared_max) > 1e-12 ) CCTK_VError(VERR_DEF_PARAMS,"Incompatible values of S_squared after rescaling: %.15e %.15e\n",S_squared,0.9999*S_squared_max);
   }
  
   // Need to calculate for (21) and (22) in Cerda-Duran 2008
