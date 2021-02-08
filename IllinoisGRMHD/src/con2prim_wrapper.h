@@ -217,7 +217,7 @@ int con2prim( const igm_eos_parameters eos,
       // If we reached the last guess and we are using
       // tabulated EOS, then reset to atmosphere.
       if( (which_guess==2) && eos.is_Tabulated ) {
-        if( PRIMS[RHOB] > 1e-5 ) {
+        if( rho_star_orig > 1e-6 ) {
           CCTK_VInfo(CCTK_THORNSTRING,"Couldn't find root from: %e %e %e %e %e, rhob approx=%e, rho_b_atm=%e, Bx=%e, By=%e, Bz=%e, gij_phys=%e %e %e %e %e %e, alpha=%e",
                      tau_orig,rho_star_orig,mhd_st_x_orig,mhd_st_y_orig,mhd_st_z_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
           CCTK_VInfo(CCTK_THORNSTRING,"x,y,z = %e %e %e | i,j,k = %d %d %d",X[index],Y[index],Z[index],i,j,k);
