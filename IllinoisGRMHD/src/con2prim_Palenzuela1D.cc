@@ -86,6 +86,13 @@ inline void raise_or_lower_indices_3d( const CCTK_REAL *restrict vecD_or_U,
   }
 }
 
+inline CCTK_REAL simple_rel_err( const CCTK_REAL a, const CCTK_REAL b ) {
+  if     ( a != 0.0 ) return( fabs(1.0 - b/a) );
+  else if( b != 0.0 ) return( fabs(1.0 - a/b) );
+  else                return(       0.0       );
+  
+}
+
 inline int check_depsdT_condition( const igm_eos_parameters eos,
                                    const CCTK_REAL *restrict param,
                                    const CCTK_REAL x ) {
@@ -179,7 +186,7 @@ int con2prim_Palenzuela1D( const igm_eos_parameters eos,
     S_squared = 0.0;
     for(int i=0;i<3;i++) S_squared += SU[i] * SD[i];
     // Check if the fix was successful
-    if( fabs(S_squared - 0.9999 * S_squared_max) > 1e-12 ) CCTK_VError(VERR_DEF_PARAMS,"Incompatible values of S_squared after rescaling: %.15e %.15e\n",S_squared,0.9999*S_squared_max);
+    if( simple_rel_err(S_squared,0.9999*S_squared_max) > 1e-12 ) CCTK_VError(VERR_DEF_PARAMS,"Incompatible values of S_squared after rescaling: %.15e %.15e\n",S_squared,0.9999*S_squared_max);
   }
  
   // Need to calculate for (21) and (22) in Cerda-Duran 2008
