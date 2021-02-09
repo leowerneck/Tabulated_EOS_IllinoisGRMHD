@@ -26,7 +26,6 @@ void IllinoisGRMHD_parameter_check(CCTK_ARGUMENTS) {
   // ---------- EOS parameters ----------
   // ------------------------------------
   if( eos.is_Hybrid ) {
-
     // Check if Gamma_th has been set
     if( Gamma_th == -1 ) CCTK_VError(VERR_DEF_PARAMS,"You must set Gamma_th in the parameter file. ABORTING.");
 
@@ -48,6 +47,7 @@ void IllinoisGRMHD_parameter_check(CCTK_ARGUMENTS) {
     }
     
     // Print Hybrid EOS information
+    CCTK_VInfo(CCTK_THORNSTRING,"EOS type: Hybrid");
     print_EOS_Hybrid(eos);
   }
   else if( eos.is_Tabulated ) {
@@ -60,13 +60,15 @@ void IllinoisGRMHD_parameter_check(CCTK_ARGUMENTS) {
     else
       CCTK_VInfo(CCTK_THORNSTRING,"Temperature evolution is DISABLED!");
 
-    // Entropy evolution info
-    if( igm_evolve_entropy == true )
-      CCTK_VInfo(CCTK_THORNSTRING,"Entropy evolution is ENABLED!");
-    else
-      CCTK_VInfo(CCTK_THORNSTRING,"Entropy evolution is DISABLED!");
+    CCTK_VInfo(CCTK_THORNSTRING,"EOS type: Tabulated");
     
   }
+
+  // Entropy evolution info
+  if( igm_evolve_entropy == true )
+    CCTK_VInfo(CCTK_THORNSTRING,"Entropy evolution is ENABLED!");
+  else
+    CCTK_VInfo(CCTK_THORNSTRING,"Entropy evolution is DISABLED!");
 
   // ------------------------------------
   // ------- con2prim parameters --------
@@ -123,6 +125,17 @@ void IllinoisGRMHD_parameter_check(CCTK_ARGUMENTS) {
       }
     }
   }
-  
-  
+
+  // ------------------------------------
+  // --------- Other parameters ---------
+  // ------------------------------------
+  if( GAMMA_SPEED_LIMIT > 10.0 ) {
+    CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
+    CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
+    CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
+    CCTK_WARN(CCTK_WARN_ALERT, "******************** It is not recommended to set GAMMA_SPEED_LIMIT to values larger than 10 *******************");
+    CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
+    CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
+    CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
+  }
 }
