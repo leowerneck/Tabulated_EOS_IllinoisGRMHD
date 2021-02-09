@@ -5,7 +5,7 @@
 CCTK_INT update_tau_every "how often to update tau" STEERABLE=ALWAYS
 {
  1:* :: ""
-} 1 
+} 1
 
 BOOLEAN do_tau "are we doing tau?" STEERABLE=ALWAYS
 {
@@ -178,31 +178,13 @@ CCTK_REAL yeofrho_high_correction_rho "high-density rho" STEERABLE=ALWAYS
 } 2.55e14
 
 ######################################################################
-shares: GRHydro
+shares: IllinoisGRMHD
 
-USES real GRHydro_eos_rf_prec ""
-{
-}
-
-USES boolean con2prim_oct_hack ""
-{
-}
-
-USES int GRHydro_stencil ""
-{
-}
-
-
-USES int GRHydro_c2p_warn_from_reflevel ""
-{
-}
-
-USES int sync_conserved_only
-USES REAL GRHydro_Y_e_min 
-USES REAL GRHydro_Y_e_max 
-USES REAL rho_abs_min
-USES REAL GRHydro_atmo_tolerance
-USES REAL GRHydro_hot_atmo_temp
+USES REAL igm_eos_root_finding_precision
+USES REAL igm_eos_table_floor_safety_factor 
+USES REAL igm_eos_table_ceiling_safety_factor
+USES REAL rho_b_atm
+USES REAL igm_T_atm
 
 #######################################################################
 
@@ -221,8 +203,12 @@ USES CCTK_INT MoL_Num_ArrayEvolved_Vars
 restricted:
 CCTK_INT ZelmaniLeak_MaxNumConstrainedVars "The maximum number of constrained variables used by ZelmaniLeak" ACCUMULATOR-BASE=MethodofLines::MoL_Num_Constrained_Vars
 {
-  15         :: "A small range, depending on testing or not"
+  15 :: "A small range, depending on testing or not"
 } 15
 
-
+restricted:
+CCTK_INT ZL_stencil "Size of the stencil"
+{
+  (0:* :: "Should be greater than zero"
+} 3
 

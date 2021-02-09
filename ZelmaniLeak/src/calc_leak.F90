@@ -45,31 +45,20 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
   real*8 :: rr(2),tt(2),pp(2)
   integer isym
 
+  ! Leo's mod
+  CCTK_REAL :: igm_rho_min
+  CCTK_REAL :: igm_Ye_min
+  CCTK_REAL :: igm_Ye_max
+
+  igm_rho_min = rho_b_atm
+  igm_Ye_min  = igm_eos_table_floor_safety_factor   * eos_yemin
+  igm_Ye_max  = igm_eos_table_ceiling_safety_factor * eos_yemax
+
   nx = cctk_lsh(1)
   ny = cctk_lsh(2)
   nz = cctk_lsh(3)
 
   if(do_tau.eq.0) return
-  if(leak_in_prebounce.ne.0) then
-     if(in_prebounce.eq.0 .and. bounce.eq.0) return
-  else
-     if(bounce.eq.0 .or. (have_interp_data.ne.1) ) then
-        !$OMP PARALLEL DO PRIVATE(i,j,k)
-        do k=1,nz
-           do j=1,ny
-              do i=1,nx
-                 lum_local(i,j,k,1:3) = 0.0d0
-                 heat_local(i,j,k,1:3) = 0.0d0
-                 net_heat_local(i,j,k,1:3) = 0.0d0
-                 eave_local(i,j,k,1:3) = 0.0d0
-              enddo
-           enddo
-        enddo
-        !$OMP END PARALLEL DO
-        return
-     endif
-  endif
-
 
   lumfac = cctk_delta_space(1)*cctk_delta_space(2)*cctk_delta_space(3)*&
        inv_length_gf3
@@ -106,7 +95,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
               net_heat_local(i,j,k,1:3) = 0.0d0
 
               ! no leakage in the atmosphere (if there is one)
-              if(rho(i,j,k) .le. GRHydro_rho_min) cycle
+              if(rho(i,j,k) .le. igm_rho_min) cycle
 
               if(rl.ge.-1) then
 
@@ -150,7 +139,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                     call calc_leak(rho(i,j,k)*inv_rho_gf,xtemp,&
                          y_e(i,j,k),xchi,xtau,xheatflux,zi_heaterms(1,1,:),&
                          zi_heateave(1,1,:),depsdt,dyedt,ldt,xlum,xeave,xheat,&
-                         xnetheat,GRHydro_rho_min, rl,r(i,j,k))
+                         xnetheat,igm_rho_min, rl,r(i,j,k))
 
                     if(xlum(1).ne.xlum(1) .or. &
                          xlum(2).ne.xlum(2) .or. &
@@ -207,7 +196,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
               net_heat_local(i,j,k,1:3) = 0.0d0
 
               ! no leakage in the atmosphere (if there is one)
-              if(rho(i,j,k) .le. GRHydro_rho_min) cycle
+              if(rho(i,j,k) .le. igm_rho_min) cycle
 
 
               ! only leak inside max leak radius
@@ -280,7 +269,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  call calc_leak(rho(i,j,k)*inv_rho_gf,xtemp,&
                       y_e(i,j,k),xchi,xtau,xheatflux,xheaterms,&
                       xheateave,depsdt,dyedt,ldt,xlum,xeave,xheat,xnetheat,&
-                      GRHydro_rho_min,rl,r(i,j,k))
+                      igm_rho_min,rl,r(i,j,k))
 
                  if(xlum(1).ne.xlum(1) .or. &
                       xlum(2).ne.xlum(2) .or. &
@@ -356,7 +345,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
               eave_local(i,j,k,1:3) = 0.0d0
 
               ! no leakage in the atmosphere (if there is one)
-              if(rho(i,j,k) .le. GRHydro_rho_min) cycle
+              if(rho(i,j,k) .le. igm_rho_min) cycle
 
               ! only leak inside max leak radius
               if(r(i,j,k).lt.rad_max-drad*1.1d0) then
@@ -570,7 +559,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  call calc_leak(rho(i,j,k)*inv_rho_gf,xtemp,&
                       y_e(i,j,k),xchi,xtau,xheatflux,xheaterms,&
                       xheateave,depsdt,dyedt,ldt,xlum,xeave,xheat,xnetheat,&
-                      GRHydro_rho_min,rl,r(i,j,k))
+                      igm_rho_min,rl,r(i,j,k))
 
                  if(xlum(1).ne.xlum(1) .or. &
                       xlum(2).ne.xlum(2) .or. &
@@ -847,14 +836,23 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   !cactus relates stuff
   character(len=512) :: warnline
 
+  ! Leo's mod
+  CCTK_REAL :: igm_rho_min
+  CCTK_REAL :: igm_Ye_min
+  CCTK_REAL :: igm_Ye_max
+
+  igm_rho_min = rho_b_atm
+  igm_Ye_min  = igm_eos_table_floor_safety_factor   * eos_yemin
+  igm_Ye_max  = igm_eos_table_ceiling_safety_factor * eos_yemax
+
   matter_rho = rho
-  matter_temperature = max(temp,GRHydro_hot_atmo_temp)
-  matter_ye = min(max(ye,GRHydro_Y_e_min),GRHydro_Y_e_max)
+  matter_temperature = max(temp,igm_T_atm)
+  matter_ye = min(max(ye,igm_Ye_min),igm_Ye_max)
 
   keytemp = 1
   keyerr = 0
   anyerr = 0
-  call EOS_Omni_full(eoskey,keytemp,GRHydro_eos_rf_prec,npoints,&
+  call EOS_Omni_full(eoskey,keytemp,igm_eos_root_finding_precision,npoints,&
        matter_rho*rho_gf,matter_enr,matter_temperature,matter_ye, &
        matter_prs,matter_ent,matter_cs2,matter_dedt,matter_dpderho, &
        matter_dpdrhoe,matter_xa,matter_xh,matter_xn,matter_xp,matter_abar, &
@@ -885,8 +883,7 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   endif
 
   !Don't do anything in the atmosphere
-  if(matter_rho*rho_gf.lt. &
-       (1.0d0+GRHydro_atmo_tolerance)*rho_min) then 
+  if(matter_rho*rho_gf.lt.igm_rho_min) then 
      lum(1:3) = 0.0d0
      depsdt = 0.0d0
      dyedt = 0.0d0
@@ -1100,7 +1097,7 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
 
 
   if (matter_enr+depsdt*ldt.lt.-energy_shift*inv_eps_gf.and.&
-       (reflevel.eq.-1.or.reflevel.ge.grhydro_c2p_warn_from_reflevel)) then
+       (reflevel.eq.-1)) then
      !$OMP CRITICAL
      call CCTK_WARN(1,"Problem in leakage; energy change too large")
      write(warnline,"(A15,i10)") "reflevel: ", reflevel

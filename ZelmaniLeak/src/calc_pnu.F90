@@ -63,8 +63,7 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
   CCTK_REAL,allocatable :: dpnudr(:,:,:)
   CCTK_REAL, pointer :: srhs(:,:,:)
   CCTK_REAL :: detg, stress
-!  CCTK_REAL :: attfactor
-
+  !  CCTK_REAL :: attfactor
 
   pnuconst = PRESS_NU_CONSTANT * press_gf
   F3const = 7.0d0*PI4/60.0d0
@@ -88,7 +87,7 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
               keyerr = 0
               anyerr = 0
               xeps = 0.0d0
-              call EOS_Omni_short(eoskey,keytemp,GRHydro_eos_rf_prec,&
+              call EOS_Omni_short(eoskey,keytemp,igm_eos_root_finding_precision,&
                    n,rho(i,j,k),xeps,temperature(i,j,k),y_e(i,j,k),&
                    xdummy,xdummy,xdummy,xdummy,&
                    xdummy,xdummy,munu(i,j,k),keyerr,anyerr)
@@ -154,9 +153,9 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
      ! via a tanh at the transition density
      !
      !$OMP PARALLEL DO PRIVATE(i, j, k, detg, stress)
-     do k=GRHydro_stencil-1,nz-GRHydro_stencil+1
-        do j=GRHydro_stencil-1,ny-GRHydro_stencil+1
-           do i=GRHydro_stencil-1,nx-GRHydro_stencil+1
+     do k=ZL_stencil-1,nz-ZL_stencil+1
+        do j=ZL_stencil-1,ny-ZL_stencil+1
+           do i=ZL_stencil-1,nx-ZL_stencil+1
 
                  dpnudr(i,j,k) =  &
                       (  pnu(i+ixoffset,j+iyoffset,k+izoffset) -  &

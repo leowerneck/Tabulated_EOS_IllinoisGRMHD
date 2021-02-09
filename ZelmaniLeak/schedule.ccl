@@ -43,12 +43,9 @@ schedule group HydroBase_Boundaries IN ZelmaniLeakChangeYe AFTER ZelmaniLeak_ye_
 } "Do the boundaries after Y_e change"
 
 # Need to sync primitives as well!
-if (sync_conserved_only)
+schedule group IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz IN ZelmaniLeakChangeYe AFTER ZelmaniLeak_ye_of_rho BEFORE HydroBase_Boundaries
 {
-   schedule group GRHydro_PrimitiveBoundaries IN ZelmaniLeakChangeYe AFTER ZelmaniLeak_ye_of_rho BEFORE HydroBase_Boundaries
-   {
-   } "Do primitive boundaries after Y_e change!"
-}
+} "Do primitive boundaries after Y_e change!"
 
 schedule ZelmaniLeak_ParamCheck IN CCTK_PARAMCHECK
 {
@@ -57,7 +54,7 @@ schedule ZelmaniLeak_ParamCheck IN CCTK_PARAMCHECK
 } "check consistency of parameters"
 
 if(do_pnu) {
-  schedule ZelmaniLeak_NeutrinoPressureWrap IN MoL_PostRHS BEFORE CheapExcision IF GRHydro::execute_MoL_Step
+  schedule ZelmaniLeak_NeutrinoPressureWrap IN MoL_PostRHS BEFORE CheapExcision
   {
    LANG: C
   } "Add neutrino pressure to the RHS"

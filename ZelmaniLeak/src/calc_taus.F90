@@ -28,17 +28,17 @@ subroutine ZelmaniLeak_CalcTau(CCTK_ARGUMENTS)
   real*8 :: dvol,domega
   real*8 :: radshock, radgain, dummy
 
+  ! Leo's mod
+  CCTK_REAL :: igm_rho_min
+  igm_rho_min = rho_b_atm
+
   lum_total_from_below = 0.0d0
   lum_total_from_below_with_nux = 0.0d0
   net_heating = 0.0d0
 
   if(do_tau.eq.0) return
 
-  if(in_prebounce.eq.0.and.&
-       bounce.eq.0) return
-
   if(have_interp_data.ne.1) return
-
 
   if(mod((cctk_iteration-1),update_tau_every).ne.0) return
 
@@ -57,7 +57,7 @@ subroutine ZelmaniLeak_CalcTau(CCTK_ARGUMENTS)
                 oldtau,zi_tauruff(:,j,k,1:3),zi_xiross(:,j,k,1:3), &
                 zi_heatflux(:,j,k,1:3),zi_heaterms(j,k,1:3),zi_heateave(j,k,1:3), &
                 zi_lum_local(:,j,k,1:3),(nrad+nrad_outer),xrad,ds,compos,xentropy, &
-                GRHydro_rho_min)
+                igm_rho_min)
 
            zi_rho(:,j,k) = xrho(:)*RHO_GF
            
@@ -185,7 +185,7 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
      heatflux,heaterms,heateave,lum_local,nzones,rad,ds,compos,xentropy, &
      rho_min)
 
-  use EOS_Omni_Module, only: rho_gf,eos_tempmin
+  use EOS_Omni_Module, only: rho_gf,eos_tempmin,eos_yemin,eos_yemax
 #ifdef HAVE_CAPABILITY_Fortran
   use cctk
 #endif
@@ -297,6 +297,15 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
   ! cactus related stuff
   character(len=512) :: warnline
 
+  ! Leo's mod
+  CCTK_REAL :: igm_rho_min
+  CCTK_REAL :: igm_Ye_min
+  CCTK_REAL :: igm_Ye_max
+
+  igm_rho_min = rho_b_atm
+  igm_Ye_min  = igm_eos_table_floor_safety_factor   * eos_yemin
+  igm_Ye_max  = igm_eos_table_ceiling_safety_factor * eos_yemax
+
 !#############################
 
   if(oldtauruff(1,1).gt.0.0d0) then
@@ -339,10 +348,10 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
      endif
      
      matter_rho = rho(i)
-     matter_temperature = max(temp(i),GRHydro_hot_atmo_temp)
-     matter_ye = max(GRHydro_Y_e_min,min(GRHydro_Y_e_max,ye(i))) ! ye(i)
+     matter_temperature = max(temp(i),igm_T_atm)
+     matter_ye = max(igm_Ye_min,min(igm_Ye_max,ye(i))) ! ye(i)
 
-     call EOS_Omni_full(eoskey,keytemp,GRHydro_eos_rf_prec,npoints,&
+     call EOS_Omni_full(eoskey,keytemp,igm_eos_root_finding_precision,npoints,&
           matter_rho*rho_gf,matter_enr,matter_temperature,matter_ye, &
           matter_prs,matter_ent,matter_cs2,matter_dedt,matter_dpderho, &
           matter_dpdrhoe,matter_xa,matter_xh,matter_xn,matter_xp,matter_abar, &

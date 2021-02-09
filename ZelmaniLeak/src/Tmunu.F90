@@ -75,7 +75,7 @@ subroutine ZelmaniLeak_Tmunu(CCTK_ARGUMENTS)
             keyerr = 0
             anyerr = 0
             xeps = 0.0d0
-            call EOS_Omni_short(eoskey,keytemp,GRHydro_eos_rf_prec,&
+            call EOS_Omni_short(eoskey,keytemp,igm_eos_root_finding_precision,&
                  n,rho(i,j,k),xeps,temperature(i,j,k),y_e(i,j,k),&
                  xdummy,xdummy,xdummy,xdummy,&
                  xdummy,xdummy,munu(i,j,k),keyerr,anyerr)
