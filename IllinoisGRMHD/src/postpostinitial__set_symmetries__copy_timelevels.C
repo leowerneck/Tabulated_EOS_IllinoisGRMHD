@@ -29,51 +29,6 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
   igm_eos_parameters eos;
   initialize_igm_eos_parameters_from_input(igm_eos_key,cctk_time,eos);
 
-  // Perform parameter checks
-
-  // Hybrid EOS
-  if( CCTK_EQUALS(igm_eos_type,"Hybrid") ) {
-    if( Gamma_th<0 ) {
-      CCTK_VError(VERR_DEF_PARAMS,"Default Gamma_th (=-1) detected. You must set Gamma_th to the appropriate value in your initial data thorn, or your .par file!");
-    }
-    if( !CCTK_EQUALS(igm_con2prim_routine,"Noble2D") &&
-        !CCTK_EQUALS(igm_con2prim_routine,"Noble1D") &&
-        !CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy") &&
-        !CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy2")) {
-      CCTK_VError(VERR_DEF_PARAMS,"IllinoisGRMHD only supports the Noble2D, Noble1D, Noble1D_entropy, and Noble1D_entropy2 con2prim routines with Hybrid EOS. ABORTING!");
-    }
-  }
-
-  // Tabulated EOS
-  if( CCTK_EQUALS(igm_eos_type,"Tabulated") || CCTK_EQUALS(igm_eos_type,"nuc_eos") ) {
-    if( !CCTK_EQUALS(igm_con2prim_routine,"Palenzuela1D") ) {
-      CCTK_VError(VERR_DEF_PARAMS,"IllinoisGRMHD only supports the Palenzuela1D con2prim routine with Tabulated EOS. ABORTING!");
-    }
-  }
-
-  // Entropy
-  if( igm_evolve_entropy == false ) {
-    if( CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy" ) ||
-        CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy2") ||
-        CCTK_EQUALS(igm_con2prim_routine,"Palenzuela1D"    ) ) {
-      CCTK_VError(VERR_DEF_PARAMS,"Cannot use the an entropy con2prim routine without evolving the entropy. Please set igm_evolve_entropy=\"yes\" in the parfile. ABORTING!");
-    }
-  }
-
-  CCTK_VInfo(CCTK_THORNSTRING,"Primary conservative-to-primitive routine: %s",igm_con2prim_routine);
-  if( CCTK_EQUALS(igm_con2prim_backup_routine[0],"None") ) {
-    CCTK_VInfo(CCTK_THORNSTRING,"No backup conservative-to-primitive routine selected.");
-  }
-  else {
-    CCTK_VInfo(CCTK_THORNSTRING,"Backup conservative-to-primitive routine #1: %s",igm_con2prim_backup_routine[0]);
-    if( !CCTK_EQUALS(igm_con2prim_backup_routine[1],"None") ) {
-      CCTK_VInfo(CCTK_THORNSTRING,"Backup conservative-to-primitive routine #2: %s",igm_con2prim_backup_routine[1]);
-      if( !CCTK_EQUALS(igm_con2prim_backup_routine[2],"None") ) {
-        CCTK_VInfo(CCTK_THORNSTRING,"Backup conservative-to-primitive routine #3: %s",igm_con2prim_backup_routine[2]);
-      }
-    }
-  }
-
   //For emfields, we assume that you've set Bx, By, Bz (the UN-tilded B^i's)
   // or Ax, Ay, Az (if using constrained transport scheme of Del Zanna)
 
