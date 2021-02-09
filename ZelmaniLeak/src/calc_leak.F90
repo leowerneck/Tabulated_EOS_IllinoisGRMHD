@@ -34,16 +34,15 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
   real*8  :: dyedt
   real*8  :: ldt
   real*8  :: lumfac
-  CCTK_REAL :: t,p
   CCTK_REAL, parameter :: tiny  = 1.0d-10
   character(len=512) :: warnline
+  integer :: isym
 
   ! for 2D (r,theta) interpolation
   integer, parameter :: nfs = 9
   integer, parameter :: nfs2 = 6
   real*8 :: fint(4,nfs),fint3D(8,nfs),fint_out(nfs)
   real*8 :: rr(2),tt(2),pp(2)
-  integer isym
 
   ! Leo's mod
   CCTK_REAL :: igm_rho_min
@@ -136,7 +135,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
 
                     ! if the temperature is below our minimum, floor it
                     xtemp = max(temperature(i,j,k),min_temp)
-                    call calc_leak(rho(i,j,k)*inv_rho_gf,xtemp,&
+                    call calc_leak(igm_eos_key,rho(i,j,k)*inv_rho_gf,xtemp,&
                          y_e(i,j,k),xchi,xtau,xheatflux,zi_heaterms(1,1,:),&
                          zi_heateave(1,1,:),depsdt,dyedt,ldt,xlum,xeave,xheat,&
                          xnetheat,igm_rho_min, rl,r(i,j,k))
@@ -266,7 +265,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
 
                  ! if the temperature is below our minimum, floor it
                  xtemp = max(temperature(i,j,k),min_temp)
-                 call calc_leak(rho(i,j,k)*inv_rho_gf,xtemp,&
+                 call calc_leak(igm_eos_key,rho(i,j,k)*inv_rho_gf,xtemp,&
                       y_e(i,j,k),xchi,xtau,xheatflux,xheaterms,&
                       xheateave,depsdt,dyedt,ldt,xlum,xeave,xheat,xnetheat,&
                       igm_rho_min,rl,r(i,j,k))
@@ -556,7 +555,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
 
                  ! if the temperature is below our minimum, floor it
                  xtemp = max(temperature(i,j,k),min_temp)
-                 call calc_leak(rho(i,j,k)*inv_rho_gf,xtemp,&
+                 call calc_leak(igm_eos_key,rho(i,j,k)*inv_rho_gf,xtemp,&
                       y_e(i,j,k),xchi,xtau,xheatflux,xheaterms,&
                       xheateave,depsdt,dyedt,ldt,xlum,xeave,xheat,xnetheat,&
                       igm_rho_min,rl,r(i,j,k))
@@ -730,8 +729,8 @@ end subroutine  linterp3
 
 end subroutine ZelmaniLeak_CalcLeak
 
-subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
-     depsdt,dyedt,ldt,lum,eave,heatout,netheatout,rho_min,reflevel,rad)
+subroutine calc_leak(eoskey,rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
+     depsdt,dyedt,ldt,lum,eave,heatout,netheatout,reflevel,rad)
 ! WARNING: Be careful when changing the arguments to this function; it is also
 ! called from calc_tau to get the luminosity available for heating
 ! along the rays.
@@ -762,13 +761,12 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   real*8, intent(out) :: netheatout(3) ! local net heating ergs/s/cm^3 (heating)
   real*8, intent(out) :: depsdt !change in the internal energy, ergs/cm^3/s
   real*8, intent(out) :: dyedt !change in electron fraction
-  real*8, intent(in) :: rho_min !atmosphere density
   real*8, intent(in) :: rad ! radius of the point we are dealing with
   integer, intent(in) :: reflevel
+  integer, intent(in) :: eoskey
 
   !EOS & local variables
   integer keytemp, keyerr
-  real*8 :: precision = 1.0d-10
   real*8 :: matter_rho,matter_temperature,matter_ye
   real*8 :: matter_enr,matter_prs,matter_ent
   real*8 :: matter_cs2,matter_dedt,matter_dpdrhoe
@@ -804,7 +802,6 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   real*8, parameter :: mev_to_erg = 1.60217733d-6 !conversion
   real*8, parameter :: massn_cgs = 1.674927211d-24 !neutron mass in grams
   real*8, parameter :: verysmall = 1.0d-20
-  integer, parameter :: eoskey = 4
   integer, parameter :: npoints = 1
   integer :: anyerr
 

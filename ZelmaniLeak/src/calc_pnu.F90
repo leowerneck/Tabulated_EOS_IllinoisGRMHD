@@ -12,7 +12,7 @@
   (-(gxz_)**2*(gyy_) + 2*(gxy_)*(gxz_)*(gyz_) - (gxx_)*(gyz_)**2 - (gxy_)**2*(gzz_) \
    + (gxx_)*(gyy_)*(gzz_))
 
-subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
+subroutine ZelmaniLeak_CalcPnu(eoskey,taurhs,sxrhs,syrhs,szrhs,&
                                    rho,eps,temperature, &
                                    entropy,y_e,munu,pnu,&
                                    wlorentz, vel,&
@@ -45,9 +45,10 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
   CCTK_REAL :: gyy(nx,ny,nz),gyz(nx,ny,nz),gzz(nx,ny,nz)
   CCTK_REAL :: x(nx,ny,nz),y(nx,ny,nz),z(nx,ny,nz),dx,dy,dz
   CCTK_REAL :: dtime
+  integer,intent(in) :: eoskey
 
   ! EOS and other shit
-  integer   :: eoskey,keytemp,n,anyerr,keyerr(1)
+  integer   :: keytemp,n,anyerr,keyerr(1)
   CCTK_REAL :: xdummy(1),xeps(1)
 
   ! local vars
@@ -69,7 +70,7 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
   F3const = 7.0d0*PI4/60.0d0
 
   ! EOS Omni setup:
-  eoskey=4;keytemp=1;n=1;anyerr=0;keyerr=0
+  keytemp=1;n=1;anyerr=0;keyerr=0
   xdummy=0.0d0
 
   allocate(dpnudr(nx,ny,nz))

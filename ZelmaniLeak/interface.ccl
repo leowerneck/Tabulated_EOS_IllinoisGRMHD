@@ -4,7 +4,7 @@ implements: ZelmaniLeak
 
 # TODO: remove dependence on CoreCollapseControl since CCC's bounce scalar
 # should only be used internally by it to control other thorns
-inherits: HydroBase ADMBase TmunuBase
+inherits: HydroBase ADMBase TmunuBase IllinoisGRMHD
 
 USES INCLUDE: Boundary.h
 

@@ -54,7 +54,8 @@ subroutine ZelmaniLeak_Tmunu(CCTK_ARGUMENTS)
   F3const = 7.0d0*PI4/60.0d0
 
   ! EOS Omni setup:
-  eoskey=4;keytemp=1;n=1;anyerr=0;keyerr=0
+  eoskey=igm_eos_key
+  keytemp=1;n=1;anyerr=0;keyerr=0
   xdummy=0.0d0
 
   if(include_enu_in_tmunu.ne.0) then

@@ -40,7 +40,7 @@ subroutine ZelmaniLeak_ye_of_rho(CCTK_ARGUMENTS)
 
   n = 1
   anyerr = 0
-  eoskey = 4
+  eoskey = igm_eos_key
 
   yeofrho_logrho1 = log10(yeofrho_rho1)
   yeofrho_logrho2 = log10(yeofrho_rho2)
@@ -279,7 +279,7 @@ subroutine ZelmaniLeak_calc_entropy(CCTK_ARGUMENTS)
 
   n = 1
   anyerr = 0
-  eoskey = 4
+  eoskey = igm_eos_key
 
   nx = cctk_lsh(1)
   ny = cctk_lsh(2)

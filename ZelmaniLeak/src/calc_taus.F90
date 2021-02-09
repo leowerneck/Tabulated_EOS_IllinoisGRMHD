@@ -53,7 +53,7 @@ subroutine ZelmaniLeak_CalcTau(CCTK_ARGUMENTS)
            xrho(:) = zi_rho(:,j,k)*INV_RHO_GF
            xrad(:) = rad(:)*INV_LENGTH_GF
 
-           call calc_taus(xrho,zi_temp(:,j,k),zi_ye(:,j,k),&
+           call calc_taus(igm_eos_key,xrho,zi_temp(:,j,k),zi_ye(:,j,k),&
                 oldtau,zi_tauruff(:,j,k,1:3),zi_xiross(:,j,k,1:3), &
                 zi_heatflux(:,j,k,1:3),zi_heaterms(j,k,1:3),zi_heateave(j,k,1:3), &
                 zi_lum_local(:,j,k,1:3),(nrad+nrad_outer),xrad,ds,compos,xentropy, &
@@ -181,7 +181,7 @@ end subroutine ZelmaniLeak_CalcTau
 
 
 
-subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
+subroutine calc_taus(eoskey,rho,temp,ye,oldtauruff,tauruff,chiross, &
      heatflux,heaterms,heateave,lum_local,nzones,rad,ds,compos,xentropy, &
      rho_min)
 
@@ -277,7 +277,7 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
   
   integer :: icount
   integer, parameter :: icount_max = 200
-  integer, parameter :: eoskey = 4
+  integer,intent(in) :: eoskey
   integer :: anyerr
   integer, parameter :: npoints = 1
 
@@ -700,7 +700,7 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
 
         !call leak with heating turned on to get the change in
         !luminosity, then we'll interpolate that and use for heating
-        call calc_leak(rho(i),temp(i),ye(i),chi(i,:),tauruff(i,:),heatflux(i,:), &
+        call calc_leak(eoskey,rho(i),temp(i),ye(i),chi(i,:),tauruff(i,:),heatflux(i,:), &
              heaterms,heateave,leak_dummy1,leak_dummy2,leak_dummy3,&
              lum,leak_dummy4,leak_dummy5,leak_dummy6,rho_min,rl,rad(i))
      
