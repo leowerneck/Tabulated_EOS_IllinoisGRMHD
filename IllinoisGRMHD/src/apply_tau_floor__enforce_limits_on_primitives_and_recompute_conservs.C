@@ -259,9 +259,6 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
     count=0; for(int ii=0;ii<4;ii++) for(int jj=ii;jj<4;jj++) { TDNMUNU[count] = rho0_h_plus_b2*uDN[ii]*uDN[jj] + P_plus_half_b2*g4dn[ii][jj] - smallb_lower[SMALLBT+ii]*smallb_lower[SMALLBT+jj]; count++; }
   }
 
-
-  //CCTK_VInfo(CCTK_THORNSTRING,"YAY %e",TDNMUNU[0]);
-
   // Finally, compute conservatives:
   CONSERVS[RHOSTAR  ] = alpha_sqrt_gamma * PRIMS[RHOB] * uUP[0];
   CONSERVS[STILDEX  ] = CONSERVS[RHOSTAR]*h_enthalpy*uDN[1] + alpha_sqrt_gamma*(uUP[0]*smallb[SMALLB2]*uDN[1] - smallb[SMALLBT]*smallb_lower[SMALLBX]);
