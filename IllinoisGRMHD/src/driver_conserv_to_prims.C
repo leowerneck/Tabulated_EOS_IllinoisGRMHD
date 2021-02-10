@@ -256,15 +256,18 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
         int check=0;
         struct output_stats stats;
-        stats.vel_limited=0;
-        stats.failure_checker=0;
-        stats.font_fixed=0;
-        stats.atm_reset=0;
-        stats.backup[0]=0;
-        stats.backup[1]=0;
-        stats.backup[2]=0;
-        stats.which_routine=None;
-        stats.c2p_failed=0;
+        stats.vel_limited    = 0;
+        stats.failure_checker= 0;
+        stats.font_fixed     = 0;
+        stats.atm_reset      = 0;
+        stats.backup[0]      = 0;
+        stats.backup[1]      = 0;
+        stats.backup[2]      = 0;
+        stats.c2p_failed     = 0;
+        stats.which_routine  = None;
+        stats.dx[0]          = CCTK_DELTA_SPACE(0);
+        stats.dx[1]          = CCTK_DELTA_SPACE(1);
+        stats.dx[2]          = CCTK_DELTA_SPACE(2);
         if(CONSERVS[RHOSTAR]>0.0) {
           // Apply the tau floor
           if( eos.is_Hybrid ) {
