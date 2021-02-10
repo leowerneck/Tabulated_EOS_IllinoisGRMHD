@@ -4,8 +4,20 @@
 // Description: This file contains function prototypes for the
 //              EOS functions available in IllinoisGRMHD
 
-#ifndef __EOS_HEADERS__
-#define __EOS_HEADERS__
+#ifndef IGM_EOS_HEADERS
+#define IGM_EOS_HEADERS
+
+// These are useful for us, though not defined
+// explicitly by EOS_Omni
+static const CCTK_INT table_key_pressure = 0;
+static const CCTK_INT table_key_epsilon  = 1;
+static const CCTK_INT table_key_entropy  = 2;
+
+// These are also very useful
+static const CCTK_INT have_eps  = 0;
+static const CCTK_INT have_temp = 1;
+static const CCTK_INT have_ent  = 2;
+static const CCTK_INT have_prs  = 3;
 
 //------------------- EOS struct -----------------
 
@@ -218,8 +230,14 @@ void get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_S( const igm_eos_parameters e
                                                       CCTK_REAL *restrict dPdrho, 
                                                       CCTK_REAL *restrict dPdeps );
 
+void get_munu_from_rho_Ye_and_T( const igm_eos_parameters eos,
+                                 const CCTK_REAL rho,
+                                 const CCTK_REAL Y_e,
+                                 const CCTK_REAL T,
+                                 CCTK_REAL *restrict munu );
+
 //------------------------------------------------
 
-#endif // __EOS_HEADERS__
+#endif // IGM_EOS_HEADERS
 
 

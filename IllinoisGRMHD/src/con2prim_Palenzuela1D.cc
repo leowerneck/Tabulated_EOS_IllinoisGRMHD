@@ -120,11 +120,11 @@ inline int check_depsdT_condition( const igm_eos_parameters eos,
   get_P_S_T_and_depsdT_from_rho_Ye_and_eps( eos, rho,ye,eps, &press,&ent,&temp,&depsdT );
 
   int con2prim_key = None;
-  if( (depsdT > eos.depsdT_threshold) && (rho < 1e-6) ) {
-    con2prim_key = Palenzuela1D;
+  if( eos.evolve_entropy && (depsdT < eos.depsdT_threshold) ) {
+    con2prim_key = Palenzuela1D_entropy;
   }
   else {
-    con2prim_key = Palenzuela1D_entropy;
+    con2prim_key = Palenzuela1D;
   }
 
   return( con2prim_key );

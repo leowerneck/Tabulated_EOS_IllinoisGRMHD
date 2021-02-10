@@ -11,17 +11,6 @@
 #include "IllinoisGRMHD_headers.h"
 #include "HARM_TabEOS_helpers.hh"
 
-// These are useful for us, though not defined
-// explicitly by EOS_Omni
-const CCTK_INT table_key_pressure = 0;
-const CCTK_INT table_key_epsilon  = 1;
-const CCTK_INT table_key_entropy  = 2;
-
-// These are also very useful
-const CCTK_INT have_eps  = 0;
-const CCTK_INT have_temp = 1;
-const CCTK_INT have_ent  = 2;
-const CCTK_INT have_prs  = 3;
 //--------------------------------------
 
 // EOS_Omni does not provide functions to obtain the
@@ -812,4 +801,36 @@ void get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_S( const igm_eos_parameters e
 
   // FIXME: add error handling!
 
+}
+
+void get_munu_from_rho_Ye_and_T( const igm_eos_parameters eos,
+                                 const CCTK_REAL rho,
+                                 const CCTK_REAL Y_e,
+                                 const CCTK_REAL T,
+                                 CCTK_REAL *restrict munu ) {
+
+  // Set up for table call
+  CCTK_INT  npoints    = 1;
+  CCTK_INT  keyerr     = 0;
+  CCTK_INT  anyerr     = 0;
+  // The EOS_Omni function does not like some of its arguments
+  // being constant (even when they are not supposed to change).
+  // We declare auxiliary variables here to avoid errors.
+  CCTK_REAL rho_in     = rho;
+  CCTK_REAL Y_e_in     = Y_e;
+  CCTK_REAL T_in       = T;
+  CCTK_REAL munu_out   = 0.0;
+  CCTK_REAL dummy      = 0.0;
+  
+  // Perform the table interpolations
+  EOS_Omni_short( eos.key,have_temp,eos.root_finding_precision,npoints,
+                  &rho_in,&dummy,&T_in,&Y_e_in,&dummy,&dummy,
+                  &dummy,&dummy,&dummy,&dummy,&munu_out,
+                  &keyerr,&anyerr );
+
+  // Now update munu
+  *munu = munu_out;
+
+  // FIXME: add error handling!
+  
 }
