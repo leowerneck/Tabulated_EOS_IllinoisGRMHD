@@ -73,7 +73,7 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   // Compute the conserv needed by the Noble routines
   cons[UU] = (uu - CONSERVS[RHOSTAR]) * psim6;
   // Then set tau
-  cons[TAU] = CONSERVS[TAUENERGY] * psim6;
+  cons[TAU] = MAX(CONSERVS[TAUENERGY] * psim6,eos.tau_atm);
 
   //----------------------------------------
 
