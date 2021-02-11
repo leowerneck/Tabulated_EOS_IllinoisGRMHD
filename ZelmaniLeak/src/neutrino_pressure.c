@@ -68,22 +68,30 @@ void ZelmaniLeak_NeutrinoPressureWrap(CCTK_ARGUMENTS)
 
   if(*ZL_global_rho_max*INVRHOGF < pnu_rho_start) return;
 
-  varindex = CCTK_VarIndex("GRHydro::tau");
+  // tau variable. If using IllinoisGRMHD, then one must set
+  // ZL_tau_VarString = "IllinoisGRMHD::tau" in the parfile.
+  varindex = CCTK_VarIndex(ZL_tau_gf_VarString);
   rhsindex = MoLQueryEvolvedRHS (varindex);
   taurhsptr = (CCTK_REAL*) CCTK_VarDataPtrI (cctkGH, 0, rhsindex);
   assert (taurhsptr);
 
-  varindex = CCTK_VarIndex("GRHydro::scon[0]");
+  // S_{x} variable. If using IllinoisGRMHD, then one must set
+  // ZL_SD0_VarString = "IllinoisGRMHD::mhd_st_x" in the parfile.
+  varindex = CCTK_VarIndex(ZL_SD0_gf_VarString);
   rhsindex = MoLQueryEvolvedRHS (varindex);
   sxrhsptr = (CCTK_REAL*) CCTK_VarDataPtrI(cctkGH, 0, rhsindex);
   assert (sxrhsptr);
 
-  varindex = CCTK_VarIndex("GRHydro::scon[1]");
+  // S_{y} variable. If using IllinoisGRMHD, then one must set
+  // ZL_SD1_VarString = "IllinoisGRMHD::mhd_st_y" in the parfile.
+  varindex = CCTK_VarIndex(ZL_SD1_gf_VarString);
   rhsindex = MoLQueryEvolvedRHS (varindex);
   syrhsptr = (CCTK_REAL*) CCTK_VarDataPtrI(cctkGH, 0, rhsindex);
   assert (syrhsptr);
 
-  varindex = CCTK_VarIndex("GRHydro::scon[2]");
+  // S_{z} variable. If using IllinoisGRMHD, then one must set
+  // ZL_SD2_VarString = "IllinoisGRMHD::mhd_st_z" in the parfile.
+  varindex = CCTK_VarIndex(ZL_SD2_gf_VarString);
   rhsindex = MoLQueryEvolvedRHS (varindex);
   szrhsptr = (CCTK_REAL*) CCTK_VarDataPtrI(cctkGH, 0, rhsindex);
   assert (szrhsptr);

@@ -206,15 +206,54 @@ CCTK_INT ZelmaniLeak_MaxNumConstrainedVars "The maximum number of constrained va
   15 :: "A small range, depending on testing or not"
 } 15
 
+###########################################
+### These new parameters provide better ###
+### interface between the ZelmaniLeak   ###
+### thorn and the Hydro evolution thorn ###
+###########################################
+
 restricted:
 CCTK_INT ZL_stencil "Size of the stencil"
 {
   (0:* :: "Should be greater than zero"
 } 3
 
-STRING ZL_rho_gf_VarString "Gridfunction that will be used to set ZL_global_rho_max" STEERABLE=always
+restricted:
+STRING ZL_rho_gf_VarString "Gridfunction that will be used to set ZL_global_rho_max"
 {
   "IllinoisGRMHD::rho_b" :: "IllinoisGRMHD baryonic density gridfunction"
   "GRHydro::rho"         :: "GRHydro baryonic density gridfunction"
-  ".+"                   :: "Or use you can use your own thorn's momentum constraint gridfunction name"
+  ".+"                   :: "Or use you can use your own thorn's baryonic density gridfunction"
 } "IllinoisGRMHD::rho_b"
+
+restricted:
+STRING ZL_tau_gf_VarString "GRMHD conserved energy gridfunction"
+{
+  "IllinoisGRMHD::tau" :: "IllinoisGRMHD conserved energy gridfunction"
+  "GRHydro::tau"       :: "GRHydro conserved energy gridfunction"
+  ".+"                 :: "Or use you can use your own thorn's conserved energy gridfunction"
+} "IllinoisGRMHD::tau"
+
+restricted:
+STRING ZL_SD0_gf_VarString "GRMHD conserved momentum (x-direction) gridfunction"
+{
+  "IllinoisGRMHD::mhd_st_x" :: "IllinoisGRMHD conserved momentum (x-direction) gridfunction"
+  "GRHydro::scon[0]"        :: "GRHydro conserved momentum (x-direction) gridfunction"
+  ".+"                      :: "Or use you can use your own thorn's conserved momentum gridfunction"
+} "IllinoisGRMHD::mhd_st_x"
+
+restricted:
+STRING ZL_SD1_gf_VarString "GRMHD conserved momentum (y-direction) gridfunction"
+{
+  "IllinoisGRMHD::mhd_st_y" :: "IllinoisGRMHD conserved momentum (y-direction) gridfunction"
+  "GRHydro::scon[1]"        :: "GRHydro conserved momentum (y-direction) gridfunction"
+  ".+"                      :: "Or use you can use your own thorn's conserved momentum gridfunction"
+} "IllinoisGRMHD::mhd_st_y"
+
+restricted:
+STRING ZL_SD2_gf_VarString "GRMHD conserved momentum (z-direction) gridfunction"
+{
+  "IllinoisGRMHD::mhd_st_z" :: "IllinoisGRMHD conserved momentum (z-direction) gridfunction"
+  "GRHydro::scon[2]"        :: "GRHydro conserved momentum (z-direction) gridfunction"
+  ".+"                      :: "Or use you can use your own thorn's conserved momentum gridfunction"
+} "IllinoisGRMHD::mhd_st_z"
