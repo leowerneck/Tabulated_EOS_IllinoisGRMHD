@@ -95,6 +95,7 @@ inline CCTK_REAL simple_rel_err( const CCTK_REAL a, const CCTK_REAL b ) {
 
 inline int check_depsdT_condition( const igm_eos_parameters eos,
                                    const CCTK_REAL *restrict param,
+                                   const CCTK_REAL T_guess,
                                    const CCTK_REAL x ) {
   // Now check whether or not to use the entropy equation
   double q       = param[par_q];
@@ -108,7 +109,7 @@ inline int check_depsdT_condition( const igm_eos_parameters eos,
 
   double rho     = param[conDD]/W;
   double ye      = param[conYE]/param[conDD];
-  double temp    = eos.T_atm;
+  double temp    = T_guess;
   double eps     = W - 1.0 + (1.0-W*W)*x/W + W*(q - s + t*t/(2*x*x) + s/(2*W*W)  );
   double press   = 0.0;
   double ent     = 0.0;
@@ -253,11 +254,13 @@ void palenzuela( const igm_eos_parameters eos,
   // bracket for x
   double xlow = 1.0+param[par_q]-param[par_s];
   double xup  = 2.0+2.0*param[par_q]-param[par_s];
+  // initial guess for temperature
+  double temp_guess=prim[TEMP];
 
   if( stats.which_routine == None ) {
     // Now check if we will need the entropy equation
-    const int xlow_entropy_key = check_depsdT_condition(eos,param,xlow);
-    const int xup_entropy_key  = check_depsdT_condition(eos,param,xup);
+    const int xlow_entropy_key = check_depsdT_condition(eos,param,temp_guess,xlow);
+    const int xup_entropy_key  = check_depsdT_condition(eos,param,temp_guess,xup);
     
     if( (xlow_entropy_key == Palenzuela1D_entropy) ||
         (xup_entropy_key  == Palenzuela1D_entropy) ) {
@@ -269,11 +272,8 @@ void palenzuela( const igm_eos_parameters eos,
       stats.which_routine = Palenzuela1D;
     }
   }
-    
-  // initial guess for temperature
-  double temp_guess=eos.T_max;
-    
-    // find x, this is the recovery process
+      
+  // find x, this is the recovery process
   double x = zbrent(*func_root, eos, param, &temp_guess, xlow, xup, tol_x, stats);
 
   // calculate final set of primitives
