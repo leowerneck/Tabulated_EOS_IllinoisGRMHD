@@ -1,8 +1,15 @@
-// This function gets the maximum value of the
-// density on the grid in all processors. It
-// is a slight generalization of the function
-// GRHydro_Rho_Minima_Setup_Final_PUGH() from
-// the GRHydro thorn.
+//----------------------------------------------------------
+//----------------------------------------------------------
+// Thorn      : ZelmaniLeak
+// File       : ZelmaniLeak_get_global_rho_max.cc
+// Author(s)  : Leonardo R. Werneck (wernecklr@gmail.com)
+// Description: This function gets the maximum value of the
+//              density on the grid in all processors. It
+//              is a slight generalization of the function
+//              GRHydro_Rho_Minima_Setup_Final_PUGH() from
+//              the GRHydro thorn.
+//----------------------------------------------------------
+//----------------------------------------------------------
 #include "cctk.h"
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
