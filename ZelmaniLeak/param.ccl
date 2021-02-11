@@ -212,3 +212,9 @@ CCTK_INT ZL_stencil "Size of the stencil"
   (0:* :: "Should be greater than zero"
 } 3
 
+STRING ZL_rho_gf_VarString "Gridfunction that will be used to set ZL_global_rho_max" STEERABLE=always
+{
+  "IllinoisGRMHD::rho_b" :: "IllinoisGRMHD baryonic density gridfunction"
+  "GRHydro::rho"         :: "GRHydro baryonic density gridfunction"
+  ".+"                   :: "Or use you can use your own thorn's momentum constraint gridfunction name"
+} "IllinoisGRMHD::rho_b"

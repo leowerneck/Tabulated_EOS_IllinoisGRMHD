@@ -4,7 +4,8 @@
 SRCS = ye_of_rho_from_profile.F90 ye_of_rho.F90 \
        neutrino_pressure.c calc_pnu.F90 startup.F90 \
        Tmunu.F90 tau.cc calc_taus.F90 calc_leak.F90 \
-       helpers.cc calc_grr.cc paramcheck.c
+       helpers.cc calc_grr.cc paramcheck.c \
+       ZelmaniLeak_get_global_rho_max.cc
 
 # Subdirectories containing source files
 SUBDIRS = 

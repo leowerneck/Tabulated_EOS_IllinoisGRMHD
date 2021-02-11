@@ -48,7 +48,7 @@ subroutine ZelmaniLeak_Tmunu(CCTK_ARGUMENTS)
   ny = cctk_lsh(2)
   nz = cctk_lsh(3)
 
-  if(global_rho_max*inv_rho_gf < pnu_rho_start / 10.0d0) return;
+  if(ZL_global_rho_max*inv_rho_gf < pnu_rho_start / 10.0d0) return;
   
   pnuconst = PRESS_NU_CONSTANT * press_gf
   F3const = 7.0d0*PI4/60.0d0

@@ -126,4 +126,4 @@ CCTK_REAL phi   TYPE=array DIM=1 size=nphi  DISTRIB=constant TAGS='checkpoint="y
 CCTK_REAL theta TYPE=array DIM=1 size=ntheta DISTRIB=constant TAGS='checkpoint="yes"'
 
 CCTK_INT have_interp_data TYPE=scalar TAGS='checkpoint="no"'
-CCTK_REAL global_rho_max TYPE=scalar TAGS='checkpoint="no"'
+CCTK_REAL ZL_global_rho_max TYPE=scalar TAGS='checkpoint="no"'

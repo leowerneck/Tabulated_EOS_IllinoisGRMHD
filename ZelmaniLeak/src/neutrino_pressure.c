@@ -66,7 +66,7 @@ void ZelmaniLeak_NeutrinoPressureWrap(CCTK_ARGUMENTS)
   CCTK_REAL dy = CCTK_DELTA_SPACE(1);
   CCTK_REAL dz = CCTK_DELTA_SPACE(2);
 
-  if(*global_rho_max*INVRHOGF < pnu_rho_start) return;
+  if(*ZL_global_rho_max*INVRHOGF < pnu_rho_start) return;
 
   varindex = CCTK_VarIndex("GRHydro::tau");
   rhsindex = MoLQueryEvolvedRHS (varindex);
