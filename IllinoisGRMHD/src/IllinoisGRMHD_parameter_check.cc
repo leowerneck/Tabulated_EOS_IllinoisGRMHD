@@ -94,12 +94,11 @@ void IllinoisGRMHD_parameter_check(CCTK_ARGUMENTS) {
   else if( eos.is_Tabulated ) {
 
     // Check if selected a con2prim routine which is supported by tabulated EOS
-    if( CCTK_EQUALS(igm_con2prim_routine,"Noble1D"         ) ||
-        CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy" ) ||
+    if( CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy" ) ||
         CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy2") ) {
       CCTK_VError(VERR_DEF_PARAMS,
                   "Tabulated EOS only supports the following con2prim routines:"
-                  "Palenzuela1D, Noble2D, and CerdaDuran2D. ABORTING.");
+                  "Palenzuela1D, Noble2D, Noble1D, and CerdaDuran2D. ABORTING.");
     }
     else if( (igm_evolve_entropy == false) && CCTK_EQUALS(igm_con2prim_routine,"Palenzuela1D" ) ) {
       CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");

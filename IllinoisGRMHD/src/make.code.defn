@@ -34,3 +34,5 @@ SRCS =  InitSymBound.C MoL_registration.C \
     con2prim_test_suite.cc \
     IllinoisGRMHD_parameter_check.cc
 
+# Subdirectories containing source files
+#SUBDIRS = ZelmaniLeak

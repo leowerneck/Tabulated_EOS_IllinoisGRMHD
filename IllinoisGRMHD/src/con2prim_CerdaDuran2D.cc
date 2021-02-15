@@ -104,7 +104,7 @@ int con2prim_CerdaDuran2D( const igm_eos_parameters eos,
 
   bool c2p_failed = false;
   int safe_guess  = 0;
-  double tol_x    = 1e-10;
+  double tol_x    = 5e-9;
   NR_2D_WT( eos, safe_guess,tol_x, S_squared,BdotS,B_squared, SU,con,prim, &c2p_failed );
 
   if( c2p_failed ) {
@@ -192,8 +192,8 @@ void calc_prim_from_x_2D_WT( const igm_eos_parameters eos,
   
 }
 
-
-void NR_step_2D_WT( const double S_squared,
+void NR_step_2D_WT( const igm_eos_parameters eos,
+                    const double S_squared,
                     const double BdotS,
                     const double B_squared,
                     const double *restrict con, 
@@ -209,66 +209,91 @@ void NR_step_2D_WT( const double S_squared,
   // Here, compute dx = [dW, dT]
   double W = x[0];
   double T = x[1];
-  
+
   // Need partial derivatives of specific internal energy and pressure wrt density and 
   // temperature. Those need to be based on primitives computed from Newton-Raphson state
   // vector x and conservatives
-  double rho    = con[DD]/W;
-  double ye     = con[YE]/con[DD];
-  double P      = 0.0;
-  double E      = 0.0;
-  double dEdrho = 0.0;
-  double dEdT   = 0.0;
-  double dPdrho = 0.0;
-  double dPdT   = 0.0;
-  EOS_EP_dEdr_dEdt_dPdr_dPdt_2D(rho,ye,T,&E,&P,&dEdrho,&dEdT,&dPdrho,&dPdT);
+  double rho      = con[DD]/W;
+  double ye       = con[YE]/con[DD];
+  double P        = 0.0;
+  double eps      = 0.0;
+  double dPdrho   = 0.0;
+  double dPdT     = 0.0;
+  double depsdrho = 0.0;
+  double depsdT   = 0.0;
+  get_P_eps_dPdrho_dPdT_depsdrho_depsdT_from_rho_Ye_and_T(eos,rho,ye,T,&P,&eps,&dPdrho,&dPdT,&depsdrho,&depsdT);
 
-  double H      = 1.0 + E + P * W / con[DD];
-  double Z      = con[DD] * H * W;
+  // h = 1 + eps + P/rho
+  double h     = 1.0 + eps + P / rho;
 
-  double dZ_dW  = con[DD]*H;
-  double dZ_dT  = con[DD]*W * dEdT + W*W * dPdT;
+  // z = rho*h*W^{2} = ( rho + eps*rho + P )*W^{2}
+  double W_sqr = W*W;
+  double z     = rho * h * W_sqr;
 
-  double df1_dZ = (2.0*(Z + B_squared) + (2.0/(Z*Z) + 2.0*B_squared/(Z*Z*Z))*(BdotS*BdotS))*W*W - 2.0*(Z + B_squared); 
-  double df1_dW = 2.0*((Z + B_squared)*(Z + B_squared)-S_squared-(2.0*Z + B_squared)*((BdotS)*(BdotS))/(Z*Z))*W;
+  // Some useful auxiliary variables
+  double BdotSsqr       = BdotS*BdotS;
+  double z_plus_Bsq     = z + B_squared;
+  double z_plus_Bsq_sqr = z_plus_Bsq*z_plus_Bsq;
+  double z_sqr          = z*z;
 
-  double df2_dZ = (-1.0-(BdotS*BdotS)/(Z*Z*Z))*W*W;
-  double df2_dW = 2.0*(con[TAU] + con[DD] - Z - B_squared + (BdotS*BdotS)/(2.0*Z*Z) + P)*W;
-  double df2_dP = W*W;
+  // dz/dW = 2 * rho * h * W = 2 * D * h
+  double dz_dW = con[DD]*h;
 
+  // dz/dT = ( rho*deps/dT + dP/dT )*W^{2}
+  double dz_dT = (rho * depsdT + dPdT)*W_sqr;
+
+  // f1 = ( (z+B^{2})^{2} - S^{2} - (2z+B^{2})(B.S)^{2}/z^{2} )W^{2} - (z+B^{2})^{2}
+  f[0] = (z_plus_Bsq_sqr - S_squared - (z+z_plus_Bsq)*BdotSsqr/z_sqr)*W_sqr - z_plus_Bsq_sqr;
+
+  // df1/dz = ( 2(z+B^{2}) + 2(B.S)^{2}/z^{2} + 2(B^{2})(B.S)^{2}/z^{3} )W^{2} - 2(z+B^{2})
+  double df1_dz = (2.0*z_plus_Bsq + (2.0/(z_sqr) + 2.0*B_squared/(z_sqr*z))*BdotSsqr)*W_sqr - 2.0*z_plus_Bsq;
+
+  // Ignoring the fact that z = z(W) for now, we have:
+  // df1/dW = 2W( (z+B^{2})^{2} - S^{2} - (2z+B^{2})(B.S)^{2}/z^{2} )
+  double df1_dW = 2.0*(z_plus_Bsq_sqr - S_squared - (z+z_plus_Bsq)*(BdotSsqr)/z_sqr)*W;
+
+  // f2 = (tau + D - z - B^{2} + (B.S)^{2}/(2z^{2}) + P)W^{2} + B^{2}/2
+  f[1] = (con[TAU] + con[DD] - z - B_squared + (BdotSsqr)/(2.0*z_sqr) + P)*W_sqr + 0.5*B_squared;
+
+  // df2/dz = ( -1 - (B.S)^{2}/z^{3} ) W^{2}
+  double df2_dz = (-1.0-BdotSsqr/(z_sqr*z))*W_sqr;
+
+  // df2/dW = 2(tau + D - z - B^{2} + (B.S)^{2}/(2z^{2}) + P)W
+  double df2_dW = 2.0*(con[TAU] + con[DD] - z - B_squared + BdotSsqr/(2.0*z_sqr) + P)*W;
+
+  // df2/dP = W^{2}
+  double df2_dP = W_sqr;
+
+  // Now compute the Jacobian matrix
   double J[2][2];
   // df1_dW
-  J[0][0] = df1_dZ * dZ_dW + df1_dW;
+  J[0][0] = df1_dz * dz_dW + df1_dW;
   double a = J[0][0];
-  
+
   // df1_dT
-  J[0][1] = df1_dZ * dZ_dT;
+  J[0][1] = df1_dz * dz_dT;
   double b = J[0][1];
-  
+
   // df2_dW
-  J[1][0] = df2_dZ * dZ_dW + df2_dW;
+  J[1][0] = df2_dz * dz_dW + df2_dW;
   double c = J[1][0];
-  
+
   // df2_dT
-  J[1][1] = df2_dZ * dZ_dT + df2_dP * dPdT;
+  J[1][1] = df2_dz * dz_dT + df2_dP * dPdT;
   double d = J[1][1];
 
-  
-  // Compute f(x) from (27), (28) in Siegel et al. 2018
-  f[0] = ((Z+B_squared)*(Z+B_squared) - S_squared - (2.0*Z +B_squared)*(BdotS*BdotS)/(Z*Z))*W*W - ((Z + B_squared)*(Z + B_squared));
-  f[1] = (con[TAU] + con[DD] - Z - B_squared + (BdotS*BdotS)/(2.0*Z*Z) + P)*W*W + 0.5*B_squared;
-
+  // Then the inverse Jacobian Matrix
   double Ji[2][2];
   double detJ = a*d - b*c; 
-  Ji[0][0] = d/detJ;
-  Ji[0][1] = -b/detJ;
-  Ji[1][0] = -c/detJ;
-  Ji[1][1] = a/detJ;
+  Ji[0][0]    = +d/detJ;
+  Ji[0][1]    = -b/detJ;
+  Ji[1][0]    = -c/detJ;
+  Ji[1][1]    = +a/detJ;
 
   // Compute the step size
   dx[0] = -Ji[0][0]* f[0] - Ji[0][1]* f[1];
   dx[1] = -Ji[1][0]* f[0] - Ji[1][1]* f[1];
-  
+
 }
 
 
@@ -337,7 +362,7 @@ void NR_2D_WT( const igm_eos_parameters eos,
   while(keep_iterating) {
 
     // do Newton-Raphson step
-    NR_step_2D_WT(S_squared, BdotS, B_squared, con, x, dx, f);
+    NR_step_2D_WT(eos,S_squared, BdotS, B_squared, con, x, dx, f);
 
     // Update x vector and compute error
     for(int i=0;i<2;i++) {
@@ -358,13 +383,13 @@ void NR_2D_WT( const igm_eos_parameters eos,
     count++;
 
     // termination criterion
-    if( (fabs(maxerror) <= NEWT_TOL) && (doing_extra == 0) && (EXTRA_NEWT_ITER > 0) ) {
+    if( (fabs(maxerror) <= tol_x) && (doing_extra == 0) && (EXTRA_NEWT_ITER > 0) ) {
       doing_extra = 1;
     }
 
     if( doing_extra == 1 ) i_extra++;
 
-    if( ((fabs(maxerror) <= NEWT_TOL)&&(doing_extra == 0))
+    if( ((fabs(maxerror) <= tol_x)&&(doing_extra == 0))
         || (i_extra >= EXTRA_NEWT_ITER) || (count >= (MAX_NEWT_ITER)) ) {
       keep_iterating = false;
     }
@@ -376,10 +401,10 @@ void NR_2D_WT( const igm_eos_parameters eos,
     *c2p_failed = true;
   }
 
-  if( fabs(maxerror) <= NEWT_TOL ){
+  if( fabs(maxerror) <= tol_x ){
     *c2p_failed = false;
   }
-  else if( (fabs(maxerror) <= MIN_NEWT_TOL) && (fabs(maxerror) > NEWT_TOL) ){
+  else if( (fabs(maxerror) <= tol_x) && (fabs(maxerror) > tol_x) ){
     *c2p_failed = false;
   }
   else {

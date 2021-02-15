@@ -565,8 +565,8 @@ void get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_h( const igm_eos_parameters e
                                                       const CCTK_REAL Ye_in,
                                                       const CCTK_REAL h_in,
                                                       CCTK_REAL *restrict P,
-                                                      CCTK_REAL *restrict T,
                                                       CCTK_REAL *restrict eps,
+                                                      CCTK_REAL *restrict T,
                                                       CCTK_REAL *restrict dPdrho, 
                                                       CCTK_REAL *restrict dPdeps ) {
   int keyerr    = 0;
@@ -589,15 +589,75 @@ void get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_h( const igm_eos_parameters e
   
 }
 
-void EOS_EP_dEdr_dEdt_dPdr_dPdt_2D( const double rho,
-                                    const double Ye,
-                                    const double T,
-                                    double *restrict Eprim,
-                                    double *restrict Pprim,
-                                    double *restrict dEdrho,
-                                    double *restrict dEdt,
-                                    double *restrict dPdrho,
-                                    double *restrict dPdt ) {
+void get_P_eps_dPdrho_dPdT_depsdrho_depsdT_from_rho_Ye_and_T( const igm_eos_parameters eos,
+                                                              const CCTK_REAL rho,
+                                                              const CCTK_REAL Ye,
+                                                              const CCTK_REAL T,
+                                                              CCTK_REAL *restrict P,
+                                                              CCTK_REAL *restrict eps,
+                                                              CCTK_REAL *restrict dPdrho,
+                                                              CCTK_REAL *restrict dPdT,
+                                                              CCTK_REAL *restrict depsdrho,
+                                                              CCTK_REAL *restrict depsdT ) {
+
+  // Set up for table call
+  CCTK_INT  npoints = 1;
+  CCTK_INT  keyerr  = 0;
+  CCTK_INT  anyerr  = 0;
+  // The EOS_Omni function does not like some of its arguments
+  // being constant (even when they are not supposed to change).
+  // We declare auxiliary variables here to avoid errors.
+  CCTK_REAL rho_in     = rho;
+  CCTK_REAL Y_e_in     = Ye;
+  CCTK_REAL T_in       = T;
+  CCTK_REAL prs_out    = 0.0;
+  CCTK_REAL eps_out    = 0.0;
+  CCTK_REAL depsdT_out = 0.0;
+  CCTK_REAL dPdeps_out = 0.0;
+  CCTK_REAL dPdrho_out = 0.0;
+  CCTK_REAL dummy      = 0.0;
+
+  // Perform the table interpolations
+  EOS_Omni_short( eos.key,have_temp,eos.root_finding_precision,npoints,
+                  &rho_in,&eps_out,&T_in,&Y_e_in,&prs_out,&dummy,
+                  &dummy,&depsdT_out,&dPdeps_out,&dPdrho_out,&dummy,
+                  &keyerr,&anyerr );
+  
+  // We want:
+  //
+  // -> dP/drho   (Got)
+  // -> dP/dT     (Need)
+  // -> deps/drho (Need)
+  // -> deps/dT   (Got)
+  //
+  // EOS_Omni_short provided deps/dT, dP/deps, and dP/drho.
+  // Therefore we can compute:
+  // .----------------------------.
+  // | dP/dT = (dP/deps)(deps/dT) |
+  // .----------------------------.-------------------------.
+  // | deps/drho = (deps/dP)(dP/drho) = (dP/drho)/(dP/deps) |
+  // .------------------------------------------------------.
+  CCTK_REAL dPdT_out     = dPdeps_out * depsdT_out;
+  CCTK_REAL depsdrho_out = dPdrho_out / dPdeps_out;
+
+  // Now update the pointers
+  *P        = prs_out;
+  *eps      = eps_out;
+  *dPdrho   = dPdrho_out;
+  *dPdT     = dPdT_out;
+  *depsdrho = depsdrho_out;
+  *depsdT   = depsdT_out;
+ 
+}
+void EOS_EP_dEdr_dEdt_dPdr_dPdt_2D( const CCTK_REAL rho,
+                                    const CCTK_REAL Ye,
+                                    const CCTK_REAL T,
+                                    CCTK_REAL *restrict Eprim,
+                                    CCTK_REAL *restrict Pprim,
+                                    CCTK_REAL *restrict dEdrho,
+                                    CCTK_REAL *restrict dEdt,
+                                    CCTK_REAL *restrict dPdrho,
+                                    CCTK_REAL *restrict dPdt ) {
 
   // Compute partial derivatives of specific internal energy and pressure with respect
   // to density and temperature, based on primitives computed from Newton-Raphson state

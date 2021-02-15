@@ -170,8 +170,8 @@ void get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_h( const igm_eos_parameters e
                                                       const CCTK_REAL Ye_in,
                                                       const CCTK_REAL h_in,
                                                       CCTK_REAL *restrict P,
-                                                      CCTK_REAL *restrict T,
                                                       CCTK_REAL *restrict eps,
+                                                      CCTK_REAL *restrict T,
                                                       CCTK_REAL *restrict dPdrho, 
                                                       CCTK_REAL *restrict dPdeps );
 
@@ -235,6 +235,17 @@ void get_munu_from_rho_Ye_and_T( const igm_eos_parameters eos,
                                  const CCTK_REAL Y_e,
                                  const CCTK_REAL T,
                                  CCTK_REAL *restrict munu );
+
+void get_P_eps_dPdrho_dPdT_depsdrho_depsdT_from_rho_Ye_and_T( const igm_eos_parameters eos,
+                                                              const CCTK_REAL rho,
+                                                              const CCTK_REAL Ye,
+                                                              const CCTK_REAL T,
+                                                              CCTK_REAL *restrict P,
+                                                              CCTK_REAL *restrict eps,
+                                                              CCTK_REAL *restrict dPdrho,
+                                                              CCTK_REAL *restrict dPdT,
+                                                              CCTK_REAL *restrict depsdrho,
+                                                              CCTK_REAL *restrict depsdT );
 
 //------------------------------------------------
 

@@ -73,7 +73,7 @@ static const CCTK_REAL G_ISOTHERMAL = 1.0;
   #endif
 */
 
-static const int MAX_NEWT_ITER       = 30;     /* Max. # of Newton-Raphson iterations for find_root_2D(); */
+static const int MAX_NEWT_ITER       = 50;     /* Max. # of Newton-Raphson iterations for find_root_2D(); */
 static const int EXTRA_NEWT_ITER     = 0; /* ZACH SAYS: Original value = 2. But I don't think this parameter > 0 is warranted. Just slows the code for no reason, since our tolerances are fine. */
 static const CCTK_REAL NEWT_TOL      = 5e-9;    /* Min. of tolerance allowed for Newton-Raphson iterations */
 static const CCTK_REAL MIN_NEWT_TOL  = 5e-9;    /* Max. of tolerance allowed for Newton-Raphson iterations */

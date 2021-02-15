@@ -271,9 +271,10 @@ int Utoprim_new_body( const igm_eos_parameters eos,
     harm_aux.ye            = U[YE]/U[RHO];
     harm_aux.gamma_times_S = U[WS];
     harm_aux.use_entropy   = false;
+    harm_aux.T_guess       = prim[TEMP];
     CCTK_REAL xrho         = rho0;
     CCTK_REAL xye          = harm_aux.ye;
-    CCTK_REAL xtemp        = prim[TEMP];
+    CCTK_REAL xtemp        = harm_aux.T_guess;
     CCTK_REAL xprs         = 0.0;
     CCTK_REAL xeps         = 0.0;
     CCTK_REAL xdepsdT      = 0.0;
@@ -344,9 +345,11 @@ int Utoprim_new_body( const igm_eos_parameters eos,
   else {
     CCTK_REAL xrho  = rho0;
     CCTK_REAL xye   = harm_aux.ye;
-    CCTK_REAL xtemp = prim[TEMP];
+    CCTK_REAL xtemp = harm_aux.T_guess;
     CCTK_REAL xent  = harm_aux.gamma_times_S / W;
-    CCTK_REAL xprs=0,xuu=0,xeps=0;
+    CCTK_REAL xprs  = 0.0;
+    CCTK_REAL xuu   = 0.0;
+    CCTK_REAL xeps  = 0.0;
     if( harm_aux.use_entropy ) {
       get_P_eps_and_T_from_rho_Ye_and_S( eos,xrho,xye,xent, &xprs,&xeps,&xtemp );
     }
@@ -600,7 +603,7 @@ void func_vsq(igm_eos_parameters eos, harm_aux_vars_struct& harm_aux, CCTK_REAL 
     const CCTK_REAL xye = harm_aux.ye;
     const CCTK_REAL h   = fabs(W /(rho*gamma_sq)); // W := rho*h*gamma^{2}
     const CCTK_REAL ent = harm_aux.gamma_times_S / harm_aux.gamma;
-    CCTK_REAL T         = eos.T_atm;
+    CCTK_REAL T         = harm_aux.T_guess;
     CCTK_REAL prs       = 0.0;
     CCTK_REAL eps       = 0.0;
     CCTK_REAL dPdrho    = 0.0;
@@ -608,7 +611,7 @@ void func_vsq(igm_eos_parameters eos, harm_aux_vars_struct& harm_aux, CCTK_REAL 
 
     // Now compute the pressure and its derivatives with respect to rho and eps
     if( harm_aux.use_entropy ) {
-      get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_S(eos,rho,xye,ent, &prs,&T,&eps,&dPdrho,&dPdeps);
+      get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_S(eos,rho,xye,ent, &prs,&eps,&T,&dPdrho,&dPdeps);
     }
     else {
       get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_h(eos,rho,xye,h, &prs,&eps,&T,&dPdrho,&dPdeps);

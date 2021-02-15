@@ -30,7 +30,7 @@
 // functions without having a large number of function
 // arguments.
 typedef struct _harm_auxiliary_vars_ {
-  CCTK_REAL Bsq,QdotBsq,Qsq,Qtsq,Qdotn,QdotB,D,gamma,gamma_times_S,ye;
+  CCTK_REAL Bsq,QdotBsq,Qsq,Qtsq,Qdotn,QdotB,D,gamma,gamma_times_S,ye,T_guess;
   bool use_entropy;
 } harm_aux_vars_struct;
 

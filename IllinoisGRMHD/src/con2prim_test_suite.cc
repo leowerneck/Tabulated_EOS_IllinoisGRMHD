@@ -145,109 +145,105 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
 
     srand(0);
     
-    // for(int i=0;i<npoints;i++) {
-      // for(int j=0;j<npoints;j++) {
+    for(int i=0;i<npoints;i++) {
+      for(int j=0;j<npoints;j++) {
 
-        // // Start by setting the prims (rho,Ye,T,P,eps)
-        // CCTK_REAL xrho  = exp(lrmin + dlr*i);
-        // CCTK_REAL xtemp = exp(ltmin + dlt*j);
-        // CCTK_REAL xye   = Ye_test;
-        // CCTK_REAL xprs  = 0.0;
-        // CCTK_REAL xeps  = 0.0;
-        // get_P_and_eps_from_rho_Ye_and_T( eos,xrho,xye,xtemp, &xprs,&xeps );
+        // Start by setting the prims (rho,Ye,T,P,eps)
+        CCTK_REAL xrho  = exp(lrmin + dlr*i);
+        CCTK_REAL xtemp = exp(ltmin + dlt*j);
+        CCTK_REAL xye   = Ye_test;
+        CCTK_REAL xprs  = 0.0;
+        CCTK_REAL xeps  = 0.0;
+        get_P_and_eps_from_rho_Ye_and_T( eos,xrho,xye,xtemp, &xprs,&xeps );
 
-        // // Now set the velocities
-        // // Velocity magnitude
-        // const CCTK_REAL v = sqrt(1.0-1.0/(W_test*W_test));
-        // const CCTK_REAL vx = v*((CCTK_REAL)rand())/((CCTK_REAL)RAND_MAX);
-        // const CCTK_REAL vy = sqrt(v*v - vx*vx)*((CCTK_REAL)rand())/((CCTK_REAL)RAND_MAX);
-        // const CCTK_REAL vz = sqrt(v*v - vx*vx - vy*vy);
+        // Now set the velocities
+        // Velocity magnitude
+        const CCTK_REAL v = sqrt(1.0-1.0/(W_test*W_test));
+        const CCTK_REAL vx = v*((CCTK_REAL)rand())/((CCTK_REAL)RAND_MAX);
+        const CCTK_REAL vy = sqrt(v*v - vx*vx)*((CCTK_REAL)rand())/((CCTK_REAL)RAND_MAX);
+        const CCTK_REAL vz = sqrt(v*v - vx*vx - vy*vy);
 
-        // // Now the magnetic fields. We'll set them aligned
-        // // with the velocities, for simplicity.
-        // const CCTK_REAL Bhatx = vx/v;
-        // const CCTK_REAL Bhaty = vy/v;
-        // const CCTK_REAL Bhatz = vz/v;
-        // const CCTK_REAL B     = sqrt(2.0*pow(10.0,logPmoP)*xprs);
-        // const CCTK_REAL Bx    = -Bhatx * B;
-        // const CCTK_REAL By    = -Bhaty * B;
-        // const CCTK_REAL Bz    = -Bhatz * B;
+        // Now the magnetic fields. We'll set them aligned
+        // with the velocities, for simplicity.
+        const CCTK_REAL Bhatx = vx/v;
+        const CCTK_REAL Bhaty = vy/v;
+        const CCTK_REAL Bhatz = vz/v;
+        const CCTK_REAL B     = sqrt(2.0*pow(10.0,logPmoP)*xprs);
+        const CCTK_REAL Bx    = -Bhatx * B;
+        const CCTK_REAL By    = -Bhaty * B;
+        const CCTK_REAL Bz    = -Bhatz * B;
         CCTK_REAL CONSERVS[NUM_CONSERVS];
         CCTK_REAL METRIC[NUMVARS_FOR_METRIC];
         CCTK_REAL METRIC_PHYS[NUMVARS_FOR_METRIC];
         CCTK_REAL METRIC_LAP_PSI4[NUMVARS_METRIC_AUX];
         
-        {
-          ifstream myfile;
-          char filename[100];
-          sprintf(filename,"con2prim_debug_high_density_region.asc");
-          myfile.open(filename, ios::in | ios::binary);
-          if(myfile.fail()) {
-            fprintf(stderr,"Error: file %s cannot be opened.\n",filename);
-            exit(1);
-          }
-          myfile.read((char*)CONSERVS       ,(   NUM_CONSERVS   )*sizeof(CCTK_REAL));
-          myfile.read((char*)METRIC         ,(NUMVARS_FOR_METRIC)*sizeof(CCTK_REAL));
-          myfile.read((char*)METRIC_PHYS    ,(NUMVARS_FOR_METRIC)*sizeof(CCTK_REAL));
-          myfile.read((char*)METRIC_LAP_PSI4,(NUMVARS_METRIC_AUX)*sizeof(CCTK_REAL));
-          myfile.close();
-        }
+        // {
+        //   ifstream myfile;
+        //   char filename[100];
+        //   sprintf(filename,"con2prim_debug_high_density_region.asc");
+        //   myfile.open(filename, ios::in | ios::binary);
+        //   if(myfile.fail()) {
+        //     fprintf(stderr,"Error: file %s cannot be opened.\n",filename);
+        //     exit(1);
+        //   }
+        //   myfile.read((char*)CONSERVS       ,(   NUM_CONSERVS   )*sizeof(CCTK_REAL));
+        //   myfile.read((char*)METRIC         ,(NUMVARS_FOR_METRIC)*sizeof(CCTK_REAL));
+        //   myfile.read((char*)METRIC_PHYS    ,(NUMVARS_FOR_METRIC)*sizeof(CCTK_REAL));
+        //   myfile.read((char*)METRIC_LAP_PSI4,(NUMVARS_METRIC_AUX)*sizeof(CCTK_REAL));
+        //   myfile.close();
+        // }
 
         // Now set the primitive variables array, following IGM's standards
         CCTK_REAL PRIMS[MAXNUMVARS];
-        // PRIMS[RHOB       ] = xrho;
-        // PRIMS[YEPRIM     ] = xye;
-        // PRIMS[TEMPERATURE] = xtemp;
-        // PRIMS[PRESSURE   ] = xprs;
-        // PRIMS[EPSILON    ] = xeps;
-        // PRIMS[VX         ] = vx;
-        // PRIMS[VY         ] = vy;
-        // PRIMS[VZ         ] = vz;
-        // PRIMS[BX_CENTER  ] = Bx;
-        // PRIMS[BY_CENTER  ] = By;
-        // PRIMS[BZ_CENTER  ] = Bz;
+        PRIMS[RHOB       ] = xrho;
+        PRIMS[YEPRIM     ] = xye;
+        PRIMS[TEMPERATURE] = xtemp;
+        PRIMS[PRESSURE   ] = xprs;
+        PRIMS[EPSILON    ] = xeps;
+        PRIMS[VX         ] = vx;
+        PRIMS[VY         ] = vy;
+        PRIMS[VZ         ] = vz;
+        PRIMS[BX_CENTER  ] = Bx;
+        PRIMS[BY_CENTER  ] = By;
+        PRIMS[BZ_CENTER  ] = Bz;
 
         // Store original prims
-        // CCTK_REAL PRIMS_ORIG[MAXNUMVARS];
-        // for(int i=0;i<MAXNUMVARS;i++) PRIMS_ORIG[i] = PRIMS[i];
+        CCTK_REAL PRIMS_ORIG[MAXNUMVARS];
+        for(int i=0;i<MAXNUMVARS;i++) PRIMS_ORIG[i] = PRIMS[i];
 
         // Set the metric to flat space
-        // CCTK_REAL METRIC[NUMVARS_FOR_METRIC];
-        // METRIC[PHI   ] = METRIC[LAPM1 ] = 0.0;
-        // METRIC[SHIFTX] = METRIC[SHIFTY] = METRIC[SHIFTZ] = 0.0;
-        // METRIC[GXX   ] = METRIC[GYY   ] = METRIC[GZZ   ] = 1.0;
-        // METRIC[GXY   ] = METRIC[GXZ   ] = METRIC[GYZ   ] = 0.0;
-        // METRIC[GUPXX ] = METRIC[GUPYY ] = METRIC[GUPZZ ] = 1.0;
-        // METRIC[GUPXY ] = METRIC[GUPXZ ] = METRIC[GUPYZ ] = 0.0;
+        METRIC[PHI   ] = METRIC[LAPM1 ] = 0.0;
+        METRIC[SHIFTX] = METRIC[SHIFTY] = METRIC[SHIFTZ] = 0.0;
+        METRIC[GXX   ] = METRIC[GYY   ] = METRIC[GZZ   ] = 1.0;
+        METRIC[GXY   ] = METRIC[GXZ   ] = METRIC[GYZ   ] = 0.0;
+        METRIC[GUPXX ] = METRIC[GUPYY ] = METRIC[GUPZZ ] = 1.0;
+        METRIC[GUPXY ] = METRIC[GUPXZ ] = METRIC[GUPYZ ] = 0.0;
 
         // We'll also need the auxilary metric variables array
-        // CCTK_REAL METRIC_LAP_PSI4[NUMVARS_METRIC_AUX];
-        // SET_LAPSE_PSI4(METRIC_LAP_PSI4,METRIC);
+        SET_LAPSE_PSI4(METRIC_LAP_PSI4,METRIC);
 
         // Now the physical metric
-        // CCTK_REAL METRIC_PHYS[NUMVARS_FOR_METRIC];
-        // METRIC_PHYS[GXX  ] = METRIC[GXX  ]*METRIC_LAP_PSI4[PSI4 ];
-        // METRIC_PHYS[GXY  ] = METRIC[GXY  ]*METRIC_LAP_PSI4[PSI4 ];
-        // METRIC_PHYS[GXZ  ] = METRIC[GXZ  ]*METRIC_LAP_PSI4[PSI4 ];
-        // METRIC_PHYS[GYY  ] = METRIC[GYY  ]*METRIC_LAP_PSI4[PSI4 ];
-        // METRIC_PHYS[GYZ  ] = METRIC[GYZ  ]*METRIC_LAP_PSI4[PSI4 ];
-        // METRIC_PHYS[GZZ  ] = METRIC[GZZ  ]*METRIC_LAP_PSI4[PSI4 ];
-        // METRIC_PHYS[GUPXX] = METRIC[GUPXX]*METRIC_LAP_PSI4[PSIM4];
-        // METRIC_PHYS[GUPXY] = METRIC[GUPXY]*METRIC_LAP_PSI4[PSIM4];
-        // METRIC_PHYS[GUPXZ] = METRIC[GUPXZ]*METRIC_LAP_PSI4[PSIM4];
-        // METRIC_PHYS[GUPYY] = METRIC[GUPYY]*METRIC_LAP_PSI4[PSIM4];
-        // METRIC_PHYS[GUPYZ] = METRIC[GUPYZ]*METRIC_LAP_PSI4[PSIM4];
-        // METRIC_PHYS[GUPZZ] = METRIC[GUPZZ]*METRIC_LAP_PSI4[PSIM4];
+        METRIC_PHYS[GXX  ] = METRIC[GXX  ]*METRIC_LAP_PSI4[PSI4 ];
+        METRIC_PHYS[GXY  ] = METRIC[GXY  ]*METRIC_LAP_PSI4[PSI4 ];
+        METRIC_PHYS[GXZ  ] = METRIC[GXZ  ]*METRIC_LAP_PSI4[PSI4 ];
+        METRIC_PHYS[GYY  ] = METRIC[GYY  ]*METRIC_LAP_PSI4[PSI4 ];
+        METRIC_PHYS[GYZ  ] = METRIC[GYZ  ]*METRIC_LAP_PSI4[PSI4 ];
+        METRIC_PHYS[GZZ  ] = METRIC[GZZ  ]*METRIC_LAP_PSI4[PSI4 ];
+        METRIC_PHYS[GUPXX] = METRIC[GUPXX]*METRIC_LAP_PSI4[PSIM4];
+        METRIC_PHYS[GUPXY] = METRIC[GUPXY]*METRIC_LAP_PSI4[PSIM4];
+        METRIC_PHYS[GUPXZ] = METRIC[GUPXZ]*METRIC_LAP_PSI4[PSIM4];
+        METRIC_PHYS[GUPYY] = METRIC[GUPYY]*METRIC_LAP_PSI4[PSIM4];
+        METRIC_PHYS[GUPYZ] = METRIC[GUPYZ]*METRIC_LAP_PSI4[PSIM4];
+        METRIC_PHYS[GUPZZ] = METRIC[GUPZZ]*METRIC_LAP_PSI4[PSIM4];
 
         // Then set the conservative variables array
         const int already_computed_physical_metric_and_inverse=0;
-        // CCTK_REAL CONSERVS[NUM_CONSERVS];
-        // CCTK_REAL TUPMUNU[10],TDNMUNU[10];
+        CCTK_REAL TUPMUNU[10],TDNMUNU[10];
         CCTK_REAL g4dn[4][4] = {{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};
         CCTK_REAL g4up[4][4] = {{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};
         struct output_stats stats;
-        // IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(already_computed_physical_metric_and_inverse,
-        //                                                                   PRIMS,stats,eos,METRIC,g4dn,g4up,TUPMUNU,TDNMUNU,CONSERVS);
+        IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(already_computed_physical_metric_and_inverse,
+                                                                          PRIMS,stats,eos,METRIC,g4dn,g4up,TUPMUNU,TDNMUNU,CONSERVS);
 
         // The con2prim routines require different conservative variables than
         // those that IllinoisGRMHD evolve. Therefore, we must first convert
@@ -257,20 +253,20 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
                                          METRIC,METRIC_LAP_PSI4,
                                          PRIMS,CONSERVS, cons);
 
-        printf("Input conservs:\n");
-        for(int i=0;i<NUM_CONSERVS;i++) printf("%e\n",CONSERVS[i]);
+        // printf("Input conservs:\n");
+        // for(int i=0;i<NUM_CONSERVS;i++) printf("%2d: %e\n",i,CONSERVS[i]);
 
-        printf("Computed cons:\n");
-        for(int i=0;i<numcons;i++) printf("%e\n",cons[i]);
+        // printf("Computed cons:\n");
+        // for(int i=0;i<numcons;i++) printf("%2d: %e\n",i,cons[i]);
 
-        printf("(Conformal) Metric quantities:\n");
-        for(int i=0;i<NUMVARS_FOR_METRIC;i++) printf("%e\n",METRIC[i]);
+        // printf("(Conformal) Metric quantities:\n");
+        // for(int i=0;i<NUMVARS_FOR_METRIC;i++) printf("%2d: %e\n",i,METRIC[i]);
 
-        printf("(Physical)  Metric quantities:\n");
-        for(int i=0;i<NUMVARS_FOR_METRIC;i++) printf("%e\n",METRIC_PHYS[i]);
+        // printf("(Physical)  Metric quantities:\n");
+        // for(int i=0;i<NUMVARS_FOR_METRIC;i++) printf("%2d: %e\n",i,METRIC_PHYS[i]);
 
-        printf("(Auxiliary) Metric quantities:\n");
-        for(int i=0;i<NUMVARS_METRIC_AUX;i++) printf("%e\n",METRIC_LAP_PSI4[i]);
+        // printf("(Auxiliary) Metric quantities:\n");
+        // for(int i=0;i<NUMVARS_METRIC_AUX;i++) printf("%2d: %e\n",i,METRIC_LAP_PSI4[i]);
 
         // The con2prim routines require primitive guesses in order to perform
         // the recovery. In IllinoisGRMHD, we do not keep track of the primitives
@@ -284,7 +280,7 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
                                            METRIC,METRIC_LAP_PSI4,
                                            PRIMS,CONSERVS,cons, prim);
           // for(int i=0;i<numprims;i++) prim[i] = 1e300;
-          // prim[TEMP] = eos.T_max;
+          // prim[TEMP    ] = eos.T_max;
           // prim[RHO     ] = PRIMS[RHOB       ];
           // prim[YE      ] = PRIMS[YEPRIM     ];
           // prim[TEMP    ] = PRIMS[TEMPERATURE];
@@ -301,32 +297,32 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
 
         CCTK_REAL ERRORS[MAXNUMVARS],accumulated_error = 0.0;
         if( check != 0 ) {
-          // failures++;
+          failures++;
           CCTK_VInfo(CCTK_THORNSTRING,"Recovery FAILED!\n");
-          // accumulated_error = 1e300;
+          accumulated_error = 1e300;
         }
         else {
 
           //Now that we have found some solution, we first limit velocity:
           //FIXME: Probably want to use exactly the same velocity limiter function here as in mhdflux.C
-          // CCTK_REAL utx_new = prim[UTCON1];
-          // CCTK_REAL uty_new = prim[UTCON2];
-          // CCTK_REAL utz_new = prim[UTCON3];
+          CCTK_REAL utx_new = prim[UTCON1];
+          CCTK_REAL uty_new = prim[UTCON2];
+          CCTK_REAL utz_new = prim[UTCON3];
           
           // //Velocity limiter:
-          // CCTK_REAL gijuiuj = METRIC_PHYS[GXX]*SQR(utx_new ) +
-          //   2.0*METRIC_PHYS[GXY]*utx_new*uty_new + 2.0*METRIC_PHYS[GXZ]*utx_new*utz_new +
-          //   METRIC_PHYS[GYY]*SQR(uty_new) + 2.0*METRIC_PHYS[GYZ]*uty_new*utz_new +
-          //   METRIC_PHYS[GZZ]*SQR(utz_new);
-          // CCTK_REAL au0m1 = gijuiuj/( 1.0+sqrt(1.0+gijuiuj) );
-          // CCTK_REAL u0L   = (au0m1+1.0)*METRIC_LAP_PSI4[LAPSEINV];
-          // PRIMS[YEPRIM     ] = prim[YE   ];
-          // PRIMS[TEMPERATURE] = prim[TEMP ];
-          // PRIMS[PRESSURE   ] = prim[PRESS];
-          // PRIMS[EPSILON    ] = prim[EPS  ];
-          // PRIMS[VX         ] = utx_new/u0L - METRIC[SHIFTX];
-          // PRIMS[VY         ] = uty_new/u0L - METRIC[SHIFTY];
-          // PRIMS[VZ         ] = utz_new/u0L - METRIC[SHIFTZ];
+          CCTK_REAL gijuiuj = METRIC_PHYS[GXX]*SQR(utx_new ) +
+            2.0*METRIC_PHYS[GXY]*utx_new*uty_new + 2.0*METRIC_PHYS[GXZ]*utx_new*utz_new +
+            METRIC_PHYS[GYY]*SQR(uty_new) + 2.0*METRIC_PHYS[GYZ]*uty_new*utz_new +
+            METRIC_PHYS[GZZ]*SQR(utz_new);
+          CCTK_REAL au0m1 = gijuiuj/( 1.0+sqrt(1.0+gijuiuj) );
+          CCTK_REAL u0L   = (au0m1+1.0)*METRIC_LAP_PSI4[LAPSEINV];
+          PRIMS[YEPRIM     ] = prim[YE   ];
+          PRIMS[TEMPERATURE] = prim[TEMP ];
+          PRIMS[PRESSURE   ] = prim[PRESS];
+          PRIMS[EPSILON    ] = prim[EPS  ];
+          PRIMS[VX         ] = utx_new/u0L - METRIC[SHIFTX];
+          PRIMS[VY         ] = uty_new/u0L - METRIC[SHIFTY];
+          PRIMS[VZ         ] = utz_new/u0L - METRIC[SHIFTZ];
 
           // CCTK_REAL xrho  = PRIMS[RHOB  ];
           // CCTK_REAL xye   = PRIMS[YEPRIM];
@@ -334,32 +330,31 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
           // get_P_and_eps_from_rho_Ye_and_T(eos,xrho,xye,xtemp, &xprs,&xeps);
 
           CCTK_VInfo(CCTK_THORNSTRING,"Recovery SUCCEEDED!");
-          // for(int which_prim=0;which_prim<num_prims_in_error;which_prim++) {
-          //   int primL = which_prims_in_error[which_prim];
-          //   ERRORS[primL] = relative_error(PRIMS[primL],PRIMS_ORIG[primL]);
-          //   CCTK_VInfo(CCTK_THORNSTRING,"Relative error for prim %s: %.3e",primnames[primL],ERRORS[primL]);
-          //   accumulated_error += ERRORS[primL];
-          // }
-          // CCTK_VInfo(CCTK_THORNSTRING,"Total accumulated error    : %e\n",accumulated_error);
+          for(int which_prim=0;which_prim<num_prims_in_error;which_prim++) {
+            int primL = which_prims_in_error[which_prim];
+            ERRORS[primL] = relative_error(PRIMS[primL],PRIMS_ORIG[primL]);
+            CCTK_VInfo(CCTK_THORNSTRING,"Relative error for prim %s: %.3e (%e -> %e)",primnames[primL],ERRORS[primL],PRIMS_ORIG[primL],PRIMS[primL]);
+            accumulated_error += ERRORS[primL];
+          }
+          CCTK_VInfo(CCTK_THORNSTRING,"Total accumulated error    : %e\n",accumulated_error);
         }
-        // fprintf(outfile,"%e %e %e\n",log10(PRIMS_ORIG[RHOB]),log10(PRIMS_ORIG[TEMPERATURE]),log10(MAX(accumulated_error,1e-16)));
-      // }
-      // fprintf(outfile,"\n");
-    // }
+        fprintf(outfile,"%e %e %e\n",log10(PRIMS_ORIG[RHOB]),log10(PRIMS_ORIG[TEMPERATURE]),log10(MAX(accumulated_error,1e-16)));
+      }
+      fprintf(outfile,"\n");
+    }
 
-  //   fclose(outfile);
+    fclose(outfile);
 
-  //   int ntotal = npoints*npoints;
+    int ntotal = npoints*npoints;
     
-  //   CCTK_VInfo(CCTK_THORNSTRING,"Completed test for routine %s",con2prim_test_names[which_routine]);
-  //   CCTK_VInfo(CCTK_THORNSTRING,"Final report:");
-  //   CCTK_VInfo(CCTK_THORNSTRING,"    Number of recovery attempts: %d",ntotal);
-  //   CCTK_VInfo(CCTK_THORNSTRING,"    Number of failed recoveries: %d",failures);
-  //   CCTK_VInfo(CCTK_THORNSTRING,"    Recovery failure rate      : %.2lf%%",((CCTK_REAL)failures)/((CCTK_REAL)ntotal)*100.0);
+    CCTK_VInfo(CCTK_THORNSTRING,"Completed test for routine %s",con2prim_test_names[which_routine]);
+    CCTK_VInfo(CCTK_THORNSTRING,"Final report:");
+    CCTK_VInfo(CCTK_THORNSTRING,"    Number of recovery attempts: %d",ntotal);
+    CCTK_VInfo(CCTK_THORNSTRING,"    Number of failed recoveries: %d",failures);
+    CCTK_VInfo(CCTK_THORNSTRING,"    Recovery failure rate      : %.2lf%%",((CCTK_REAL)failures)/((CCTK_REAL)ntotal)*100.0);
     
-  // }
-
   }
+
   CCTK_VInfo(CCTK_THORNSTRING,"All done! Terminating the run.");
   exit(1);
 }

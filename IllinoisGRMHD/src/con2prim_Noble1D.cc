@@ -261,7 +261,31 @@ int Utoprim_new_body_1d( const igm_eos_parameters eos,
 
   // EOS quantities: internal energy, pressure, enthalpy
   CCTK_REAL u = prim[UU];
-  CCTK_REAL p = pressure_rho0_u(eos,rho0,u);
+  CCTK_REAL p = 0.0;
+
+  if( eos.is_Hybrid ) {
+    pressure_rho0_u(eos,rho0,u);
+  }
+  else if( eos.is_Tabulated ) {
+    harm_aux.ye            = U[YE]/U[RHO];
+    harm_aux.gamma_times_S = U[WS];
+    harm_aux.use_entropy   = false;
+    harm_aux.T_guess       = prim[TEMP];
+    CCTK_REAL xrho         = rho0;
+    CCTK_REAL xye          = harm_aux.ye;
+    CCTK_REAL xtemp        = harm_aux.T_guess;
+    CCTK_REAL xprs         = 0.0;
+    CCTK_REAL xeps         = 0.0;
+    CCTK_REAL xdepsdT      = 0.0;
+
+    // Now compute P and eps from (rho,Ye,T). Note that
+    // at this point we do not know W, so we do not
+    // use the entropy in this function call.
+    get_P_eps_and_depsdT_from_rho_Ye_and_T( eos,xrho,xye,xtemp, &xprs,&xeps,&xdepsdT );
+    p = xprs;
+    u = xeps*xrho;
+    if( xdepsdT < eos.depsdT_threshold ) harm_aux.use_entropy = true;
+  }
   CCTK_REAL w = rho0 + u + p;
 
   CCTK_REAL W_last = w*gammasq;
@@ -311,8 +335,39 @@ int Utoprim_new_body_1d( const igm_eos_parameters eos,
   rho0           = harm_aux.D * gtmp;
 
   w = W * (1. - vsq);
-  p = pressure_rho0_w(eos,rho0,w);
-  u = w - (rho0 + p);
+
+  if( eos.is_Hybrid ) {
+    p = pressure_rho0_w(eos, rho0,w) ;
+    u = w - (rho0 + p) ; // u = rho0 eps, w = rho0 h
+    prim[RHO] = rho0 ;
+    prim[UU ] = u ;
+  }
+  else {
+    CCTK_REAL xrho  = rho0;
+    CCTK_REAL xye   = harm_aux.ye;
+    CCTK_REAL xtemp = harm_aux.T_guess;
+    CCTK_REAL xent  = harm_aux.gamma_times_S / W;
+    CCTK_REAL xprs  = 0.0;
+    CCTK_REAL xuu   = 0.0;
+    CCTK_REAL xeps  = 0.0;
+    if( harm_aux.use_entropy ) {
+      get_P_eps_and_T_from_rho_Ye_and_S( eos,xrho,xye,xent, &xprs,&xeps,&xtemp );
+    }
+    else {
+      xprs  = -0.5*harm_aux.Bsq/(harm_aux.gamma*harm_aux.gamma)+harm_aux.Qdotn+W+harm_aux.Bsq-0.5*harm_aux.QdotBsq/(W*W);;
+      xuu   = (W-harm_aux.D*harm_aux.gamma-xprs*harm_aux.gamma*harm_aux.gamma)/(harm_aux.D*harm_aux.gamma) * rho0;
+      xeps  = xuu/xrho;
+      get_P_S_and_T_from_rho_Ye_and_eps( eos,xrho,xye,xeps, &xprs,&xent,&xtemp );      
+    }
+    
+    // Update P and T in the prim array
+    prim[RHO  ] = xrho;
+    prim[YE   ] = harm_aux.ye;
+    prim[TEMP ] = MIN(MAX(xtemp,eos.T_atm),eos.T_max);
+    prim[PRESS] = xprs;
+    prim[EPS  ] = xeps;
+    prim[ENT  ] = xent;
+  }
 
   // User may want to handle this case differently, e.g. do NOT return upon
   // a negative rho/u, calculate v^i so that rho/u can be floored by other routine:
@@ -321,9 +376,6 @@ int Utoprim_new_body_1d( const igm_eos_parameters eos,
     retval = 5;
     return(retval);
   }
-
-  prim[RHO] = rho0;
-  prim[UU] = u;
 
   CCTK_REAL g_o_WBsq = harm_aux.gamma/(W+harm_aux.Bsq);
   CCTK_REAL QdB_o_W  = harm_aux.QdotB / W;
@@ -382,13 +434,53 @@ void func_1d_orig(CCTK_REAL x[], CCTK_REAL dx[], CCTK_REAL resid[],
   vsq = ( vsq > 1. )  ?  (1.-dv) : vsq;
 
   // Compute P from W and v^2
-  CCTK_REAL p_tmp = pressure_W_vsq(eos,W,vsq,harm_aux.D);
+  CCTK_REAL p_tmp = 0.0;
+  CCTK_REAL dpdW  = 0.0;
+  CCTK_REAL dvsq = dvsq_dW( harm_aux,W );
 
   // Jacobian is calculated using full differentiation w.r.t. W
-  CCTK_REAL dvsq = dvsq_dW( harm_aux,W );
-  CCTK_REAL dp1 = dpdW_calc_vsq( eos, W, vsq );
-  CCTK_REAL dp2 = dpdvsq_calc( eos, W, vsq, harm_aux.D );
-  CCTK_REAL dpdW = dp1  + dp2*dvsq;
+  if( eos.is_Hybrid ) {
+    p_tmp         = pressure_W_vsq(eos,W,vsq,harm_aux.D);
+    CCTK_REAL dp1 = dpdW_calc_vsq( eos, W, vsq );
+    CCTK_REAL dp2 = dpdvsq_calc( eos, W, vsq, harm_aux.D );
+    dpdW          = dp1  + dp2*dvsq;
+  }
+  else if( eos.is_Tabulated ) {
+    // Here we must compute dPdW and dPdvsq for tabulated EOS.
+    // We will be using the expressions 
+    CCTK_REAL gamma_sq = 1.0/(1.0-vsq);
+    harm_aux.gamma     = sqrt(gamma_sq);
+    if( harm_aux.gamma > eos.W_max ) {
+      harm_aux.gamma = eos.W_max;
+      gamma_sq       = harm_aux.gamma * harm_aux.gamma;
+    }
+    
+    const CCTK_REAL rho = MAX(harm_aux.D / harm_aux.gamma,eos.rho_min);
+    const CCTK_REAL xye = harm_aux.ye;
+    const CCTK_REAL h   = fabs(W /(rho*gamma_sq)); // W := rho*h*gamma^{2}
+    const CCTK_REAL ent = harm_aux.gamma_times_S / harm_aux.gamma;
+    CCTK_REAL T         = harm_aux.T_guess;
+    CCTK_REAL prs       = 0.0;
+    CCTK_REAL eps       = 0.0;
+    CCTK_REAL dPdrho    = 0.0;
+    CCTK_REAL dPdeps    = 0.0;
+
+    // Now compute the pressure and its derivatives with respect to rho and eps
+    if( harm_aux.use_entropy ) {
+      get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_S(eos,rho,xye,ent, &prs,&eps,&T,&dPdrho,&dPdeps);
+    }
+    else {
+      get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_h(eos,rho,xye,h, &prs,&eps,&T,&dPdrho,&dPdeps);
+    }
+
+    // Set P
+    p_tmp = prs;
+
+    // Now compute dP/dW
+    const CCTK_REAL dPdeps_o_rho = dPdeps/rho;
+    dpdW = ( dPdeps_o_rho/(1.+dPdeps_o_rho) )/gamma_sq;
+
+  }
 
   // Compute the residual and the needed Jacobian component
   resid[0]  = W + 0.5 * harm_aux.Bsq * ( 1. + vsq ) - 0.5*harm_aux.QdotBsq/Wsq + harm_aux.Qdotn - p_tmp;
