@@ -1,5 +1,5 @@
 // Thorn      : IllinoisGRMHD
-// File       : EOS_Tabulated.cc
+// File       : con2prim_conservative_weighted_average.cc
 // Author(s)  : Leo Werneck (wernecklr@gmail.com)
 //              Zachariah B. Etienne
 // Description: In this file we implement a function to compute
