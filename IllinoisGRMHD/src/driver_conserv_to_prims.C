@@ -113,275 +113,328 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   int jmin=0,jmax=cctk_lsh[1];
   int kmin=0,kmax=cctk_lsh[2];
 
-  // This is for testing purposes and should be removed later
-  // FILE* c2pmaskfile = fopen("c2pmask.asc","w");
+  // Whenever we get a conservative-to-primitive major failure, i.e. all
+  // the routines and backups failed to recover the primitives from the
+  // input conservatives, we will introduce a new fix, in which we will
+  // reset the conservative variables at the given point by a weighted
+  // average of the conservative variables at the neighboring points.
+  // After that, the con2prim attempt will be retried. This mask allows
+  // us to flag points in which the averaging procedure must be performed.
+  int npoints = cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2];
+  unsigned short con2prim_failed_flag[npoints];
 
-#pragma omp parallel for reduction(+:failures,vel_limited_ptcount,font_fixes,pointcount,failures_inhoriz,pointcount_inhoriz,error_int_numer,error_int_denom,rho_star_fix_applied,atm_resets,backup1,backup2,backup3) schedule(static)
-  for(int k=kmin;k<kmax;k++) {
-    for(int j=jmin;j<jmax;j++) {
-      for(int i=imin;i<imax;i++) {
-        int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+  // Initialization of the masks above. Flag meaning:
+  //
+  // 0 -> Primitive recovery succeeded
+  // 1 -> Primitive recovery failed
+#pragma omp parallel for
+  for(int i=0;i<npoints;i++)
+    con2prim_failed_flag[i] = 0;
 
-        int ww;
-        CCTK_REAL METRIC[NUMVARS_FOR_METRIC],dummy=0;
-        ww=0;
-        // FIXME: NECESSARY?
-        //psi_bssn[index] = exp(phi[index]);
-        METRIC[ww] = phi_bssn[index];ww++;
-        METRIC[ww] = dummy;          ww++; // Don't need to set psi.
-        METRIC[ww] = gtxx[index];    ww++;
-        METRIC[ww] = gtxy[index];    ww++;
-        METRIC[ww] = gtxz[index];    ww++;
-        METRIC[ww] = gtyy[index];    ww++;
-        METRIC[ww] = gtyz[index];    ww++;
-        METRIC[ww] = gtzz[index];    ww++;
-        METRIC[ww] = lapm1[index];   ww++;
-        METRIC[ww] = betax[index];   ww++;
-        METRIC[ww] = betay[index];   ww++;
-        METRIC[ww] = betaz[index];   ww++;
-        METRIC[ww] = gtupxx[index];  ww++;
-        METRIC[ww] = gtupyy[index];  ww++;
-        METRIC[ww] = gtupzz[index];  ww++;
-        METRIC[ww] = gtupxy[index];  ww++;
-        METRIC[ww] = gtupxz[index];  ww++;
-        METRIC[ww] = gtupyz[index];  ww++;
+  // We now add an integer to count the number of
+  // points in which the averaging fix is required.
+  // We initialize it to a nonzero value so that
+  // the while condition below is triggered at least
+  // once.
+  int num_of_conservative_averagings_needed = 1;
+  int cons_avgs = 0;
 
-        CCTK_REAL PRIMS[MAXNUMVARS];
-        PRIMS[RHOB         ] = rho_b[index];
-        PRIMS[PRESSURE     ] = P[index];
-        PRIMS[VX           ] = vx[index];
-        PRIMS[VY           ] = vy[index];
-        PRIMS[VZ           ] = vz[index];
-        PRIMS[BX_CENTER    ] = Bx[index];
-        PRIMS[BY_CENTER    ] = By[index];
-        PRIMS[BZ_CENTER    ] = Bz[index];
-        PRIMS[EPSILON      ] = igm_eps[index];
-        PRIMS[ENTROPY      ] = igm_entropy[index];
+  while( num_of_conservative_averagings_needed > 0 ) {
 
-        CCTK_REAL CONSERVS[NUM_CONSERVS];
-        CONSERVS[RHOSTAR  ] = rho_star[index];
-        CONSERVS[STILDEX  ] = mhd_st_x[index];
-        CONSERVS[STILDEY  ] = mhd_st_y[index];
-        CONSERVS[STILDEZ  ] = mhd_st_z[index];
-        CONSERVS[TAUENERGY] = tau     [index];
-        CONSERVS[ENTSTAR  ] = S_star  [index];
+    // Now set the number of conserved averages to zero
+    num_of_conservative_averagings_needed = 0;
 
-        // Tabulated EOS quantities
-        if( eos.is_Tabulated ) {
-          // Primitives
-          PRIMS[YEPRIM     ] = igm_Ye[index];
-          PRIMS[TEMPERATURE] = igm_temperature[index];
-          // Conservatives
-          CONSERVS[YESTAR  ] = Ye_star[index];
-        }
+#pragma omp parallel for reduction(+:failures,vel_limited_ptcount,font_fixes,pointcount,failures_inhoriz,pointcount_inhoriz,error_int_numer,error_int_denom,rho_star_fix_applied,atm_resets,backup1,backup2,backup3,num_of_conservative_averagings_needed) schedule(static)
+    for(int k=kmin;k<kmax;k++) {
+      for(int j=jmin;j<jmax;j++) {
+        for(int i=imin;i<imax;i++) {
 
-        // If using a con2prim routine that requires the entropy,
-        // then we must read in the conserved entropy
+          int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-        CCTK_REAL METRIC_LAP_PSI4[NUMVARS_METRIC_AUX];
-        SET_LAPSE_PSI4(METRIC_LAP_PSI4,METRIC);
-
-        CCTK_REAL METRIC_PHYS[NUMVARS_FOR_METRIC];
-        METRIC_PHYS[GXX  ] = METRIC[GXX  ]*METRIC_LAP_PSI4[PSI4 ];
-        METRIC_PHYS[GXY  ] = METRIC[GXY  ]*METRIC_LAP_PSI4[PSI4 ];
-        METRIC_PHYS[GXZ  ] = METRIC[GXZ  ]*METRIC_LAP_PSI4[PSI4 ];
-        METRIC_PHYS[GYY  ] = METRIC[GYY  ]*METRIC_LAP_PSI4[PSI4 ];
-        METRIC_PHYS[GYZ  ] = METRIC[GYZ  ]*METRIC_LAP_PSI4[PSI4 ];
-        METRIC_PHYS[GZZ  ] = METRIC[GZZ  ]*METRIC_LAP_PSI4[PSI4 ];
-        METRIC_PHYS[GUPXX] = METRIC[GUPXX]*METRIC_LAP_PSI4[PSIM4];
-        METRIC_PHYS[GUPXY] = METRIC[GUPXY]*METRIC_LAP_PSI4[PSIM4];
-        METRIC_PHYS[GUPXZ] = METRIC[GUPXZ]*METRIC_LAP_PSI4[PSIM4];
-        METRIC_PHYS[GUPYY] = METRIC[GUPYY]*METRIC_LAP_PSI4[PSIM4];
-        METRIC_PHYS[GUPYZ] = METRIC[GUPYZ]*METRIC_LAP_PSI4[PSIM4];
-        METRIC_PHYS[GUPZZ] = METRIC[GUPZZ]*METRIC_LAP_PSI4[PSIM4];
-
-        CCTK_REAL shift_xL = METRIC_PHYS[GXX]*METRIC[SHIFTX] + METRIC_PHYS[GXY]*METRIC[SHIFTY] + METRIC_PHYS[GXZ]*METRIC[SHIFTZ];
-        CCTK_REAL shift_yL = METRIC_PHYS[GXY]*METRIC[SHIFTX] + METRIC_PHYS[GYY]*METRIC[SHIFTY] + METRIC_PHYS[GYZ]*METRIC[SHIFTZ];
-        CCTK_REAL shift_zL = METRIC_PHYS[GXZ]*METRIC[SHIFTX] + METRIC_PHYS[GYZ]*METRIC[SHIFTY] + METRIC_PHYS[GZZ]*METRIC[SHIFTZ];
-        CCTK_REAL beta2L   = shift_xL*METRIC[SHIFTX] + shift_yL*METRIC[SHIFTY] + shift_zL*METRIC[SHIFTZ];
-
-
-        // Compute 4-metric, both g_{\mu \nu} and g^{\mu \nu}.
-        // This is for computing T_{\mu \nu} and T^{\mu \nu}. Also the HARM con2prim lowlevel function requires them.
-        CCTK_REAL g4dn[4][4],g4up[4][4];
-        g4dn[0][0] = -SQR(METRIC_LAP_PSI4[LAPSE]) + beta2L;
-        g4dn[0][1] = g4dn[1][0] = shift_xL;
-        g4dn[0][2] = g4dn[2][0] = shift_yL;
-        g4dn[0][3] = g4dn[3][0] = shift_zL;
-        g4dn[1][1]              = METRIC_PHYS[GXX];
-        g4dn[1][2] = g4dn[2][1] = METRIC_PHYS[GXY];
-        g4dn[1][3] = g4dn[3][1] = METRIC_PHYS[GXZ];
-        g4dn[2][2]              = METRIC_PHYS[GYY];
-        g4dn[2][3] = g4dn[3][2] = METRIC_PHYS[GYZ];
-        g4dn[3][3]              = METRIC_PHYS[GZZ];
-
-        CCTK_REAL alpha_inv_squared=SQR(METRIC_LAP_PSI4[LAPSEINV]);
-        g4up[0][0] = -1.0*alpha_inv_squared;
-        g4up[0][1] = g4up[1][0] = METRIC[SHIFTX]*alpha_inv_squared;
-        g4up[0][2] = g4up[2][0] = METRIC[SHIFTY]*alpha_inv_squared;
-        g4up[0][3] = g4up[3][0] = METRIC[SHIFTZ]*alpha_inv_squared;
-        g4up[1][1]              = METRIC_PHYS[GUPXX] - METRIC[SHIFTX]*METRIC[SHIFTX]*alpha_inv_squared;
-        g4up[1][2] = g4up[2][1] = METRIC_PHYS[GUPXY] - METRIC[SHIFTX]*METRIC[SHIFTY]*alpha_inv_squared;
-        g4up[1][3] = g4up[3][1] = METRIC_PHYS[GUPXZ] - METRIC[SHIFTX]*METRIC[SHIFTZ]*alpha_inv_squared;
-        g4up[2][2]              = METRIC_PHYS[GUPYY] - METRIC[SHIFTY]*METRIC[SHIFTY]*alpha_inv_squared;
-        g4up[2][3] = g4up[3][2] = METRIC_PHYS[GUPYZ] - METRIC[SHIFTY]*METRIC[SHIFTZ]*alpha_inv_squared;
-        g4up[3][3]              = METRIC_PHYS[GUPZZ] - METRIC[SHIFTZ]*METRIC[SHIFTZ]*alpha_inv_squared;
-
-
-        //FIXME: might slow down the code.
-        if(isnan(CONSERVS[RHOSTAR]*CONSERVS[STILDEX]*CONSERVS[STILDEY]*CONSERVS[STILDEZ]*CONSERVS[TAUENERGY]*PRIMS[BX_CENTER]*PRIMS[BY_CENTER]*PRIMS[BZ_CENTER])) {
-          CCTK_VInfo(CCTK_THORNSTRING,"NAN FOUND: i,j,k = %d %d %d, x,y,z = %e %e %e , index=%d st_i = %e %e %e, rhostar = %e, tau = %e, Bi = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",
-                     i,j,k,x[index],y[index],z[index],index,
-                     CONSERVS[STILDEX],CONSERVS[STILDEY],CONSERVS[STILDEZ],CONSERVS[RHOSTAR],CONSERVS[TAUENERGY],
-                     PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[PSI6]);
-        }
-
-        // Here we use _flux variables as temp storage for original values of conservative variables.. This is used for debugging purposes only.
-        rho_star_flux[index]    = CONSERVS[RHOSTAR  ];
-        st_x_flux[index]        = CONSERVS[STILDEX  ];
-        st_y_flux[index]        = CONSERVS[STILDEY  ];
-        st_z_flux[index]        = CONSERVS[STILDEZ  ];
-        tau_flux[index]         = CONSERVS[TAUENERGY];
-
-        CCTK_REAL rho_star_orig = CONSERVS[RHOSTAR  ];
-        CCTK_REAL mhd_st_x_orig = CONSERVS[STILDEX  ];
-        CCTK_REAL mhd_st_y_orig = CONSERVS[STILDEY  ];
-        CCTK_REAL mhd_st_z_orig = CONSERVS[STILDEZ  ];
-        CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
-        CCTK_REAL Ye_star_orig  = 0.0;
-        if( eos.is_Tabulated) {
-          Ye_star_orig          = CONSERVS[YESTAR   ];
-        }
-
-
-        int check=0;
-        struct output_stats stats;
-        stats.vel_limited    = 0;
-        stats.failure_checker= 0;
-        stats.font_fixed     = 0;
-        stats.atm_reset      = 0;
-        stats.backup[0]      = 0;
-        stats.backup[1]      = 0;
-        stats.backup[2]      = 0;
-        stats.c2p_failed     = 0;
-        stats.which_routine  = None;
-        stats.dx[0]          = CCTK_DELTA_SPACE(0);
-        stats.dx[1]          = CCTK_DELTA_SPACE(1);
-        stats.dx[2]          = CCTK_DELTA_SPACE(2);
-        if(CONSERVS[RHOSTAR]>0.0) {
-          // Apply the tau floor
-          if( eos.is_Hybrid ) {
-            apply_tau_floor(index,Psi6threshold,PRIMS,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,stats,eos,  CONSERVS);
+          // Check if we need to perform the new conservative averaging fix
+          if( con2prim_failed_flag[index] == 1 ) {
+            // Average the conserved variables using the neighboring values
+            con2prim_conservative_weighted_average(i,j,k,index,cctkGH,
+                                                   num_of_conservative_averagings_needed,con2prim_failed_flag,
+                                                   rho_star,mhd_st_x,mhd_st_y,mhd_st_z,tau,Ye_star,S_star);
           }
 
-          for(int ii=0;ii<3;ii++) {
-            check = con2prim(eos,
-                             index,i,j,k,x,y,z,
-                             METRIC,METRIC_PHYS,METRIC_LAP_PSI4,g4dn,g4up,
-                             CONSERVS,PRIMS,
-                             stats);
-            if(check==0) ii=4;
-            else stats.failure_checker+=100000;
+          // Read in BSSN metric quantities from gridfunctions
+          CCTK_REAL METRIC[NUMVARS_FOR_METRIC];
+          METRIC[PHI   ] = phi_bssn[index];
+          METRIC[GXX   ] = gtxx[index];
+          METRIC[GXY   ] = gtxy[index];
+          METRIC[GXZ   ] = gtxz[index];
+          METRIC[GYY   ] = gtyy[index];
+          METRIC[GYZ   ] = gtyz[index];
+          METRIC[GZZ   ] = gtzz[index];
+          METRIC[LAPM1 ] = lapm1[index];
+          METRIC[SHIFTX] = betax[index];
+          METRIC[SHIFTY] = betay[index];
+          METRIC[SHIFTZ] = betaz[index];
+          METRIC[GUPXX ] = gtupxx[index];
+          METRIC[GUPYY ] = gtupyy[index];
+          METRIC[GUPZZ ] = gtupzz[index];
+          METRIC[GUPXY ] = gtupxy[index];
+          METRIC[GUPXZ ] = gtupxz[index];
+          METRIC[GUPYZ ] = gtupyz[index];
+
+          // Set auxiliary metric quantities
+          CCTK_REAL METRIC_LAP_PSI4[NUMVARS_METRIC_AUX];
+          SET_LAPSE_PSI4(METRIC_LAP_PSI4,METRIC);
+
+          // Now set the ADM metric quantities
+          CCTK_REAL METRIC_PHYS[NUMVARS_FOR_METRIC];
+          METRIC_PHYS[GXX  ] = METRIC[GXX  ]*METRIC_LAP_PSI4[PSI4 ];
+          METRIC_PHYS[GXY  ] = METRIC[GXY  ]*METRIC_LAP_PSI4[PSI4 ];
+          METRIC_PHYS[GXZ  ] = METRIC[GXZ  ]*METRIC_LAP_PSI4[PSI4 ];
+          METRIC_PHYS[GYY  ] = METRIC[GYY  ]*METRIC_LAP_PSI4[PSI4 ];
+          METRIC_PHYS[GYZ  ] = METRIC[GYZ  ]*METRIC_LAP_PSI4[PSI4 ];
+          METRIC_PHYS[GZZ  ] = METRIC[GZZ  ]*METRIC_LAP_PSI4[PSI4 ];
+          METRIC_PHYS[GUPXX] = METRIC[GUPXX]*METRIC_LAP_PSI4[PSIM4];
+          METRIC_PHYS[GUPXY] = METRIC[GUPXY]*METRIC_LAP_PSI4[PSIM4];
+          METRIC_PHYS[GUPXZ] = METRIC[GUPXZ]*METRIC_LAP_PSI4[PSIM4];
+          METRIC_PHYS[GUPYY] = METRIC[GUPYY]*METRIC_LAP_PSI4[PSIM4];
+          METRIC_PHYS[GUPYZ] = METRIC[GUPYZ]*METRIC_LAP_PSI4[PSIM4];
+          METRIC_PHYS[GUPZZ] = METRIC[GUPZZ]*METRIC_LAP_PSI4[PSIM4];
+
+          // Read in primitive variables from gridfunctions
+          // FIXME: this seems wasteful as we won't use these values anyway
+          CCTK_REAL PRIMS[MAXNUMVARS];
+          PRIMS[RHOB         ] = rho_b[index];
+          PRIMS[PRESSURE     ] = P[index];
+          PRIMS[VX           ] = vx[index];
+          PRIMS[VY           ] = vy[index];
+          PRIMS[VZ           ] = vz[index];
+          PRIMS[BX_CENTER    ] = Bx[index];
+          PRIMS[BY_CENTER    ] = By[index];
+          PRIMS[BZ_CENTER    ] = Bz[index];
+          PRIMS[EPSILON      ] = igm_eps[index];
+          PRIMS[ENTROPY      ] = igm_entropy[index];
+
+          // Read in conservative variables from gridfunctions
+          CCTK_REAL CONSERVS[NUM_CONSERVS];
+          CONSERVS[RHOSTAR  ] = rho_star[index];
+          CONSERVS[STILDEX  ] = mhd_st_x[index];
+          CONSERVS[STILDEY  ] = mhd_st_y[index];
+          CONSERVS[STILDEZ  ] = mhd_st_z[index];
+          CONSERVS[TAUENERGY] = tau     [index];
+          CONSERVS[ENTSTAR  ] = S_star  [index];
+
+          // Tabulated EOS quantities
+          if( eos.is_Tabulated ) {
+            // Primitives
+            PRIMS[YEPRIM     ] = igm_Ye[index];
+            PRIMS[TEMPERATURE] = igm_temperature[index];
+            // Conservatives
+            CONSERVS[YESTAR  ] = Ye_star[index];
           }
-        } else {
-          stats.failure_checker+=1;
-          reset_prims_to_atmosphere( eos, PRIMS );
-          rho_star_fix_applied++;
-        }
-        
-        // Enforce limits on primitive variables and recompute conservatives.
-        static const int already_computed_physical_metric_and_inverse=1;
-        CCTK_REAL TUPMUNU[10],TDNMUNU[10];
-        IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(already_computed_physical_metric_and_inverse,PRIMS,stats,eos,METRIC,g4dn,g4up, TUPMUNU,TDNMUNU,CONSERVS);
 
-        rho_star   [index] = CONSERVS[RHOSTAR  ];
-        mhd_st_x   [index] = CONSERVS[STILDEX  ];
-        mhd_st_y   [index] = CONSERVS[STILDEY  ];
-        mhd_st_z   [index] = CONSERVS[STILDEZ  ];
-        tau        [index] = CONSERVS[TAUENERGY];
+          CCTK_REAL shift_xL = METRIC_PHYS[GXX]*METRIC[SHIFTX] + METRIC_PHYS[GXY]*METRIC[SHIFTY] + METRIC_PHYS[GXZ]*METRIC[SHIFTZ];
+          CCTK_REAL shift_yL = METRIC_PHYS[GXY]*METRIC[SHIFTX] + METRIC_PHYS[GYY]*METRIC[SHIFTY] + METRIC_PHYS[GYZ]*METRIC[SHIFTZ];
+          CCTK_REAL shift_zL = METRIC_PHYS[GXZ]*METRIC[SHIFTX] + METRIC_PHYS[GYZ]*METRIC[SHIFTY] + METRIC_PHYS[GZZ]*METRIC[SHIFTZ];
+          CCTK_REAL beta2L   = shift_xL*METRIC[SHIFTX] + shift_yL*METRIC[SHIFTY] + shift_zL*METRIC[SHIFTZ];
 
-        // Set primitives, and/or provide a better guess.
-        rho_b      [index] = PRIMS[RHOB        ];
-        P          [index] = PRIMS[PRESSURE    ];
-        vx         [index] = PRIMS[VX          ];
-        vy         [index] = PRIMS[VY          ];
-        vz         [index] = PRIMS[VZ          ];
-        igm_eps    [index] = PRIMS[EPSILON     ];
-        igm_entropy[index] = PRIMS[ENTROPY     ];
 
-        // Tabulated EOS quantities
-        if( eos.is_Tabulated ) {
-          // Primitives
-          igm_Ye[index]          = PRIMS[YEPRIM     ];
-          igm_temperature[index] = PRIMS[TEMPERATURE];
-          // Conservatives
-          Ye_star[index]         = CONSERVS[YESTAR  ];
-        }
+          // Compute 4-metric, both g_{\mu \nu} and g^{\mu \nu}.
+          // This is for computing T_{\mu \nu} and T^{\mu \nu}. Also the HARM con2prim lowlevel function requires them.
+          CCTK_REAL g4dn[4][4],g4up[4][4];
+          g4dn[0][0] = -SQR(METRIC_LAP_PSI4[LAPSE]) + beta2L;
+          g4dn[0][1] = g4dn[1][0] = shift_xL;
+          g4dn[0][2] = g4dn[2][0] = shift_yL;
+          g4dn[0][3] = g4dn[3][0] = shift_zL;
+          g4dn[1][1]              = METRIC_PHYS[GXX];
+          g4dn[1][2] = g4dn[2][1] = METRIC_PHYS[GXY];
+          g4dn[1][3] = g4dn[3][1] = METRIC_PHYS[GXZ];
+          g4dn[2][2]              = METRIC_PHYS[GYY];
+          g4dn[2][3] = g4dn[3][2] = METRIC_PHYS[GYZ];
+          g4dn[3][3]              = METRIC_PHYS[GZZ];
 
-        // Entropy evolution quantities
-        if( eos.evolve_entropy ) {
-          S_star[index]          = CONSERVS[ENTSTAR ];
-        }
+          CCTK_REAL alpha_inv_squared=SQR(METRIC_LAP_PSI4[LAPSEINV]);
+          g4up[0][0] = -1.0*alpha_inv_squared;
+          g4up[0][1] = g4up[1][0] = METRIC[SHIFTX]*alpha_inv_squared;
+          g4up[0][2] = g4up[2][0] = METRIC[SHIFTY]*alpha_inv_squared;
+          g4up[0][3] = g4up[3][0] = METRIC[SHIFTZ]*alpha_inv_squared;
+          g4up[1][1]              = METRIC_PHYS[GUPXX] - METRIC[SHIFTX]*METRIC[SHIFTX]*alpha_inv_squared;
+          g4up[1][2] = g4up[2][1] = METRIC_PHYS[GUPXY] - METRIC[SHIFTX]*METRIC[SHIFTY]*alpha_inv_squared;
+          g4up[1][3] = g4up[3][1] = METRIC_PHYS[GUPXZ] - METRIC[SHIFTX]*METRIC[SHIFTZ]*alpha_inv_squared;
+          g4up[2][2]              = METRIC_PHYS[GUPYY] - METRIC[SHIFTY]*METRIC[SHIFTY]*alpha_inv_squared;
+          g4up[2][3] = g4up[3][2] = METRIC_PHYS[GUPYZ] - METRIC[SHIFTY]*METRIC[SHIFTZ]*alpha_inv_squared;
+          g4up[3][3]              = METRIC_PHYS[GUPZZ] - METRIC[SHIFTZ]*METRIC[SHIFTZ]*alpha_inv_squared;
 
-        if(update_Tmunu) {
-          ww=0;
-          eTtt[index] = TDNMUNU[ww]; ww++;
-          eTtx[index] = TDNMUNU[ww]; ww++;
-          eTty[index] = TDNMUNU[ww]; ww++;
-          eTtz[index] = TDNMUNU[ww]; ww++;
-          eTxx[index] = TDNMUNU[ww]; ww++;
-          eTxy[index] = TDNMUNU[ww]; ww++;
-          eTxz[index] = TDNMUNU[ww]; ww++;
-          eTyy[index] = TDNMUNU[ww]; ww++;
-          eTyz[index] = TDNMUNU[ww]; ww++;
-          eTzz[index] = TDNMUNU[ww];
-        }
 
-        //Now we compute the difference between original & new conservatives, for diagnostic purposes:
-        error_int_numer += fabs(tau[index] - tau_orig) + fabs(rho_star[index] - rho_star_orig) +
-          fabs(mhd_st_x[index] - mhd_st_x_orig) + fabs(mhd_st_y[index] - mhd_st_y_orig) + fabs(mhd_st_z[index] - mhd_st_z_orig);
-        error_int_denom += tau_orig + rho_star_orig + fabs(mhd_st_x_orig) + fabs(mhd_st_y_orig) + fabs(mhd_st_z_orig);
-
-        if( eos.is_Tabulated ) {
-          error_int_numer += fabs(Ye_star[index] - Ye_star_orig);
-          error_int_denom += Ye_star_orig;
-        }
-
-        if(stats.atm_reset==1) {
-          atm_resets++;
-          stats.which_routine = -1;
-        }
-        igm_c2p_mask[index] = stats.which_routine;
-        if(stats.backup[0]==1) backup1++;
-        if(stats.backup[1]==1) backup2++;
-        if(stats.backup[2]==1) backup3++;
-        if(stats.font_fixed==1) font_fixes++;
-        vel_limited_ptcount+=stats.vel_limited;
-        if(check!=0) {
-          failures++;
-          if(exp(METRIC[PHI]*6.0)>Psi6threshold) {
-            failures_inhoriz++;
-            pointcount_inhoriz++;
+          //FIXME: might slow down the code.
+          if(isnan(CONSERVS[RHOSTAR]*CONSERVS[STILDEX]*CONSERVS[STILDEY]*CONSERVS[STILDEZ]*CONSERVS[TAUENERGY]*PRIMS[BX_CENTER]*PRIMS[BY_CENTER]*PRIMS[BZ_CENTER])) {
+            CCTK_VInfo(CCTK_THORNSTRING,"NAN FOUND: i,j,k = %d %d %d, x,y,z = %e %e %e , index=%d st_i = %e %e %e, rhostar = %e, tau = %e, Bi = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",
+                       i,j,k,x[index],y[index],z[index],index,
+                       CONSERVS[STILDEX],CONSERVS[STILDEY],CONSERVS[STILDEZ],CONSERVS[RHOSTAR],CONSERVS[TAUENERGY],
+                       PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[PSI6]);
           }
-        }
-        pointcount++;
-        /***************************************************************************************************************************/
-        failure_checker[index] = stats.failure_checker;
 
-        // if( k == cctk_lsh[2]/2 ) fprintf(c2pmaskfile,"%e %e %d\n",x[index],y[index],eos.c2p_used);
+          // Here we use _flux variables as temp storage for original values of conservative variables.. This is used for debugging purposes only.
+          rho_star_flux[index]    = CONSERVS[RHOSTAR  ];
+          st_x_flux[index]        = CONSERVS[STILDEX  ];
+          st_y_flux[index]        = CONSERVS[STILDEY  ];
+          st_z_flux[index]        = CONSERVS[STILDEZ  ];
+          tau_flux[index]         = CONSERVS[TAUENERGY];
 
-      } // for(int i=imin;i<imax;i++)
-      // if( k == cctk_lsh[2]/2 ) fprintf(c2pmaskfile,"\n");
-    } // for(int j=jmin;j<jmax;j++)
-  } // for(int k=kmin;k<kmax;k++)
+          CCTK_REAL rho_star_orig = CONSERVS[RHOSTAR  ];
+          CCTK_REAL mhd_st_x_orig = CONSERVS[STILDEX  ];
+          CCTK_REAL mhd_st_y_orig = CONSERVS[STILDEY  ];
+          CCTK_REAL mhd_st_z_orig = CONSERVS[STILDEZ  ];
+          CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
+          CCTK_REAL Ye_star_orig  = 0.0;
+          if( eos.is_Tabulated) {
+            Ye_star_orig          = CONSERVS[YESTAR   ];
+          }
+
+
+          int check=0;
+          struct output_stats stats;
+          stats.vel_limited    = 0;
+          stats.failure_checker= 0;
+          stats.font_fixed     = 0;
+          stats.atm_reset      = 0;
+          stats.backup[0]      = 0;
+          stats.backup[1]      = 0;
+          stats.backup[2]      = 0;
+          stats.c2p_failed     = 0;
+          stats.which_routine  = None;
+          stats.dx[0]          = CCTK_DELTA_SPACE(0);
+          stats.dx[1]          = CCTK_DELTA_SPACE(1);
+          stats.dx[2]          = CCTK_DELTA_SPACE(2);
+          if(CONSERVS[RHOSTAR]>0.0) {
+            // Apply the tau floor
+            if( eos.is_Hybrid ) {
+              apply_tau_floor(index,Psi6threshold,PRIMS,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,stats,eos,  CONSERVS);
+            }
+
+            for(int ii=0;ii<3;ii++) {
+              check = con2prim(eos,
+                               index,i,j,k,x,y,z,
+                               METRIC,METRIC_PHYS,METRIC_LAP_PSI4,g4dn,g4up,
+                               CONSERVS,PRIMS,
+                               stats);
+              if(check==0) ii=4;
+              else stats.failure_checker+=100000;
+            }
+          } else {
+            stats.failure_checker+=1;
+            reset_prims_to_atmosphere( eos, PRIMS );
+            rho_star_fix_applied++;
+          }
+
+          if( check == 0 ) {
+            //--------------------------------------------------
+            //---------- Primitive recovery succeeded ----------
+            //--------------------------------------------------
+            // Enforce limits on primitive variables and recompute conservatives.
+            static const int already_computed_physical_metric_and_inverse=1;
+            CCTK_REAL TUPMUNU[10],TDNMUNU[10];
+            IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(already_computed_physical_metric_and_inverse,PRIMS,stats,eos,METRIC,g4dn,g4up, TUPMUNU,TDNMUNU,CONSERVS);
+
+            rho_star   [index] = CONSERVS[RHOSTAR  ];
+            mhd_st_x   [index] = CONSERVS[STILDEX  ];
+            mhd_st_y   [index] = CONSERVS[STILDEY  ];
+            mhd_st_z   [index] = CONSERVS[STILDEZ  ];
+            tau        [index] = CONSERVS[TAUENERGY];
+
+            // Set primitives, and/or provide a better guess.
+            rho_b      [index] = PRIMS[RHOB        ];
+            P          [index] = PRIMS[PRESSURE    ];
+            vx         [index] = PRIMS[VX          ];
+            vy         [index] = PRIMS[VY          ];
+            vz         [index] = PRIMS[VZ          ];
+            igm_eps    [index] = PRIMS[EPSILON     ];
+            igm_entropy[index] = PRIMS[ENTROPY     ];
+
+            // Tabulated EOS quantities
+            if( eos.is_Tabulated ) {
+              // Primitives
+              igm_Ye[index]          = PRIMS[YEPRIM     ];
+              igm_temperature[index] = PRIMS[TEMPERATURE];
+              // Conservatives
+              Ye_star[index]         = CONSERVS[YESTAR  ];
+            }
+
+            // Entropy evolution quantities
+            if( eos.evolve_entropy ) {
+              S_star[index]          = CONSERVS[ENTSTAR ];
+            }
+
+            if(update_Tmunu) {
+              int ww=0;
+              eTtt[index] = TDNMUNU[ww++];
+              eTtx[index] = TDNMUNU[ww++];
+              eTty[index] = TDNMUNU[ww++];
+              eTtz[index] = TDNMUNU[ww++];
+              eTxx[index] = TDNMUNU[ww++];
+              eTxy[index] = TDNMUNU[ww++];
+              eTxz[index] = TDNMUNU[ww++];
+              eTyy[index] = TDNMUNU[ww++];
+              eTyz[index] = TDNMUNU[ww++];
+              eTzz[index] = TDNMUNU[ww  ];
+            }
+
+            //Now we compute the difference between original & new conservatives, for diagnostic purposes:
+            error_int_numer += fabs(tau[index] - tau_orig) + fabs(rho_star[index] - rho_star_orig) +
+              fabs(mhd_st_x[index] - mhd_st_x_orig) + fabs(mhd_st_y[index] - mhd_st_y_orig) + fabs(mhd_st_z[index] - mhd_st_z_orig);
+            error_int_denom += tau_orig + rho_star_orig + fabs(mhd_st_x_orig) + fabs(mhd_st_y_orig) + fabs(mhd_st_z_orig);
+
+            if( eos.is_Tabulated ) {
+              error_int_numer += fabs(Ye_star[index] - Ye_star_orig);
+              error_int_denom += Ye_star_orig;
+            }
+
+            if(stats.atm_reset==1) {
+              atm_resets++;
+              stats.which_routine = -1;
+            }
+            igm_c2p_mask[index] = stats.which_routine;
+            if(stats.backup[0]==1) backup1++;
+            if(stats.backup[1]==1) backup2++;
+            if(stats.backup[2]==1) backup3++;
+            if(stats.font_fixed==1) font_fixes++;
+            vel_limited_ptcount+=stats.vel_limited;
+            if(check!=0) {
+              failures++;
+              if(exp(METRIC[PHI]*6.0)>Psi6threshold) {
+                failures_inhoriz++;
+                pointcount_inhoriz++;
+              }
+            }
+            pointcount++;
+            /***************************************************************************************************************************/
+            failure_checker[index] = stats.failure_checker;
+          }
+          else {
+            //--------------------------------------------------
+            //----------- Primitive recovery failed ------------
+            //--------------------------------------------------
+            // Start by flagging this gridpoint
+            con2prim_failed_flag[index] = 1;
+            // Then increment the number of gridpoints which need C averaging
+            num_of_conservative_averagings_needed++;
+          }
+
+          // if( k == cctk_lsh[2]/2 ) fprintf(c2pmaskfile,"%e %e %d\n",x[index],y[index],eos.c2p_used);
+
+        } // for(int i=imin;i<imax;i++)
+        // if( k == cctk_lsh[2]/2 ) fprintf(c2pmaskfile,"\n");
+      } // for(int j=jmin;j<jmax;j++)
+    } // for(int k=kmin;k<kmax;k++)
+
+    if( num_of_conservative_averagings_needed > cons_avgs ) cons_avgs = num_of_conservative_averagings_needed;
+
+  } // while( num_of_conservative_averagings_needed > 0 )
 
   // fclose(c2pmaskfile);
 
   if(CCTK_Equals(verbose, "essential") || CCTK_Equals(verbose, "essential+iteration output")) {
-    CCTK_VInfo(CCTK_THORNSTRING,"C2P: Lev: %d NumPts= %d | Fixes: BU: %d %d %d Font= %d VL= %d rho*= %d ATM= %d | Failures: %d InHoriz= %d / %d | Error: %.3e, ErrDenom: %.3e",
+    CCTK_VInfo(CCTK_THORNSTRING,"C2P: Lev: %d NumPts= %d | Fixes: BU: %d %d %d Font= %d VL= %d rho*= %d AVG= %d ATM= %d | Failures: %d InHoriz= %d / %d | Error: %.3e, ErrDenom: %.3e",
                (int)GetRefinementLevel(cctkGH),pointcount,
                backup1,backup2,backup3,
-               font_fixes,vel_limited_ptcount,rho_star_fix_applied,atm_resets,
+               font_fixes,vel_limited_ptcount,rho_star_fix_applied,cons_avgs,atm_resets,
                failures,
                failures_inhoriz,pointcount_inhoriz,
                error_int_numer/error_int_denom,error_int_denom);

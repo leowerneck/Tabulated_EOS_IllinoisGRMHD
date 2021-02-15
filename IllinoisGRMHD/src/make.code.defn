@@ -32,6 +32,7 @@ SRCS =  InitSymBound.C MoL_registration.C \
     con2prim_Palenzuela1D.cc \
     con2prim_CerdaDuran2D.cc \
     con2prim_test_suite.cc \
+    con2prim_conservative_weighted_average.cc \
     IllinoisGRMHD_parameter_check.cc
 
 # Subdirectories containing source files
