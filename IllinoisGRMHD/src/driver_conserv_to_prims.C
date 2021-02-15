@@ -106,6 +106,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   int failures_inhoriz=0;
   int pointcount_inhoriz=0;
   int backup1=0,backup2=0,backup3=0;
+  int reset_to_atmosphere_after_cons_avgs_failed=0;
 
   CCTK_REAL error_int_numer=0,error_int_denom=0;
 
@@ -138,303 +139,340 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   // once.
   int num_of_conservative_averagings_needed = 1;
   int cons_avgs = 0;
+  int loop_count = 0;
 
   while( num_of_conservative_averagings_needed > 0 ) {
 
     // Now set the number of conserved averages to zero
     num_of_conservative_averagings_needed = 0;
 
-#pragma omp parallel for reduction(+:failures,vel_limited_ptcount,font_fixes,pointcount,failures_inhoriz,pointcount_inhoriz,error_int_numer,error_int_denom,rho_star_fix_applied,atm_resets,backup1,backup2,backup3,num_of_conservative_averagings_needed) schedule(static)
+#pragma omp parallel for reduction(+:failures,vel_limited_ptcount,font_fixes,pointcount,failures_inhoriz,pointcount_inhoriz,error_int_numer,error_int_denom,rho_star_fix_applied,atm_resets,backup1,backup2,backup3,num_of_conservative_averagings_needed,reset_to_atmosphere_after_cons_avgs_failed) schedule(static)
     for(int k=kmin;k<kmax;k++) {
       for(int j=jmin;j<jmax;j++) {
         for(int i=imin;i<imax;i++) {
 
           int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+          int c2p_fail_flag = con2prim_failed_flag[index];
 
-          // Check if we need to perform the new conservative averaging fix
-          if( con2prim_failed_flag[index] == 1 ) {
-            // Average the conserved variables using the neighboring values
-            con2prim_conservative_weighted_average(i,j,k,index,cctkGH,
-                                                   num_of_conservative_averagings_needed,con2prim_failed_flag,
-                                                   rho_star,mhd_st_x,mhd_st_y,mhd_st_z,tau,Ye_star,S_star);
-          }
+          // Only attempt a con2prim at this point if it is
+          // the first time we are doing it or if the previous
+          // attempt failed.
+          if( (loop_count == 0) || (c2p_fail_flag != 0) ) {
 
-          // Read in BSSN metric quantities from gridfunctions
-          CCTK_REAL METRIC[NUMVARS_FOR_METRIC];
-          METRIC[PHI   ] = phi_bssn[index];
-          METRIC[GXX   ] = gtxx[index];
-          METRIC[GXY   ] = gtxy[index];
-          METRIC[GXZ   ] = gtxz[index];
-          METRIC[GYY   ] = gtyy[index];
-          METRIC[GYZ   ] = gtyz[index];
-          METRIC[GZZ   ] = gtzz[index];
-          METRIC[LAPM1 ] = lapm1[index];
-          METRIC[SHIFTX] = betax[index];
-          METRIC[SHIFTY] = betay[index];
-          METRIC[SHIFTZ] = betaz[index];
-          METRIC[GUPXX ] = gtupxx[index];
-          METRIC[GUPYY ] = gtupyy[index];
-          METRIC[GUPZZ ] = gtupzz[index];
-          METRIC[GUPXY ] = gtupxy[index];
-          METRIC[GUPXZ ] = gtupxz[index];
-          METRIC[GUPYZ ] = gtupyz[index];
+            // Read in BSSN metric quantities from gridfunctions
+            CCTK_REAL METRIC[NUMVARS_FOR_METRIC];
+            METRIC[PHI   ] = phi_bssn[index];
+            METRIC[GXX   ] = gtxx[index];
+            METRIC[GXY   ] = gtxy[index];
+            METRIC[GXZ   ] = gtxz[index];
+            METRIC[GYY   ] = gtyy[index];
+            METRIC[GYZ   ] = gtyz[index];
+            METRIC[GZZ   ] = gtzz[index];
+            METRIC[LAPM1 ] = lapm1[index];
+            METRIC[SHIFTX] = betax[index];
+            METRIC[SHIFTY] = betay[index];
+            METRIC[SHIFTZ] = betaz[index];
+            METRIC[GUPXX ] = gtupxx[index];
+            METRIC[GUPYY ] = gtupyy[index];
+            METRIC[GUPZZ ] = gtupzz[index];
+            METRIC[GUPXY ] = gtupxy[index];
+            METRIC[GUPXZ ] = gtupxz[index];
+            METRIC[GUPYZ ] = gtupyz[index];
 
-          // Set auxiliary metric quantities
-          CCTK_REAL METRIC_LAP_PSI4[NUMVARS_METRIC_AUX];
-          SET_LAPSE_PSI4(METRIC_LAP_PSI4,METRIC);
+            // Set auxiliary metric quantities
+            CCTK_REAL METRIC_LAP_PSI4[NUMVARS_METRIC_AUX];
+            SET_LAPSE_PSI4(METRIC_LAP_PSI4,METRIC);
 
-          // Now set the ADM metric quantities
-          CCTK_REAL METRIC_PHYS[NUMVARS_FOR_METRIC];
-          METRIC_PHYS[GXX  ] = METRIC[GXX  ]*METRIC_LAP_PSI4[PSI4 ];
-          METRIC_PHYS[GXY  ] = METRIC[GXY  ]*METRIC_LAP_PSI4[PSI4 ];
-          METRIC_PHYS[GXZ  ] = METRIC[GXZ  ]*METRIC_LAP_PSI4[PSI4 ];
-          METRIC_PHYS[GYY  ] = METRIC[GYY  ]*METRIC_LAP_PSI4[PSI4 ];
-          METRIC_PHYS[GYZ  ] = METRIC[GYZ  ]*METRIC_LAP_PSI4[PSI4 ];
-          METRIC_PHYS[GZZ  ] = METRIC[GZZ  ]*METRIC_LAP_PSI4[PSI4 ];
-          METRIC_PHYS[GUPXX] = METRIC[GUPXX]*METRIC_LAP_PSI4[PSIM4];
-          METRIC_PHYS[GUPXY] = METRIC[GUPXY]*METRIC_LAP_PSI4[PSIM4];
-          METRIC_PHYS[GUPXZ] = METRIC[GUPXZ]*METRIC_LAP_PSI4[PSIM4];
-          METRIC_PHYS[GUPYY] = METRIC[GUPYY]*METRIC_LAP_PSI4[PSIM4];
-          METRIC_PHYS[GUPYZ] = METRIC[GUPYZ]*METRIC_LAP_PSI4[PSIM4];
-          METRIC_PHYS[GUPZZ] = METRIC[GUPZZ]*METRIC_LAP_PSI4[PSIM4];
+            // Now set the ADM metric quantities
+            CCTK_REAL METRIC_PHYS[NUMVARS_FOR_METRIC];
+            METRIC_PHYS[GXX  ] = METRIC[GXX  ]*METRIC_LAP_PSI4[PSI4 ];
+            METRIC_PHYS[GXY  ] = METRIC[GXY  ]*METRIC_LAP_PSI4[PSI4 ];
+            METRIC_PHYS[GXZ  ] = METRIC[GXZ  ]*METRIC_LAP_PSI4[PSI4 ];
+            METRIC_PHYS[GYY  ] = METRIC[GYY  ]*METRIC_LAP_PSI4[PSI4 ];
+            METRIC_PHYS[GYZ  ] = METRIC[GYZ  ]*METRIC_LAP_PSI4[PSI4 ];
+            METRIC_PHYS[GZZ  ] = METRIC[GZZ  ]*METRIC_LAP_PSI4[PSI4 ];
+            METRIC_PHYS[GUPXX] = METRIC[GUPXX]*METRIC_LAP_PSI4[PSIM4];
+            METRIC_PHYS[GUPXY] = METRIC[GUPXY]*METRIC_LAP_PSI4[PSIM4];
+            METRIC_PHYS[GUPXZ] = METRIC[GUPXZ]*METRIC_LAP_PSI4[PSIM4];
+            METRIC_PHYS[GUPYY] = METRIC[GUPYY]*METRIC_LAP_PSI4[PSIM4];
+            METRIC_PHYS[GUPYZ] = METRIC[GUPYZ]*METRIC_LAP_PSI4[PSIM4];
+            METRIC_PHYS[GUPZZ] = METRIC[GUPZZ]*METRIC_LAP_PSI4[PSIM4];
 
-          // Read in primitive variables from gridfunctions
-          // FIXME: this seems wasteful as we won't use these values anyway
-          CCTK_REAL PRIMS[MAXNUMVARS];
-          PRIMS[RHOB         ] = rho_b[index];
-          PRIMS[PRESSURE     ] = P[index];
-          PRIMS[VX           ] = vx[index];
-          PRIMS[VY           ] = vy[index];
-          PRIMS[VZ           ] = vz[index];
-          PRIMS[BX_CENTER    ] = Bx[index];
-          PRIMS[BY_CENTER    ] = By[index];
-          PRIMS[BZ_CENTER    ] = Bz[index];
-          PRIMS[EPSILON      ] = igm_eps[index];
-          PRIMS[ENTROPY      ] = igm_entropy[index];
+            // Read in primitive variables from gridfunctions
+            // FIXME: this seems wasteful as we won't use these values anyway
+            CCTK_REAL PRIMS[MAXNUMVARS];
+            PRIMS[RHOB         ] = rho_b[index];
+            PRIMS[PRESSURE     ] = P[index];
+            PRIMS[VX           ] = vx[index];
+            PRIMS[VY           ] = vy[index];
+            PRIMS[VZ           ] = vz[index];
+            PRIMS[BX_CENTER    ] = Bx[index];
+            PRIMS[BY_CENTER    ] = By[index];
+            PRIMS[BZ_CENTER    ] = Bz[index];
+            PRIMS[EPSILON      ] = igm_eps[index];
+            PRIMS[ENTROPY      ] = igm_entropy[index];
 
-          // Read in conservative variables from gridfunctions
-          CCTK_REAL CONSERVS[NUM_CONSERVS];
-          CONSERVS[RHOSTAR  ] = rho_star[index];
-          CONSERVS[STILDEX  ] = mhd_st_x[index];
-          CONSERVS[STILDEY  ] = mhd_st_y[index];
-          CONSERVS[STILDEZ  ] = mhd_st_z[index];
-          CONSERVS[TAUENERGY] = tau     [index];
-          CONSERVS[ENTSTAR  ] = S_star  [index];
+            // Read in conservative variables from gridfunctions
+            CCTK_REAL CONSERVS[NUM_CONSERVS],CONSERVS_avg_neighbors[NUM_CONSERVS];
+            CONSERVS[RHOSTAR  ] = rho_star[index];
+            CONSERVS[STILDEX  ] = mhd_st_x[index];
+            CONSERVS[STILDEY  ] = mhd_st_y[index];
+            CONSERVS[STILDEZ  ] = mhd_st_z[index];
+            CONSERVS[TAUENERGY] = tau     [index];
+            CONSERVS[YESTAR   ] = Ye_star [index];
+            CONSERVS[ENTSTAR  ] = S_star  [index];
 
-          // Tabulated EOS quantities
-          if( eos.is_Tabulated ) {
-            // Primitives
-            PRIMS[YEPRIM     ] = igm_Ye[index];
-            PRIMS[TEMPERATURE] = igm_temperature[index];
-            // Conservatives
-            CONSERVS[YESTAR  ] = Ye_star[index];
-          }
+            // Check if we need to perform the new conservative averaging fix
+            if( c2p_fail_flag != 0 ) {
 
-          CCTK_REAL shift_xL = METRIC_PHYS[GXX]*METRIC[SHIFTX] + METRIC_PHYS[GXY]*METRIC[SHIFTY] + METRIC_PHYS[GXZ]*METRIC[SHIFTZ];
-          CCTK_REAL shift_yL = METRIC_PHYS[GXY]*METRIC[SHIFTX] + METRIC_PHYS[GYY]*METRIC[SHIFTY] + METRIC_PHYS[GYZ]*METRIC[SHIFTZ];
-          CCTK_REAL shift_zL = METRIC_PHYS[GXZ]*METRIC[SHIFTX] + METRIC_PHYS[GYZ]*METRIC[SHIFTY] + METRIC_PHYS[GZZ]*METRIC[SHIFTZ];
-          CCTK_REAL beta2L   = shift_xL*METRIC[SHIFTX] + shift_yL*METRIC[SHIFTY] + shift_zL*METRIC[SHIFTZ];
+              // Average the conserved variables using the neighboring values
+              con2prim_average_neighbor_conservatives(i,j,k,index,cctk_lsh,cctkGH,con2prim_failed_flag,
+                                                      rho_star,mhd_st_x,mhd_st_y,mhd_st_z,tau,Ye_star,S_star,
+                                                      CONSERVS_avg_neighbors);
 
+              // We will attempt 4 fixes after the first attempt fails. These
+              // new attempts will use the following conservatives:
+              //
+              // C = 0.75*C + 0.25*<C_neighbors>
+              // C = 0.50*C + 0.50*<C_neighbors>
+              // C = 0.25*C + 0.75*<C_neighbors>
+              // C = 0.00*C + 1.00*<C_neighbors>
+              //
+              // Set the weights
+              CCTK_REAL C_weight           = 0.25*c2p_fail_flag;
+              CCTK_REAL one_minus_C_weight = 1.0 - C_weight;
 
-          // Compute 4-metric, both g_{\mu \nu} and g^{\mu \nu}.
-          // This is for computing T_{\mu \nu} and T^{\mu \nu}. Also the HARM con2prim lowlevel function requires them.
-          CCTK_REAL g4dn[4][4],g4up[4][4];
-          g4dn[0][0] = -SQR(METRIC_LAP_PSI4[LAPSE]) + beta2L;
-          g4dn[0][1] = g4dn[1][0] = shift_xL;
-          g4dn[0][2] = g4dn[2][0] = shift_yL;
-          g4dn[0][3] = g4dn[3][0] = shift_zL;
-          g4dn[1][1]              = METRIC_PHYS[GXX];
-          g4dn[1][2] = g4dn[2][1] = METRIC_PHYS[GXY];
-          g4dn[1][3] = g4dn[3][1] = METRIC_PHYS[GXZ];
-          g4dn[2][2]              = METRIC_PHYS[GYY];
-          g4dn[2][3] = g4dn[3][2] = METRIC_PHYS[GYZ];
-          g4dn[3][3]              = METRIC_PHYS[GZZ];
+              // Then update the conservs
+              for(int which_con=0;which_con<NUM_CONSERVS;which_con++)
+                CONSERVS[which_con] = CONSERVS[which_con]*one_minus_C_weight + CONSERVS_avg_neighbors[which_con] * C_weight;
 
-          CCTK_REAL alpha_inv_squared=SQR(METRIC_LAP_PSI4[LAPSEINV]);
-          g4up[0][0] = -1.0*alpha_inv_squared;
-          g4up[0][1] = g4up[1][0] = METRIC[SHIFTX]*alpha_inv_squared;
-          g4up[0][2] = g4up[2][0] = METRIC[SHIFTY]*alpha_inv_squared;
-          g4up[0][3] = g4up[3][0] = METRIC[SHIFTZ]*alpha_inv_squared;
-          g4up[1][1]              = METRIC_PHYS[GUPXX] - METRIC[SHIFTX]*METRIC[SHIFTX]*alpha_inv_squared;
-          g4up[1][2] = g4up[2][1] = METRIC_PHYS[GUPXY] - METRIC[SHIFTX]*METRIC[SHIFTY]*alpha_inv_squared;
-          g4up[1][3] = g4up[3][1] = METRIC_PHYS[GUPXZ] - METRIC[SHIFTX]*METRIC[SHIFTZ]*alpha_inv_squared;
-          g4up[2][2]              = METRIC_PHYS[GUPYY] - METRIC[SHIFTY]*METRIC[SHIFTY]*alpha_inv_squared;
-          g4up[2][3] = g4up[3][2] = METRIC_PHYS[GUPYZ] - METRIC[SHIFTY]*METRIC[SHIFTZ]*alpha_inv_squared;
-          g4up[3][3]              = METRIC_PHYS[GUPZZ] - METRIC[SHIFTZ]*METRIC[SHIFTZ]*alpha_inv_squared;
+              // Assume we won't need to fix this point again, so
+              // decrement the number of points that require the
+              // conservative averaging fix
+              num_of_conservative_averagings_needed--;
 
-
-          //FIXME: might slow down the code.
-          if(isnan(CONSERVS[RHOSTAR]*CONSERVS[STILDEX]*CONSERVS[STILDEY]*CONSERVS[STILDEZ]*CONSERVS[TAUENERGY]*PRIMS[BX_CENTER]*PRIMS[BY_CENTER]*PRIMS[BZ_CENTER])) {
-            CCTK_VInfo(CCTK_THORNSTRING,"NAN FOUND: i,j,k = %d %d %d, x,y,z = %e %e %e , index=%d st_i = %e %e %e, rhostar = %e, tau = %e, Bi = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",
-                       i,j,k,x[index],y[index],z[index],index,
-                       CONSERVS[STILDEX],CONSERVS[STILDEY],CONSERVS[STILDEZ],CONSERVS[RHOSTAR],CONSERVS[TAUENERGY],
-                       PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[PSI6]);
-          }
-
-          // Here we use _flux variables as temp storage for original values of conservative variables.. This is used for debugging purposes only.
-          rho_star_flux[index]    = CONSERVS[RHOSTAR  ];
-          st_x_flux[index]        = CONSERVS[STILDEX  ];
-          st_y_flux[index]        = CONSERVS[STILDEY  ];
-          st_z_flux[index]        = CONSERVS[STILDEZ  ];
-          tau_flux[index]         = CONSERVS[TAUENERGY];
-
-          CCTK_REAL rho_star_orig = CONSERVS[RHOSTAR  ];
-          CCTK_REAL mhd_st_x_orig = CONSERVS[STILDEX  ];
-          CCTK_REAL mhd_st_y_orig = CONSERVS[STILDEY  ];
-          CCTK_REAL mhd_st_z_orig = CONSERVS[STILDEZ  ];
-          CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
-          CCTK_REAL Ye_star_orig  = 0.0;
-          if( eos.is_Tabulated) {
-            Ye_star_orig          = CONSERVS[YESTAR   ];
-          }
-
-
-          int check=0;
-          struct output_stats stats;
-          stats.vel_limited    = 0;
-          stats.failure_checker= 0;
-          stats.font_fixed     = 0;
-          stats.atm_reset      = 0;
-          stats.backup[0]      = 0;
-          stats.backup[1]      = 0;
-          stats.backup[2]      = 0;
-          stats.c2p_failed     = 0;
-          stats.which_routine  = None;
-          stats.dx[0]          = CCTK_DELTA_SPACE(0);
-          stats.dx[1]          = CCTK_DELTA_SPACE(1);
-          stats.dx[2]          = CCTK_DELTA_SPACE(2);
-          if(CONSERVS[RHOSTAR]>0.0) {
-            // Apply the tau floor
-            if( eos.is_Hybrid ) {
-              apply_tau_floor(index,Psi6threshold,PRIMS,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,stats,eos,  CONSERVS);
             }
-
-            for(int ii=0;ii<3;ii++) {
-              check = con2prim(eos,
-                               index,i,j,k,x,y,z,
-                               METRIC,METRIC_PHYS,METRIC_LAP_PSI4,g4dn,g4up,
-                               CONSERVS,PRIMS,
-                               stats);
-              if(check==0) ii=4;
-              else stats.failure_checker+=100000;
-            }
-          } else {
-            stats.failure_checker+=1;
-            reset_prims_to_atmosphere( eos, PRIMS );
-            rho_star_fix_applied++;
-          }
-
-          if( check == 0 ) {
-            //--------------------------------------------------
-            //---------- Primitive recovery succeeded ----------
-            //--------------------------------------------------
-            // Enforce limits on primitive variables and recompute conservatives.
-            static const int already_computed_physical_metric_and_inverse=1;
-            CCTK_REAL TUPMUNU[10],TDNMUNU[10];
-            IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(already_computed_physical_metric_and_inverse,PRIMS,stats,eos,METRIC,g4dn,g4up, TUPMUNU,TDNMUNU,CONSERVS);
-
-            rho_star   [index] = CONSERVS[RHOSTAR  ];
-            mhd_st_x   [index] = CONSERVS[STILDEX  ];
-            mhd_st_y   [index] = CONSERVS[STILDEY  ];
-            mhd_st_z   [index] = CONSERVS[STILDEZ  ];
-            tau        [index] = CONSERVS[TAUENERGY];
-
-            // Set primitives, and/or provide a better guess.
-            rho_b      [index] = PRIMS[RHOB        ];
-            P          [index] = PRIMS[PRESSURE    ];
-            vx         [index] = PRIMS[VX          ];
-            vy         [index] = PRIMS[VY          ];
-            vz         [index] = PRIMS[VZ          ];
-            igm_eps    [index] = PRIMS[EPSILON     ];
-            igm_entropy[index] = PRIMS[ENTROPY     ];
 
             // Tabulated EOS quantities
             if( eos.is_Tabulated ) {
               // Primitives
-              igm_Ye[index]          = PRIMS[YEPRIM     ];
-              igm_temperature[index] = PRIMS[TEMPERATURE];
-              // Conservatives
-              Ye_star[index]         = CONSERVS[YESTAR  ];
+              PRIMS[YEPRIM     ] = igm_Ye[index];
+              PRIMS[TEMPERATURE] = igm_temperature[index];
             }
 
-            // Entropy evolution quantities
-            if( eos.evolve_entropy ) {
-              S_star[index]          = CONSERVS[ENTSTAR ];
+            CCTK_REAL shift_xL = METRIC_PHYS[GXX]*METRIC[SHIFTX] + METRIC_PHYS[GXY]*METRIC[SHIFTY] + METRIC_PHYS[GXZ]*METRIC[SHIFTZ];
+            CCTK_REAL shift_yL = METRIC_PHYS[GXY]*METRIC[SHIFTX] + METRIC_PHYS[GYY]*METRIC[SHIFTY] + METRIC_PHYS[GYZ]*METRIC[SHIFTZ];
+            CCTK_REAL shift_zL = METRIC_PHYS[GXZ]*METRIC[SHIFTX] + METRIC_PHYS[GYZ]*METRIC[SHIFTY] + METRIC_PHYS[GZZ]*METRIC[SHIFTZ];
+            CCTK_REAL beta2L   = shift_xL*METRIC[SHIFTX] + shift_yL*METRIC[SHIFTY] + shift_zL*METRIC[SHIFTZ];
+
+
+            // Compute 4-metric, both g_{\mu \nu} and g^{\mu \nu}.
+            // This is for computing T_{\mu \nu} and T^{\mu \nu}. Also the HARM con2prim lowlevel function requires them.
+            CCTK_REAL g4dn[4][4],g4up[4][4];
+            g4dn[0][0] = -SQR(METRIC_LAP_PSI4[LAPSE]) + beta2L;
+            g4dn[0][1] = g4dn[1][0] = shift_xL;
+            g4dn[0][2] = g4dn[2][0] = shift_yL;
+            g4dn[0][3] = g4dn[3][0] = shift_zL;
+            g4dn[1][1]              = METRIC_PHYS[GXX];
+            g4dn[1][2] = g4dn[2][1] = METRIC_PHYS[GXY];
+            g4dn[1][3] = g4dn[3][1] = METRIC_PHYS[GXZ];
+            g4dn[2][2]              = METRIC_PHYS[GYY];
+            g4dn[2][3] = g4dn[3][2] = METRIC_PHYS[GYZ];
+            g4dn[3][3]              = METRIC_PHYS[GZZ];
+
+            CCTK_REAL alpha_inv_squared=SQR(METRIC_LAP_PSI4[LAPSEINV]);
+            g4up[0][0] = -1.0*alpha_inv_squared;
+            g4up[0][1] = g4up[1][0] = METRIC[SHIFTX]*alpha_inv_squared;
+            g4up[0][2] = g4up[2][0] = METRIC[SHIFTY]*alpha_inv_squared;
+            g4up[0][3] = g4up[3][0] = METRIC[SHIFTZ]*alpha_inv_squared;
+            g4up[1][1]              = METRIC_PHYS[GUPXX] - METRIC[SHIFTX]*METRIC[SHIFTX]*alpha_inv_squared;
+            g4up[1][2] = g4up[2][1] = METRIC_PHYS[GUPXY] - METRIC[SHIFTX]*METRIC[SHIFTY]*alpha_inv_squared;
+            g4up[1][3] = g4up[3][1] = METRIC_PHYS[GUPXZ] - METRIC[SHIFTX]*METRIC[SHIFTZ]*alpha_inv_squared;
+            g4up[2][2]              = METRIC_PHYS[GUPYY] - METRIC[SHIFTY]*METRIC[SHIFTY]*alpha_inv_squared;
+            g4up[2][3] = g4up[3][2] = METRIC_PHYS[GUPYZ] - METRIC[SHIFTY]*METRIC[SHIFTZ]*alpha_inv_squared;
+            g4up[3][3]              = METRIC_PHYS[GUPZZ] - METRIC[SHIFTZ]*METRIC[SHIFTZ]*alpha_inv_squared;
+
+
+            //FIXME: might slow down the code.
+            if(isnan(CONSERVS[RHOSTAR]*CONSERVS[STILDEX]*CONSERVS[STILDEY]*CONSERVS[STILDEZ]*CONSERVS[TAUENERGY]*PRIMS[BX_CENTER]*PRIMS[BY_CENTER]*PRIMS[BZ_CENTER])) {
+              CCTK_VInfo(CCTK_THORNSTRING,"NAN FOUND: i,j,k = %d %d %d, x,y,z = %e %e %e , index=%d st_i = %e %e %e, rhostar = %e, tau = %e, Bi = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",
+                         i,j,k,x[index],y[index],z[index],index,
+                         CONSERVS[STILDEX],CONSERVS[STILDEY],CONSERVS[STILDEZ],CONSERVS[RHOSTAR],CONSERVS[TAUENERGY],
+                         PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[PSI6]);
             }
 
-            if(update_Tmunu) {
-              int ww=0;
-              eTtt[index] = TDNMUNU[ww++];
-              eTtx[index] = TDNMUNU[ww++];
-              eTty[index] = TDNMUNU[ww++];
-              eTtz[index] = TDNMUNU[ww++];
-              eTxx[index] = TDNMUNU[ww++];
-              eTxy[index] = TDNMUNU[ww++];
-              eTxz[index] = TDNMUNU[ww++];
-              eTyy[index] = TDNMUNU[ww++];
-              eTyz[index] = TDNMUNU[ww++];
-              eTzz[index] = TDNMUNU[ww  ];
+            // Here we use _flux variables as temp storage for original values of conservative variables.. This is used for debugging purposes only.
+            rho_star_flux[index]    = CONSERVS[RHOSTAR  ];
+            st_x_flux[index]        = CONSERVS[STILDEX  ];
+            st_y_flux[index]        = CONSERVS[STILDEY  ];
+            st_z_flux[index]        = CONSERVS[STILDEZ  ];
+            tau_flux[index]         = CONSERVS[TAUENERGY];
+            Ye_star_flux[index]     = CONSERVS[YESTAR   ];
+            S_star_flux[index]      = CONSERVS[ENTSTAR  ];
+
+            CCTK_REAL rho_star_orig = CONSERVS[RHOSTAR  ];
+            CCTK_REAL mhd_st_x_orig = CONSERVS[STILDEX  ];
+            CCTK_REAL mhd_st_y_orig = CONSERVS[STILDEY  ];
+            CCTK_REAL mhd_st_z_orig = CONSERVS[STILDEZ  ];
+            CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
+            CCTK_REAL Ye_star_orig  = 0.0;
+            if( eos.is_Tabulated) {
+              Ye_star_orig          = CONSERVS[YESTAR   ];
             }
 
-            //Now we compute the difference between original & new conservatives, for diagnostic purposes:
-            error_int_numer += fabs(tau[index] - tau_orig) + fabs(rho_star[index] - rho_star_orig) +
-              fabs(mhd_st_x[index] - mhd_st_x_orig) + fabs(mhd_st_y[index] - mhd_st_y_orig) + fabs(mhd_st_z[index] - mhd_st_z_orig);
-            error_int_denom += tau_orig + rho_star_orig + fabs(mhd_st_x_orig) + fabs(mhd_st_y_orig) + fabs(mhd_st_z_orig);
+            int check=0;
+            struct output_stats stats;
+            stats.vel_limited    = 0;
+            stats.failure_checker= 0;
+            stats.font_fixed     = 0;
+            stats.atm_reset      = 0;
+            stats.backup[0]      = 0;
+            stats.backup[1]      = 0;
+            stats.backup[2]      = 0;
+            stats.c2p_failed     = 0;
+            stats.which_routine  = None;
+            stats.dx[0]          = CCTK_DELTA_SPACE(0);
+            stats.dx[1]          = CCTK_DELTA_SPACE(1);
+            stats.dx[2]          = CCTK_DELTA_SPACE(2);
+            if(CONSERVS[RHOSTAR]>0.0) {
+              // Apply the tau floor
+              if( eos.is_Hybrid ) {
+                apply_tau_floor(index,Psi6threshold,PRIMS,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,stats,eos,  CONSERVS);
+              }
 
-            if( eos.is_Tabulated ) {
-              error_int_numer += fabs(Ye_star[index] - Ye_star_orig);
-              error_int_denom += Ye_star_orig;
+              for(int ii=0;ii<3;ii++) {
+                check = con2prim(eos,
+                                 index,i,j,k,x,y,z,
+                                 METRIC,METRIC_PHYS,METRIC_LAP_PSI4,g4dn,g4up,
+                                 CONSERVS,PRIMS,
+                                 stats);
+                if(check==0) ii=4;
+                else stats.failure_checker+=100000;
+              }
+            } else {
+              stats.failure_checker+=1;
+              reset_prims_to_atmosphere( eos, PRIMS );
+              rho_star_fix_applied++;
             }
 
-            if(stats.atm_reset==1) {
-              atm_resets++;
-              stats.which_routine = -1;
-            }
-            igm_c2p_mask[index] = stats.which_routine;
-            if(stats.backup[0]==1) backup1++;
-            if(stats.backup[1]==1) backup2++;
-            if(stats.backup[2]==1) backup3++;
-            if(stats.font_fixed==1) font_fixes++;
-            vel_limited_ptcount+=stats.vel_limited;
-            if(check!=0) {
-              failures++;
-              if(exp(METRIC[PHI]*6.0)>Psi6threshold) {
-                failures_inhoriz++;
-                pointcount_inhoriz++;
+            if( check != 0 ) {
+              //--------------------------------------------------
+              //----------- Primitive recovery failed ------------
+              //--------------------------------------------------
+              // Increment the failure flag
+              con2prim_failed_flag[index] += 1;
+              if( con2prim_failed_flag[index] > 4 ) {
+                // Sigh, reset to atmosphere
+                reset_prims_to_atmosphere( eos, PRIMS );
+                reset_to_atmosphere_after_cons_avgs_failed++; 
+              }
+              else {
+                // Increment the number of gridpoints which will need the average fix
+                num_of_conservative_averagings_needed++;
               }
             }
-            pointcount++;
-            /***************************************************************************************************************************/
-            failure_checker[index] = stats.failure_checker;
-          }
-          else {
-            //--------------------------------------------------
-            //----------- Primitive recovery failed ------------
-            //--------------------------------------------------
-            // Start by flagging this gridpoint
-            con2prim_failed_flag[index] = 1;
-            // Then increment the number of gridpoints which need C averaging
-            num_of_conservative_averagings_needed++;
-          }
 
-          // if( k == cctk_lsh[2]/2 ) fprintf(c2pmaskfile,"%e %e %d\n",x[index],y[index],eos.c2p_used);
+            if( check == 0 ) {
+              //--------------------------------------------------
+              //---------- Primitive recovery succeeded ----------
+              //--------------------------------------------------
+              // Enforce limits on primitive variables and recompute conservatives.
+              static const int already_computed_physical_metric_and_inverse=1;
+              CCTK_REAL TUPMUNU[10],TDNMUNU[10];
+              IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(already_computed_physical_metric_and_inverse,PRIMS,stats,eos,METRIC,g4dn,g4up, TUPMUNU,TDNMUNU,CONSERVS);
 
+              rho_star   [index] = CONSERVS[RHOSTAR  ];
+              mhd_st_x   [index] = CONSERVS[STILDEX  ];
+              mhd_st_y   [index] = CONSERVS[STILDEY  ];
+              mhd_st_z   [index] = CONSERVS[STILDEZ  ];
+              tau        [index] = CONSERVS[TAUENERGY];
+
+              // Set primitives, and/or provide a better guess.
+              rho_b      [index] = PRIMS[RHOB        ];
+              P          [index] = PRIMS[PRESSURE    ];
+              vx         [index] = PRIMS[VX          ];
+              vy         [index] = PRIMS[VY          ];
+              vz         [index] = PRIMS[VZ          ];
+              igm_eps    [index] = PRIMS[EPSILON     ];
+              igm_entropy[index] = PRIMS[ENTROPY     ];
+
+              // Tabulated EOS quantities
+              if( eos.is_Tabulated ) {
+                // Primitives
+                igm_Ye[index]          = PRIMS[YEPRIM     ];
+                igm_temperature[index] = PRIMS[TEMPERATURE];
+                // Conservatives
+                Ye_star[index]         = CONSERVS[YESTAR  ];
+              }
+
+              // Entropy evolution quantities
+              if( eos.evolve_entropy ) {
+                S_star[index]          = CONSERVS[ENTSTAR ];
+              }
+
+              if(update_Tmunu) {
+                int ww=0;
+                eTtt[index] = TDNMUNU[ww++];
+                eTtx[index] = TDNMUNU[ww++];
+                eTty[index] = TDNMUNU[ww++];
+                eTtz[index] = TDNMUNU[ww++];
+                eTxx[index] = TDNMUNU[ww++];
+                eTxy[index] = TDNMUNU[ww++];
+                eTxz[index] = TDNMUNU[ww++];
+                eTyy[index] = TDNMUNU[ww++];
+                eTyz[index] = TDNMUNU[ww++];
+                eTzz[index] = TDNMUNU[ww  ];
+              }
+
+              //Now we compute the difference between original & new conservatives, for diagnostic purposes:
+              error_int_numer += fabs(tau[index] - tau_orig) + fabs(rho_star[index] - rho_star_orig) +
+                fabs(mhd_st_x[index] - mhd_st_x_orig) + fabs(mhd_st_y[index] - mhd_st_y_orig) + fabs(mhd_st_z[index] - mhd_st_z_orig);
+              error_int_denom += tau_orig + rho_star_orig + fabs(mhd_st_x_orig) + fabs(mhd_st_y_orig) + fabs(mhd_st_z_orig);
+
+              if( eos.is_Tabulated ) {
+                error_int_numer += fabs(Ye_star[index] - Ye_star_orig);
+                error_int_denom += Ye_star_orig;
+              }
+
+              if(stats.atm_reset==1) {
+                atm_resets++;
+                stats.which_routine = -1;
+              }
+              igm_c2p_mask[index] = stats.which_routine;
+              if(stats.backup[0]==1) backup1++;
+              if(stats.backup[1]==1) backup2++;
+              if(stats.backup[2]==1) backup3++;
+              if(stats.font_fixed==1) font_fixes++;
+              vel_limited_ptcount+=stats.vel_limited;
+              if(check!=0) {
+                failures++;
+                if(exp(METRIC[PHI]*6.0)>Psi6threshold) {
+                  failures_inhoriz++;
+                  pointcount_inhoriz++;
+                }
+              }
+              pointcount++;
+              /***************************************************************************************************************************/
+              failure_checker[index] = stats.failure_checker;
+            }
+          } // if( (loop_count == 0) || (c2p_fail_flag != 0) )
         } // for(int i=imin;i<imax;i++)
-        // if( k == cctk_lsh[2]/2 ) fprintf(c2pmaskfile,"\n");
       } // for(int j=jmin;j<jmax;j++)
     } // for(int k=kmin;k<kmax;k++)
 
     if( num_of_conservative_averagings_needed > cons_avgs ) cons_avgs = num_of_conservative_averagings_needed;
+
+    loop_count++;
 
   } // while( num_of_conservative_averagings_needed > 0 )
 
   // fclose(c2pmaskfile);
 
   if(CCTK_Equals(verbose, "essential") || CCTK_Equals(verbose, "essential+iteration output")) {
-    CCTK_VInfo(CCTK_THORNSTRING,"C2P: Lev: %d NumPts= %d | Fixes: BU: %d %d %d Font= %d VL= %d rho*= %d AVG= %d ATM= %d | Failures: %d InHoriz= %d / %d | Error: %.3e, ErrDenom: %.3e",
+    CCTK_VInfo(CCTK_THORNSTRING,"C2P: Lev: %d NumPts= %d | Fixes: BU: %d %d %d Font= %d VL= %d rho*= %d AVG= %d ATM= %d(%d) | Failures: %d InHoriz= %d / %d | Error: %.3e, ErrDenom: %.3e",
                (int)GetRefinementLevel(cctkGH),pointcount,
                backup1,backup2,backup3,
-               font_fixes,vel_limited_ptcount,rho_star_fix_applied,cons_avgs,atm_resets,
+               font_fixes,vel_limited_ptcount,rho_star_fix_applied,cons_avgs,atm_resets,reset_to_atmosphere_after_cons_avgs_failed,
                failures,
                failures_inhoriz,pointcount_inhoriz,
                error_int_numer/error_int_denom,error_int_denom);
@@ -442,7 +480,8 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
   // Very useful con2prim debugger. If the primitives (con2prim) solver fails, this will output all data needed to
   //     debug where and why the solver failed. Strongly suggested for experimenting with new fixes.
-  if(conserv_to_prims_debug==1 && error_int_numer/error_int_denom > 0.05) {
+  if( ( (conserv_to_prims_debug==1) && (error_int_numer/error_int_denom > 0.05) ) ||
+      ( reset_to_atmosphere_after_cons_avgs_failed != 0 ) ) {
 
     ofstream myfile;
     char filename[100];
@@ -453,90 +492,111 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
     //sprintf(filename,"primitives_debug-%d.dat",rand());
     myfile.open (filename, ios::out | ios::binary);
     //myfile.open ("data.bin", ios::out | ios::binary);
-    myfile.write((char*)cctk_lsh, 3*sizeof(int));
 
-    myfile.write((char*)&GAMMA_SPEED_LIMIT, 1*sizeof(CCTK_REAL));
+    // This checker value will be printed last, and will
+    // allow us to make sure we have read the dump file
+    // correctly when debugging it.
+    int checker=1063;
 
-    myfile.write((char*)&rho_b_max, 1*sizeof(CCTK_REAL));
-    myfile.write((char*)&rho_b_atm, 1*sizeof(CCTK_REAL));
-    myfile.write((char*)&tau_atm, 1*sizeof(CCTK_REAL));
-
-    myfile.write((char*)&Psi6threshold, 1*sizeof(CCTK_REAL));
-
-    myfile.write((char*)&update_Tmunu, 1*sizeof(int));
-
-    myfile.write((char*)&neos,                   1*sizeof(int));
-    myfile.write((char*)&Gamma_th,               1*sizeof(CCTK_REAL));
-    myfile.write((char*)&K_ppoly_tab0,            1*sizeof(CCTK_REAL));
-    myfile.write((char*)Gamma_ppoly_tab_in,   neos*sizeof(CCTK_REAL));
-    myfile.write((char*)rho_ppoly_tab_in, (neos-1)*sizeof(CCTK_REAL));
-
+    // Grid information
     int fullsize=cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2];
-    myfile.write((char*)x,   (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)y,   (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)z,   (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)cctk_lsh,                             3*sizeof(int));
+    myfile.write((char*)x,                           (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)y,                           (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)z,                           (fullsize)*sizeof(CCTK_REAL));
 
-    myfile.write((char *)failure_checker, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)eTtt, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)eTtx, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)eTty, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)eTtz, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)eTxx, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)eTxy, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)eTxz, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)eTyy, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)eTyz, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)eTzz, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)alp, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)gxx, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)gxy, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)gxz, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)gyy, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)gyz, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)gzz, fullsize*sizeof(CCTK_REAL));
-    myfile.write((char *)psi_bssn, fullsize*sizeof(CCTK_REAL));
+    // IllinoisGRMHD parameters
+    myfile.write((char*)&GAMMA_SPEED_LIMIT,                   1*sizeof(CCTK_REAL));
+    myfile.write((char*)&rho_b_max,                           1*sizeof(CCTK_REAL));
+    myfile.write((char*)&rho_b_atm,                           1*sizeof(CCTK_REAL));
+    myfile.write((char*)&tau_atm,                             1*sizeof(CCTK_REAL));
+    myfile.write((char*)&Psi6threshold,                       1*sizeof(CCTK_REAL));
+    myfile.write((char*)&update_Tmunu,                        1*sizeof(bool));
+    myfile.write((char*)&neos,                                1*sizeof(int));
+    myfile.write((char*)&Gamma_th,                            1*sizeof(CCTK_REAL));
+    myfile.write((char*)&K_ppoly_tab0,                        1*sizeof(CCTK_REAL));
+    myfile.write((char*)Gamma_ppoly_tab_in,                neos*sizeof(CCTK_REAL));
+    myfile.write((char*)rho_ppoly_tab_in,              (neos-1)*sizeof(CCTK_REAL));
+    myfile.write((char*)&igm_Ye_atm,                          1*sizeof(CCTK_REAL));
+    myfile.write((char*)&igm_T_atm,                           1*sizeof(CCTK_REAL));
+    myfile.write((char*)&igm_eos_table_ceiling_safety_factor, 1*sizeof(CCTK_REAL));
+    myfile.write((char*)&igm_eos_table_floor_safety_factor,   1*sizeof(CCTK_REAL));
+    myfile.write((char*)&igm_eos_root_finding_precision,      1*sizeof(CCTK_REAL));
+    myfile.write((char*)&igm_eos_root_finding_precision,      1*sizeof(CCTK_REAL));
+    myfile.write((char*)&igm_evolve_temperature,              1*sizeof(bool));
+    myfile.write((char*)&igm_evolve_entropy,                  1*sizeof(bool));
+    
+    // Failure checker gridfunction
+    myfile.write((char*)failure_checker,             (fullsize)*sizeof(CCTK_REAL));
 
-    myfile.write((char*)phi_bssn, (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtxx, (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtxy, (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtxz, (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtyy, (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtyz, (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtzz, (fullsize)*sizeof(CCTK_REAL));
+    // Energy momentum tensor
+    myfile.write((char*)eTtt,                        (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)eTtx,                        (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)eTty,                        (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)eTtz,                        (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)eTxx,                        (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)eTxy,                        (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)eTxz,                        (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)eTyy,                        (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)eTyz,                        (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)eTzz,                        (fullsize)*sizeof(CCTK_REAL));
 
-    myfile.write((char*)gtupxx, (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtupxy, (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtupxz, (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtupyy, (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtupyz, (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtupzz, (fullsize)*sizeof(CCTK_REAL));
+    // Metric quantities
+    myfile.write((char*)alp,                         (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gxx,                         (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gxy,                         (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gxz,                         (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gyy,                         (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gyz,                         (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gzz,                         (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)psi_bssn,                    (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)phi_bssn,                    (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gtxx,                        (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gtxy,                        (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gtxz,                        (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gtyy,                        (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gtyz,                        (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gtzz,                        (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gtupxx,                      (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gtupxy,                      (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gtupxz,                      (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gtupyy,                      (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gtupyz,                      (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)gtupzz,                      (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)lapm1,                       (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)betax,                       (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)betay,                       (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)betaz,                       (fullsize)*sizeof(CCTK_REAL));
 
-    myfile.write((char*)betax, (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)betay, (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)betaz, (fullsize)*sizeof(CCTK_REAL));
+    // Original conservative variables (we used the flux gridfunctions to store these)
+    myfile.write((char*)rho_star_flux,               (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)tau_flux,                    (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)st_x_flux,                   (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)st_y_flux,                   (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)st_z_flux,                   (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)Ye_star_flux,                (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)S_star_flux,                 (fullsize)*sizeof(CCTK_REAL));
+    
+    // Magnetic fields
+    myfile.write((char*)Bx,                          (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)By,                          (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)Bz,                          (fullsize)*sizeof(CCTK_REAL));
 
-    myfile.write((char*)lapm1, (fullsize)*sizeof(CCTK_REAL));
+    // Primitive variables
+    myfile.write((char*)rho_b,                       (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)P,                           (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)vx,                          (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)vy,                          (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)vz,                          (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)igm_Ye,                      (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)igm_temperature,             (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)igm_eps,                     (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)igm_entropy,                 (fullsize)*sizeof(CCTK_REAL));
+    
+    // Checker value
+    myfile.write((char*)&checker,                             1*sizeof(int));
 
-    // HERE WE USE _flux variables as temp storage for original values of conservative variables.. This is used for debugging purposes only.
-    myfile.write((char*)tau_flux,      (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)st_x_flux, (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)st_y_flux, (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)st_z_flux, (fullsize)*sizeof(CCTK_REAL));
-
-    myfile.write((char*)rho_star_flux, (fullsize)*sizeof(CCTK_REAL));
-
-    myfile.write((char*)Bx,   (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)By,   (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)Bz,   (fullsize)*sizeof(CCTK_REAL));
-
-    myfile.write((char*)vx,   (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)vy,   (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)vz,   (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)P,    (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)rho_b,(fullsize)*sizeof(CCTK_REAL));
-
-    int checker=1063; myfile.write((char*)&checker,sizeof(int));
-
+    // All done! Close the file.
     myfile.close();
     CCTK_VInfo(CCTK_THORNSTRING,"Finished writing %s",filename);
   }
