@@ -267,13 +267,13 @@ CCTK_REAL igm_con2prim_standalone_T_max "Maximum temperature for the con2prim st
 } 1e+2
 
 restricted:
-CCTK_REAL palenzuela_depsdT_threshold "Below this value, the code will use the entropy instead of energy during con2prim"
+CCTK_REAL palenzuela_depsdT_threshold "Below this value, the code will use the entropy instead of energy during con2prim" STEERABLE=ALWAYS
 {
   *:* :: "Can be anything. Negative values disable the entropy equation."
 } 1e-6
 
 restricted:
-CCTK_STRING con2prim_high_density_failure_action "What to do if we get a con2prim failure in a high density region"
+CCTK_STRING con2prim_high_density_failure_action "What to do if we get a con2prim failure in a high density region" STEERABLE=ALWAYS
 {
   "terminate" :: "Terminate the run"
   "just warn" :: "Only warn"
