@@ -106,7 +106,6 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   int failures_inhoriz=0;
   int pointcount_inhoriz=0;
   int backup1=0,backup2=0,backup3=0;
-  int reset_to_atmosphere_after_cons_avgs_failed=0;
 
   CCTK_REAL error_int_numer=0,error_int_denom=0;
 
@@ -146,7 +145,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
     // Now set the number of conserved averages to zero
     num_of_conservative_averagings_needed = 0;
 
-#pragma omp parallel for reduction(+:failures,vel_limited_ptcount,font_fixes,pointcount,failures_inhoriz,pointcount_inhoriz,error_int_numer,error_int_denom,rho_star_fix_applied,atm_resets,backup1,backup2,backup3,num_of_conservative_averagings_needed,reset_to_atmosphere_after_cons_avgs_failed) schedule(static)
+#pragma omp parallel for reduction(+:failures,vel_limited_ptcount,font_fixes,pointcount,failures_inhoriz,pointcount_inhoriz,error_int_numer,error_int_denom,rho_star_fix_applied,atm_resets,backup1,backup2,backup3,num_of_conservative_averagings_needed) schedule(static)
     for(int k=kmin;k<kmax;k++) {
       for(int j=jmin;j<jmax;j++) {
         for(int i=imin;i<imax;i++) {
@@ -154,9 +153,8 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
           int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
           int c2p_fail_flag = con2prim_failed_flag[index];
 
-          // Only attempt a con2prim at this point if it is
-          // the first time we are doing it or if the previous
-          // attempt failed.
+          // Only attempt a primitive recovery if this is the first
+          // attempt at doing so or if the previous attempt failed.
           if( (loop_count == 0) || (c2p_fail_flag != 0) ) {
 
             // Read in BSSN metric quantities from gridfunctions
@@ -364,7 +362,10 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               if( con2prim_failed_flag[index] > 4 ) {
                 // Sigh, reset to atmosphere
                 reset_prims_to_atmosphere( eos, PRIMS );
-                reset_to_atmosphere_after_cons_avgs_failed++; 
+                atm_resets++;
+                // Then flag this point as a "success"
+                check = 0;
+                con2prim_failed_flag[index] = 0;
               }
               else {
                 // Increment the number of gridpoints which will need the average fix
@@ -462,6 +463,9 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
     if( num_of_conservative_averagings_needed > cons_avgs ) cons_avgs = num_of_conservative_averagings_needed;
 
+    // Increment the loop counter. This counter is used to avoid
+    // attempting to recover primitives at points in which we
+    // have already done so successfully.
     loop_count++;
 
   } // while( num_of_conservative_averagings_needed > 0 )
@@ -469,10 +473,10 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   // fclose(c2pmaskfile);
 
   if(CCTK_Equals(verbose, "essential") || CCTK_Equals(verbose, "essential+iteration output")) {
-    CCTK_VInfo(CCTK_THORNSTRING,"C2P: Lev: %d NumPts= %d | Fixes: BU: %d %d %d Font= %d VL= %d rho*= %d AVG= %d ATM= %d(%d) | Failures: %d InHoriz= %d / %d | Error: %.3e, ErrDenom: %.3e",
+    CCTK_VInfo(CCTK_THORNSTRING,"C2P: Lev: %d NumPts= %d | Fixes: BU: %d %d %d Font= %d VL= %d rho*= %d AVG= %d ATM= %d | Failures: %d InHoriz= %d / %d | Error: %.3e, ErrDenom: %.3e",
                (int)GetRefinementLevel(cctkGH),pointcount,
                backup1,backup2,backup3,
-               font_fixes,vel_limited_ptcount,rho_star_fix_applied,cons_avgs,atm_resets,reset_to_atmosphere_after_cons_avgs_failed,
+               font_fixes,vel_limited_ptcount,rho_star_fix_applied,cons_avgs,atm_resets,
                failures,
                failures_inhoriz,pointcount_inhoriz,
                error_int_numer/error_int_denom,error_int_denom);
@@ -481,7 +485,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   // Very useful con2prim debugger. If the primitives (con2prim) solver fails, this will output all data needed to
   //     debug where and why the solver failed. Strongly suggested for experimenting with new fixes.
   if( ( (conserv_to_prims_debug==1) && (error_int_numer/error_int_denom > 0.05) ) ||
-      ( reset_to_atmosphere_after_cons_avgs_failed != 0 ) ) {
+      ( atm_resets != 0 ) ) {
 
     ofstream myfile;
     char filename[100];
