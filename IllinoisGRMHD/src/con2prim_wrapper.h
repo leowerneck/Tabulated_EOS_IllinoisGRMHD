@@ -45,9 +45,9 @@ int con2prim( const igm_eos_parameters eos,
   CCTK_REAL mhd_st_x_orig = CONSERVS[STILDEX  ];
   CCTK_REAL mhd_st_y_orig = CONSERVS[STILDEY  ];
   CCTK_REAL mhd_st_z_orig = CONSERVS[STILDEZ  ];
-  CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
-  CCTK_REAL Ye_star_orig  = CONSERVS[YESTAR   ];
-  CCTK_REAL S_star_orig   = CONSERVS[ENTSTAR  ];
+  // CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
+  // CCTK_REAL Ye_star_orig  = CONSERVS[YESTAR   ];
+  // CCTK_REAL S_star_orig   = CONSERVS[ENTSTAR  ];
 
 
   // Other ideas for setting the gamma speed limit
@@ -213,16 +213,6 @@ int con2prim( const igm_eos_parameters eos,
       
     } else {
       //If we didn't find a root, then try again with a different guess.
-    }
-  }
-  if( igm_con2prim_failure_verbose ) {
-    if( eos.is_Hybrid ) {
-      CCTK_VInfo(CCTK_THORNSTRING,"Couldn't find root from: %e %e %e %e %e, rhob approx=%e, rho_b_atm=%e, Bx=%e, By=%e, Bz=%e, gij_phys=%e %e %e %e %e %e, alpha=%e",
-                 tau_orig,rho_star_orig,mhd_st_x_orig,mhd_st_y_orig,mhd_st_z_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
-    }
-    else if( eos.is_Tabulated ) {
-      CCTK_VInfo(CCTK_THORNSTRING,"Couldn't find root from: %e %e %e %e %e %e %e, rhob approx=%e, rho_b_atm=%e, Bx=%e, By=%e, Bz=%e, gij_phys=%e %e %e %e %e %e, alpha=%e",
-                 tau_orig,rho_star_orig,mhd_st_x_orig,mhd_st_y_orig,mhd_st_z_orig,Ye_star_orig,S_star_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
     }
   }
   return 1;

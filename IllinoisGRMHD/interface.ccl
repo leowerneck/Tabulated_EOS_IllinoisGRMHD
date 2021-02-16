@@ -44,8 +44,9 @@ cctk_real em_psi6phi type = GF Timelevels=3 tags='Prolongation="STAGGER111"'
 {
   psi6phi
 } "sqrt{gamma} Phi, where Phi is the em scalar potential"
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+  #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
+CCTK_INT con2prim_failed_flag type=GF Timelevels=1 tags='Prolongation="none" Checkpoint="no"'
 
 #vvvvvvv PRIMITIVE VARIABLES vvvvvvv#
 # TODO: split into groups with well defined symmetry properties: (rho_b, P, u0), (vx,vy,vz)

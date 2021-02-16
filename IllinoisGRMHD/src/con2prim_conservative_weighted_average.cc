@@ -15,13 +15,13 @@
 
 #include "IllinoisGRMHD_headers.h"
 
-void con2prim_average_neighbor_conservatives( const CCTK_INT i,
+void con2prim_average_neighbor_conservatives( const cGH *restrict cctkGH,
+                                              const CCTK_INT i,
                                               const CCTK_INT j,
                                               const CCTK_INT k,
                                               const CCTK_INT index,
                                               const CCTK_INT *restrict cctk_lsh,
-                                              const cGH  *restrict cctkGH,
-                                              unsigned short *restrict con2prim_failed_flag,
+                                              const CCTK_INT *restrict con2prim_failed_flag,
                                               CCTK_REAL *restrict rho_star,
                                               CCTK_REAL *restrict mhd_st_x,
                                               CCTK_REAL *restrict mhd_st_y,

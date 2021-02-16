@@ -121,7 +121,6 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   // After that, the con2prim attempt will be retried. This mask allows
   // us to flag points in which the averaging procedure must be performed.
   int npoints = cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2];
-  unsigned short con2prim_failed_flag[npoints];
 
   // Initialization of the masks above. Flag meaning:
   //
@@ -224,7 +223,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             if( c2p_fail_flag != 0 ) {
 
               // Average the conserved variables using the neighboring values
-              con2prim_average_neighbor_conservatives(i,j,k,index,cctk_lsh,cctkGH,con2prim_failed_flag,
+              con2prim_average_neighbor_conservatives(cctkGH,i,j,k,index,cctk_lsh,con2prim_failed_flag,
                                                       rho_star,mhd_st_x,mhd_st_y,mhd_st_z,tau,Ye_star,S_star,
                                                       CONSERVS_avg_neighbors);
 
@@ -314,8 +313,12 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             CCTK_REAL mhd_st_z_orig = CONSERVS[STILDEZ  ];
             CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
             CCTK_REAL Ye_star_orig  = 0.0;
+            CCTK_REAL S_star_orig   = 0.0;
             if( eos.is_Tabulated) {
               Ye_star_orig          = CONSERVS[YESTAR   ];
+            }
+            if( eos.evolve_entropy ) {
+              S_star_orig           = CONSERVS[ENTSTAR  ];
             }
 
             int check=0;
@@ -366,6 +369,14 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                 // Then flag this point as a "success"
                 check = 0;
                 con2prim_failed_flag[index] = 0;
+                if( eos.is_Hybrid ) {
+                  CCTK_VInfo(CCTK_THORNSTRING,"Couldn't find root from: %e %e %e %e %e, rhob approx=%e, rho_b_atm=%e, Bx=%e, By=%e, Bz=%e, gij_phys=%e %e %e %e %e %e, alpha=%e",
+                             tau_orig,rho_star_orig,mhd_st_x_orig,mhd_st_y_orig,mhd_st_z_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
+                }
+                else if( eos.is_Tabulated ) {
+                  CCTK_VInfo(CCTK_THORNSTRING,"Couldn't find root from: %e %e %e %e %e %e %e, rhob approx=%e, rho_b_atm=%e, Bx=%e, By=%e, Bz=%e, gij_phys=%e %e %e %e %e %e, alpha=%e",
+                             tau_orig,rho_star_orig,mhd_st_x_orig,mhd_st_y_orig,mhd_st_z_orig,Ye_star_orig,S_star_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
+                }
               }
               else {
                 // Increment the number of gridpoints which will need the average fix
