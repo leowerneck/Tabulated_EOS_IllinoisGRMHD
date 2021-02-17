@@ -6,15 +6,18 @@
 #include "IllinoisGRMHD_headers.h"
 #include "con2prim_headers.h"
 
+static const CCTK_INT senergyvar = 0;
+static const CCTK_INT entropyvar = 1;
+
 void newman( const igm_eos_parameters eos,
              const CCTK_REAL tol_x,
-             const CCTK_REAL sqrt_detgamma,
              const CCTK_REAL S_squared,
              const CCTK_REAL BdotS,
              const CCTK_REAL B_squared,
              const CCTK_REAL *restrict SU,
              const CCTK_REAL *restrict con,
              CCTK_REAL *restrict prim,
+             CCTK_INT& got_temp_from,
              bool& c2p_failed );
 
 static inline void set_gammaDD_and_gammaUU_from_ADM_quantities( const CCTK_REAL *restrict adm_quantities,
@@ -50,25 +53,6 @@ static inline void raise_or_lower_indices_3d( const CCTK_REAL *restrict vecD_or_
   }
 }
 
-static inline CCTK_REAL compute_sqrt_detgamma( const CCTK_REAL gammaDD[3][3] ) {
-  /*               / a b c \
-  ** gamma_{ij} = |  b d e |
-  **               \ c e f /
-  */
-  const CCTK_REAL a = gammaDD[0][0];
-  const CCTK_REAL b = gammaDD[0][1];
-  const CCTK_REAL c = gammaDD[0][2];
-  const CCTK_REAL d = gammaDD[1][1];
-  const CCTK_REAL e = gammaDD[1][2];
-  const CCTK_REAL f = gammaDD[2][2];
-
-  // Compute the deterrminant
-  const CCTK_REAL detgamma = a*(d*f-e*e) + b*(c*e-b*f) + c*(b*e-d*c);
-
-  // Return sqrt(detgamma)
-  return( sqrt(detgamma) );
-}
-
 int con2prim_Newman1D( const igm_eos_parameters eos,
                        const CCTK_REAL *restrict adm_quantities,
                        const CCTK_REAL *restrict con,
@@ -78,9 +62,6 @@ int con2prim_Newman1D( const igm_eos_parameters eos,
   // Set gamma_{ij} and gamma^{ij}
   CCTK_REAL gammaDD[3][3],gammaUU[3][3];
   set_gammaDD_and_gammaUU_from_ADM_quantities(adm_quantities,gammaDD,gammaUU);
-
-  // Get sqrt(detgamma)
-  CCTK_REAL sqrt_detgamma = compute_sqrt_detgamma(gammaDD);
 
   // Read in B^{i}
   CCTK_REAL BU[3];
@@ -113,20 +94,28 @@ int con2prim_Newman1D( const igm_eos_parameters eos,
 
   const CCTK_REAL tol_x = 5e-9;
   bool c2p_failed = false;
-  newman(eos,tol_x,sqrt_detgamma,S_squared,BdotS,B_squared,SU,con,prim,c2p_failed);
+  CCTK_INT got_temp_from = None;
+  newman(eos,tol_x,S_squared,BdotS,B_squared,SU,con,prim,got_temp_from,c2p_failed);
+
+  if( c2p_failed && ( got_temp_from == entropyvar ) ) {
+    // If the recovery failed when using the entropy, try
+    // again using the specific internal energy.
+    got_temp_from = senergyvar;
+    newman(eos,tol_x,S_squared,BdotS,B_squared,SU,con,prim,got_temp_from,c2p_failed);
+  }
   
   return( c2p_failed );
 }
 
 void newman( const igm_eos_parameters eos,
              const CCTK_REAL tol_x,
-             const CCTK_REAL sqrt_detgamma,
              const CCTK_REAL S_squared,
              const CCTK_REAL BdotS,
              const CCTK_REAL B_squared,
              const CCTK_REAL *restrict SU,
              const CCTK_REAL *restrict con,
              CCTK_REAL *restrict prim,
+             CCTK_INT& got_temp_from,
              bool& c2p_failed ) {
  
   bool conacc = 0;
@@ -143,12 +132,29 @@ void newman( const igm_eos_parameters eos,
   CCTK_REAL xeps   = 0.0;
   CCTK_REAL xent   = 0.0;
   CCTK_REAL depsdT = 0.0;
-  get_P_eps_and_depsdT_from_rho_Ye_and_T( eos,xrho,xye,xtemp, &xprs,&xeps,&depsdT );
-
   bool use_entropy = false;
-  if( eos.evolve_entropy && (depsdT < eos.depsdT_threshold) ) {
-    // We should use the entropy instead
-    use_entropy = true;
+
+  if( got_temp_from == None ) {
+
+    // Only need to compute depsdT if we are not sure whether or not to use the entropy
+    get_P_eps_and_depsdT_from_rho_Ye_and_T( eos,xrho,xye,xtemp, &xprs,&xeps,&depsdT );
+
+    if( eos.evolve_entropy && (depsdT < eos.depsdT_threshold) ) {
+      // We should use the entropy instead
+      got_temp_from = entropyvar;
+      use_entropy   = true;
+    }
+    else {
+      got_temp_from = senergyvar;
+    }
+
+  }
+  else {
+    // If got_temp_from != None, then that means we tried to use
+    // the entropy and the recovery failed. So it is safe to
+    // skip the depsdT check and use a more efficient EOS call.
+    get_P_and_eps_from_rho_Ye_and_T( eos, xrho,xye,xtemp, &xprs,&xeps );
+    
   }
 
   //Now, begin iterative procedure to derive the primitive variables
