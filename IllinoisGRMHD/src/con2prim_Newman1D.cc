@@ -130,132 +130,159 @@ void newman( const igm_eos_parameters eos,
              bool& c2p_failed ) {
  
   bool conacc = 0;
-  // 2) Compute useful temporary variables
-  const CCTK_REAL cE    = con[TAU] + con[DD];
-  const CCTK_REAL cMsqr = S_squared/sqrt_detgamma;
-  const CCTK_REAL cBsqr = B_squared;
-  const CCTK_REAL cT    = BdotS/sqrt_detgamma;
-  CCTK_REAL prec        = tol_x;
+  CCTK_REAL prec    = tol_x;
 
   // We always guess W = 1, since we don't keep
   // track of the velocities in between time
   // steps and therefore do not have a good
   // guess for them
-  CCTK_REAL xrho  = con[DD];
-  CCTK_REAL xye   = con[YE]/con[DD];
-  CCTK_REAL xtemp = eos.T_atm;
-  CCTK_REAL cP    = 0.0;
-  CCTK_REAL xeps  = 0.0;
-  get_P_and_eps_from_rho_Ye_and_T( eos,xrho,xye,xtemp, &cP,&xeps );
+  CCTK_REAL xrho   = con[DD];
+  CCTK_REAL xye    = con[YE]/con[DD];
+  CCTK_REAL xtemp  = eos.T_atm;
+  CCTK_REAL xprs   = 0.0;
+  CCTK_REAL xeps   = 0.0;
+  CCTK_REAL xent   = 0.0;
+  CCTK_REAL depsdT = 0.0;
+  get_P_eps_and_depsdT_from_rho_Ye_and_T( eos,xrho,xye,xtemp, &xprs,&xeps,&depsdT );
+
+  bool use_entropy = false;
+  if( eos.evolve_entropy && (depsdT < eos.depsdT_threshold) ) {
+    // We should use the entropy instead
+    use_entropy = true;
+  }
 
   //Now, begin iterative procedure to derive the primitive variables
-  CCTK_REAL cPold = cP; // -> setup pressure initial guess
+  CCTK_REAL P_old = xprs; // -> setup pressure initial guess
   int step=0;
-  CCTK_REAL cL;
 
   const int maxsteps = 300;
   CCTK_REAL AtP[maxsteps]; // not length 3 in case of extrap. probs
   CCTK_REAL AtR;
   int AtStep=0;
-  AtP[0]=cP;
+  AtP[0]=xprs;
 
   // Leo mod: compute auxiliary variables so we can find eps
   const CCTK_REAL q = con[TAU]/con[DD];
   const CCTK_REAL s = B_squared/con[DD];
   const CCTK_REAL t = BdotS/(pow(con[DD],1.5));
-  bool use_entropy  = false;
-  
-  CCTK_REAL cD = 0.5*(cMsqr*cBsqr-cT*cT); 
-  if(cD<0.) cD=0.;
+
+  // d = 0.5( S^{2}*B^{2} - (B.S)^{2} ) (eq. 5.7 in Newman & Hamlin 2014)
+  const CCTK_REAL d = fmax(0.5*(S_squared*B_squared-BdotS*BdotS),0.0);
+  // e = tau + D
+  const CCTK_REAL e = con[TAU] + con[DD];
+  // z = rho*h*W^{2} = D*h*W.
+  // Initialize to zero, for now.
+  CCTK_REAL z = 0;
+
+  // Useful auxiliary variable
+  const CCTK_REAL BdotSsq = BdotS * BdotS;
 
   do {
-    cPold = cP;
+    P_old = xprs;
     step++;
     //This check is required to ensure that |cos(cPhi)|<1 below
-    CCTK_REAL cA = cE + cP + cBsqr/2.;
-    //Check that the values are physical...
-    //What's the right thing to do if cD<0.?
-    CCTK_REAL cPhi = acos(sqrt(27./4.*cD/cA)/cA);
-    CCTK_REAL cEps = cA/3.*(1.-2.*cos(2./3.*cPhi+2./3.*M_PI));
-    cL = cEps-cBsqr;
 
-    CCTK_REAL cVsqr = (cMsqr*cL*cL+cT*cT*(cBsqr+2.*cL))/(cL*(cL+cBsqr)*cL*(cL+cBsqr));
-    const CCTK_REAL cWsqr = 1./(1.-cVsqr);
-    CCTK_REAL cH = cL/cWsqr;
+    // a = e + P + B^{2}/2 (eq. 5.7 in Newman & Hamlin 2014)
+    CCTK_REAL a = e + xprs + 0.5*B_squared;
 
-    // We'll need a 1D root solve to find the temperature from density 
-    // and enthalpy.
-    CCTK_REAL W    = sqrt(cWsqr);
+    // phi = acos( sqrt(27d/4a^{3}) ) (eq. 5.10 in Newman & Hamlin 2014)
+    CCTK_REAL phi = acos( sqrt(27.0*d/(4.0*a))/a );
+    // Eps = a/3 - 2a/3 cos( 2phi/3 + 2pi/3 )
+    CCTK_REAL Eps = (a/3.0)*(1.0 - 2.0*cos((2.0/3.0)*(phi + M_PI)));
+
+    // From the definition of Eps: Eps = z + B^{2} => z = Eps - B^{2}
+    z = Eps-B_squared;
+
+    // Now compute (eq. 5.2 in Newman & Hamlin 2014)
+    //
+    // v^{2} = ( z^{2}S^{2} + (2z + B^{2})(B.S)^{2}/(z^{2}(z+B^{2})^{2})
+    const CCTK_REAL zBsq   = z + B_squared;
+    const CCTK_REAL zBsqsq = zBsq*zBsq;
+    const CCTK_REAL zsq    = z*z;
+    const CCTK_REAL vsq    = (zsq * S_squared + (z+zBsq)*BdotSsq)/(zsq*zBsqsq);
+
+    // Then compute W^{2} = 1/(1-v^{2})
+    const CCTK_REAL Wsq    = 1.0/(1.0-vsq);
+
+    // Now set W
+    CCTK_REAL W = sqrt(Wsq);
+
+    // Impose physical limits on W
+    W = fmin(fmax(W,1.0),eos.W_max);
+    
+    // Then compute rho = D/W
     CCTK_REAL xrho = con[RHO]/W;
-    CCTK_REAL xye  = con[YE]/con[DD];
-    CCTK_REAL xprs = 0.0;
-    CCTK_REAL xent = 0.0;
-    CCTK_REAL xeps = 0.0;
 
-    prim[RHO     ] = con[DD]/W; //    rho[s] = tildeD[s]/(sqrtDetg[s]*W[s]);
+    // Initialize P, eps, and S to zero
+    xprs = 0.0;
+    xeps = 0.0;
+    xent = 0.0;
+
+    prim[RHO     ] = con[DD]/W; // rho[s] = tildeD[s]/(sqrtDetg[s]*W[s]);
     prim[WLORENTZ] = W;
     
-    // define other dummy variables as needed for input arguments
-    // EOS_press_from_rhoenthalpy(eoskey,keytemp,precEOS,prim[RHO],&xeps,&xtemp,xye,&xprs,&cH,&anyerr,&keyerr);
     if( use_entropy == true ) {
+      // If using the entropy, compute S = (WS)/W
       xent = con[WS]/W;
+      // Then compute P, eps, and T using (rho,Ye,S)
       get_P_eps_and_T_from_rho_Ye_and_S( eos,xrho,xye,xent, &xprs,&xeps,&xtemp );
     }
     else {
-      const CCTK_REAL x = cH * W / xrho;
-      xeps = W - 1.0 + (1.0-W*W)*x/W + W*(q - s + t*t/(2*x*x) + s/(2*W*W)  );
-      xeps=fmax(xeps, eos.eps_min);
+      // If using the specific internal energy, remember that
+      //
+      // z = rho * h * W^{2} = D * h * W
+      //
+      // and therefore:
+      //
+      // x = h * W = z / D
+      const CCTK_REAL x = z / con[DD];
+
+      // Now use the Palenzuela formula:
+      //
+      // eps = - 1.0 + x(1-W^{2})/W + W( 1 + q - s + 0.5*( s/W^{2} + t^{2}/x^{2} ) )
+      xeps = - 1.0 + (1.0-W*W)*x/W + W*( 1.0 + q - s + 0.5*( s/(W*W) + (t*t)/(x*x) ) );
+      // Impose physical limits on the value of eps
+      xeps = fmax(xeps, eos.eps_min);
+      // Then compute P, S, and T using (rho,Ye,eps)
       get_P_S_and_T_from_rho_Ye_and_eps( eos, xrho,xye,xeps, &xprs,&xent,&xtemp );
     }
 
-    cP = xprs;
     prim[EPS] = xeps;
 
-#if DEBUG
-    printf("xprs= %e,cPhi = %e, cEps = %e, cH = %e, cVsqr = %e, cL = %e, cP = %e,prim[WLORENTZ]=%e, prim[RHO]=%e xeps = %e\n", xprs, cPhi, cEps, cH, cVsqr, cL, cP, prim[WLORENTZ], prim[RHO],xeps); 
-#endif
- 
-#if DEBUG
-    printf("At step %i, P = %0.12e, dP = %e, cP+cPold = %e, threshold = %e \n",step,cP,fabs(cP-cPold),fabs(cP+cPold),fabs(cP-cPold)/(cP+cPold));
-#endif
-
     AtStep++;
-    AtP[AtStep]=cP;
+    AtP[AtStep]=xprs;
 
     if(AtStep>=2) {   //Aitken extrapolation
 
       AtR = (AtP[AtStep]-AtP[AtStep-1])/(AtP[AtStep-1]-AtP[AtStep-2]);
-#if DEBUG    
-      printf("At step %i, AtP[0] = %e, AtP[1] = %e, AtP[2]=%e, AtR=%e \n",step,AtP[0], AtP[1], AtP[2],AtR);
-#endif
       if(AtR<1. && AtR>0.) {
-        cP=AtP[AtStep-1]+(AtP[AtStep]-AtP[AtStep-1])/(1.-AtR);
-#if DEBUG         
-        printf("At step in acceleration  %i, P = %e, dP = %e \n",AtStep,cP,fabs(cP-cPold));
-#endif        
+        xprs=AtP[AtStep-1]+(AtP[AtStep]-AtP[AtStep-1])/(1.-AtR);
         AtStep=0;
         conacc = 1;
-        AtP[0]=cP;   //starting value for next Aitken extrapolation
+        AtP[0]=xprs;   //starting value for next Aitken extrapolation
       }
     }
   }
-  while(fabs(cP-cPold)>prec*(cP+cPold) && step<maxsteps);
+  while(fabs(xprs-P_old)>prec*(xprs+P_old) && step<maxsteps);
 
   if (conacc==1) {     //converged on an extrap. so recompute vars
-    const CCTK_REAL cA = cE + cP + cBsqr/2.;
-    const CCTK_REAL cPhi = acos(sqrt(27./4.*cD/cA)/cA);
-    const CCTK_REAL cEps = cA/3.*(1.-2.*cos(2./3.*cPhi+2./3.*M_PI));
-    cL = cEps-cBsqr;
-    const CCTK_REAL cVsqr = 
-      (cMsqr*cL*cL+cT*cT*(cBsqr+2.*cL))/(cL*(cL+cBsqr)*cL*(cL+cBsqr));
-    if(cVsqr<0. || cVsqr>=1.) {
+    const CCTK_REAL a      = e + xprs + 0.5*B_squared;
+    const CCTK_REAL phi    = acos(sqrt(27.0*d/(4.0*a))/a);
+    const CCTK_REAL Eps    = a/3.0*( 1.0 - 2.0*cos( (2.0/3.0)*(phi + M_PI) ) );
+    z = Eps-B_squared;
+    const CCTK_REAL zBsq   = z + B_squared;
+    const CCTK_REAL zBsqsq = zBsq*zBsq;
+    const CCTK_REAL zsq    = z*z;
+    const CCTK_REAL vsq    = (zsq * S_squared + (z+zBsq)*BdotSsq)/(zsq*zBsqsq);
+    if(vsq<0. || vsq>=1.) {
     }
 
-    const CCTK_REAL cWsqr = 1./(1.-cVsqr);
+    const CCTK_REAL Wsq = 1.0/(1.0-vsq);
+    const CCTK_REAL W   = fmin(fmax(sqrt(Wsq),1.0),eos.W_max);
 
-    prim[WLORENTZ] = sqrt(cWsqr); //    W[s] = sqrt(cWsqr);
-    prim[RHO     ] = con[DD]/prim[WLORENTZ]; //    rho[s] = tildeD[s]/(sqrtDetg[s]*W[s]);
-    prim[PRESS   ] = cP;
+    prim[WLORENTZ] = W;         //    W[s] = sqrt(cWsqr);
+    prim[RHO     ] = con[DD]/W; //    rho[s] = tildeD[s]/(sqrtDetg[s]*W[s]);
+    prim[PRESS   ] = xprs;
 
     prim[B1_con  ] = con[B1_con];
     prim[B2_con  ] = con[B2_con];
@@ -263,21 +290,50 @@ void newman( const igm_eos_parameters eos,
   }
 
   //Compute v^i
-  const CCTK_REAL cS = cT/cL;
+  const CCTK_REAL W = prim[WLORENTZ];
    
   prim[B1_con] = con[B1_con];
   prim[B2_con] = con[B2_con];
   prim[B3_con] = con[B3_con];
 
-  prim[UTCON1] = prim[WLORENTZ]*(cS * con[B1_con] + SU[0]) / (cL+cBsqr); // v[i][s] = cS*evolvedVariables.tildeB(i)[s];
-  prim[UTCON2] = prim[WLORENTZ]*(cS * con[B2_con] + SU[1]) / (cL+cBsqr); // v[i][s] = cS*evolvedVariables.tildeB(i)[s];
-  prim[UTCON3] = prim[WLORENTZ]*(cS * con[B3_con] + SU[2]) / (cL+cBsqr); // v[i][s] = cS*evolvedVariables.tildeB(i)[s];
+  prim[UTCON1] = W*(SU[0] + (BdotS)*con[B1_con]/z)/(z+B_squared);
+  prim[UTCON2] = W*(SU[1] + (BdotS)*con[B2_con]/z)/(z+B_squared);
+  prim[UTCON3] = W*(SU[2] + (BdotS)*con[B3_con]/z)/(z+B_squared);
 
-  prim[YE  ] = con[YE]/con[DD];
-  prim[RHO ] = con[DD]/prim[WLORENTZ];
-  prim[ENT ] = con[WS]/prim[WLORENTZ];
-  get_P_eps_and_T_from_rho_Ye_and_S( eos, prim[RHO],prim[YE],prim[ENT],
-                                     &prim[PRESS],&prim[EPS],&prim[TEMP] );
+  prim[RHO   ] = con[DD]/W;
+  prim[YE    ] = xye;
+  prim[ENT   ] = 0.0;
+
+  if( use_entropy == true ) {
+    // If using the entropy, compute S = (WS)/W
+    prim[ENT] = con[WS]/W;
+    // Then compute P, eps, and T using (rho,Ye,S)
+    get_P_eps_and_T_from_rho_Ye_and_S( eos, prim[RHO],prim[YE],prim[ENT],
+                                       &prim[PRESS],&prim[EPS],&prim[TEMP] );
+  }
+  else {
+    // If using the specific internal energy, remember that
+    //
+    // z = rho * h * W^{2} = D * h * W
+    //
+    // and therefore:
+    //
+    // x = h * W = z / D
+    const CCTK_REAL x = z / con[DD];
+
+    // Now use the Palenzuela formula:
+    //
+    // eps = - 1.0 + x(1-W^{2})/W + W( 1 + q - s + 0.5*( s/W^{2} + t^{2}/x^{2} ) )
+    prim[EPS] = - 1.0 + (1.0-W*W)*x/W + W*( 1.0 + q - s + 0.5*( s/(W*W) + (t*t)/(x*x) ) );
+    // Impose physical limits on the value of eps
+    prim[EPS] = fmax(prim[EPS], eos.eps_min);
+    // Then compute P, S, and T using (rho,Ye,eps)
+    prim[TEMP] = eos.T_atm;
+    get_P_S_and_T_from_rho_Ye_and_eps( eos, prim[RHO],prim[YE],prim[EPS],
+                                       &prim[PRESS],&prim[ENT],&prim[TEMP] );
+  }
+  
+  
 
   if (step >= maxsteps) c2p_failed = true;
 
