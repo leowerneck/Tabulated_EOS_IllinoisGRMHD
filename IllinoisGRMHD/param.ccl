@@ -1,4 +1,4 @@
-# Parameter definitions for thorn IllinoisGRMHD
+t# Parameter definitions for thorn IllinoisGRMHD
 
 shares: ADMBase
 USES CCTK_INT lapse_timelevels
@@ -203,7 +203,7 @@ CCTK_STRING igm_PPM_reconstructed_variable "Type of EOS IllinoisGRMHD will use"
 } "pressure"
 
 restricted:
-CCTK_STRING igm_con2prim_routine "What con2prim routine is used"
+CCTK_STRING igm_con2prim_routine "What con2prim routine is used" STEERABLE=ALWAYS
 {
   "Noble2D"          :: "2D  routine in https://arxiv.org/pdf/astro-ph/0512420.pdf"
   "Noble1D"          :: "1Dw routine in https://arxiv.org/pdf/astro-ph/0512420.pdf"
@@ -216,7 +216,7 @@ CCTK_STRING igm_con2prim_routine "What con2prim routine is used"
 } "Noble2D"
 
 restricted:
-CCTK_STRING igm_con2prim_backup_routine[3] "We allow up to 3 backup routines"
+CCTK_STRING igm_con2prim_backup_routine[3] "We allow up to 3 backup routines" STEERABLE=ALWAYS
 {
   "None"             :: "Don't use backup routines"
   "Noble2D"          :: "2D  routine in https://arxiv.org/pdf/astro-ph/0512420.pdf"
