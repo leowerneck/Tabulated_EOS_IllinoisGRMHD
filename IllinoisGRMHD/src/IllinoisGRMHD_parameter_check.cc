@@ -12,6 +12,56 @@
 #include "EOS_headers.hh"
 #include "con2prim_headers.h"
 
+static inline
+void IllinoisGRMHD_con2prim_check( const igm_eos_parameters eos,
+                                   const char* which_con2prim ) {
+
+  if( eos.is_Hybrid ) {
+
+    // Check if selected a con2prim routine which is supported by Hybrid EOS
+    if( !CCTK_EQUALS(which_con2prim,"Noble2D"        ) &&
+        !CCTK_EQUALS(which_con2prim,"Noble1D"        ) &&
+        !CCTK_EQUALS(which_con2prim,"Noble1D_entropy") &&
+        !CCTK_EQUALS(which_con2prim,"Noble1D_entropy2") ) {
+      CCTK_VError(VERR_DEF_PARAMS,
+                  "Hybrid EOS only supports the following con2prim routines: "
+                  "Noble2D, Noble1D, Noble1D_entropy, and Noble1D_entropy2. ABORTING.");
+    }
+    else if( (eos.evolve_entropy == false) &&
+             ( CCTK_EQUALS(which_con2prim,"Noble1D_entropy" ) ||
+               CCTK_EQUALS(which_con2prim,"Noble1D_entropy2") ) ) {
+      CCTK_VError(VERR_DEF_PARAMS,
+                  "Routines Noble1D_entropy and Noble1D_entropy2 require enabling entropy evolution. "
+                  "Please set igm_evolve_entropy=\"yes\" in the parameter file. ABORTING.");
+    }
+
+  }
+  else if( eos.is_Tabulated ) {
+
+    // Check if selected a con2prim routine which is supported by tabulated EOS
+    if( !CCTK_EQUALS(which_con2prim,"Palenzuela1D" ) &&
+        !CCTK_EQUALS(which_con2prim,"Noble2D"      ) &&
+        !CCTK_EQUALS(which_con2prim,"Noble1D"      ) &&
+        !CCTK_EQUALS(which_con2prim,"CerdaDuran2D" ) &&
+        !CCTK_EQUALS(which_con2prim,"CerdaDuran3D" ) &&
+        !CCTK_EQUALS(which_con2prim,"Newman1D"     ) ) {
+      CCTK_VError(VERR_DEF_PARAMS,
+                  "Tabulated EOS only supports the following con2prim routines:"
+                  "Palenzuela1D, Newman1D, Noble2D, Noble1D, CerdaDuran2D, and CerdaDuran3D. ABORTING.");
+    }
+    else if( (eos.evolve_entropy == false) && CCTK_EQUALS(which_con2prim,"Palenzuela1D" ) ) {
+      CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
+      CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
+      CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
+      CCTK_WARN(CCTK_WARN_ALERT,  "*********** It is highly recommended to enable entropy evolution when using the Palenzuela1D routine **********");
+      CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
+      CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
+      CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
+    }
+  }
+
+}
+
 extern "C"
 void IllinoisGRMHD_parameter_check(CCTK_ARGUMENTS) {
 
@@ -73,53 +123,20 @@ void IllinoisGRMHD_parameter_check(CCTK_ARGUMENTS) {
   // ------------------------------------
   // ------- con2prim parameters --------
   // ------------------------------------
-  if( eos.is_Hybrid ) {
-
-    // Check if selected a con2prim routine which is supported by Hybrid EOS
-    if( CCTK_EQUALS(igm_con2prim_routine,"CerdaDuran2D") ||
-        CCTK_EQUALS(igm_con2prim_routine,"Palenzuela1D") ) {
-      CCTK_VError(VERR_DEF_PARAMS,
-                  "Hybrid EOS only supports the following con2prim routines: "
-                  "Noble2D, Noble1D, Noble1D_entropy, and Noble1D_entropy2. ABORTING.");
-    }
-    else if( (igm_evolve_entropy == false) &&
-             ( CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy" ) ||
-               CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy2") ) ) {
-      CCTK_VError(VERR_DEF_PARAMS,
-                  "Routines Noble1D_entropy and Noble1D_entropy2 require enabling entropy evolution. "
-                  "Please set igm_evolve_entropy=\"yes\" in the parameter file. ABORTING.");
-    }
-
-  }
-  else if( eos.is_Tabulated ) {
-
-    // Check if selected a con2prim routine which is supported by tabulated EOS
-    if( CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy" ) ||
-        CCTK_EQUALS(igm_con2prim_routine,"Noble1D_entropy2") ) {
-      CCTK_VError(VERR_DEF_PARAMS,
-                  "Tabulated EOS only supports the following con2prim routines:"
-                  "Palenzuela1D, Noble2D, Noble1D, and CerdaDuran2D. ABORTING.");
-    }
-    else if( (igm_evolve_entropy == false) && CCTK_EQUALS(igm_con2prim_routine,"Palenzuela1D" ) ) {
-      CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
-      CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
-      CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
-      CCTK_WARN(CCTK_WARN_ALERT, "*********** It is highly recommended to enable entropy evolution when using the Palenzuela1D routine **********");
-      CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
-      CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
-      CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
-    }
-  }
+  IllinoisGRMHD_con2prim_check(eos,igm_con2prim_routine);
 
   CCTK_VInfo(CCTK_THORNSTRING,"Primary conservative-to-primitive routine: %s",igm_con2prim_routine);
   if( CCTK_EQUALS(igm_con2prim_backup_routine[0],"None") ) {
     CCTK_VInfo(CCTK_THORNSTRING,"No backup conservative-to-primitive routine selected.");
   }
   else {
+    IllinoisGRMHD_con2prim_check(eos,igm_con2prim_backup_routine[0]);
     CCTK_VInfo(CCTK_THORNSTRING,"Backup conservative-to-primitive routine #1: %s",igm_con2prim_backup_routine[0]);
     if( !CCTK_EQUALS(igm_con2prim_backup_routine[1],"None") ) {
+      IllinoisGRMHD_con2prim_check(eos,igm_con2prim_backup_routine[1]);
       CCTK_VInfo(CCTK_THORNSTRING,"Backup conservative-to-primitive routine #2: %s",igm_con2prim_backup_routine[1]);
       if( !CCTK_EQUALS(igm_con2prim_backup_routine[2],"None") ) {
+        IllinoisGRMHD_con2prim_check(eos,igm_con2prim_backup_routine[2]);
         CCTK_VInfo(CCTK_THORNSTRING,"Backup conservative-to-primitive routine #3: %s",igm_con2prim_backup_routine[2]);
       }
     }
@@ -132,7 +149,7 @@ void IllinoisGRMHD_parameter_check(CCTK_ARGUMENTS) {
     CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
     CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
     CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
-    CCTK_WARN(CCTK_WARN_ALERT, "******************** It is not recommended to set GAMMA_SPEED_LIMIT to values larger than 10 *******************");
+    CCTK_WARN(CCTK_WARN_ALERT,  "******************* It is not recommended to set GAMMA_SPEED_LIMIT to values larger than 10 *******************");
     CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
     CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");
     CCTK_VInfo(CCTK_THORNSTRING,"WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING");

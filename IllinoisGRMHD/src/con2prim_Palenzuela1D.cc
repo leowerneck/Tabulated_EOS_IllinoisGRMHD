@@ -53,9 +53,9 @@ double func_root( const igm_eos_parameters eos,
                   double *restrict temp_guess,
                   output_stats& stats );
 
-inline void set_gammaDD_and_gammaUU_from_ADM_quantities( const CCTK_REAL *restrict adm_quantities,
-                                                         CCTK_REAL gammaDD[3][3],
-                                                         CCTK_REAL gammaUU[3][3] ) {
+static inline void set_gammaDD_and_gammaUU_from_ADM_quantities( const CCTK_REAL *restrict adm_quantities,
+                                                                CCTK_REAL gammaDD[3][3],
+                                                                CCTK_REAL gammaUU[3][3] ) {
 
   // Set gamma_{ij}
   gammaDD[0][0] = adm_quantities[GXX];
@@ -75,9 +75,9 @@ inline void set_gammaDD_and_gammaUU_from_ADM_quantities( const CCTK_REAL *restri
 
 }
 
-inline void raise_or_lower_indices_3d( const CCTK_REAL *restrict vecD_or_U,
-                                       const CCTK_REAL gammaUU_or_DD[3][3],
-                                       CCTK_REAL *restrict vecU_or_D ) {
+static inline void raise_or_lower_indices_3d( const CCTK_REAL *restrict vecD_or_U,
+                                              const CCTK_REAL gammaUU_or_DD[3][3],
+                                              CCTK_REAL *restrict vecU_or_D ) {
   for(int i=0;i<3;i++) {
     vecU_or_D[i] = 0;
     for(int j=0;j<3;j++) {
@@ -152,7 +152,6 @@ int con2prim_Palenzuela1D( const igm_eos_parameters eos,
   // Set gamma_{ij} and gamma^{ij}
   CCTK_REAL gammaDD[3][3],gammaUU[3][3];
   set_gammaDD_and_gammaUU_from_ADM_quantities(adm_quantities,gammaDD,gammaUU);
-
 
   // Read in B^{i}
   CCTK_REAL BU[3];

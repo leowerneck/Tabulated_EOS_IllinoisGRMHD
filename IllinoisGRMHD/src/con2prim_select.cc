@@ -40,9 +40,18 @@ int con2prim_select( const igm_eos_parameters eos,
     case CerdaDuran2D:
       return( con2prim_CerdaDuran2D(eos,adm_quantities,cons,prim,stats) );
 
+    // Cerda-Duran et al. 3D routine (see https://arxiv.org/pdf/0804.4572.pdf)
+    case CerdaDuran3D:
+      return( con2prim_CerdaDuran3D(eos,adm_quantities,cons,prim,stats) );
+
     // Palenzuela 1D routine (see https://arxiv.org/pdf/1712.07538.pdf)
     case Palenzuela1D:
       return( con2prim_Palenzuela1D(eos,adm_quantities,cons,prim,stats) );
+      break;
+
+    // Newman 1D routine (see https://escholarship.org/content/qt0s53f84b/qt0s53f84b.pdf)
+    case Newman1D:
+      return( con2prim_Newman1D(eos,adm_quantities,cons,prim,stats) );
       break;
 
     default:

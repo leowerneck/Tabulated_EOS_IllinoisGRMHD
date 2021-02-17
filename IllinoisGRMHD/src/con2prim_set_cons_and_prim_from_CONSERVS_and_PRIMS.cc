@@ -90,7 +90,8 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   //----------------------------------------
   if( (c2p_key == Noble1D_entropy ) ||
       (c2p_key == Noble1D_entropy2) ||
-      (c2p_key == Palenzuela1D    ) ) {
+      (c2p_key == Palenzuela1D    ) ||
+      (c2p_key == Newman1D        ) ) {
 
     // The entropy variable is given by
     //
@@ -128,7 +129,8 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
       (c2p_key == Noble1D         ) ||
       (c2p_key == Noble1D_entropy ) ||
       (c2p_key == Noble1D_entropy2) ||
-      (c2p_key == CerdaDuran2D    ) ) {
+      (c2p_key == CerdaDuran2D    ) ||
+      (c2p_key == CerdaDuran3D    ) ) {
 
     if(which_guess==1) {
       //Use a different initial guess:
@@ -202,9 +204,6 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   }
   
   if( eos.is_Tabulated ) {
-
-    // for(int i=0;i<numprims;i++) prim[i] = 1.0/0.0;
-
     // This one is very simple! The only guess required is the temperature
     if( which_guess == 1 ) {
       prim[TEMP  ] = eos.T_atm;

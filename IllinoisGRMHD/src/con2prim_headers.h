@@ -51,8 +51,10 @@ static const int Noble1D              =  1;
 static const int Noble1D_entropy      =  2;
 static const int Noble1D_entropy2     =  3;
 static const int CerdaDuran2D         =  4;
-static const int Palenzuela1D         =  5;
-static const int Palenzuela1D_entropy =  6;
+static const int CerdaDuran3D         =  5;
+static const int Palenzuela1D         =  6;
+static const int Palenzuela1D_entropy =  7;
+static const int Newman1D             =  8;
 
 static const int NPR =8;
 static const int NDIM=4;
@@ -170,6 +172,12 @@ int con2prim_CerdaDuran2D( const igm_eos_parameters eos,
                            CCTK_REAL *restrict prim,
                            output_stats& stats );
 
+int con2prim_CerdaDuran3D( const igm_eos_parameters eos,
+                           const CCTK_REAL *restrict adm_quantities,
+                           const CCTK_REAL *restrict con,
+                           CCTK_REAL *restrict prim,
+                           output_stats& stats );
+
 int con2prim_Noble2D( const igm_eos_parameters eos,
                       const CCTK_REAL g4dn[4][4],
                       const CCTK_REAL g4up[4][4],
@@ -203,6 +211,12 @@ int con2prim_Palenzuela1D( const igm_eos_parameters eos,
                            const CCTK_REAL *restrict cons,
                            CCTK_REAL *restrict prim,
                            output_stats& stats );
+
+int con2prim_Newman1D( const igm_eos_parameters eos,
+                       const CCTK_REAL *restrict adm_quantities,
+                       const CCTK_REAL *restrict con,
+                       CCTK_REAL *restrict prim,
+                       output_stats& stats );
 
 int font_fix__hybrid_EOS( const igm_eos_parameters eos,
                           const CCTK_REAL *restrict METRIC_PHYS,const CCTK_REAL *restrict METRIC_LAP_PSI4,

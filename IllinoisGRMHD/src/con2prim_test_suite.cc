@@ -212,7 +212,8 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
         for(int i=0;i<MAXNUMVARS;i++) PRIMS_ORIG[i] = PRIMS[i];
 
         // Set the metric to flat space
-        METRIC[PHI   ] = METRIC[LAPM1 ] = 0.0;
+        METRIC[PHI   ] = 0.0;
+        METRIC[LAPM1 ] = 0.0;
         METRIC[SHIFTX] = METRIC[SHIFTY] = METRIC[SHIFTZ] = 0.0;
         METRIC[GXX   ] = METRIC[GYY   ] = METRIC[GZZ   ] = 1.0;
         METRIC[GXY   ] = METRIC[GXZ   ] = METRIC[GYZ   ] = 0.0;
@@ -279,15 +280,15 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
           set_prim_from_PRIMS_and_CONSERVS(eos,con2prim_test_keys[which_routine],which_guess,
                                            METRIC,METRIC_LAP_PSI4,
                                            PRIMS,CONSERVS,cons, prim);
-          // for(int i=0;i<numprims;i++) prim[i] = 1e300;
+          for(int i=0;i<numprims;i++) prim[i] = 1e300;
           // prim[TEMP    ] = eos.T_max;
           // prim[RHO     ] = PRIMS[RHOB       ];
           // prim[YE      ] = PRIMS[YEPRIM     ];
-          // prim[TEMP    ] = PRIMS[TEMPERATURE];
+          prim[TEMP    ] = PRIMS[TEMPERATURE]*0.95;
           // prim[UTCON1  ] = PRIMS[VX         ];
           // prim[UTCON2  ] = PRIMS[VY         ];
           // prim[UTCON3  ] = PRIMS[VZ         ];
-          // prim[WLORENTZ] = W_test;
+          prim[WLORENTZ] = W_test*0.95;
           // prim[B1_con  ] = PRIMS[BX_CENTER  ];
           // prim[B2_con  ] = PRIMS[BY_CENTER  ];
           // prim[B3_con  ] = PRIMS[BZ_CENTER  ];
@@ -323,11 +324,6 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
           PRIMS[VX         ] = utx_new/u0L - METRIC[SHIFTX];
           PRIMS[VY         ] = uty_new/u0L - METRIC[SHIFTY];
           PRIMS[VZ         ] = utz_new/u0L - METRIC[SHIFTZ];
-
-          // CCTK_REAL xrho  = PRIMS[RHOB  ];
-          // CCTK_REAL xye   = PRIMS[YEPRIM];
-          // CCTK_REAL xtemp = PRIMS[TEMPERATURE];
-          // get_P_and_eps_from_rho_Ye_and_T(eos,xrho,xye,xtemp, &xprs,&xeps);
 
           CCTK_VInfo(CCTK_THORNSTRING,"Recovery SUCCEEDED!");
           for(int which_prim=0;which_prim<num_prims_in_error;which_prim++) {
