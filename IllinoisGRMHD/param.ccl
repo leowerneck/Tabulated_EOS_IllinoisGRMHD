@@ -1,4 +1,4 @@
-t# Parameter definitions for thorn IllinoisGRMHD
+# Parameter definitions for thorn IllinoisGRMHD
 
 shares: ADMBase
 USES CCTK_INT lapse_timelevels
