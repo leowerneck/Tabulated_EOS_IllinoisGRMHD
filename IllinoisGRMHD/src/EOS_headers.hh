@@ -4,8 +4,8 @@
 // Description: This file contains function prototypes for the
 //              EOS functions available in IllinoisGRMHD
 
-#ifndef IGM_EOS_HEADERS
-#define IGM_EOS_HEADERS
+#ifndef IGM_EOS_HEADERS_HH
+#define IGM_EOS_HEADERS_HH
 
 // These are useful for us, though not defined
 // explicitly by EOS_Omni
@@ -110,145 +110,14 @@ void reset_prims_to_atmosphere( const igm_eos_parameters eos, CCTK_REAL *restric
 //---------- Tabulated Equation of State ---------
 void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time, igm_eos_parameters& eos );
 
-void get_P_and_eps_from_rho_Ye_and_T( const igm_eos_parameters eos,
-                                      const CCTK_REAL rho,
-                                      const CCTK_REAL Y_e,
-                                      const CCTK_REAL T,
-                                      CCTK_REAL *restrict P,
-                                      CCTK_REAL *restrict eps );
-
-void get_P_and_T_from_rho_Ye_and_eps( const igm_eos_parameters eos,
-                                      const CCTK_REAL rho,
-                                      const CCTK_REAL Y_e,
-                                      const CCTK_REAL eps,
-                                      CCTK_REAL *restrict P,
-                                      CCTK_REAL *restrict T );
-
-void get_P_S_and_T_from_rho_Ye_and_eps( const igm_eos_parameters eos,
-                                        const CCTK_REAL rho,
-                                        const CCTK_REAL Y_e,
-                                        const CCTK_REAL eps,
-                                        CCTK_REAL *restrict P,
-                                        CCTK_REAL *restrict S,
-                                        CCTK_REAL *restrict T );
-
-void get_P_eps_and_S_from_rho_Ye_and_T( const igm_eos_parameters eos,
-                                        const CCTK_REAL rho,
-                                        const CCTK_REAL Y_e,
-                                        const CCTK_REAL T,
-                                        CCTK_REAL *restrict P,
-                                        CCTK_REAL *restrict eps,
-                                        CCTK_REAL *restrict S );
-
-void get_eps_S_and_T_from_rho_Ye_and_P( const igm_eos_parameters eos,
-                                        const CCTK_REAL rho,
-                                        const CCTK_REAL Y_e,
-                                        const CCTK_REAL P,
-                                        CCTK_REAL *restrict eps,
-                                        CCTK_REAL *restrict S,
-                                        CCTK_REAL *restrict T );
-
-void get_P_eps_and_T_from_rho_Ye_and_S( const igm_eos_parameters eos,
-                                        const CCTK_REAL rho,
-                                        const CCTK_REAL Y_e,
-                                        const CCTK_REAL S,
-                                        CCTK_REAL *restrict P,
-                                        CCTK_REAL *restrict eps,
-                                        CCTK_REAL *restrict T );
-
-void get_P_eps_S_and_cs2_from_rho_Ye_and_T( const igm_eos_parameters eos,
-                                            const CCTK_REAL rho,
-                                            const CCTK_REAL Y_e,
-                                            const CCTK_REAL T,
-                                            CCTK_REAL *restrict P,
-                                            CCTK_REAL *restrict eps,
-                                            CCTK_REAL *restrict S,
-                                            CCTK_REAL *restrict cs2 );
-
-void get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_h( const igm_eos_parameters eos,
-                                                      const CCTK_REAL rho_in,
-                                                      const CCTK_REAL Ye_in,
-                                                      const CCTK_REAL h_in,
-                                                      CCTK_REAL *restrict P,
-                                                      CCTK_REAL *restrict eps,
-                                                      CCTK_REAL *restrict T,
-                                                      CCTK_REAL *restrict dPdrho, 
-                                                      CCTK_REAL *restrict dPdeps );
-
-void check_temperature_reconstruction( const igm_eos_parameters eos,
-                                       const cGH *restrict cctkGH,
-                                       const int *restrict cctk_lsh,
-                                       gf_and_gz_struct *restrict prims_center,
-                                       gf_and_gz_struct *restrict prims_right,
-                                       gf_and_gz_struct *restrict prims_left );
-
 void compute_remaining_prims_on_right_and_left_face( const igm_eos_parameters eos,
                                                      const cGH *restrict cctkGH,
                                                      const CCTK_INT *restrict cctk_lsh,
                                                      const gf_and_gz_struct *restrict in_prims,
                                                      gf_and_gz_struct *restrict out_prims_r,
                                                      gf_and_gz_struct *restrict out_prims_l );
-
-void find_lowest_gradient_temperature_recompute_prims( const igm_eos_parameters eos,
-                                                       const CCTK_REAL T_center,
-                                                       CCTK_REAL *restrict PRIMS );
-
-void EOS_EP_dEdr_dEdt_dPdr_dPdt_2D( const double rho,
-                                    const double Ye,
-                                    const double T,
-                                    double *restrict Eprim,
-                                    double *restrict Pprim,
-                                    double *restrict dEdrho,
-                                    double *restrict dEdt,
-                                    double *restrict dPdrho,
-                                    double *restrict dPdt );
-
-void get_P_S_T_and_depsdT_from_rho_Ye_and_eps( const igm_eos_parameters eos,
-                                               const CCTK_REAL rho,
-                                               const CCTK_REAL Y_e,
-                                               const CCTK_REAL eps,
-                                               CCTK_REAL *restrict P,
-                                               CCTK_REAL *restrict S,
-                                               CCTK_REAL *restrict T,
-                                               CCTK_REAL *restrict depsdT );
-
-void get_P_eps_and_depsdT_from_rho_Ye_and_T( const igm_eos_parameters eos,
-                                             const CCTK_REAL rho,
-                                             const CCTK_REAL Y_e,
-                                             const CCTK_REAL T,
-                                             CCTK_REAL *restrict P,
-                                             CCTK_REAL *restrict eps,
-                                             CCTK_REAL *restrict depsdT );
-
-void get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_S( const igm_eos_parameters eos,
-                                                      const CCTK_REAL rho,
-                                                      const CCTK_REAL Ye,
-                                                      const CCTK_REAL S,
-                                                      CCTK_REAL *restrict P,
-                                                      CCTK_REAL *restrict eps,
-                                                      CCTK_REAL *restrict T,
-                                                      CCTK_REAL *restrict dPdrho, 
-                                                      CCTK_REAL *restrict dPdeps );
-
-void get_munu_from_rho_Ye_and_T( const igm_eos_parameters eos,
-                                 const CCTK_REAL rho,
-                                 const CCTK_REAL Y_e,
-                                 const CCTK_REAL T,
-                                 CCTK_REAL *restrict munu );
-
-void get_P_eps_dPdrho_dPdT_depsdrho_depsdT_from_rho_Ye_and_T( const igm_eos_parameters eos,
-                                                              const CCTK_REAL rho,
-                                                              const CCTK_REAL Ye,
-                                                              const CCTK_REAL T,
-                                                              CCTK_REAL *restrict P,
-                                                              CCTK_REAL *restrict eps,
-                                                              CCTK_REAL *restrict dPdrho,
-                                                              CCTK_REAL *restrict dPdT,
-                                                              CCTK_REAL *restrict depsdrho,
-                                                              CCTK_REAL *restrict depsdT );
-
 //------------------------------------------------
 
-#endif // IGM_EOS_HEADERS
+#endif // IGM_EOS_HEADERS_HH
 
 
