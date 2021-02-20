@@ -85,6 +85,49 @@ extern "C" void WVU_EOS_P_S_and_T_from_rho_Ye_eps_impl( const CCTK_REAL rho,
   *S = outvars[1];
 }
 
+// --------------------------------------
+// ----------    T(rho,Ye,eps) ----------
+// ----------      P(rho,Ye,T) ----------
+// ----------      S(rho,Ye,T) ----------
+// ---------- depsdT(rho,Ye,T) ----------
+// --------------------------------------
+extern "C" void WVU_EOS_P_S_T_and_depsdT_from_rho_Ye_eps_impl( const CCTK_REAL rho,
+                                                               const CCTK_REAL Ye,
+                                                               const CCTK_REAL eps,
+                                                               CCTK_REAL *restrict P,
+                                                               CCTK_REAL *restrict S,
+                                                               CCTK_REAL *restrict depsdT,
+                                                               CCTK_REAL *restrict T ) {
+  // Number of interpolated quantities: 3 (P, S, and depsdT)
+  const CCTK_INT n = 3;
+  // Set the key to the auxiliary variable (eps)
+  const CCTK_INT auxkey = WVU_EOS::eps_key;
+  const CCTK_REAL aux   = eps;
+  // Table variables keys
+  const CCTK_INT keys[n] = {WVU_EOS::press_key,WVU_EOS::entropy_key,WVU_EOS::depsdT_key};
+  // Declare error variable
+  WVU_EOS::eos_error_report report;
+  // Set output variable array
+  CCTK_REAL outvars[n];
+  // Set root-finding precision
+  CCTK_REAL root_finding_precision = 1e-10;
+
+  // Get T, then P and S
+  WVU_EOS_from_rho_Ye_aux_find_T_and_interpolate_n_quantities( n,root_finding_precision,
+                                                               rho,Ye,aux,auxkey, keys,outvars,T, &report );
+
+  // Error handling
+  if( report.error ) {
+    CCTK_VInfo(CCTK_THORNSTRING,"Inside WVU_EOS_P_S_T_and_depsdT_from_rho_Ye_eps. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
+    // May want to terminate depending on the error. We'll just warn for now.
+  }
+
+  // T has already been updated, so update P and S
+  *P      = outvars[0];
+  *S      = outvars[1];
+  *depsdT = outvars[2];
+}
+
 // -----------------------------------
 // ---------- T(rho,Ye,P)   ----------
 // ---------- eps(rho,Ye,T) ----------
