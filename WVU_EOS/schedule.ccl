@@ -1,0 +1,9 @@
+# Schedule definitions for thorn WVU_EOS
+# $Header:$
+
+if( perform_unit_test ) {
+  SCHEDULE WVU_EOS_validation_against_EOS_Omni AT CCTK_BASEGRID BEFORE IllinoisGRMHD_con2prim_test_suit
+  {
+    LANG: C
+  } "Print basic table information. For not it still depends on EOS_Omni."
+}

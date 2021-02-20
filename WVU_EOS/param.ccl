@@ -1,0 +1,8 @@
+# Parameter definitions for thorn WVU_EOS
+# $Header:$
+
+private:
+BOOLEAN perform_unit_test "Perform a validation test against EOS_Omni"
+{
+} "no"
+

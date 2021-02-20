@@ -1,0 +1,12 @@
+# Main make.code.defn file for thorn WVU_EOS
+# $Header:$
+
+# Source files in this directory
+SRCS = WVU_EOS_validation_against_EOS_Omni.cc \
+       WVU_EOS_Tabulated_general_interpolators.cc \
+       WVU_EOS_Tabulated_known_T.cc \
+       WVU_EOS_Tabulated_unknown_T.cc
+
+# Subdirectories containing source files
+SUBDIRS =
+

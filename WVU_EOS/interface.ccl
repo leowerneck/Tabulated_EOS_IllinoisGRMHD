@@ -1,0 +1,137 @@
+# Interface definition for thorn WVU_EOS
+# $Header:$
+
+implements: WVU_EOS
+inherits:
+
+# ------------------------------------------------------
+# ------ Functions where the temperature is known ------
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_and_eps_from_rho_Ye_T( CCTK_REAL IN rho, \
+                                               CCTK_REAL IN Ye,  \
+                                               CCTK_REAL IN T,   \
+                                               CCTK_REAL OUT P,  \
+                                               CCTK_REAL OUT eps )
+
+PROVIDES FUNCTION WVU_EOS_P_and_eps_from_rho_Ye_T WITH WVU_EOS_P_and_eps_from_rho_Ye_T_impl LANGUAGE C
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_eps_and_S_from_rho_Ye_T( CCTK_REAL IN rho,  \
+                                                 CCTK_REAL IN Ye,   \
+                                                 CCTK_REAL IN T,    \
+                                                 CCTK_REAL OUT P,   \
+                                                 CCTK_REAL OUT eps, \
+                                                 CCTK_REAL OUT S )
+
+PROVIDES FUNCTION WVU_EOS_P_eps_and_S_from_rho_Ye_T WITH WVU_EOS_P_eps_and_S_from_rho_Ye_T_impl LANGUAGE C
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_eps_S_and_cs2_from_rho_Ye_T( CCTK_REAL IN rho,  \
+                                                     CCTK_REAL IN Ye,   \
+                                                     CCTK_REAL IN T,    \
+                                                     CCTK_REAL OUT P,   \
+                                                     CCTK_REAL OUT eps, \
+                                                     CCTK_REAL OUT S,   \
+                                                     CCTK_REAL OUT cs2 )
+
+PROVIDES FUNCTION WVU_EOS_P_eps_S_and_cs2_from_rho_Ye_T WITH WVU_EOS_P_eps_S_and_cs2_from_rho_Ye_T_impl LANGUAGE C
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_eps_and_depsdT_from_rho_Ye_T( CCTK_REAL IN rho,  \
+                                                      CCTK_REAL IN Ye,   \
+                                                      CCTK_REAL IN T,    \
+                                                      CCTK_REAL OUT P,   \
+                                                      CCTK_REAL OUT eps, \
+                                                      CCTK_REAL OUT depsdT )
+
+PROVIDES FUNCTION WVU_EOS_P_eps_and_depsdT_from_rho_Ye_T WITH WVU_EOS_P_eps_and_depsdT_from_rho_Ye_T_impl LANGUAGE C
+# ------------------------------------------------------
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T( CCTK_REAL IN rho,       \
+                                                                           CCTK_REAL IN Ye,        \
+                                                                           CCTK_REAL IN T,         \
+                                                                           CCTK_REAL OUT P,        \
+                                                                           CCTK_REAL OUT eps,      \
+                                                                           CCTK_REAL OUT dPdrho,   \
+                                                                           CCTK_REAL OUT dPdT,     \
+                                                                           CCTK_REAL OUT depsdrho, \
+                                                                           CCTK_REAL OUT depsdT )
+
+PROVIDES FUNCTION WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T WITH WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T_impl LANGUAGE C
+# ------------------------------------------------------
+
+# ------------------------------------------------------
+# ---- Functions where the temperature is not known ----
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_and_T_from_rho_Ye_eps( CCTK_REAL IN rho, \
+                                               CCTK_REAL IN Ye,  \
+                                               CCTK_REAL IN eps, \
+                                               CCTK_REAL OUT P,  \
+                                               CCTK_REAL OUT T )
+
+PROVIDES FUNCTION WVU_EOS_P_and_T_from_rho_Ye_eps WITH WVU_EOS_P_and_T_from_rho_Ye_eps_impl LANGUAGE C
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_S_and_T_from_rho_Ye_eps( CCTK_REAL IN rho, \
+                                                 CCTK_REAL IN Ye,  \
+                                                 CCTK_REAL IN eps, \
+                                                 CCTK_REAL OUT P,  \
+                                                 CCTK_REAL OUT S,
+                                                 CCTK_REAL OUT T )
+
+PROVIDES FUNCTION WVU_EOS_P_S_and_T_from_rho_Ye_eps WITH WVU_EOS_P_S_and_T_from_rho_Ye_eps_impl LANGUAGE C
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_eps_S_and_T_from_rho_Ye_P( CCTK_REAL IN rho,  \
+                                                 CCTK_REAL IN Ye,   \
+                                                 CCTK_REAL IN P,    \
+                                                 CCTK_REAL OUT eps, \
+                                                 CCTK_REAL OUT S,   \
+                                                 CCTK_REAL OUT T )
+
+PROVIDES FUNCTION WVU_EOS_eps_S_and_T_from_rho_Ye_P WITH WVU_EOS_eps_S_and_T_from_rho_Ye_P_impl LANGUAGE C
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_eps_and_T_from_rho_Ye_S( CCTK_REAL IN rho,  \
+                                                 CCTK_REAL IN Ye,   \
+                                                 CCTK_REAL IN S,    \
+                                                 CCTK_REAL OUT P,   \
+                                                 CCTK_REAL OUT eps, \
+                                                 CCTK_REAL OUT T )
+
+PROVIDES FUNCTION WVU_EOS_P_eps_and_T_from_rho_Ye_S WITH WVU_EOS_P_eps_and_T_from_rho_Ye_S_impl LANGUAGE C
+# ------------------------------------------------------
+
+# ------------------------------------------------------
+# --- EOS_Omni functions. Used only by the unit test ---
+# ------------------------------------------------------
+CCTK_INT FUNCTION EOS_Omni_GetHandle(CCTK_STRING IN name)
+USES FUNCTION EOS_Omni_GetHandle
+
+void FUNCTION EOS_Omni_press(CCTK_INT IN eoskey,         \
+			     CCTK_INT IN havetemp,       \
+			     CCTK_REAL IN rf_precision,  \
+                             CCTK_INT IN npoints,        \
+			     CCTK_REAL IN ARRAY rho,     \
+			     CCTK_REAL INOUT ARRAY eps,  \
+			     CCTK_REAL INOUT ARRAY temp, \
+			     CCTK_REAL IN ARRAY ye,      \
+			     CCTK_REAL OUT ARRAY press,  \
+			     CCTK_INT OUT ARRAY keyerr,  \
+			     CCTK_INT OUT anyerr)
+
+USES FUNCTION EOS_Omni_press
+
+void FUNCTION EOS_Omni_short(CCTK_INT IN eoskey,                \
+			     CCTK_INT IN havetemp,              \
+			     CCTK_REAL IN rf_precision,         \
+                             CCTK_INT IN npoints,               \
+			     CCTK_REAL IN ARRAY rho,     	\
+			     CCTK_REAL INOUT ARRAY eps,  	\
+			     CCTK_REAL INOUT ARRAY temp, 	\
+			     CCTK_REAL IN ARRAY ye,      	\
+			     CCTK_REAL OUT ARRAY press,		\
+			     CCTK_REAL INOUT ARRAY entropy,	\
+			     CCTK_REAL OUT ARRAY cs2,  		\
+			     CCTK_REAL OUT ARRAY dedt, 		\
+			     CCTK_REAL OUT ARRAY dpderho,	\
+			     CCTK_REAL OUT ARRAY dpdrhoe,	\
+			     CCTK_REAL OUT ARRAY munu,  	\
+			     CCTK_INT OUT ARRAY keyerr,   	\
+                             CCTK_INT OUT anyerr)
+
+USES FUNCTION EOS_Omni_short

@@ -1,0 +1,22 @@
+Cactus Code Thorn WVU_EOS
+Author(s)    : Leonardo R. Werneck
+Note         : Build from a modified version of EOS_Omni,
+               this thorn provides EOS calls for the WVU
+               thorns which are more efficient and more
+               suitable for our needs.
+Maintainer(s): Leonardo R. Werneck
+License      : FreeBSD License, AKA "2-Clause BSD License"
+----------------------------------------------------------
+
+1. Purpose
+
+When using tabulated (nuclear) EOS with the GRMHD evolution
+thorn IllinoisGRMHD, we often need to compute derivatives
+of certain thermodynamics quantities. To compute said derivatives,
+we need to use table interpolators. Unfortunately, the EOS_Omni
+interpolators often compute a plethora of unnecessary quantities
+alongside the ones we actually want.
+
+This thorn was designed to remove the billions and billions
+of interpolations which are computed unnecessarily during
+production runs.
