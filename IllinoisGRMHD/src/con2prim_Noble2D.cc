@@ -267,26 +267,26 @@ int Utoprim_new_body( const igm_eos_parameters eos,
   if( eos.is_Hybrid ) {
     p = pressure_rho0_u(eos, rho0,u);
   }
-  else if( eos.is_Tabulated ) {
-    harm_aux.ye            = U[YE]/U[RHO];
-    harm_aux.gamma_times_S = U[WS];
-    harm_aux.use_entropy   = false;
-    harm_aux.T_guess       = prim[TEMP];
-    CCTK_REAL xrho         = rho0;
-    CCTK_REAL xye          = harm_aux.ye;
-    CCTK_REAL xtemp        = harm_aux.T_guess;
-    CCTK_REAL xprs         = 0.0;
-    CCTK_REAL xeps         = 0.0;
-    CCTK_REAL xdepsdT      = 0.0;
+  // else if( eos.is_Tabulated ) {
+  //   harm_aux.ye            = U[YE]/U[RHO];
+  //   harm_aux.gamma_times_S = U[WS];
+  //   harm_aux.use_entropy   = false;
+  //   harm_aux.T_guess       = prim[TEMP];
+  //   CCTK_REAL xrho         = rho0;
+  //   CCTK_REAL xye          = harm_aux.ye;
+  //   CCTK_REAL xtemp        = harm_aux.T_guess;
+  //   CCTK_REAL xprs         = 0.0;
+  //   CCTK_REAL xeps         = 0.0;
+  //   CCTK_REAL xdepsdT      = 0.0;
 
-    // Now compute P and eps from (rho,Ye,T). Note that
-    // at this point we do not know W, so we do not
-    // use the entropy in this function call.
-    get_P_eps_and_depsdT_from_rho_Ye_and_T( eos,xrho,xye,xtemp, &xprs,&xeps,&xdepsdT );
-    p = xprs;
-    u = xeps*xrho;
-    if( xdepsdT < eos.depsdT_threshold ) harm_aux.use_entropy = true;
-  }
+  //   // Now compute P and eps from (rho,Ye,T). Note that
+  //   // at this point we do not know W, so we do not
+  //   // use the entropy in this function call.
+  //   get_P_eps_and_depsdT_from_rho_Ye_and_T( eos,xrho,xye,xtemp, &xprs,&xeps,&xdepsdT );
+  //   p = xprs;
+  //   u = xeps*xrho;
+  //   if( xdepsdT < eos.depsdT_threshold ) harm_aux.use_entropy = true;
+  // }
 
   w = rho0 + u + p ;
   W_last = w*gammasq ;
