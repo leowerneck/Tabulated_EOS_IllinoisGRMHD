@@ -80,7 +80,7 @@ static inline void compute_cs2_and_enthalpy( const igm_eos_parameters eos,
     CCTK_REAL xeps  = 0.0;
     CCTK_REAL xent  = 0.0;
     CCTK_REAL xcs2  = 0.0;
-    get_P_eps_S_and_cs2_from_rho_Ye_and_T(eos,xrho,xye,xtemp, &xprs,&xeps,&xent,&xcs2);
+    WVU_EOS_P_eps_S_and_cs2_from_rho_Ye_T(xrho,xye,xtemp, &xprs,&xeps,&xent,&xcs2);
 
     // There should be no need to update prims, but what the heck
     PRIMS[PRESSURE] = xprs;

@@ -154,7 +154,7 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
         CCTK_REAL xye   = Ye_test;
         CCTK_REAL xprs  = 0.0;
         CCTK_REAL xeps  = 0.0;
-        get_P_and_eps_from_rho_Ye_and_T( eos,xrho,xye,xtemp, &xprs,&xeps );
+        WVU_EOS_P_and_eps_from_rho_Ye_T( xrho,xye,xtemp, &xprs,&xeps );
 
         // Now set the velocities
         // Velocity magnitude
@@ -351,6 +351,7 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
     
   }
 
-  CCTK_VInfo(CCTK_THORNSTRING,"All done! Terminating the run.");
-  exit(1);
+  CCTK_VInfo(CCTK_THORNSTRING,"All done!");
+  // CCTK_VInfo(CCTK_THORNSTRING,"All done! Terminating the run.");
+  // exit(1);
 }

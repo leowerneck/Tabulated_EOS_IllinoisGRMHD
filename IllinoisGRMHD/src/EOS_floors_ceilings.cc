@@ -55,7 +55,7 @@ void apply_floors_and_ceilings_to_prims__recompute_prims( const igm_eos_paramete
     CCTK_REAL xprs        = 0.0;
     CCTK_REAL xeps        = 0.0;
     CCTK_REAL xent        = 0.0;
-    get_P_eps_and_S_from_rho_Ye_and_T(eos,xrho,xye,xtemp, &xprs,&xeps,&xent);
+    WVU_EOS_P_eps_and_S_from_rho_Ye_T(xrho,xye,xtemp, &xprs,&xeps,&xent);
     // Now update the primitives (rho has already been set)
     PRIMS[YEPRIM     ] = xye;
     PRIMS[TEMPERATURE] = xtemp;
