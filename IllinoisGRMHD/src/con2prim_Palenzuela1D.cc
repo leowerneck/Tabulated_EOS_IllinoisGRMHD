@@ -118,7 +118,7 @@ inline int check_depsdT_condition( const igm_eos_parameters eos,
   // Now perform an EOS call. The goal here is to determine
   // deps/dT, which should allow us to select the appropriate
   // variable that we will use to recover the temperature.
-  get_P_S_T_and_depsdT_from_rho_Ye_and_eps( eos, rho,ye,eps, &press,&ent,&temp,&depsdT );
+  WVU_EOS_P_S_T_and_depsdT_from_rho_Ye_eps( rho,ye,eps, &press,&ent,&temp,&depsdT );
 
   int con2prim_key = None;
   if( eos.evolve_entropy && (depsdT < eos.depsdT_threshold) ) {
@@ -314,16 +314,16 @@ void calc_prim( const igm_eos_parameters eos,
       // Default Palenzuela con2prim: get Hydro quantities from (rho,Ye,eps)
       eps = W - 1.0 + (1.0-W*W)*x/W + W*(q - s + t*t/(2*x*x) + s/(2*W*W)  );
       eps=fmax(eps, eos.eps_min);
-      get_P_S_and_T_from_rho_Ye_and_eps( eos, rho,ye,eps, &press,&ent,&temp );
+      WVU_EOS_P_S_and_T_from_rho_Ye_eps( rho,ye,eps, &press,&ent,&temp );
     }
     else {
       // Modified Palenzuela con2prim: get Hydro quantities from (rho,Ye,S)
       ent = con[WS]/W;
-      get_P_eps_and_T_from_rho_Ye_and_S( eos,rho,ye,ent, &press,&eps,&temp );
+      WVU_EOS_P_eps_and_T_from_rho_Ye_S( rho,ye,ent, &press,&eps,&temp );
     }
   }
   else {
-    get_P_eps_and_S_from_rho_Ye_and_T( eos, rho,ye,temp, &press,&eps,&ent );
+    WVU_EOS_P_eps_and_S_from_rho_Ye_T( rho,ye,temp, &press,&eps,&ent );
   }
 
   const double Z = x*rho*W;
@@ -378,16 +378,16 @@ double func_root( const igm_eos_parameters eos,
       // Default Palenzuela con2prim: get Hydro quantities from (rho,Ye,eps)
       eps = W - 1.0 + (1.0-W*W)*x/W + W*(q - s + t*t/(2*x*x) + s/(2*W*W)  );
       eps=fmax(eps, eos.eps_min);
-      get_P_S_and_T_from_rho_Ye_and_eps( eos, rho,ye,eps, &P,&ent,&temp );
+      WVU_EOS_P_S_and_T_from_rho_Ye_eps( rho,ye,eps, &P,&ent,&temp );
     }
     else {
       // Modified Palenzuela con2prim: get Hydro quantities from (rho,Ye,S)
       ent = param[conWS]/W;
-      get_P_eps_and_T_from_rho_Ye_and_S( eos,rho,ye,ent, &P,&eps,&temp );
+      WVU_EOS_P_eps_and_T_from_rho_Ye_S( rho,ye,ent, &P,&eps,&temp );
     }
   }
   else {
-    get_P_eps_and_S_from_rho_Ye_and_T( eos, rho,ye,temp, &P,&eps,&ent );
+    WVU_EOS_P_eps_and_S_from_rho_Ye_T( rho,ye,temp, &P,&eps,&ent );
   }
 
   // (iv)
