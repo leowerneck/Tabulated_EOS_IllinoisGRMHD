@@ -145,7 +145,7 @@ void calc_WZT_from_prim( const igm_eos_parameters eos,
   CCTK_REAL T   = prim[TEMP];
   CCTK_REAL P   = 0.0;
   CCTK_REAL eps = 0.0;
-  get_P_and_eps_from_rho_Ye_and_T( eos, rho,Ye,T, &P,&eps );
+  WVU_EOS_P_and_eps_from_rho_Ye_T( rho,Ye,T, &P,&eps );
 
   // Then compute the enthalpy
   CCTK_REAL h = 1.0 + eps + P / rho;
@@ -182,7 +182,7 @@ void calc_WZT_max( const igm_eos_parameters eos,
   CCTK_REAL xye   = con[YE]/con[DD];
   CCTK_REAL xtemp = eos.T_max; // initial guess, choose large enough
   CCTK_REAL xprs  = 0.0;
-  get_P_and_T_from_rho_Ye_and_eps( eos, rhomax,xye,epsmax, &xprs,&xtemp );
+  WVU_EOS_P_and_T_from_rho_Ye_and_eps( rhomax,xye,epsmax, &xprs,&xtemp );
 
   // Now set W_max and T_max
   xmax[0] = 1.0e4;
@@ -213,7 +213,7 @@ void calc_prim_from_x_3D_WZT( const igm_eos_parameters eos,
   CCTK_REAL xtemp = T;
   CCTK_REAL xeps  = 0.0;
   CCTK_REAL xprs  = 0.0;  
-  get_P_and_eps_from_rho_Ye_and_T(eos, xrho,xye,xtemp, &xprs,&xeps );
+  WVU_EOS_P_and_eps_from_rho_Ye_T( xrho,xye,xtemp, &xprs,&xeps );
 
   // Eq. (24) in Siegel et al. 2018, with S^{i} := gamma^{ij} S_{j}
   // The extra factor of W converts v^{i} to tilde(u)^{i}.
@@ -262,7 +262,7 @@ void NR_step_3D_eps( const igm_eos_parameters eos,
   CCTK_REAL xdPdT     = 0.0;
   CCTK_REAL xdepsdrho = 0.0;
   CCTK_REAL xdepsdT   = 0.0;
-  get_P_eps_dPdrho_dPdT_depsdrho_depsdT_from_rho_Ye_and_T(eos,xrho,xye,T,&xprs,&xeps,&xdPdrho,&xdPdT,&xdepsdrho,&xdepsdT);
+  WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_depsdT_from_rho_Ye_and_T(xrho,xye,T,&xprs,&xeps,&xdPdrho,&xdPdT,&xdepsdrho,&xdepsdT);
 
   // Some useful auxiliary variables
   CCTK_REAL BdotSsqr       = BdotS*BdotS;
@@ -392,7 +392,7 @@ void NR_step_3D_P( const igm_eos_parameters eos,
   CCTK_REAL xdPdT     = 0.0;
   CCTK_REAL xdepsdrho = 0.0;
   CCTK_REAL xdepsdT   = 0.0;
-  get_P_eps_dPdrho_dPdT_depsdrho_depsdT_from_rho_Ye_and_T(eos,xrho,xye,T,&xprs,&xeps,&xdPdrho,&xdPdT,&xdepsdrho,&xdepsdT);
+  WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_depsdT_from_rho_Ye_T(xrho,xye,T,&xprs,&xeps,&xdPdrho,&xdPdT,&xdepsdrho,&xdepsdT);
 
   // Some useful auxiliary variables
   CCTK_REAL BdotSsqr       = BdotS*BdotS;
