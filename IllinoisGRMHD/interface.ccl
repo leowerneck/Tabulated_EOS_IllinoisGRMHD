@@ -187,97 +187,99 @@ CCTK_INT FUNCTION                         \
         (CCTK_POINTER_TO_CONST IN cctkGH)
 USES FUNCTION GetRefinementLevel
 
-########################################
-### Aliased functions from EOS_OMNI  ###
-########################################
+#######################################
+### Aliased functions from WVU_EOS  ###
+#######################################
+# ------------------------------------------------------
+# ------ Functions where the temperature is known ------
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_and_eps_from_rho_Ye_T( CCTK_REAL IN rho, \
+                                               CCTK_REAL IN Ye,  \
+                                               CCTK_REAL IN T,   \
+                                               CCTK_REAL OUT P,  \
+                                               CCTK_REAL OUT eps )
 
-# This function is used to ensure we get the correct
-# eoskey for tabulated EOS, even if EOS_Omni is
-# updated in the future and the value of the key,
-# which is an integer, changes.
-CCTK_INT FUNCTION EOS_Omni_GetHandle(CCTK_STRING IN name)
-USES FUNCTION EOS_Omni_GetHandle
+USES FUNCTION WVU_EOS_P_and_eps_from_rho_Ye_T
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_eps_and_S_from_rho_Ye_T( CCTK_REAL IN rho,  \
+                                                 CCTK_REAL IN Ye,   \
+                                                 CCTK_REAL IN T,    \
+                                                 CCTK_REAL OUT P,   \
+                                                 CCTK_REAL OUT eps, \
+                                                 CCTK_REAL OUT S )
 
-# This function is used (in IllinoisGRMHD) to compute:
-#
-# - P(  rho,Y_e,T)
-# - eps(rho,Y_e,T)
-#
-# *or*
-#
-# - T(rho,Y_e,eps)
-# - P(rho,Y_e,eps)
-void FUNCTION EOS_Omni_press(CCTK_INT IN eoskey,         \
-			     CCTK_INT IN havetemp,       \
-			     CCTK_REAL IN rf_precision,  \
-                             CCTK_INT IN npoints,        \
-			     CCTK_REAL IN ARRAY rho,     \
-			     CCTK_REAL INOUT ARRAY eps,  \
-			     CCTK_REAL INOUT ARRAY temp, \
-			     CCTK_REAL IN ARRAY ye,      \
-			     CCTK_REAL OUT ARRAY press,  \
-			     CCTK_INT OUT ARRAY keyerr,  \
-			     CCTK_INT OUT anyerr)
+USES FUNCTION WVU_EOS_P_eps_and_S_from_rho_Ye_T
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_eps_S_and_cs2_from_rho_Ye_T( CCTK_REAL IN rho,  \
+                                                     CCTK_REAL IN Ye,   \
+                                                     CCTK_REAL IN T,    \
+                                                     CCTK_REAL OUT P,   \
+                                                     CCTK_REAL OUT eps, \
+                                                     CCTK_REAL OUT S,   \
+                                                     CCTK_REAL OUT cs2 )
 
-USES FUNCTION EOS_Omni_press
+USES FUNCTION WVU_EOS_P_eps_S_and_cs2_from_rho_Ye_T
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_eps_and_depsdT_from_rho_Ye_T( CCTK_REAL IN rho,  \
+                                                      CCTK_REAL IN Ye,   \
+                                                      CCTK_REAL IN T,    \
+                                                      CCTK_REAL OUT P,   \
+                                                      CCTK_REAL OUT eps, \
+                                                      CCTK_REAL OUT depsdT )
 
-# This function is used (in IllinoisGRMHD) to compute:
-#
-# - P(  rho,Y_e,T)
-# - eps(rho,Y_e,T)
-# - cs2(rho,Y_e,T)
-#
-# *or*
-#
-# - T(  rho,Y_e,eps)
-# - P(  rho,Y_e,eps)
-# - cs2(rho,Y_e,eps)
-void FUNCTION EOS_Omni_press_cs2(CCTK_INT IN eoskey,         \
-			         CCTK_INT IN havetemp,       \
-			         CCTK_REAL IN rf_precision,  \
-                                 CCTK_INT IN npoints,        \
-			         CCTK_REAL IN ARRAY rho,     \
-			         CCTK_REAL INOUT ARRAY eps,  \
-			         CCTK_REAL INOUT ARRAY temp, \
-			         CCTK_REAL IN ARRAY ye,      \
-			         CCTK_REAL OUT ARRAY press,  \
-			         CCTK_REAL OUT ARRAY cs2,    \
-			         CCTK_INT OUT ARRAY keyerr,  \
-			         CCTK_INT OUT anyerr)
+USES FUNCTION WVU_EOS_P_eps_and_depsdT_from_rho_Ye_T
+# ------------------------------------------------------
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T( CCTK_REAL IN rho,       \
+                                                                           CCTK_REAL IN Ye,        \
+                                                                           CCTK_REAL IN T,         \
+                                                                           CCTK_REAL OUT P,        \
+                                                                           CCTK_REAL OUT eps,      \
+                                                                           CCTK_REAL OUT dPdrho,   \
+                                                                           CCTK_REAL OUT dPdT,     \
+                                                                           CCTK_REAL OUT depsdrho, \
+                                                                           CCTK_REAL OUT depsdT )
 
-USES FUNCTION EOS_Omni_press_cs2
+USES FUNCTION WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T
+# ------------------------------------------------------
 
+# ------------------------------------------------------
+# ---- Functions where the temperature is not known ----
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_and_T_from_rho_Ye_eps( CCTK_REAL IN rho, \
+                                               CCTK_REAL IN Ye,  \
+                                               CCTK_REAL IN eps, \
+                                               CCTK_REAL OUT P,  \
+                                               CCTK_REAL OUT T )
 
-# This function is used (in IllinoisGRMHD) to compute:
-#
-# - P(  rho,Y_e,T)
-# - eps(rho,Y_e,T)
-# - S(  rho,Y_e,T)
-#
-# *or*
-#
-# - T(  rho,Y_e,S)
-# - P(  rho,Y_e,S)
-# - eps(rho,Y_e,S)
-void FUNCTION EOS_Omni_short(CCTK_INT IN eoskey,                \
-			     CCTK_INT IN havetemp,              \
-			     CCTK_REAL IN rf_precision,         \
-                             CCTK_INT IN npoints,               \
-			     CCTK_REAL IN ARRAY rho,     	\
-			     CCTK_REAL INOUT ARRAY eps,  	\
-			     CCTK_REAL INOUT ARRAY temp, 	\
-			     CCTK_REAL IN ARRAY ye,      	\
-			     CCTK_REAL OUT ARRAY press,		\
-			     CCTK_REAL INOUT ARRAY entropy,	\
-			     CCTK_REAL OUT ARRAY cs2,  		\
-			     CCTK_REAL OUT ARRAY dedt, 		\
-			     CCTK_REAL OUT ARRAY dpderho,	\
-			     CCTK_REAL OUT ARRAY dpdrhoe,	\
-			     CCTK_REAL OUT ARRAY munu,  	\
-			     CCTK_INT OUT ARRAY keyerr,   	\
-                             CCTK_INT OUT anyerr)
+USES FUNCTION WVU_EOS_P_and_T_from_rho_Ye_eps
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_S_and_T_from_rho_Ye_eps( CCTK_REAL IN rho, \
+                                                 CCTK_REAL IN Ye,  \
+                                                 CCTK_REAL IN eps, \
+                                                 CCTK_REAL OUT P,  \
+                                                 CCTK_REAL OUT S,
+                                                 CCTK_REAL OUT T )
 
-USES FUNCTION EOS_Omni_short
+USES FUNCTION WVU_EOS_P_S_and_T_from_rho_Ye_eps
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_eps_S_and_T_from_rho_Ye_P( CCTK_REAL IN rho,  \
+                                                 CCTK_REAL IN Ye,   \
+                                                 CCTK_REAL IN P,    \
+                                                 CCTK_REAL OUT eps, \
+                                                 CCTK_REAL OUT S,   \
+                                                 CCTK_REAL OUT T )
 
-public:
-CCTK_INT igm_eos_key type=SCALAR "IllinoisGRMHD eos handle for EOS_Omni"
+USES FUNCTION WVU_EOS_eps_S_and_T_from_rho_Ye_P
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_eps_and_T_from_rho_Ye_S( CCTK_REAL IN rho,  \
+                                                 CCTK_REAL IN Ye,   \
+                                                 CCTK_REAL IN S,    \
+                                                 CCTK_REAL OUT P,   \
+                                                 CCTK_REAL OUT eps, \
+                                                 CCTK_REAL OUT T )
+
+USES FUNCTION WVU_EOS_P_eps_and_T_from_rho_Ye_S
+# ------------------------------------------------------
+
+CCTK_INT igm_eos_key TYPE=SCALAR "EOS key - Used to select between hybrid and tabulated EOS"
