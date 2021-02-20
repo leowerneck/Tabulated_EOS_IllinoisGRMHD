@@ -183,45 +183,111 @@ void compute_remaining_prims_on_right_and_left_face( const igm_eos_parameters eo
         CCTK_REAL xrhoR  = out_prims_r[RHOB    ].gf[index];
         CCTK_REAL xyeR   = out_prims_r[YEPRIM  ].gf[index];
         CCTK_REAL xtempR = in_prims[TEMPERATURE].gf[index];
+        CCTK_REAL xprsR  = 0.0;
+        CCTK_REAL xepsR  = 0.0;
         CCTK_REAL xentR  = 0.0;
         if( eos.PPM_reconstructed_var == PRESSURE ) {
-          CCTK_REAL xprsR  = out_prims_r[PRESSURE].gf[index];
-          CCTK_REAL xepsR  = 0.0;
+          xprsR = out_prims_r[PRESSURE].gf[index];
+          xepsR = 0.0;
+          enforce_table_bounds_rho_Ye_P(eos,&xrhoR,&xyeR,&xprsR);
           WVU_EOS_eps_S_and_T_from_rho_Ye_P( xrhoR,xyeR,xprsR, &xepsR,&xentR,&xtempR );
           out_prims_r[EPSILON  ].gf[index] = xepsR;
         }
         else if( eos.PPM_reconstructed_var == EPSILON ) {
-          CCTK_REAL xprsR  = 0.0;
-          CCTK_REAL xepsR  = out_prims_r[EPSILON].gf[index];
+          xprsR = 0.0;
+          xepsR = out_prims_r[EPSILON].gf[index];
+          enforce_table_bounds_rho_Ye_eps(eos,&xrhoR,&xyeR,&xepsR);
           WVU_EOS_P_S_and_T_from_rho_Ye_eps( xrhoR,xyeR,xepsR, &xprsR,&xentR,&xtempR );
           out_prims_r[PRESSURE ].gf[index] = xprsR;
         }
+        // Update everything
+        out_prims_r[RHOB       ].gf[index] = xrhoR;
+        out_prims_r[YEPRIM     ].gf[index] = xyeR;
         out_prims_r[TEMPERATURE].gf[index] = xtempR;
+        out_prims_r[PRESSURE   ].gf[index] = xprsR;
         out_prims_r[ENTROPY    ].gf[index] = xentR;
+        out_prims_r[EPSILON    ].gf[index] = xepsR;
         //-------------------------------
 
         //---------- Right face ---------
         CCTK_REAL xrhoL  = out_prims_l[RHOB    ].gf[index];
         CCTK_REAL xyeL   = out_prims_l[YEPRIM  ].gf[index];
         CCTK_REAL xtempL = in_prims[TEMPERATURE].gf[index];
+        CCTK_REAL xprsL  = 0.0;
+        CCTK_REAL xepsL  = 0.0;
         CCTK_REAL xentL  = 0.0;
         if( eos.PPM_reconstructed_var == PRESSURE ) {
-          CCTK_REAL xprsL  = out_prims_l[PRESSURE].gf[index];
-          CCTK_REAL xepsL  = 0.0;
+          xprsL = out_prims_l[PRESSURE].gf[index];
+          xepsL = 0.0;
+          enforce_table_bounds_rho_Ye_P(eos,&xrhoL,&xyeL,&xprsL);
           WVU_EOS_eps_S_and_T_from_rho_Ye_P( xrhoL,xyeL,xprsL, &xepsL,&xentL,&xtempL );
           out_prims_l[EPSILON  ].gf[index] = xepsL;
         }
         else if( eos.PPM_reconstructed_var == EPSILON ) {
-          CCTK_REAL xprsL  = 0.0;
-          CCTK_REAL xepsL  = out_prims_l[EPSILON].gf[index];
+          xprsL = 0.0;
+          xepsL = out_prims_l[EPSILON].gf[index];
+          enforce_table_bounds_rho_Ye_eps(eos,&xrhoL,&xyeL,&xepsL);
           WVU_EOS_P_S_and_T_from_rho_Ye_eps( xrhoL,xyeL,xepsL, &xprsL,&xentL,&xtempL );
           out_prims_l[PRESSURE ].gf[index] = xprsL;
         }
+        // Update everything
+        out_prims_l[RHOB       ].gf[index] = xrhoL;
+        out_prims_l[YEPRIM     ].gf[index] = xyeL;
         out_prims_l[TEMPERATURE].gf[index] = xtempL;
+        out_prims_l[PRESSURE   ].gf[index] = xprsL;
         out_prims_l[ENTROPY    ].gf[index] = xentL;
+        out_prims_l[EPSILON    ].gf[index] = xepsL;
         //-------------------------------
       }
     }
   }
 
+}
+
+void enforce_table_bounds_rho_Ye_T( const igm_eos_parameters& eos,
+                                    CCTK_REAL *restrict rho,
+                                    CCTK_REAL *restrict Ye,
+                                    CCTK_REAL *restrict T ) {
+  // Enforce bounds on rho
+  *rho = MIN(MAX(*rho,eos.rho_min),eos.rho_max);
+  // Enforce bounds on Ye
+  *Ye  = MIN(MAX(*Ye, eos.Ye_min ),eos.Ye_max );
+  // Enforce bounds on T
+  *T   = MIN(MAX(*T,  eos.T_min  ),eos.T_max  );
+}
+
+void enforce_table_bounds_rho_Ye_eps( const igm_eos_parameters& eos,
+                                      CCTK_REAL *restrict rho,
+                                      CCTK_REAL *restrict Ye,
+                                      CCTK_REAL *restrict eps ) {
+  // Enforce bounds on rho
+  *rho = MIN(MAX(*rho,eos.rho_min),eos.rho_max);
+  // Enforce bounds on Ye
+  *Ye  = MIN(MAX(*Ye, eos.Ye_min ),eos.Ye_max );
+  // Enforce bounds on eps
+  *eps = MIN(MAX(*eps,eos.eps_min),eos.eps_max);
+}
+
+void enforce_table_bounds_rho_Ye_S( const igm_eos_parameters& eos,
+                                    CCTK_REAL *restrict rho,
+                                    CCTK_REAL *restrict Ye,
+                                    CCTK_REAL *restrict S ) {
+  // Enforce bounds on rho
+  *rho = MIN(MAX(*rho,eos.rho_min),eos.rho_max);
+  // Enforce bounds on Ye
+  *Ye  = MIN(MAX(*Ye, eos.Ye_min ),eos.Ye_max );
+  // Enforce bounds on S
+  *S   = MIN(MAX(*S,  eos.S_min  ),eos.S_max  );
+}
+
+void enforce_table_bounds_rho_Ye_P( const igm_eos_parameters& eos,
+                                    CCTK_REAL *restrict rho,
+                                    CCTK_REAL *restrict Ye,
+                                    CCTK_REAL *restrict P ) {
+  // Enforce bounds on rho
+  *rho = MIN(MAX(*rho,eos.rho_min),eos.rho_max);
+  // Enforce bounds on Ye
+  *Ye  = MIN(MAX(*Ye, eos.Ye_min ),eos.Ye_max );
+  // Enforce bounds on S
+  *P   = MIN(MAX(*P,  eos.P_min  ),eos.P_max  );
 }

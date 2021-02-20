@@ -118,6 +118,7 @@ inline int check_depsdT_condition( const igm_eos_parameters eos,
   // Now perform an EOS call. The goal here is to determine
   // deps/dT, which should allow us to select the appropriate
   // variable that we will use to recover the temperature.
+  enforce_table_bounds_rho_Ye_eps( eos,&rho,&ye,&eps );
   WVU_EOS_P_S_T_and_depsdT_from_rho_Ye_eps( rho,ye,eps, &press,&ent,&temp,&depsdT );
 
   int con2prim_key = None;
@@ -313,16 +314,18 @@ void calc_prim( const igm_eos_parameters eos,
     if( stats.which_routine == Palenzuela1D ) {
       // Default Palenzuela con2prim: get Hydro quantities from (rho,Ye,eps)
       eps = W - 1.0 + (1.0-W*W)*x/W + W*(q - s + t*t/(2*x*x) + s/(2*W*W)  );
-      eps=fmax(eps, eos.eps_min);
+      enforce_table_bounds_rho_Ye_eps( eos,&rho,&ye,&eps );
       WVU_EOS_P_S_and_T_from_rho_Ye_eps( rho,ye,eps, &press,&ent,&temp );
     }
     else {
       // Modified Palenzuela con2prim: get Hydro quantities from (rho,Ye,S)
       ent = con[WS]/W;
+      enforce_table_bounds_rho_Ye_S( eos,&rho,&ye,&ent );
       WVU_EOS_P_eps_and_T_from_rho_Ye_S( rho,ye,ent, &press,&eps,&temp );
     }
   }
   else {
+    enforce_table_bounds_rho_Ye_T( eos,&rho,&ye,&temp );
     WVU_EOS_P_eps_and_S_from_rho_Ye_T( rho,ye,temp, &press,&eps,&ent );
   }
 
@@ -377,16 +380,18 @@ double func_root( const igm_eos_parameters eos,
     if( stats.which_routine == Palenzuela1D ) {
       // Default Palenzuela con2prim: get Hydro quantities from (rho,Ye,eps)
       eps = W - 1.0 + (1.0-W*W)*x/W + W*(q - s + t*t/(2*x*x) + s/(2*W*W)  );
-      eps=fmax(eps, eos.eps_min);
+      enforce_table_bounds_rho_Ye_eps( eos,&rho,&ye,&eps );
       WVU_EOS_P_S_and_T_from_rho_Ye_eps( rho,ye,eps, &P,&ent,&temp );
     }
     else {
       // Modified Palenzuela con2prim: get Hydro quantities from (rho,Ye,S)
       ent = param[conWS]/W;
+      enforce_table_bounds_rho_Ye_S( eos,&rho,&ye,&ent );
       WVU_EOS_P_eps_and_T_from_rho_Ye_S( rho,ye,ent, &P,&eps,&temp );
     }
   }
   else {
+    enforce_table_bounds_rho_Ye_T( eos,&rho,&ye,&temp );
     WVU_EOS_P_eps_and_S_from_rho_Ye_T( rho,ye,temp, &P,&eps,&ent );
   }
 

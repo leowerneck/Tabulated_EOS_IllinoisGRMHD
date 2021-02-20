@@ -116,6 +116,26 @@ void compute_remaining_prims_on_right_and_left_face( const igm_eos_parameters eo
                                                      const gf_and_gz_struct *restrict in_prims,
                                                      gf_and_gz_struct *restrict out_prims_r,
                                                      gf_and_gz_struct *restrict out_prims_l );
+
+void enforce_table_bounds_rho_Ye_T( const igm_eos_parameters& eos,
+                                    CCTK_REAL *restrict rho,
+                                    CCTK_REAL *restrict Ye,
+                                    CCTK_REAL *restrict T );
+
+void enforce_table_bounds_rho_Ye_eps( const igm_eos_parameters& eos,
+                                      CCTK_REAL *restrict rho,
+                                      CCTK_REAL *restrict Ye,
+                                      CCTK_REAL *restrict eps );
+
+void enforce_table_bounds_rho_Ye_S( const igm_eos_parameters& eos,
+                                    CCTK_REAL *restrict rho,
+                                    CCTK_REAL *restrict Ye,
+                                    CCTK_REAL *restrict S );
+
+void enforce_table_bounds_rho_Ye_P( const igm_eos_parameters& eos,
+                                    CCTK_REAL *restrict rho,
+                                    CCTK_REAL *restrict Ye,
+                                    CCTK_REAL *restrict P );
 //------------------------------------------------
 
 #endif // IGM_EOS_HEADERS_HH

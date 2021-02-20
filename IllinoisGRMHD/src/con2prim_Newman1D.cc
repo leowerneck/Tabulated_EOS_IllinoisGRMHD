@@ -137,6 +137,7 @@ void newman( const igm_eos_parameters eos,
   if( got_temp_from == None ) {
 
     // Only need to compute depsdT if we are not sure whether or not to use the entropy
+    enforce_table_bounds_rho_Ye_T( eos,&xrho,&xye,&xtemp );
     WVU_EOS_P_eps_and_depsdT_from_rho_Ye_T( xrho,xye,xtemp, &xprs,&xeps,&depsdT );
 
     if( eos.evolve_entropy && (depsdT < eos.depsdT_threshold) ) {
@@ -153,6 +154,7 @@ void newman( const igm_eos_parameters eos,
     // If got_temp_from != None, then that means we tried to use
     // the entropy and the recovery failed. So it is safe to
     // skip the depsdT check and use a more efficient EOS call.
+    enforce_table_bounds_rho_Ye_T( eos,&xrho,&xye,&xtemp );
     WVU_EOS_P_and_eps_from_rho_Ye_T( xrho,xye,xtemp, &xprs,&xeps );
     
   }
@@ -231,6 +233,7 @@ void newman( const igm_eos_parameters eos,
       // If using the entropy, compute S = (WS)/W
       xent = con[WS]/W;
       // Then compute P, eps, and T using (rho,Ye,S)
+      enforce_table_bounds_rho_Ye_S( eos,&xrho,&xye,&xent );
       WVU_EOS_P_eps_and_T_from_rho_Ye_S( xrho,xye,xent, &xprs,&xeps,&xtemp );
     }
     else {
@@ -247,9 +250,8 @@ void newman( const igm_eos_parameters eos,
       //
       // eps = - 1.0 + x(1-W^{2})/W + W( 1 + q - s + 0.5*( s/W^{2} + t^{2}/x^{2} ) )
       xeps = - 1.0 + (1.0-W*W)*x/W + W*( 1.0 + q - s + 0.5*( s/(W*W) + (t*t)/(x*x) ) );
-      // Impose physical limits on the value of eps
-      xeps = fmax(xeps, eos.eps_min);
       // Then compute P, S, and T using (rho,Ye,eps)
+      enforce_table_bounds_rho_Ye_eps( eos,&xrho,&xye,&xeps );
       WVU_EOS_P_S_and_T_from_rho_Ye_eps( xrho,xye,xeps, &xprs,&xent,&xtemp );
     }
 
@@ -314,6 +316,7 @@ void newman( const igm_eos_parameters eos,
     // If using the entropy, compute S = (WS)/W
     prim[ENT] = con[WS]/W;
     // Then compute P, eps, and T using (rho,Ye,S)
+    enforce_table_bounds_rho_Ye_S( eos,&prim[RHO],&prim[YE],&prim[ENT] );
     WVU_EOS_P_eps_and_T_from_rho_Ye_S( prim[RHO],prim[YE],prim[ENT],
                                        &prim[PRESS],&prim[EPS],&prim[TEMP] );
   }
@@ -331,10 +334,9 @@ void newman( const igm_eos_parameters eos,
     //
     // eps = - 1.0 + x(1-W^{2})/W + W( 1 + q - s + 0.5*( s/W^{2} + t^{2}/x^{2} ) )
     prim[EPS] = - 1.0 + (1.0-W*W)*x/W + W*( 1.0 + q - s + 0.5*( s/(W*W) + (t*t)/(x*x) ) );
-    // Impose physical limits on the value of eps
-    prim[EPS] = fmax(prim[EPS], eos.eps_min);
     // Then compute P, S, and T using (rho,Ye,eps)
     prim[TEMP] = eos.T_atm;
+    enforce_table_bounds_rho_Ye_eps( eos,&prim[RHO],&prim[YE],&prim[EPS] );
     WVU_EOS_P_S_and_T_from_rho_Ye_eps( prim[RHO],prim[YE],prim[EPS],
                                        &prim[PRESS],&prim[ENT],&prim[TEMP] );
   }
