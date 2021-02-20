@@ -92,7 +92,7 @@ int con2prim_Newman1D( const igm_eos_parameters eos,
   CCTK_REAL B_squared = 0.0;
   for(int i=0;i<3;i++) B_squared += BU[i] * BD[i];
 
-  const CCTK_REAL tol_x = 5e-9;
+  const CCTK_REAL tol_x = 1e-12;
   bool c2p_failed = false;
   CCTK_INT got_temp_from = None;
   newman(eos,tol_x,S_squared,BdotS,B_squared,SU,con,prim,got_temp_from,c2p_failed);
@@ -118,8 +118,8 @@ void newman( const igm_eos_parameters eos,
              CCTK_INT& got_temp_from,
              bool& c2p_failed ) {
  
-  bool conacc = 0;
-  CCTK_REAL prec    = tol_x;
+  bool conacc    = false;
+  CCTK_REAL prec = tol_x;
 
   // We always guess W = 1, since we don't keep
   // track of the velocities in between time
@@ -137,7 +137,7 @@ void newman( const igm_eos_parameters eos,
   if( got_temp_from == None ) {
 
     // Only need to compute depsdT if we are not sure whether or not to use the entropy
-    get_P_eps_and_depsdT_from_rho_Ye_and_T( eos,xrho,xye,xtemp, &xprs,&xeps,&depsdT );
+    WVU_EOS_P_eps_and_depsdT_from_rho_Ye_T( xrho,xye,xtemp, &xprs,&xeps,&depsdT );
 
     if( eos.evolve_entropy && (depsdT < eos.depsdT_threshold) ) {
       // We should use the entropy instead
@@ -153,7 +153,7 @@ void newman( const igm_eos_parameters eos,
     // If got_temp_from != None, then that means we tried to use
     // the entropy and the recovery failed. So it is safe to
     // skip the depsdT check and use a more efficient EOS call.
-    get_P_and_eps_from_rho_Ye_and_T( eos, xrho,xye,xtemp, &xprs,&xeps );
+    WVU_EOS_P_and_eps_from_rho_Ye_and_T( xrho,xye,xtemp, &xprs,&xeps );
     
   }
 
@@ -231,7 +231,7 @@ void newman( const igm_eos_parameters eos,
       // If using the entropy, compute S = (WS)/W
       xent = con[WS]/W;
       // Then compute P, eps, and T using (rho,Ye,S)
-      get_P_eps_and_T_from_rho_Ye_and_S( eos,xrho,xye,xent, &xprs,&xeps,&xtemp );
+      WVU_EOS_P_eps_and_T_from_rho_Ye_S( xrho,xye,xent, &xprs,&xeps,&xtemp );
     }
     else {
       // If using the specific internal energy, remember that
@@ -250,7 +250,7 @@ void newman( const igm_eos_parameters eos,
       // Impose physical limits on the value of eps
       xeps = fmax(xeps, eos.eps_min);
       // Then compute P, S, and T using (rho,Ye,eps)
-      get_P_S_and_T_from_rho_Ye_and_eps( eos, xrho,xye,xeps, &xprs,&xent,&xtemp );
+      WVU_EOS_P_S_and_T_from_rho_Ye_eps( xrho,xye,xeps, &xprs,&xent,&xtemp );
     }
 
     prim[EPS] = xeps;
@@ -314,7 +314,7 @@ void newman( const igm_eos_parameters eos,
     // If using the entropy, compute S = (WS)/W
     prim[ENT] = con[WS]/W;
     // Then compute P, eps, and T using (rho,Ye,S)
-    get_P_eps_and_T_from_rho_Ye_and_S( eos, prim[RHO],prim[YE],prim[ENT],
+    WVU_EOS_P_eps_and_T_from_rho_Ye_S( prim[RHO],prim[YE],prim[ENT],
                                        &prim[PRESS],&prim[EPS],&prim[TEMP] );
   }
   else {
@@ -335,8 +335,8 @@ void newman( const igm_eos_parameters eos,
     prim[EPS] = fmax(prim[EPS], eos.eps_min);
     // Then compute P, S, and T using (rho,Ye,eps)
     prim[TEMP] = eos.T_atm;
-    get_P_S_and_T_from_rho_Ye_and_eps( eos, prim[RHO],prim[YE],prim[EPS],
-                                       &prim[PRESS],&prim[ENT],&prim[TEMP] );
+    WVU_EOS_P_S_and_T_from_rho_Ye_and_eps( prim[RHO],prim[YE],prim[EPS],
+                                           &prim[PRESS],&prim[ENT],&prim[TEMP] );
   }
   
   
