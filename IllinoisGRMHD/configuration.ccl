@@ -1,5 +1,5 @@
 # Configuration definition for thorn IllinoisGRMHD
-REQUIRES EOS_Omni Boundary CartGrid3D SpaceMask
+REQUIRES EOS_Omni Boundary CartGrid3D SpaceMask WVU_EOS
 
 PROVIDES IllinoisGRMHD
 {
