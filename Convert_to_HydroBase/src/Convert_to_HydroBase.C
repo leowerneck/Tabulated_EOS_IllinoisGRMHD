@@ -77,7 +77,7 @@ void Convert_to_HydroBase(CCTK_ARGUMENTS) {
         }
         else if( eos.is_Tabulated ) {
           CCTK_REAL xP=0,xeps=0;
-          get_P_and_eps_from_rho_Ye_and_T( eos,PRIMS[RHOB],PRIMS[YEPRIM],PRIMS[TEMPERATURE], &xP,&xeps );
+          WVU_EOS_P_and_eps_from_rho_Ye_T( PRIMS[RHOB],PRIMS[YEPRIM],PRIMS[TEMPERATURE], &xP,&xeps );
           eps[index] = xeps;
         }
 
