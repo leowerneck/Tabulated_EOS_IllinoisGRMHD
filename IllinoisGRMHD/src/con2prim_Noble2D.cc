@@ -263,10 +263,10 @@ int Utoprim_new_body( const igm_eos_parameters eos,
   rho0 = harm_aux.D / harm_aux.gamma ;
   u = prim[UU];
 
-  p = 0;
-  if( eos.is_Hybrid ) {
+  // p = 0.0;
+  // if( eos.is_Hybrid ) {
     p = pressure_rho0_u(eos, rho0,u);
-  }
+  // }
   // else if( eos.is_Tabulated ) {
   //   harm_aux.ye            = U[YE]/U[RHO];
   //   harm_aux.gamma_times_S = U[WS];
@@ -336,38 +336,38 @@ int Utoprim_new_body( const igm_eos_parameters eos,
 
   w = W * (1. - vsq) ;
 
-  if( eos.is_Hybrid ) {
+  // if( eos.is_Hybrid ) {
     p = pressure_rho0_w(eos, rho0,w) ;
     u = w - (rho0 + p) ; // u = rho0 eps, w = rho0 h
     prim[RHO] = rho0 ;
     prim[UU ] = u ;
-  }
-  else {
-    CCTK_REAL xrho  = rho0;
-    CCTK_REAL xye   = harm_aux.ye;
-    CCTK_REAL xtemp = harm_aux.T_guess;
-    CCTK_REAL xent  = harm_aux.gamma_times_S / W;
-    CCTK_REAL xprs  = 0.0;
-    CCTK_REAL xuu   = 0.0;
-    CCTK_REAL xeps  = 0.0;
-    if( harm_aux.use_entropy ) {
-      get_P_eps_and_T_from_rho_Ye_and_S( eos,xrho,xye,xent, &xprs,&xeps,&xtemp );
-    }
-    else {
-      xprs  = -0.5*harm_aux.Bsq/(harm_aux.gamma*harm_aux.gamma)+harm_aux.Qdotn+W+harm_aux.Bsq-0.5*harm_aux.QdotBsq/(W*W);;
-      xuu   = (W-harm_aux.D*harm_aux.gamma-xprs*harm_aux.gamma*harm_aux.gamma)/(harm_aux.D*harm_aux.gamma) * rho0;
-      xeps  = xuu/xrho;
-      get_P_S_and_T_from_rho_Ye_and_eps( eos,xrho,xye,xeps, &xprs,&xent,&xtemp );      
-    }
+  // }
+  // else {
+  //   CCTK_REAL xrho  = rho0;
+  //   CCTK_REAL xye   = harm_aux.ye;
+  //   CCTK_REAL xtemp = harm_aux.T_guess;
+  //   CCTK_REAL xent  = harm_aux.gamma_times_S / W;
+  //   CCTK_REAL xprs  = 0.0;
+  //   CCTK_REAL xuu   = 0.0;
+  //   CCTK_REAL xeps  = 0.0;
+  //   if( harm_aux.use_entropy ) {
+  //     get_P_eps_and_T_from_rho_Ye_and_S( eos,xrho,xye,xent, &xprs,&xeps,&xtemp );
+  //   }
+  //   else {
+  //     xprs  = -0.5*harm_aux.Bsq/(harm_aux.gamma*harm_aux.gamma)+harm_aux.Qdotn+W+harm_aux.Bsq-0.5*harm_aux.QdotBsq/(W*W);;
+  //     xuu   = (W-harm_aux.D*harm_aux.gamma-xprs*harm_aux.gamma*harm_aux.gamma)/(harm_aux.D*harm_aux.gamma) * rho0;
+  //     xeps  = xuu/xrho;
+  //     get_P_S_and_T_from_rho_Ye_and_eps( eos,xrho,xye,xeps, &xprs,&xent,&xtemp );      
+  //   }
     
-    // Update P and T in the prim array
-    prim[RHO  ] = xrho;
-    prim[YE   ] = harm_aux.ye;
-    prim[TEMP ] = MIN(MAX(xtemp,eos.T_atm),eos.T_max);
-    prim[PRESS] = xprs;
-    prim[EPS  ] = xeps;
-    prim[ENT  ] = xent;
-  }
+  //   // Update P and T in the prim array
+  //   prim[RHO  ] = xrho;
+  //   prim[YE   ] = harm_aux.ye;
+  //   prim[TEMP ] = MIN(MAX(xtemp,eos.T_atm),eos.T_max);
+  //   prim[PRESS] = xprs;
+  //   prim[EPS  ] = xeps;
+  //   prim[ENT  ] = xent;
+  // }
 
   if( (rho0 <= 0.) || (u <= 0.) ) {
     // User may want to handle this case differently, e.g. do NOT return upon
@@ -584,51 +584,51 @@ void func_vsq(igm_eos_parameters eos, harm_aux_vars_struct& harm_aux, CCTK_REAL 
 
   CCTK_REAL p_tmp, dPdvsq, dPdW;
 
-  if( eos.is_Hybrid ) {
+  // if( eos.is_Hybrid ) {
     p_tmp  = pressure_W_vsq( eos, W, vsq , harm_aux.D);
     dPdW   = dpdW_calc_vsq( eos, W, vsq );
     dPdvsq = dpdvsq_calc( eos, W, vsq, harm_aux.D );
-  }
-  else {
-    // Here we must compute dPdW and dPdvsq for tabulated EOS.
-    // We will be using the expressions 
-    CCTK_REAL gamma_sq = 1.0/(1.0-vsq);
-    harm_aux.gamma     = sqrt(gamma_sq);
-    if( harm_aux.gamma > eos.W_max ) {
-      harm_aux.gamma = eos.W_max;
-      gamma_sq       = harm_aux.gamma * harm_aux.gamma;
-    }
+  // }
+  // else {
+  //   // Here we must compute dPdW and dPdvsq for tabulated EOS.
+  //   // We will be using the expressions 
+  //   CCTK_REAL gamma_sq = 1.0/(1.0-vsq);
+  //   harm_aux.gamma     = sqrt(gamma_sq);
+  //   if( harm_aux.gamma > eos.W_max ) {
+  //     harm_aux.gamma = eos.W_max;
+  //     gamma_sq       = harm_aux.gamma * harm_aux.gamma;
+  //   }
     
-    const CCTK_REAL rho = MAX(harm_aux.D / harm_aux.gamma,eos.rho_min);
-    const CCTK_REAL xye = harm_aux.ye;
-    const CCTK_REAL h   = fabs(W /(rho*gamma_sq)); // W := rho*h*gamma^{2}
-    const CCTK_REAL ent = harm_aux.gamma_times_S / harm_aux.gamma;
-    CCTK_REAL T         = harm_aux.T_guess;
-    CCTK_REAL prs       = 0.0;
-    CCTK_REAL eps       = 0.0;
-    CCTK_REAL dPdrho    = 0.0;
-    CCTK_REAL dPdeps    = 0.0;
+  //   const CCTK_REAL rho = MAX(harm_aux.D / harm_aux.gamma,eos.rho_min);
+  //   const CCTK_REAL xye = harm_aux.ye;
+  //   const CCTK_REAL h   = fabs(W /(rho*gamma_sq)); // W := rho*h*gamma^{2}
+  //   const CCTK_REAL ent = harm_aux.gamma_times_S / harm_aux.gamma;
+  //   CCTK_REAL T         = harm_aux.T_guess;
+  //   CCTK_REAL prs       = 0.0;
+  //   CCTK_REAL eps       = 0.0;
+  //   CCTK_REAL dPdrho    = 0.0;
+  //   CCTK_REAL dPdeps    = 0.0;
 
-    // Now compute the pressure and its derivatives with respect to rho and eps
-    if( harm_aux.use_entropy ) {
-      get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_S(eos,rho,xye,ent, &prs,&eps,&T,&dPdrho,&dPdeps);
-    }
-    else {
-      get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_h(eos,rho,xye,h, &prs,&eps,&T,&dPdrho,&dPdeps);
-    }
+  //   // Now compute the pressure and its derivatives with respect to rho and eps
+  //   if( harm_aux.use_entropy ) {
+  //     get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_S(eos,rho,xye,ent, &prs,&eps,&T,&dPdrho,&dPdeps);
+  //   }
+  //   else {
+  //     get_P_eps_T_dPdrho_and_dPdeps_from_rho_Ye_and_h(eos,rho,xye,h, &prs,&eps,&T,&dPdrho,&dPdeps);
+  //   }
 
-    // Set P
-    p_tmp = prs;
+  //   // Set P
+  //   p_tmp = prs;
 
-    // Now compute dP/dW
-    const CCTK_REAL dPdeps_o_rho = dPdeps/rho;
-    dPdW = ( dPdeps_o_rho/(1.+dPdeps_o_rho) )/gamma_sq;
+  //   // Now compute dP/dW
+  //   const CCTK_REAL dPdeps_o_rho = dPdeps/rho;
+  //   dPdW = ( dPdeps_o_rho/(1.+dPdeps_o_rho) )/gamma_sq;
 
-    // And finally dP/d(v^{2})
-    const CCTK_REAL dPdvsq_1 = -0.5*harm_aux.D*harm_aux.gamma*dPdrho;
-    const CCTK_REAL dPdvsq_2 = -0.5*(W + prs*gamma_sq)/rho;
-    dPdvsq = (dPdvsq_1 + dPdeps*dPdvsq_2)/(1+dPdeps_o_rho);
-  }
+  //   // And finally dP/d(v^{2})
+  //   const CCTK_REAL dPdvsq_1 = -0.5*harm_aux.D*harm_aux.gamma*dPdrho;
+  //   const CCTK_REAL dPdvsq_2 = -0.5*(W + prs*gamma_sq)/rho;
+  //   dPdvsq = (dPdvsq_1 + dPdeps*dPdvsq_2)/(1+dPdeps_o_rho);
+  // }
 
   // These expressions were calculated using Mathematica, but made into efficient
   // code using Maple.  Since we know the analytic form of the equations, we can

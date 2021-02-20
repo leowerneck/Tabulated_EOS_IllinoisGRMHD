@@ -221,7 +221,7 @@ void NR_step_2D_WT( const igm_eos_parameters eos,
   double dPdT     = 0.0;
   double depsdrho = 0.0;
   double depsdT   = 0.0;
-  WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_depsdT_from_rho_Ye_T(rho,ye,T,&P,&eps,&dPdrho,&dPdT,&depsdrho,&depsdT);
+  WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T(rho,ye,T,&P,&eps,&dPdrho,&dPdT,&depsdrho,&depsdT);
 
   // h = 1 + eps + P/rho
   double h     = 1.0 + eps + P / rho;

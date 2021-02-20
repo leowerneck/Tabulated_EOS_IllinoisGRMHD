@@ -6,6 +6,7 @@ inherits: ADMBase, Boundary, SpaceMask, Tmunubase, HydroBase, grid
 includes header: IllinoisGRMHD_headers.h in IllinoisGRMHD_headers.h
 
 USES INCLUDE: Symmetry.h
+USES INCLUDE HEADER: WVU_EOS_Tabulated_headers.hh
 
 public:
 
@@ -258,10 +259,20 @@ void FUNCTION WVU_EOS_P_S_and_T_from_rho_Ye_eps( CCTK_REAL IN rho, \
                                                  CCTK_REAL IN Ye,  \
                                                  CCTK_REAL IN eps, \
                                                  CCTK_REAL OUT P,  \
-                                                 CCTK_REAL OUT S,
+                                                 CCTK_REAL OUT S,  \
                                                  CCTK_REAL OUT T )
 
 USES FUNCTION WVU_EOS_P_S_and_T_from_rho_Ye_eps
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_P_S_T_and_depsdT_from_rho_Ye_eps( CCTK_REAL IN rho,     \
+                                                        CCTK_REAL IN Ye,      \
+                                                        CCTK_REAL IN eps,     \
+                                                        CCTK_REAL OUT P,      \
+                                                        CCTK_REAL OUT S,      \
+                                                        CCTK_REAL OUT depsdT, \
+                                                        CCTK_REAL OUT T )
+
+USES FUNCTION WVU_EOS_P_S_T_and_depsdT_from_rho_Ye_eps
 # ------------------------------------------------------
 void FUNCTION WVU_EOS_eps_S_and_T_from_rho_Ye_P( CCTK_REAL IN rho,  \
                                                  CCTK_REAL IN Ye,   \
@@ -282,4 +293,11 @@ void FUNCTION WVU_EOS_P_eps_and_T_from_rho_Ye_S( CCTK_REAL IN rho,  \
 USES FUNCTION WVU_EOS_P_eps_and_T_from_rho_Ye_S
 # ------------------------------------------------------
 
+public:
 CCTK_INT igm_eos_key TYPE=SCALAR "EOS key - Used to select between hybrid and tabulated EOS"
+
+################
+### EOS_Omni ###
+################
+CCTK_INT FUNCTION EOS_Omni_GetHandle(CCTK_STRING IN name)
+USES FUNCTION EOS_Omni_GetHandle

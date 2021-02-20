@@ -1,4 +1,0 @@
-SRCS = ZelmaniLeak_Tmunu.cc \
-       ZelmaniLeak_calc_grr.cc \
-       ZelmaniLeak_tau.cc \
-       ZelmaniLeak_helpers.cc

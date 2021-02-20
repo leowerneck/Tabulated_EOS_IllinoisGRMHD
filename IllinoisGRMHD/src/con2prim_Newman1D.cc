@@ -153,7 +153,7 @@ void newman( const igm_eos_parameters eos,
     // If got_temp_from != None, then that means we tried to use
     // the entropy and the recovery failed. So it is safe to
     // skip the depsdT check and use a more efficient EOS call.
-    WVU_EOS_P_and_eps_from_rho_Ye_and_T( xrho,xye,xtemp, &xprs,&xeps );
+    WVU_EOS_P_and_eps_from_rho_Ye_T( xrho,xye,xtemp, &xprs,&xeps );
     
   }
 
@@ -335,8 +335,8 @@ void newman( const igm_eos_parameters eos,
     prim[EPS] = fmax(prim[EPS], eos.eps_min);
     // Then compute P, S, and T using (rho,Ye,eps)
     prim[TEMP] = eos.T_atm;
-    WVU_EOS_P_S_and_T_from_rho_Ye_and_eps( prim[RHO],prim[YE],prim[EPS],
-                                           &prim[PRESS],&prim[ENT],&prim[TEMP] );
+    WVU_EOS_P_S_and_T_from_rho_Ye_eps( prim[RHO],prim[YE],prim[EPS],
+                                       &prim[PRESS],&prim[ENT],&prim[TEMP] );
   }
   
   

@@ -9,11 +9,7 @@
 #include "cctk_Functions.h"
 
 #include "IllinoisGRMHD_headers.h"
-
-namespace nuc_eos_private {
-  extern int nrho,nye,ntemp;
-  extern double * restrict alltables;
-}
+#include "WVU_EOS_Tabulated_headers.hh"
 
 //--------------------------------------
 
@@ -32,7 +28,7 @@ CCTK_REAL get_EOS_table_max( const int which_var ) {
   CCTK_REAL var_max_value = alltables[which_var];
 
   for(int i=0;i<totalsize;i++) {
-    CCTK_REAL var_aux = alltables[which_var + NTABLES*i];
+    CCTK_REAL var_aux = alltables[which_var + WVU_EOS::ntables*i];
     if( var_aux > var_max_value ) var_max_value = var_aux;
   }
   return var_max_value;
@@ -54,7 +50,7 @@ CCTK_REAL get_EOS_table_min( const int which_var ) {
   CCTK_REAL var_min_value = alltables[which_var];
 
   for(int i=0;i<totalsize;i++) {
-    CCTK_REAL var_aux = alltables[which_var + NTABLES*i];
+    CCTK_REAL var_aux = alltables[which_var + WVU_EOS::ntables*i];
     if( var_aux < var_min_value ) var_min_value = var_aux;
   }
   return var_min_value;
@@ -197,7 +193,7 @@ void compute_remaining_prims_on_right_and_left_face( const igm_eos_parameters eo
         else if( eos.PPM_reconstructed_var == EPSILON ) {
           CCTK_REAL xprsR  = 0.0;
           CCTK_REAL xepsR  = out_prims_r[EPSILON].gf[index];
-          WVU_EOS_P_S_and_T_from_rho_Ye_and_eps( xrhoR,xyeR,xepsR, &xprsR,&xentR,&xtempR );
+          WVU_EOS_P_S_and_T_from_rho_Ye_eps( xrhoR,xyeR,xepsR, &xprsR,&xentR,&xtempR );
           out_prims_r[PRESSURE ].gf[index] = xprsR;
         }
         out_prims_r[TEMPERATURE].gf[index] = xtempR;

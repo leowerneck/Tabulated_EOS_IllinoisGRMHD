@@ -182,7 +182,7 @@ void calc_WZT_max( const igm_eos_parameters eos,
   CCTK_REAL xye   = con[YE]/con[DD];
   CCTK_REAL xtemp = eos.T_max; // initial guess, choose large enough
   CCTK_REAL xprs  = 0.0;
-  WVU_EOS_P_and_T_from_rho_Ye_and_eps( rhomax,xye,epsmax, &xprs,&xtemp );
+  WVU_EOS_P_and_T_from_rho_Ye_eps( rhomax,xye,epsmax, &xprs,&xtemp );
 
   // Now set W_max and T_max
   xmax[0] = 1.0e4;
@@ -262,7 +262,7 @@ void NR_step_3D_eps( const igm_eos_parameters eos,
   CCTK_REAL xdPdT     = 0.0;
   CCTK_REAL xdepsdrho = 0.0;
   CCTK_REAL xdepsdT   = 0.0;
-  WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_depsdT_from_rho_Ye_and_T(xrho,xye,T,&xprs,&xeps,&xdPdrho,&xdPdT,&xdepsdrho,&xdepsdT);
+  WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T(xrho,xye,T,&xprs,&xeps,&xdPdrho,&xdPdT,&xdepsdrho,&xdepsdT);
 
   // Some useful auxiliary variables
   CCTK_REAL BdotSsqr       = BdotS*BdotS;
@@ -392,7 +392,7 @@ void NR_step_3D_P( const igm_eos_parameters eos,
   CCTK_REAL xdPdT     = 0.0;
   CCTK_REAL xdepsdrho = 0.0;
   CCTK_REAL xdepsdT   = 0.0;
-  WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_depsdT_from_rho_Ye_T(xrho,xye,T,&xprs,&xeps,&xdPdrho,&xdPdT,&xdepsdrho,&xdepsdT);
+  WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T(xrho,xye,T,&xprs,&xeps,&xdPdrho,&xdPdT,&xdepsdrho,&xdepsdT);
 
   // Some useful auxiliary variables
   CCTK_REAL BdotSsqr       = BdotS*BdotS;

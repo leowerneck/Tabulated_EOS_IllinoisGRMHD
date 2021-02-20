@@ -351,7 +351,6 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
     
   }
 
-  CCTK_VInfo(CCTK_THORNSTRING,"All done!");
-  // CCTK_VInfo(CCTK_THORNSTRING,"All done! Terminating the run.");
-  // exit(1);
+  CCTK_VInfo(CCTK_THORNSTRING,"All done! Terminating the run.");
+  exit(1);
 }
