@@ -142,7 +142,7 @@ void calc_WT_max( const igm_eos_parameters eos,
   double xye   = con[YE]/con[DD];
   double xtemp = eos.T_max; // initial guess, choose large enough
   double xprs  = 0.0;
-  get_P_and_T_from_rho_Ye_and_eps( eos, rhomax,xye,epsmax, &xprs,&xtemp );
+  WVU_EOS_P_and_T_from_rho_Ye_eps( rhomax,xye,epsmax, &xprs,&xtemp );
 
   // Now set W_max and T_max
   xmax[0] = 1.0e4;
@@ -171,7 +171,7 @@ void calc_prim_from_x_2D_WT( const igm_eos_parameters eos,
   double xtemp = T;
   double xeps  = 0.0;
   double xprs  = 0.0;  
-  get_P_and_eps_from_rho_Ye_and_T(eos, xrho,xye,xtemp, &xprs,&xeps );
+  WVU_EOS_P_and_eps_from_rho_Ye_T( xrho,xye,xtemp, &xprs,&xeps );
   
   double Z = con[DD] * (1.0 + xeps + xprs/xrho) * W;
 
@@ -221,7 +221,7 @@ void NR_step_2D_WT( const igm_eos_parameters eos,
   double dPdT     = 0.0;
   double depsdrho = 0.0;
   double depsdT   = 0.0;
-  get_P_eps_dPdrho_dPdT_depsdrho_depsdT_from_rho_Ye_and_T(eos,rho,ye,T,&P,&eps,&dPdrho,&dPdT,&depsdrho,&depsdT);
+  WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_depsdT_from_rho_Ye_T(rho,ye,T,&P,&eps,&dPdrho,&dPdT,&depsdrho,&depsdT);
 
   // h = 1 + eps + P/rho
   double h     = 1.0 + eps + P / rho;
