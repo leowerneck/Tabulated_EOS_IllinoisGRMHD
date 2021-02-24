@@ -130,7 +130,7 @@ void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,i
   // Finally, get the maximum entropy
   const CCTK_REAL eos_entmax = get_EOS_table_max( table_key_entropy );
   // Now set the EOS struct variables
-  eos.rho_max = eos_rhomax  * igm_eos_table_ceiling_safety_factor;
+  eos.rho_max = MIN(rho_b_max,eos_rhomax  * igm_eos_table_ceiling_safety_factor);
   eos.Ye_max  = eos_yemax   * igm_eos_table_ceiling_safety_factor;
   eos.T_max   = eos_tempmax * igm_eos_table_ceiling_safety_factor;
   eos.P_max   = eos_prsmax  * igm_eos_table_ceiling_safety_factor;
