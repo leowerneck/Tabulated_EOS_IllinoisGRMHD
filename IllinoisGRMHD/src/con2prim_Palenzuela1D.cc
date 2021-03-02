@@ -90,7 +90,6 @@ inline CCTK_REAL simple_rel_err( const CCTK_REAL a, const CCTK_REAL b ) {
   if     ( a != 0.0 ) return( fabs(1.0 - b/a) );
   else if( b != 0.0 ) return( fabs(1.0 - a/b) );
   else                return(       0.0       );
-  
 }
 
 inline int check_depsdT_condition( const igm_eos_parameters eos,

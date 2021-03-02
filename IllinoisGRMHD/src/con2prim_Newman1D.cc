@@ -53,6 +53,12 @@ static inline void raise_or_lower_indices_3d( const CCTK_REAL *restrict vecD_or_
   }
 }
 
+static inline CCTK_REAL simple_rel_err( const CCTK_REAL a, const CCTK_REAL b ) {
+  if     ( a != 0.0 ) return( fabs(1.0 - b/a) );
+  else if( b != 0.0 ) return( fabs(1.0 - a/b) );
+  else                return(       0.0       );
+}
+
 int con2prim_Newman1D( const igm_eos_parameters eos,
                        const CCTK_REAL *restrict adm_quantities,
                        const CCTK_REAL *restrict con,
@@ -83,6 +89,22 @@ int con2prim_Newman1D( const igm_eos_parameters eos,
   CCTK_REAL S_squared = 0.0;
   for(int i=0;i<3;i++) S_squared += SU[i] * SD[i];
 
+  // Enforce ceiling on S^{2} (A5 of Palenzuela et al. https://arxiv.org/pdf/1505.01607.pdf)
+  CCTK_REAL S_squared_max = SQR(con[DD] + con[TAU]);
+  if( S_squared > 0.9999 * S_squared_max ) {
+    // Compute rescaling factor
+    CCTK_REAL rescale_factor_must_be_less_than_one = sqrt(0.9999*S_squared_max/S_squared);
+    // Rescale S_{i}
+    for(int i=0;i<3;i++) SD[i] *= rescale_factor_must_be_less_than_one;
+    // S_{i} has been rescaled. Recompute S^{i}.
+    raise_or_lower_indices_3d( SD,gammaUU, SU );
+    // Now recompute S^{2} := gamma^{ij}S^{i}S_{j}.
+    S_squared = 0.0;
+    for(int i=0;i<3;i++) S_squared += SU[i] * SD[i];
+    // Check if the fix was successful
+    if( simple_rel_err(S_squared,0.9999*S_squared_max) > 1e-12 ) CCTK_VError(VERR_DEF_PARAMS,"Incompatible values of S_squared after rescaling: %.15e %.15e\n",S_squared,0.9999*S_squared_max);
+  }
+
   // Need to calculate for (21) and (22) in Cerda-Duran 2008
   // B * S = B^i * S_i
   CCTK_REAL BdotS = 0.0;
@@ -92,7 +114,7 @@ int con2prim_Newman1D( const igm_eos_parameters eos,
   CCTK_REAL B_squared = 0.0;
   for(int i=0;i<3;i++) B_squared += BU[i] * BD[i];
 
-  const CCTK_REAL tol_x = 1e-12;
+  const CCTK_REAL tol_x = 1e-10;
   bool c2p_failed = false;
   CCTK_INT got_temp_from = None;
   newman(eos,tol_x,S_squared,BdotS,B_squared,SU,con,prim,got_temp_from,c2p_failed);
@@ -340,8 +362,6 @@ void newman( const igm_eos_parameters eos,
     WVU_EOS_P_S_and_T_from_rho_Ye_eps( prim[RHO],prim[YE],prim[EPS],
                                        &prim[PRESS],&prim[ENT],&prim[TEMP] );
   }
-  
-  
 
   if (step >= maxsteps) c2p_failed = true;
 
