@@ -1,0 +1,70 @@
+# Schedule definitions for thorn VolumeIntegrals
+# $Header:$
+
+STORAGE: VolIntegrands,VolIntegrals,MovingSphRegionIntegrals,IntegralCounterVar,VolIntegrals_vacuum_time
+
+
+##### FILE OUTPUT STUFF #####
+if(enable_file_output) {
+SCHEDULE file_output_routine_Startup AT CCTK_INITIAL
+{
+  LANG: C
+} "Create directory for file output."
+
+# In case we change our mind about disabling file output, at a checkpoint.
+SCHEDULE file_output_routine_Startup AT CCTK_POST_RECOVER_VARIABLES
+{
+  LANG: C
+} "Create directory for file output."
+
+
+}
+#############################
+
+SCHEDULE InitializeIntegralCounterToZero AT CCTK_INITIAL
+{
+  LANG: C
+  OPTIONS: GLOBAL
+} "Initialize IntegralCounter variable to zero"
+
+SCHEDULE InitializeIntegralCounterToZero AT CCTK_POST_RECOVER_VARIABLES
+{
+  LANG: C
+  OPTIONS: GLOBAL
+} "Initialize IntegralCounter variable to zero"
+
+SCHEDULE InitializeIntegralCounter before VolumeIntegralGroup AT CCTK_ANALYSIS
+{
+  LANG: C
+  OPTIONS: GLOBAL
+} "Initialize IntegralCounter variable"
+
+##################
+SCHEDULE GROUP VolumeIntegralGroup AT CCTK_ANALYSIS BEFORE CarpetLib_printtimestats BEFORE CarpetLib_printmemstats WHILE VolumeIntegrals_vacuum::IntegralCounter
+{
+} "Evaluate all volume integrals"
+
+SCHEDULE VolumeIntegrals_vacuum_ComputeIntegrand in VolumeIntegralGroup before DoSum
+{
+  STORAGE: VolIntegrands,VolIntegrals,MovingSphRegionIntegrals
+  OPTIONS: GLOBAL,LOOP-LOCAL
+  LANG: C
+} "Compute Integrand"
+
+SCHEDULE DoSum in VolumeIntegralGroup after VolumeIntegrals_vacuum_ComputeIntegrand
+{
+  OPTIONS: GLOBAL
+  LANG: C
+} "Do Sum"
+#######
+SCHEDULE DecrementIntegralCounter in VolumeIntegralGroup after DoSum
+{
+  LANG: C
+  OPTIONS: GLOBAL
+} "Decrement IntegralCounter variable"
+##################
+SCHEDULE VI_vacuum_file_output after VolumeIntegralGroup AT CCTK_ANALYSIS
+{
+  LANG: C
+  OPTIONS: GLOBAL
+} "Output VolumeIntegral results to disk"

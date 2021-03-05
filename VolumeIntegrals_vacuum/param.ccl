@@ -1,0 +1,163 @@
+# Parameter definitions for thorn VolumeIntegrals
+# $Header:$
+
+shares: grid
+
+USES KEYWORD domain
+
+
+private:
+
+###################################################
+# The following variables set the BSSN constraint #
+# gridfunctions that will be used by this thorn   #
+###################################################
+CCTK_STRING HamiltonianVarString "Hamiltonian constraint variable name" STEERABLE = RECOVER
+{
+  "ML_BSSN::H"        :: "ML_BSSN thorn Hamiltonian constraint gridfunction name"
+  "Baikal::HGF"       :: "Baikal thorn Hamiltonian constraint gridfunction name"
+  "BaikalVacuum::HGF" :: "BaikalVacuum thorn Hamiltonian constraint gridfunction name"
+  "LeanBSSNMoL::hc"   :: "LeanBSSNMoL thorn Hamiltonian constraint gridfunction name"
+  ".+"                :: "Or use you can use your own thorn's Hamiltonian constraint gridfunction name"
+} "ML_BSSN::H"
+
+CCTK_STRING Momentum0VarString "Momentum constraint variable name (x-direction)" STEERABLE = RECOVER
+{
+  "ML_BSSN::M1"         :: "ML_BSSN thorn momentum constraint gridfunction name"
+  "Baikal::MU0GF"       :: "Baikal thorn momentum constraint gridfunction name"
+  "BaikalVacuum::MU0GF" :: "BaikalVacuum thorn momentum constraint gridfunction name"
+  "LeanBSSNMoL::mcx"    :: "LeanBSSNMoL thorn momentum constraint gridfunction name"
+  ".+"                  :: "Or use you can use your own thorn's momentum constraint gridfunction name"
+} "ML_BSSN::M1"
+
+CCTK_STRING Momentum1VarString "Momentum constraint variable name (y-direction)" STEERABLE = RECOVER
+{
+  "ML_BSSN::M2"         :: "ML_BSSN thorn momentum constraint gridfunction name"
+  "Baikal::MU1GF"       :: "Baikal thorn momentum constraint gridfunction name"
+  "BaikalVacuum::MU1GF" :: "BaikalVacuum thorn momentum constraint gridfunction name"
+  "LeanBSSNMoL::mcy"    :: "LeanBSSNMoL thorn momentum constraint gridfunction name"
+  ".+"                  :: "Or use you can use your own thorn's momentum constraint gridfunction name"
+} "ML_BSSN::M2"
+
+CCTK_STRING Momentum2VarString "Momentum constraint variable name (z-direction)" STEERABLE = RECOVER
+{
+  "ML_BSSN::M3"         :: "ML_BSSN thorn momentum constraint gridfunction name"
+  "Baikal::MU2GF"       :: "Baikal thorn momentum constraint gridfunction name"
+  "BaikalVacuum::MU2GF" :: "BaikalVacuum thorn momentum constraint gridfunction name"
+  "LeanBSSNMoL::mcz"    :: "LeanBSSNMoL thorn momentum constraint gridfunction name"
+  ".+"                  :: "Or use you can use your own thorn's momentum constraint gridfunction name"
+} "ML_BSSN::M3"
+###################################################
+
+CCTK_INT enable_file_output "Enable output file" STEERABLE = RECOVER
+{
+  0:1 :: "0 = no output; 1 = yes, output to file"
+} 1
+
+STRING outVolIntegral_dir "Output directory for volume integration output files, overrides IO::out_dir" STEERABLE = RECOVER
+{
+  ".+" :: "A valid directory name"
+  "^$" :: "An empty string to choose the default from IO::out_dir"
+} ""
+
+CCTK_INT VolIntegral_out_every "How often to compute volume integrals?" STEERABLE = ALWAYS
+{
+  0:1000 :: "zero (disable integration) or some other number"
+} 0
+
+CCTK_INT NumIntegrals "Number of volume integrals to perform" STEERABLE = ALWAYS
+{
+  0:1000 :: "zero (disable integration) or some other number"
+} 0
+
+keyword Integration_quantity_keyword[101] "Which quantity to integrate" STEERABLE = ALWAYS
+{
+"nothing"                 :: "Default, null parameter"
+"H_M_CnstraintsL2"        :: "Hamiltonian^2, Momentum^2"
+"usepreviousintegrands"   :: "Use integrands from step(s) immediately preceeding. Useful for Swiss-cheese-type volume integrations."
+"centeroflapse"           :: "Center of Lapse"
+"one"                     :: "Integrand = 1. Useful for debugging"
+"ADM_Mass"		  :: "ADM Mass"
+"ADM_Momentum"	 	  :: "ADM Momentum"
+"ADM_Angular_Momentum"	  :: "ADM Angular Momentum"
+} "nothing"
+
+########################################
+
+CCTK_INT volintegral_usepreviousintegrands_num_integrands[101] "Number of integrands for usepreviousintegrands, must be specified explicitly as information from previous integrand is not passed." STEERABLE = ALWAYS
+{
+  0:100 :: "Default is set to the maximum, 4."
+} 4
+
+
+########################################
+CCTK_REAL volintegral_sphere__center_x_initial[101] "Volume integral in a spherical region: x-coord of center(s)" STEERABLE=ALWAYS
+{
+  *:* :: "Any number"
+} 0
+
+CCTK_REAL volintegral_sphere__center_y_initial[101] "Volume integral in a spherical region: y-coord of center(s)" STEERABLE=ALWAYS
+{
+  *:* :: "Any number"
+} 0
+
+CCTK_REAL volintegral_sphere__center_z_initial[101] "Volume integral in a spherical region: z-coord of center(s)" STEERABLE=ALWAYS
+{
+  *:* :: "Any number"
+} 0
+
+########################################
+
+CCTK_REAL volintegral_inside_sphere__radius[101] "Volume integral in a spherical region: radius of spherical region" STEERABLE=ALWAYS
+{
+  *:* :: "Any number"
+} 0
+CCTK_REAL volintegral_outside_sphere__radius[101] "Volume integral outside a spherical region: radius of spherical region" STEERABLE=ALWAYS
+{
+  *:* :: "Any number"
+} 0
+
+########################################
+
+CCTK_INT amr_centre__tracks__volintegral_inside_sphere[101] "Use output from volume integral to move AMR box centre N." STEERABLE = ALWAYS
+{
+  -1:100 :: "-1 = do not track an AMR box centre. Otherwise track AMR box centre number N = [0,100]"
+} -1
+
+
+CCTK_INT volintegral_sphere__tracks__amr_centre[101] "Volume integral tracks AMR box centre N." STEERABLE = ALWAYS
+{
+  -1:100 :: "-1 = do not track an AMR box centre. Otherwise track AMR box centre number N = [0,100]"
+} -1
+
+
+########################################
+
+CCTK_INT verbose "Set verbosity level: 1=useful info; 2=moderately annoying (though useful for debugging)" STEERABLE=ALWAYS
+{
+  0:2 :: "0 = no output; 1=useful info; 2=moderately annoying (though useful for debugging)"
+} 1
+
+#############################################################################
+
+BOOLEAN enable_time_reparameterization "Enable time reparameterization a la http://arxiv.org/abs/1404.6523" STEERABLE = ALWAYS
+{
+} "no"
+
+CCTK_REAL VIv_time_reparam_t0 "Time reparameterization parameter t_0: Center of time reparameterization curve. SET TO BE SAME AS IN ImprovedPunctureGauge thorn"
+{
+ 0:* :: "Probably don't want to set this <0, so >=0 enforced"
+} 10.0
+
+CCTK_REAL VIv_time_reparam_w "Time reparameterization parameter w: Width of time reparameterization curve. SET TO BE SAME AS IN ImprovedPunctureGauge thorn"
+{
+ 0:* :: "Probably don't want to set this <0, so >=0 enforced"
+} 5.0
+
+
+#############################################################################
+### import IOUtil parameters
+#############################################################################
+shares: IO
+
+USES STRING out_dir

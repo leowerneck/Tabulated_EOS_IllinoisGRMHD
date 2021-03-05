@@ -1,0 +1,8 @@
+# Main make.code.defn file for thorn VolumeIntegrals
+# $Header:$
+
+# Source files in this directory
+SRCS = evaluate_integrands_local.C Initialize_or_Decrement_IntegralCounter.C perform_integration_sum_global.C file_output_routines.C number_of_reductions.C
+
+# Subdirectories containing source files
+SUBDIRS = 
