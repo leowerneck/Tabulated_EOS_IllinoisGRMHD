@@ -15,21 +15,21 @@
 
 #include "IllinoisGRMHD_headers.h"
 
-void con2prim_average_neighbor_conservatives( const cGH *restrict cctkGH,
-                                              const CCTK_INT i,
-                                              const CCTK_INT j,
-                                              const CCTK_INT k,
-                                              const CCTK_INT index,
-                                              const CCTK_INT *restrict cctk_lsh,
-                                              const CCTK_INT *restrict con2prim_failed_flag,
-                                              CCTK_REAL *restrict rho_star,
-                                              CCTK_REAL *restrict mhd_st_x,
-                                              CCTK_REAL *restrict mhd_st_y,
-                                              CCTK_REAL *restrict mhd_st_z,
-                                              CCTK_REAL *restrict tau,
-                                              CCTK_REAL *restrict Ye_star,
-                                              CCTK_REAL *restrict S_star,
-                                              CCTK_REAL *restrict CONSERVS_avg_neighbors ) {
+int con2prim_average_neighbor_conservatives( const cGH *restrict cctkGH,
+					     const CCTK_INT i,
+					     const CCTK_INT j,
+					     const CCTK_INT k,
+					     const CCTK_INT index,
+					     const CCTK_INT *restrict cctk_lsh,
+					     const CCTK_INT *restrict con2prim_failed_flag,
+					     CCTK_REAL *restrict rho_star,
+					     CCTK_REAL *restrict mhd_st_x,
+					     CCTK_REAL *restrict mhd_st_y,
+					     CCTK_REAL *restrict mhd_st_z,
+					     CCTK_REAL *restrict tau,
+					     CCTK_REAL *restrict Ye_star,
+					     CCTK_REAL *restrict S_star,
+					     CCTK_REAL *restrict CONSERVS_avg_neighbors ) {
 
   // Auxiliary variables
   const int Nx0 = cctk_lsh[0]-1;
@@ -85,7 +85,11 @@ void con2prim_average_neighbor_conservatives( const cGH *restrict cctkGH,
   // If not enough neighbors can be found, this mean that we have
   // many con2prim failures clustered in a region of the grid.
   // Probably best to just terminate the run.
-  if( number_of_neighbors < 4 ) CCTK_VError(VERR_DEF_PARAMS,"Could not find enough neighbors to perform the conservative average: %d. ABORTING!",number_of_neighbors);
+  // if( number_of_neighbors < 1 ) CCTK_VError(VERR_DEF_PARAMS,"Could not find enough neighbors to perform the conservative average: %d. ABORTING!",number_of_neighbors);
+  if( number_of_neighbors < 1 ) {
+    CCTK_VInfo(CCTK_THORNSTRING,"Could not find enough neighbors to perform the conservative average: %d. Attempting an ATM reset...",number_of_neighbors);
+    return number_of_neighbors;
+  }
 
   // Now just compute the average of the neighboring conservs
   const CCTK_REAL inv_num_neighbors = 1.0/((CCTK_REAL)number_of_neighbors);
@@ -93,5 +97,6 @@ void con2prim_average_neighbor_conservatives( const cGH *restrict cctkGH,
     CONSERVS_avg_neighbors[which_con] *= inv_num_neighbors;
 
   // All done!
+  return number_of_neighbors;
 
 }

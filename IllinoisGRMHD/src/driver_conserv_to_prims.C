@@ -1,4 +1,3 @@
-
 /* We evolve forward in time a set of functions called the
  *  "conservative variables", and any time the conserv's
  *  are updated, we must solve for the primitive variables
@@ -223,30 +222,41 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             if( c2p_fail_flag != 0 ) {
 
               // Average the conserved variables using the neighboring values
-              con2prim_average_neighbor_conservatives(cctkGH,i,j,k,index,cctk_lsh,con2prim_failed_flag,
-                                                      rho_star,mhd_st_x,mhd_st_y,mhd_st_z,tau,Ye_star,S_star,
-                                                      CONSERVS_avg_neighbors);
+              int neighbors = con2prim_average_neighbor_conservatives(cctkGH,i,j,k,index,cctk_lsh,con2prim_failed_flag,
+								      rho_star,mhd_st_x,mhd_st_y,mhd_st_z,tau,Ye_star,S_star,
+								      CONSERVS_avg_neighbors);
 
-              // We will attempt 4 fixes after the first attempt fails. These
-              // new attempts will use the following conservatives:
-              //
-              // C = 0.75*C + 0.25*<C_neighbors>
-              // C = 0.50*C + 0.50*<C_neighbors>
-              // C = 0.25*C + 0.75*<C_neighbors>
-              // C = 0.00*C + 1.00*<C_neighbors>
-              //
-              // Set the weights
-              CCTK_REAL C_weight           = 0.25*c2p_fail_flag;
-              CCTK_REAL one_minus_C_weight = 1.0 - C_weight;
+	      //if( neighbors > 1 ) {
 
-              // Then update the conservs
-              for(int which_con=0;which_con<NUM_CONSERVS;which_con++)
-                CONSERVS[which_con] = CONSERVS[which_con]*one_minus_C_weight + CONSERVS_avg_neighbors[which_con] * C_weight;
+		// We will attempt 4 fixes after the first attempt fails. These
+		// new attempts will use the following conservatives:
+		//
+		// C = 0.75*C + 0.25*<C_neighbors>
+		// C = 0.50*C + 0.50*<C_neighbors>
+		// C = 0.25*C + 0.75*<C_neighbors>
+		// C = 0.00*C + 1.00*<C_neighbors>
+		//
+		// Set the weights
+		CCTK_REAL C_weight           = 0.25*c2p_fail_flag;
+		CCTK_REAL one_minus_C_weight = 1.0 - C_weight;
+		
+		// Then update the conservs
+		for(int which_con=0;which_con<NUM_CONSERVS;which_con++)
+		  CONSERVS[which_con] = CONSERVS[which_con]*one_minus_C_weight + CONSERVS_avg_neighbors[which_con] * C_weight;
 
-              // Assume we won't need to fix this point again, so
-              // decrement the number of points that require the
-              // conservative averaging fix
-              num_of_conservative_averagings_needed--;
+		// Assume we won't need to fix this point again, so
+		// decrement the number of points that require the
+		// conservative averaging fix
+		num_of_conservative_averagings_needed--;
+		//}
+	      //else {
+		// Probably should terminate in this case, but let us reset to ATM for now.
+		// Simplest way is to set rhostar to a negative value.
+		//CONSERVS[RHOSTAR] = -1.0;
+		//num_of_conservative_averagings_needed--;
+		//con2prim_failed_flag[index] = 0;
+		//atm_resets++;
+		//}
 
             }
 
