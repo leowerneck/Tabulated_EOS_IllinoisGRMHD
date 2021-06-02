@@ -243,21 +243,21 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
                                        const CCTK_REAL *restrict cons,
                                        CCTK_REAL *restrict prim );
 
-void con2prim_average_neighbor_conservatives( const cGH *restrict cctkGH,
-                                              const CCTK_INT i,
-                                              const CCTK_INT j,
-                                              const CCTK_INT k,
-                                              const CCTK_INT index,
-                                              const CCTK_INT *restrict cctk_lsh,
-                                              const CCTK_INT *restrict con2prim_failed_flag,
-                                              CCTK_REAL *restrict rho_star,
-                                              CCTK_REAL *restrict mhd_st_x,
-                                              CCTK_REAL *restrict mhd_st_y,
-                                              CCTK_REAL *restrict mhd_st_z,
-                                              CCTK_REAL *restrict tau,
-                                              CCTK_REAL *restrict Ye_star,
-                                              CCTK_REAL *restrict S_star,
-                                              CCTK_REAL *restrict CONSERVS_avg_neighbors );
+int con2prim_average_neighbor_conservatives( const cGH *restrict cctkGH,
+					     const CCTK_INT i,
+					     const CCTK_INT j,
+					     const CCTK_INT k,
+					     const CCTK_INT index,
+					     const CCTK_INT *restrict cctk_lsh,
+					     const CCTK_INT *restrict con2prim_failed_flag,
+					     CCTK_REAL *restrict rho_star,
+					     CCTK_REAL *restrict mhd_st_x,
+					     CCTK_REAL *restrict mhd_st_y,
+					     CCTK_REAL *restrict mhd_st_z,
+					     CCTK_REAL *restrict tau,
+					     CCTK_REAL *restrict Ye_star,
+					     CCTK_REAL *restrict S_star,
+					     CCTK_REAL *restrict CONSERVS_avg_neighbors );
 
 /********************************************************************************************/
 
