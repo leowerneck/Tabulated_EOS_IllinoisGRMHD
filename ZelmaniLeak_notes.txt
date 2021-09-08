@@ -1,0 +1,28 @@
+File changes between original ZelmaniLeak thorn and Spritz's version of
+the thorn. This will help us keep track of the changes that have already
+been completed in IllinoisGRMHD.
+
+.---------------------.---------.--------------.
+|      Filename       | Status  |   Comments   |
+.---------------------.---------.--------------.
+.---------------------.---------.--------------.
+| tau.cc              |  Done   | Modification |
+.---------------------.---------.--------------.
+| output-control.cc   | Pending |   Addition   |
+.---------------------.---------.--------------.
+| outputsettings.cc   | Pending |   Addition   |
+.---------------------.---------.--------------.
+| neutrino-pressure.c |  Done   | Modification |
+.---------------------.---------.--------------.
+| paramcheck.c        | Pending |   Addition   |
+.---------------------.---------.--------------.
+| calc-pnu.F90        | Pending | Modification |
+.---------------------.---------.--------------.
+| calc-taus.F90       | Pending | Modification |
+.---------------------.---------.--------------.
+| startup.F90         | Pending | Modification |
+.---------------------.---------.--------------.
+| Tmunu.F90           | Pending | Modification |
+.---------------------.---------.--------------.
+| calc-leak.F90       | Pending | Modification |
+.---------------------.---------.--------------.
