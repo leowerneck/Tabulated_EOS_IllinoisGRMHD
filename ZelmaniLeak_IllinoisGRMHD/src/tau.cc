@@ -47,6 +47,27 @@ void ZLtau_setup_local(CCTK_ARGUMENTS) {
     }
   }
 
+  /******************************************/
+  /* Leo says: Modification of the original */
+  /* ZelmaniLeak thorn, based on Spritz     */
+  /******************************************/
+  if(CCTK_QueryGroupStorage(cctkGH,"ZelmaniLeak::luminosity_local")) {
+    for(int i=0;i<cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2];i++) { //*3
+      lum_nue[i] = 0.0e0;
+      lum_nua[i] = 0.0e0;
+      lum_nux[i] = 0.0e0;
+    }
+  }
+
+  if(CCTK_QueryGroupStorage(cctkGH,"ZelmaniLeak::luminosity_infinity_local")) {
+    for(int i=0;i<cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2];i++) { //*3
+      lum_inf_nue[i] = 0.0e0;
+      lum_inf_nua[i] = 0.0e0;
+      lum_inf_nux[i] = 0.0e0;
+    }
+  }
+  /******************************************/
+
   CCTK_Info(CCTK_THORNSTRING,"Resetting leakage variables to zero");
 
 }
