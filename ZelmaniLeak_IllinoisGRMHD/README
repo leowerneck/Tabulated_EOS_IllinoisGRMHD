@@ -1,0 +1,13 @@
+Cactus Code Thorn ZelmaniLeak
+Author(s)    : Christian D. Ott, Frank Loeffler, Evan O'Connor, Roland Haas <cott@tapir.caltech.edu>
+Maintainer(s): Christian D. Ott, Frank Loeffler, Evan O'Connor, Roland Haas <cott@tapir.caltech.edu>
+Licence      : MIT
+--------------------------------------------------------------------------
+
+1. Purpose
+
+Compute neutrino leakage along radial rays as described in the following
+papers:
+
+http://adsabs.harvard.edu/abs/2012PhRvD..86b4026O
+http://adsabs.harvard.edu/abs/2013ApJ...768..115O

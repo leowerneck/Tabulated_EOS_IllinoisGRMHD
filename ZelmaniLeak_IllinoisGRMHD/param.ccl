@@ -1,0 +1,228 @@
+# Parameter definitions for thorn ZelmaniLeak
+
+######################################################################################
+# parameters controlling leakage
+CCTK_INT update_tau_every "how often to update tau" STEERABLE=ALWAYS
+{
+ 1:* :: ""
+} 1 
+
+BOOLEAN do_tau "are we doing tau?" STEERABLE=ALWAYS
+{
+} "no"
+
+BOOLEAN force_tau_interp "force interpolation for tau [for debugging]" STEERABLE=ALWAYS
+{
+} "no"
+
+BOOLEAN do_heat "are we including heating?" STEERABLE=ALWAYS
+{
+} "no"
+
+
+BOOLEAN leak_in_prebounce "are we leaking neutrinos in prebounce?" STEERABLE=ALWAYS
+{
+} "no"
+
+BOOLEAN start_with_clean_tau "wipe tau arrays after restart" STEERABLE=ALWAYS
+{
+} "no"
+
+CCTK_INT nrad "Number of radial grid points on equidistant part of tau grid" STEERABLE=ALWAYS
+{
+  0:* :: ""
+} 600
+
+CCTK_INT nrad_outer "Number of radial grid points on nonequidistant part of tau grid" STEERABLE=ALWAYS
+{
+  0:* :: ""
+} 300
+
+CCTK_INT ntheta "Number of grid points in the theta direction" STEERABLE=ALWAYS
+{
+  0:* :: ""
+} 3
+
+CCTK_INT nphi "Number of grid points in the phi direction" STEERABLE=ALWAYS
+{
+  0:* :: ""
+} 1
+
+CCTK_REAL rad_max "Maximum radius for equidistant part of tau" STEERABLE=always
+{
+  0:* :: ""
+} 300.0e0
+
+CCTK_REAL rad_max_outer "Maximum radius for non-equidistant part of tau" STEERABLE=always
+{
+  0:* :: ""
+} 2000.0
+
+CCTK_REAL min_temp "Minimum temperature to work with in leakage" STEERABLE=always
+{
+  0:* :: ""
+} 0.5e0
+
+CCTK_REAL f_heat "f_heat (heating factor)" STEERABLE=always
+{
+  0.0:* :: "better bigger or equal to zero"
+} 1.0e0
+
+KEYWORD symm "Symmetry"  STEERABLE=always
+{
+ "octant" :: "Octant symmetry"
+ "bitant" :: "Bitant symmetry"
+ "full"   :: "Full grid"
+} "full"
+
+STRING interpolator "Interpolator" STEERABLE=always
+{
+  "" :: "must be a registered interpolator"
+} "Lagrange polynomial interpolation"
+
+STRING interpolator_options "Options for the interpolator" STEERABLE=always
+{
+  "" :: "must be a valid options specification"
+} "order=2"
+
+STRING coordinate_system "Coordinate system" STEERABLE=always
+{
+  "" :: "must be a registered coordinate system"
+} "cart3d"
+
+######################################################################################
+# parameters controlling Pnu:
+
+CCTK_REAL pnu_rho_start "density at which we will start applying Pnu [cgs]" STEERABLE=ALWAYS
+{
+  (0.0d0:* :: "Should be greather than zero ..."
+} 2.0e12
+
+boolean do_pnu "include neutrino pressure" STEERABLE=ALWAYS
+{
+} "yes"
+
+boolean pnu_in_tmunu "include neutrino pressure in tmunu" STEERABLE=ALWAYS
+{
+} "yes"
+
+
+boolean include_enu_in_tmunu "include neutrino energy density" STEERABLE=ALWAYS
+{
+} "no"
+
+# parameters controlling Y_e fit:
+
+boolean do_ye_of_rho "do Y_e(rho)"
+{
+} "yes"
+
+boolean do_ye_of_rho_from_profile "Y_e(rho) from profile"
+{
+} "no"
+
+STRING Profile_File "Profile File Name" STEERABLE=ALWAYS
+{
+ .* ::  "1D rho ye File"
+} "blahyeprofile.dat"
+
+CCTK_INT Profile_Zones "Number of zones in the profile" STEERABLE=ALWAYS
+{
+ 1:* :: "better have more than 0 zones...eh?"
+} 500
+
+CCTK_INT Zones "Number of zones to use internally" STEERABLE=ALWAYS
+{
+ 1:* :: "better have more than 0 zones...eh?"
+} 1000
+
+CCTK_REAL yeofrho_rho1 "Y_e(rho) fit: log rho1 [CGS]"
+{
+  (0.0:* :: "Should be greater than zero..."
+} 3.0e7
+
+CCTK_REAL yeofrho_rho2 "Y_e(rho) fit: log rho2 [CGS]"
+{
+  (0.0:* :: "Should be greater than zero..."
+} 2.0e13
+
+CCTK_REAL yeofrho_ye1 "Y_e(rho) fit: ye1"
+{
+  (0.0:* :: "Should be greater than zero..."
+} 0.50e0
+
+
+CCTK_REAL yeofrho_ye2 "Y_e(rho) fit: ye2"
+{
+  (0.0:* :: "Should be greater than zero..."
+} 0.278e0
+
+CCTK_REAL yeofrho_yec "Y_e(rho) fit: yec -- correction parameter"
+{
+  (0.0:* :: "Should be greater than zero..."
+} 0.035e0
+
+BOOLEAN yeofrho_do_high_correction "Transition to linear fit at high densities" STEERABLE=ALWAYS
+{
+} "no"
+
+CCTK_REAL yeofrho_high_correction_ye "high-density Y_e" STEERABLE=ALWAYS
+{
+  (0.0:* :: "Should be greater than zero..."
+} 0.2717
+
+
+CCTK_REAL yeofrho_high_correction_rho "high-density rho" STEERABLE=ALWAYS
+{
+  (0.0:* :: "Should be greater than zero..."
+} 2.55e14
+
+######################################################################
+shares: GRHydro
+
+USES real GRHydro_eos_rf_prec ""
+{
+}
+
+USES boolean con2prim_oct_hack ""
+{
+}
+
+USES int GRHydro_stencil ""
+{
+}
+
+
+USES int GRHydro_c2p_warn_from_reflevel ""
+{
+}
+
+USES int sync_conserved_only
+USES REAL GRHydro_Y_e_min 
+USES REAL GRHydro_Y_e_max 
+USES REAL rho_abs_min
+USES REAL GRHydro_atmo_tolerance
+USES REAL GRHydro_hot_atmo_temp
+
+#######################################################################
+
+#########################################
+###  PARAMETRES SHARED FROM MoL       ###
+#########################################
+
+shares: MethodOfLines
+
+USES CCTK_INT MoL_Num_Evolved_Vars
+USES CCTK_INT MoL_Num_Constrained_Vars
+USES CCTK_INT MoL_Num_SaveAndRestore_Vars
+USES CCTK_INT MoL_Max_Evolved_Array_Size
+USES CCTK_INT MoL_Num_ArrayEvolved_Vars
+
+restricted:
+CCTK_INT ZelmaniLeak_MaxNumConstrainedVars "The maximum number of constrained variables used by ZelmaniLeak" ACCUMULATOR-BASE=MethodofLines::MoL_Num_Constrained_Vars
+{
+  15         :: "A small range, depending on testing or not"
+} 15
+
+
+

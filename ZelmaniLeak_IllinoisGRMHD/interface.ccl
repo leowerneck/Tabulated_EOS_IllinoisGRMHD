@@ -1,0 +1,129 @@
+# Interface definition for thorn ZelmaniLeak
+
+implements: ZelmaniLeak
+
+# TODO: remove dependence on CoreCollapseControl since CCC's bounce scalar
+# should only be used internally by it to control other thorns
+inherits: HydroBase ADMBase TmunuBase GRHydro CoreCollapseControl
+
+USES INCLUDE: Boundary.h
+
+CCTK_INT FUNCTION Boundary_SelectGroupForBC(CCTK_POINTER_TO_CONST IN GH, CCTK_INT IN faces, CCTK_INT IN boundary_width, CCTK_INT IN table_handle, CCTK_STRING IN group_name, CCTK_STRING IN bc_name)
+USES FUNCTION Boundary_SelectGroupForBC
+
+CCTK_INT FUNCTION Boundary_SelectVarForBC(CCTK_POINTER_TO_CONST IN GH, CCTK_INT IN faces, CCTK_INT IN boundary_width, CCTK_INT IN table_handle, CCTK_STRING IN var_name, CCTK_STRING IN bc_name)
+USES FUNCTION Boundary_SelectVarForBC
+
+void FUNCTION EOS_Omni_short(CCTK_INT IN eoskey,                \
+			     CCTK_INT IN havetemp,              \
+			     CCTK_REAL IN rf_precision,         \
+                             CCTK_INT IN npoints,               \
+			     CCTK_REAL IN ARRAY rho,     	\
+			     CCTK_REAL INOUT ARRAY eps,  	\
+			     CCTK_REAL INOUT ARRAY temp, 	\
+			     CCTK_REAL IN ARRAY ye,      	\
+			     CCTK_REAL OUT ARRAY press,		\
+			     CCTK_REAL INOUT ARRAY entropy,	\
+			     CCTK_REAL OUT ARRAY cs2,  		\
+			     CCTK_REAL OUT ARRAY dedt, 		\
+			     CCTK_REAL OUT ARRAY dpderho,	\
+			     CCTK_REAL OUT ARRAY dpdrhoe,	\
+			     CCTK_REAL OUT ARRAY munu,  	\
+			     CCTK_INT OUT ARRAY keyerr,   	\
+                             CCTK_INT OUT anyerr)
+
+USES FUNCTION EOS_Omni_short
+
+void FUNCTION EOS_Omni_full(CCTK_INT IN eoskey,                \
+			     CCTK_INT IN havetemp,              \
+			     CCTK_REAL IN rf_precision,         \
+                             CCTK_INT IN npoints,               \
+			     CCTK_REAL IN ARRAY rho,     	\
+			     CCTK_REAL INOUT ARRAY eps,  	\
+			     CCTK_REAL INOUT ARRAY temp, 	\
+			     CCTK_REAL IN ARRAY ye,      	\
+			     CCTK_REAL OUT ARRAY press,		\
+			     CCTK_REAL INOUT ARRAY entropy,	\
+			     CCTK_REAL OUT ARRAY cs2,  		\
+			     CCTK_REAL OUT ARRAY dedt, 		\
+			     CCTK_REAL OUT ARRAY dpderho,	\
+			     CCTK_REAL OUT ARRAY dpdrhoe,	\
+			     CCTK_REAL OUT ARRAY xa,            \
+                             CCTK_REAL OUT ARRAY xh,            \
+                             CCTK_REAL OUT ARRAY xn,            \
+                             CCTK_REAL OUT ARRAY xp,            \
+                             CCTK_REAL OUT ARRAY abar,          \
+                             CCTK_REAL OUT ARRAY zbar,          \
+                             CCTK_REAL OUT ARRAY mue,           \
+                             CCTK_REAL OUT ARRAY mun,           \
+                             CCTK_REAL OUT ARRAY mup,           \
+                             CCTK_REAL OUT ARRAY muhat,         \
+			     CCTK_INT OUT ARRAY keyerr,   	\
+                             CCTK_INT OUT anyerr)
+
+USES FUNCTION EOS_Omni_full
+
+
+CCTK_INT FUNCTION MoLQueryEvolvedRHS (CCTK_INT IN EvolvedIndex)
+REQUIRES FUNCTION MoLQueryEvolvedRHS
+
+CCTK_INT FUNCTION MoLRegisterConstrained(CCTK_INT IN ConstrainedIndex)
+USES FUNCTION MoLRegisterConstrained
+
+CCTK_REAL munu TYPE=GF TIMELEVELS=1 TAGS="checkpoint='no' prolongation='none'" "Approx nu chemical potential" 
+
+CCTK_REAL pnu TYPE=GF TIMELEVELS=1 TAGS="checkpoint='no' prolongation='none'" "Approx neutrino pressure" 
+
+CCTK_REAL ZLtau_grr TYPE=GF TIMELEVELS=3 TAGS="prolongation='none' tensortypealias='Scalar'" "grr metric component" 
+
+#CCTK_REAL energycheck TYPE=GF TIMELEVELS=3 tags='ProlongationParameter="HydroBase::prolongation_type" tensortypealias="Scalar" tensorweight=+1.0 interpolator="matter"' "variable to keep track of energy lost due to faked neutrinos" 
+
+
+# leakage stuff
+
+# optical depth parameters
+# Note: This array is replicated on all processes.
+# It is also calculated on all processes.
+# This probably needs to be parallelised.
+CCTK_REAL zelmani_interpolated_variables TYPE=array DIM=3 size=nrad+nrad_outer,ntheta,nphi DISTRIB=constant TAGS='Checkpoint="no"'
+{
+  zi_x zi_y zi_z
+  zi_rho zi_eps zi_temp zi_ye
+  zi_ds zi_grr
+} "Interpolated variables for calculating optical depth"
+
+CCTK_REAL zelmani_tau[3] TYPE=array DIM=3 size=nrad+nrad_outer,ntheta,nphi DISTRIB=constant TAGS='Checkpoint="yes"'
+{
+  zi_xiross, zi_tauruff, zi_heatflux, zi_lum_local
+}
+
+CCTK_REAL zelmani_heating_energies[3] TYPE=array DIM=2 size=ntheta,nphi DISTRIB=constant TAGS='Checkpoint="yes"'
+{
+  zi_heaterms, zi_heateave
+}
+
+CCTK_REAL tau3D[3] TYPE=GF TIMELEVELS=1 TAGS='prolongation="none" Checkpoint="yes"' "3D Optical depth"
+
+
+CCTK_REAL zelmani_leak_account_local[3] TYPE=GF TIMELEVELS=3 TAGS='prolongation="none" tensortypealias="Scalar" checkpoint="yes"' 
+{
+  lum_local, lum_int_local, net_heat_local, heat_local, eave_local
+} 
+
+CCTK_REAL zelmani_leak_account_global TYPE=SCALAR  
+{
+  lum_nue,lum_nua,lum_nux
+} 
+
+CCTK_REAL zelmani_tau_scalars TYPE=scalar TAGS='Checkpoint="yes"'
+{
+  x0,y0,z0,drad,dtheta,dphi,
+  heating_efficiency
+} "Origin of tau calculation"
+
+CCTK_REAL rad   TYPE=array DIM=1 size=nrad+nrad_outer  DISTRIB=constant TAGS='checkpoint="yes"'
+CCTK_REAL phi   TYPE=array DIM=1 size=nphi  DISTRIB=constant TAGS='checkpoint="yes"'
+CCTK_REAL theta TYPE=array DIM=1 size=ntheta DISTRIB=constant TAGS='checkpoint="yes"'
+
+CCTK_INT have_interp_data TYPE=scalar TAGS='checkpoint="no"'
+
