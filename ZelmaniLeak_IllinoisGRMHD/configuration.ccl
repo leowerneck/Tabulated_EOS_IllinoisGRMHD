@@ -1,8 +1,8 @@
 REQUIRES EOS_Omni CartGrid3D MPI
 REQUIRES THORNS: Boundary
 
-# we only require GRHydro if do_pnu is set
-OPTIONAL_IFACTIVE GRHydro
+# we only require IllinoisGRMHD if do_pnu is set
+OPTIONAL_IFACTIVE IllinoisGRMHD
 {
 }
 
