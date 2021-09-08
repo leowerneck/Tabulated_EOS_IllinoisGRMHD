@@ -2,9 +2,9 @@
 
 implements: ZelmaniLeak
 
-# TODO: remove dependence on CoreCollapseControl since CCC's bounce scalar
-# should only be used internally by it to control other thorns
-inherits: HydroBase ADMBase TmunuBase GRHydro CoreCollapseControl
+# Original
+# inherits: HydroBase ADMBase TmunuBase GRHydro CoreCollapseControl
+inherits: HydroBase ADMBase TmunuBase IllinoisGRMHD
 
 USES INCLUDE: Boundary.h
 
@@ -110,10 +110,19 @@ CCTK_REAL zelmani_leak_account_local[3] TYPE=GF TIMELEVELS=3 TAGS='prolongation=
   lum_local, lum_int_local, net_heat_local, heat_local, eave_local
 } 
 
-CCTK_REAL zelmani_leak_account_global TYPE=SCALAR  
+# Leo says: Previous group was unused, but is now used to
+#     store local luminosities in units of 10^51 erg/cm3/s
+CCTK_REAL luminosity_local TYPE=GF TIMELEVELS=1 TAGS='prolongation="none" Checkpoint="yes"' "Local luminosities in 10^51 erg/cm3/s"
 {
   lum_nue,lum_nua,lum_nux
-} 
+}
+
+# Leo says: New group used to store luminosities at infinity
+#           in units of 10^51 erg/cm3/s
+CCTK_REAL luminosity_infinity_local TYPE=GF TIMELEVELS=1 TAGS='prolongation="none" Checkpoint="yes"' "Local luminosities at infinity in 10^51 erg/cm3/s"
+{
+  lum_inf_nue,lum_inf_nua,lum_inf_nux
+}
 
 CCTK_REAL zelmani_tau_scalars TYPE=scalar TAGS='Checkpoint="yes"'
 {
@@ -127,3 +136,6 @@ CCTK_REAL theta TYPE=array DIM=1 size=ntheta DISTRIB=constant TAGS='checkpoint="
 
 CCTK_INT have_interp_data TYPE=scalar TAGS='checkpoint="no"'
 
+# Leo says: new variable, set to 1 after merger (replacing CoreCollapseControl)
+public:
+CCTK_INT in_merger TYPE=SCALAR "is 1 when in merger has happened"
