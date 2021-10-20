@@ -287,3 +287,8 @@ CCTK_BOOLEAN igm_con2prim_failure_verbose "Print information message if con2prim
 {
 } "yes"
 
+public:
+int IGM_stencil "Width of the stencil"
+{
+  0: :: "Must be positive"
+} 2
