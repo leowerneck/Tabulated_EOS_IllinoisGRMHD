@@ -59,8 +59,8 @@ subroutine ZelmaniLeak_startup_global(CCTK_ARGUMENTS)
 
   endif
 
-  if(rho_abs_min .lt. 0.0) then
-     call CCTK_WARN(0,"Must set GRHydro::rho_abs_min!")
+  if((rho_b_atm .lt. 0.0) .or. (rho_b_atm .gt. 1e100)) then
+     call CCTK_WARN(0,"Must set IllinoisGRMHD::rho_b_atm!")
   endif
 
 
