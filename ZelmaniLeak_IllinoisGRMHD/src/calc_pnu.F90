@@ -72,6 +72,8 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
 
   allocate(dpnudr(nx,ny,nz))
 
+  
+
   ! compute neutrino pressure
   ! do so only for densities about 1/10 of the density
   ! at which we want the neutrino pressure to be present
@@ -151,9 +153,9 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
      ! via a tanh at the transition density
      !
      !$OMP PARALLEL DO PRIVATE(i, j, k, detg, stress)
-     do k=GRHydro_stencil-1,nz-GRHydro_stencil+1
-        do j=GRHydro_stencil-1,ny-GRHydro_stencil+1
-           do i=GRHydro_stencil-1,nx-GRHydro_stencil+1
+     do k=IGM_stencil-1,nz-IGM_stencil+1
+        do j=IGM_stencil-1,ny-IGM_stencil+1
+           do i=IGM_stencil-1,nx-IGM_stencil+1
 
                  dpnudr(i,j,k) =  &
                       (  pnu(i+ixoffset,j+iyoffset,k+izoffset) -  &
