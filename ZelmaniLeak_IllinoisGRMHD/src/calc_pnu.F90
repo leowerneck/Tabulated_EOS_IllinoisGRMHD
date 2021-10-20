@@ -13,19 +13,18 @@
    + (gxx_)*(gyy_)*(gzz_))
 
 subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
-                                   rho,eps,temperature, &
-                                   entropy,y_e,munu,pnu,&
-                                   wlorentz, vel,&
-                                   alp, gxx,gxy,gxz,gyy,gyz,gzz,&
-                                   x,y,z,dx,dy,dz,&
-                                   nx,ny,nz,dtime)
+                               rho,eps,temperature, &
+                               entropy,y_e,munu,pnu,&
+                               wlorentz, vel,&
+                               alp, gxx,gxy,gxz,gyy,gyz,gzz,&
+                               x,y,z,dx,dy,dz,&
+                               nx,ny,nz,dtime)
 
   use EOS_Omni_module
 #ifdef HAVE_CAPABILITY_Fortran
   use cctk
 #endif
   implicit none
-  
 
   DECLARE_CCTK_PARAMETERS
   DECLARE_CCTK_FUNCTIONS
@@ -46,7 +45,7 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
   CCTK_REAL :: x(nx,ny,nz),y(nx,ny,nz),z(nx,ny,nz),dx,dy,dz
   CCTK_REAL :: dtime
 
-  ! EOS and other shit
+  ! EOS parameters
   integer   :: eoskey,keytemp,n,anyerr,keyerr(1)
   CCTK_REAL :: xdummy(1),xeps(1)
 
@@ -56,15 +55,13 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
   integer :: iflux,ixoffset,iyoffset,izoffset
   CCTK_REAL :: invdxyz
  
-  ! pnu vars:
+  ! pnu vars
   CCTK_REAL :: eta
   CCTK_REAL :: pnufac
   CCTK_REAL :: pnuconst, F3const, F3
   CCTK_REAL,allocatable :: dpnudr(:,:,:)
   CCTK_REAL, pointer :: srhs(:,:,:)
   CCTK_REAL :: detg, stress
-!  CCTK_REAL :: attfactor
-
 
   pnuconst = PRESS_NU_CONSTANT * press_gf
   F3const = 7.0d0*PI4/60.0d0

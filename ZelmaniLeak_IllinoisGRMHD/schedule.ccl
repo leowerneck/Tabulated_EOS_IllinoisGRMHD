@@ -1,6 +1,7 @@
 # Schedule definitions for thorn ZelmaniLeak
 
 STORAGE: munu
+STORAGE: in_merger # Leo says: Added
 
 if(do_tau || force_tau_interp) {
    STORAGE: zelmani_interpolated_variables

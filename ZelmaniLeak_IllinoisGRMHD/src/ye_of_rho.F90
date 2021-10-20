@@ -24,7 +24,7 @@ subroutine ZelmaniLeak_ye_of_rho(CCTK_ARGUMENTS)
   CCTK_REAL :: yeofrho_logrho2
   CCTK_REAL :: yeofrho_high_logrho
 
-  ! EOS and other shit
+  ! EOS parameters
   integer   :: eoskey 
   integer   :: keytemp 
   integer   :: n 
@@ -263,7 +263,7 @@ subroutine ZelmaniLeak_calc_entropy(CCTK_ARGUMENTS)
   CCTK_REAL :: yeofrho_logrho1 
   CCTK_REAL :: yeofrho_logrho2
 
-  ! EOS and other shit
+  ! EOS parameters
   integer   :: eoskey 
   integer   :: keytemp 
   integer   :: n 
