@@ -304,8 +304,8 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
 
   ! IGM stuff
   real*8 :: igm_yemin,igm_yemax
-  igm_yemin  = eos_yemin *igm_eos_table_floor_safety_factor
-  igm_yemax  = eos_yemax *igm_eos_table_ceiling_safety_factor
+  igm_yemin  = eos_yemin*igm_eos_table_floor_safety_factor
+  igm_yemax  = eos_yemax*igm_eos_table_ceiling_safety_factor
 
 
 !#############################
