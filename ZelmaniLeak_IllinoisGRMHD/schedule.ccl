@@ -10,6 +10,10 @@ if(do_tau || force_tau_interp) {
    STORAGE: zelmani_heating_energies
    STORAGE: rad,phi,theta
    STORAGE: tau3D[1]
+   # Leo says: Spritz MOD by LSADD
+   STORAGE: luminosity_local[1]
+   STORAGE: luminosity_infinity_local[1]
+   # Leo says: end of Spritz MOD by LSADD
    STORAGE: zelmani_leak_account_local[3]
    STORAGE: ZLtau_grr[3]
    STORAGE: have_interp_data
@@ -27,7 +31,7 @@ if(do_pnu) {
 
 schedule group ZelmaniLeakChangeYe AT CCTK_EVOL AFTER (MoL_Evolution,MoL_PseudoEvolution)
 {
-} "Adjust Y_e according to Y_e(rho) prebounce"
+} "Adjust Y_e according to Y_e(rho) premerger"
 
 schedule ZelmaniLeak_ye_of_rho IN ZelmaniLeakChangeYe
 {
@@ -58,7 +62,7 @@ schedule ZelmaniLeak_ParamCheck IN CCTK_PARAMCHECK
 } "check consistency of parameters"
 
 if(do_pnu) {
-  schedule ZelmaniLeak_NeutrinoPressureWrap IN MoL_PostRHS BEFORE CheapExcision IF GRHydro::execute_MoL_Step
+  schedule ZelmaniLeak_NeutrinoPressureWrap IN MoL_PostRHS BEFORE CheapExcision #IF GRHydro::execute_MoL_Step
   {
    LANG: C
   } "Add neutrino pressure to the RHS"
@@ -168,7 +172,8 @@ if(do_tau||force_tau_interp) {
   schedule ZelmaniLeak_CalcLeak AT CCTK_EVOL AFTER ZelmaniLeak_CalcTau
   {
    LANG: Fortran
-   SYNC: zelmani_leak_account_local	
+   SYNC: zelmani_leak_account_local
+   SYNC: luminosity_infinity_local
   } "Compute Leakage"
 
   schedule group HydroBase_Prim2ConInitial AT CCTK_EVOL AFTER ZelmaniLeak_CalcLeak
