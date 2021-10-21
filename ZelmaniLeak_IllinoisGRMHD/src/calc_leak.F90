@@ -45,15 +45,29 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
   real*8 :: rr(2),tt(2),pp(2)
   integer isym
 
+  ! Leo says: IGM stuff
+  real*8 :: igm_rhomin
+
+  ! Leo says: Spritz MOD - nu variables
+  real*8 :: det,radial_velocity
+  det = 0.0d0
+  detradial_velocity = 0.0d0
+  lum_inf_nue = 0.0d0
+  lum_inf_nua = 0.0d0
+  lum_inf_nux = 0.0d0
+
+  ! Leo says: IGM stuff
+  igm_rhomin = eos_rhomin*igm_eos_table_floor_safety_factor
+
   nx = cctk_lsh(1)
   ny = cctk_lsh(2)
   nz = cctk_lsh(3)
 
   if(do_tau.eq.0) return
-  if(leak_in_prebounce.ne.0) then
-     if(in_prebounce.eq.0 .and. bounce.eq.0) return
+  if(leak_in_premerger.ne.0) then
+     ! if(in_premerger.eq.0 .and. in_merger.eq.0) return
   else
-     if(bounce.eq.0 .or. (have_interp_data.ne.1) ) then
+     if(in_merger.eq.0 .or. (have_interp_data.ne.1) ) then
         !$OMP PARALLEL DO PRIVATE(i,j,k)
         do k=1,nz
            do j=1,ny
@@ -62,6 +76,11 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  heat_local(i,j,k,1:3) = 0.0d0
                  net_heat_local(i,j,k,1:3) = 0.0d0
                  eave_local(i,j,k,1:3) = 0.0d0
+                 ! Leo says: Spritz MOD by LSADD
+                 lum_nue(i,j,k) = 0.0d0
+                 lum_nua(i,j,k) = 0.0d0
+                 lum_nux(i,j,k) = 0.0d0
+                 ! Leo says: end Spritz MOD by LSADD
               enddo
            enddo
         enddo
@@ -96,7 +115,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
      ! simplest case; spherically symmetric leakage
      !$OMP PARALLEL DO PRIVATE(i,j,k,xr,xt,ii,jj,ll,xchi,xtau,depsdt,dyedt,xlum, &
      !$OMP                     fint,fint_out,rr,tt,pp,xheatflux,xeave,xheat,xheateave,&
-     !$OMP                     xnetheat,xheaterms,xtemp)
+     !$OMP                     xnetheat,xheaterms,xtemp,radial_velocity,det)
      do k=1,nz
         do j=1,ny
            do i=1,nx
@@ -106,7 +125,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
               net_heat_local(i,j,k,1:3) = 0.0d0
 
               ! no leakage in the atmosphere (if there is one)
-              if(rho(i,j,k) .le. GRHydro_rho_min) cycle
+              if(rho(i,j,k) .le. igm_rhomin) cycle
 
               if(rl.ge.-1) then
 
@@ -142,21 +161,20 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                          zi_heatflux(ii,1,1,2),zi_heatflux(ii+1,1,1,2),xr,xheatflux(2))
                     call linterp(rad(ii),rad(ii+1), &
                          zi_heatflux(ii,1,1,3),zi_heatflux(ii+1,1,1,3),xr,xheatflux(3))
-
                     tau3D(i,j,k,1:3) = xtau(1:3)
 
                     ! if the temperature is below our minimum, floor it
-                    xtemp = max(temperature(i,j,k),min_temp)
+                    xtemp = max(temperature(i,j,k),igm_T_atm)
                     call calc_leak(rho(i,j,k)*inv_rho_gf,xtemp,&
                          y_e(i,j,k),xchi,xtau,xheatflux,zi_heaterms(1,1,:),&
                          zi_heateave(1,1,:),depsdt,dyedt,ldt,xlum,xeave,xheat,&
-                         xnetheat,GRHydro_rho_min, rl,r(i,j,k))
+                         xnetheat,igm_rhomin, rl,r(i,j,k))
 
-                    if(xlum(1).ne.xlum(1) .or. &
-                         xlum(2).ne.xlum(2) .or. &
-                         xlum(3).ne.xlum(3) .or. &
-                         xnetheat(1).ne.xnetheat(1) .or. &
-                         xnetheat(2).ne.xnetheat(2)) then
+                    if(isnan(xlum(1)) .or. &
+                         isnan(xlum(2)) .or. &
+                         isnan(xlum(3)) .or. &
+                         isnan(xnetheat(1)) .or. &
+                         isnan(xnetheat(2))) then
                        call CCTK_WARN(1,"LEAKAGE ERROR!")
                        write(warnline,"(A5,i6,1P10E15.6)") "rl: ",rl,x(i,j,k),y(i,j,k),z(i,j,k),r(i,j,k)
                        call CCTK_WARN(1,warnline)
@@ -179,6 +197,12 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
 
                     lum_local(i,j,k,1:3) = xlum(1:3) * lumfac * Binv
                     lum_int_local(i,j,k,1:3) = lum_int_local(i,j,k,1:3) + lum_local(i,j,k,1:3)*ldt
+
+                    ! Leo says: Spritz MOD by LSADD - lum_nue,a,x
+                    lum_nue(i,j,k) = xlum(1) * Binv
+                    lum_nua(i,j,k) = xlum(2) * Binv
+                    lum_nux(i,j,k) = xlum(3) * Binv
+                    ! Leo says: end of Spritz MOD by LSADD
                     
                     net_heat_local(i,j,k,1:3) = xnetheat(1:3) * lumfac * Binv
                     heat_local(i,j,k,1:3) = xheat(1:3) * lumfac * Binv
@@ -187,6 +211,20 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                     ! of the below over the entire domain by the total luminosity
                     eave_local(i,j,k,1:3) = xeave(1:3) * lum_local(i,j,k,1:3)
 
+                    ! Leo says: original code
+                    ! call SpatialDeterminant(gxx(i,j,k),gxy(i,j,k),gxz(i,j,k),gyy(i,j,k),gyz(i,j,k),gzz(i,j,k),det) ! This subroutine is in Utils.F90
+                    ! This is a copy & past of the SpatialDeterminant found in Utils.F90
+                    det = -gxz(i,j,k)**2*gyy(i,j,k) + 2*gxy(i,j,k)*gxz(i,j,k)*gyz(i,j,k) - gxx(i,j,k)*gyz(i,j,k)**2 - gxy(i,j,k)**2*gzz(i,j,k) + gxx(i,j,k)*gyy(i,j,k)*gzz(i,j,k)
+
+                    ! Leo says: spherically symmetric leakage
+                    radial_velocity = (x(i, j, k) * vel(i, j, k, 1) + y(i, j, k) * vel(i, j, k, 2) + z(i, j, k) * vel(i, j, k, 3)) / ((x(i, j, k)**2 + y(i, j, k)**2 + z(i, j, k)**2) ** 0.5d0 + 1.0d-8)
+                    if (isnan(radial_velocity)) then
+                        call CCTK_WARN(1,"Radial velocity is NaN!")
+                        !call CCTK_WARN(1,"x, y, z") x(i, j, k), y(i, j, k), z(i, j, k)
+                    endif
+                    lum_inf_nue(i, j, k) = xlum(1) * alp(i, j, k)**2 * w_lorentz(i, j, k) * (1.0d0 + radial_velocity) * sqrt(det) * lumfac * Binv
+                    lum_inf_nua(i, j, k) = xlum(2) * alp(i, j, k)**2 * w_lorentz(i, j, k) * (1.0d0 + radial_velocity) * sqrt(det) * lumfac * Binv
+                    lum_inf_nux(i, j, k) = xlum(3) * alp(i, j, k)**2 * w_lorentz(i, j, k) * (1.0d0 + radial_velocity) * sqrt(det) * lumfac * Binv
                  endif
               endif
            enddo
@@ -207,7 +245,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
               net_heat_local(i,j,k,1:3) = 0.0d0
 
               ! no leakage in the atmosphere (if there is one)
-              if(rho(i,j,k) .le. GRHydro_rho_min) cycle
+              if(rho(i,j,k) .le. igm_rhomin) cycle
 
 
               ! only leak inside max leak radius
@@ -276,16 +314,16 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                       zi_heaterms(jj,1,1:3),zi_heaterms(jj+1,1,1:3),xt,xheaterms(1:3))
 
                  ! if the temperature is below our minimum, floor it
-                 xtemp = max(temperature(i,j,k),min_temp)
+                 xtemp = max(temperature(i,j,k),igm_T_atm)
                  call calc_leak(rho(i,j,k)*inv_rho_gf,xtemp,&
                       y_e(i,j,k),xchi,xtau,xheatflux,xheaterms,&
                       xheateave,depsdt,dyedt,ldt,xlum,xeave,xheat,xnetheat,&
-                      GRHydro_rho_min,rl,r(i,j,k))
+                      igm_rhomin,rl,r(i,j,k))
 
-                 if(xlum(1).ne.xlum(1) .or. &
-                      xlum(2).ne.xlum(2) .or. &
-                      xlum(3).ne.xlum(3) .or. xnetheat(1).ne.xnetheat(1) .or. &
-                      xnetheat(2).ne.xnetheat(2)) then
+                 if(isnan(xlum(1)) .or. &
+                      isnan(xlum(2)) .or. &
+                      isnan(xlum(3)) .or. isnan(xnetheat(1)) .or. &
+                      isnan(xnetheat(2))) then
                     !$OMP CRITICAL
                     call CCTK_WARN(1,"LEAKAGE ERROR!")
                     write(warnline,"(A5,i6,1P10E15.6)") "rl: ",rl,x(i,j,k),y(i,j,k),z(i,j,k),r(i,j,k)
@@ -327,6 +365,12 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  lum_local(i,j,k,1:3) = xlum(1:3) * lumfac * Binv
                  lum_int_local(i,j,k,1:3) = lum_int_local(i,j,k,1:3) + lum_local(i,j,k,1:3)*ldt
 
+                 ! Leo says: Spritz MOD by LSADD - lum_nue,a,x
+                 lum_nue(i,j,k) = xlum(1) * Binv
+                 lum_nua(i,j,k) = xlum(2) * Binv
+                 lum_nux(i,j,k) = xlum(3) * Binv
+                 ! Leo says: end of Spritz MOD by LSADD
+
                  net_heat_local(i,j,k,1:3) = xnetheat(1:3) * lumfac * Binv
                  heat_local(i,j,k,1:3) = xheat(1:3) * lumfac * Binv
 
@@ -334,6 +378,20 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  ! of the below over the entire domain by the total luminosity
                  eave_local(i,j,k,1:3) = xeave(1:3) * lum_local(i,j,k,1:3)
 
+                 ! Leo says: original code
+                 ! call SpatialDeterminant(gxx(i,j,k),gxy(i,j,k),gxz(i,j,k),gyy(i,j,k),gyz(i,j,k),gzz(i,j,k),det) ! This subroutine is in Utils.F90
+                 ! This is a copy & past of the SpatialDeterminant found in Utils.F90
+                 det = -gxz(i,j,k)**2*gyy(i,j,k) + 2*gxy(i,j,k)*gxz(i,j,k)*gyz(i,j,k) - gxx(i,j,k)*gyz(i,j,k)**2 - gxy(i,j,k)**2*gzz(i,j,k) + gxx(i,j,k)*gyy(i,j,k)*gzz(i,j,k)
+
+                 ! Leo says: axisymmetric leakage
+                 radial_velocity = (x(i, j, k) * vel(i, j, k, 1) + y(i, j, k) * vel(i, j, k, 2) + z(i, j, k) * vel(i, j, k, 3)) / ((x(i, j, k)**2 + y(i, j, k)**2 + z(i, j, k)**2) ** 0.5d0 + 1.0d-8)
+                 if (isnan(radial_velocity)) then
+                     call CCTK_WARN(1,"Radial velocity is NaN!")
+                     !call CCTK_WARN(1,"x, y, z") x(i, j, k), y(i, j, k), z(i, j, k)
+                 endif
+                 lum_inf_nue(i, j, k) = xlum(1) * alp(i, j, k)**2 * w_lorentz(i, j, k) * (1.0d0 + radial_velocity) * sqrt(det) * lumfac * Binv
+                 lum_inf_nua(i, j, k) = xlum(2) * alp(i, j, k)**2 * w_lorentz(i, j, k) * (1.0d0 + radial_velocity) * sqrt(det) * lumfac * Binv
+                 lum_inf_nux(i, j, k) = xlum(3) * alp(i, j, k)**2 * w_lorentz(i, j, k) * (1.0d0 + radial_velocity) * sqrt(det) * lumfac * Binv
               endif
            enddo
         enddo
@@ -356,7 +414,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
               eave_local(i,j,k,1:3) = 0.0d0
 
               ! no leakage in the atmosphere (if there is one)
-              if(rho(i,j,k) .le. GRHydro_rho_min) cycle
+              if(rho(i,j,k) .le. igm_rhomin) cycle
 
               ! only leak inside max leak radius
               if(r(i,j,k).lt.rad_max-drad*1.1d0) then
@@ -524,7 +582,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  xheatflux = fint_out(7:9)
                  tau3D(i,j,k,1:3) = xtau(1:3)
 
-                 if(xtau(1).ne.xtau(1)) then
+                 if(isnan(xtau(1))) then
                     if(CCTK_MyProc(cctkGH).eq.0) then
                     !$OMP CRITICAL
                        write(warnline,"(3i6,1P10E15.6)") i,j,k,x(i,j,k),y(i,j,k),z(i,j,k)
@@ -566,16 +624,21 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  xheaterms(1:3) = fint_out(4:6)
 
                  ! if the temperature is below our minimum, floor it
-                 xtemp = max(temperature(i,j,k),min_temp)
+                 xtemp = max(temperature(i,j,k),igm_T_atm)
+                 ! Leo says: Spritz MOD by LSADD
+                 if(isnan(xchi(1)).or.isnan(xchi(2)).or.isnan(xchi(3))) then
+                   write(*,*) "xchi is NaN. ",rr,tt,pp
+                 endif
+                 ! Leo says: end of Spritz MOD by LSADD
                  call calc_leak(rho(i,j,k)*inv_rho_gf,xtemp,&
                       y_e(i,j,k),xchi,xtau,xheatflux,xheaterms,&
                       xheateave,depsdt,dyedt,ldt,xlum,xeave,xheat,xnetheat,&
-                      GRHydro_rho_min,rl,r(i,j,k))
+                      igm_rhomin,rl,r(i,j,k))
 
-                 if(xlum(1).ne.xlum(1) .or. &
-                      xlum(2).ne.xlum(2) .or. &
-                      xlum(3).ne.xlum(3) .or. xnetheat(1).ne.xnetheat(1) .or. &
-                      xnetheat(2).ne.xnetheat(2)) then
+                 if(isnan(xlum(1)) .or. &
+                      isnan(xlum(2)) .or. &
+                      isnan(xlum(3)) .or. isnan(xnetheat(1)) .or. &
+                      isnan(xnetheat(2))) then
                     !$OMP CRITICAL
                     call CCTK_WARN(1,"LEAKAGE ERROR!")
                     write(warnline,"(A5,i6,1P10E15.6)") "rl: ",rl,x(i,j,k),y(i,j,k),z(i,j,k),r(i,j,k)
@@ -602,6 +665,12 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  lum_local(i,j,k,1:3) = xlum(1:3) * lumfac * Binv
                  lum_int_local(i,j,k,1:3) = lum_int_local(i,j,k,1:3) + lum_local(i,j,k,1:3)*ldt
 
+                 !LSADD lum_nue,a,x
+                 lum_nue(i,j,k) = xlum(1) * Binv
+                 lum_nua(i,j,k) = xlum(2) * Binv
+                 lum_nux(i,j,k) = xlum(3) * Binv
+                 !end LSADD
+
                  net_heat_local(i,j,k,1:3) = xnetheat(1:3) * lumfac * Binv
                  heat_local(i,j,k,1:3) = xheat(1:3) * lumfac * Binv
 
@@ -609,6 +678,20 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  ! of the below over the entire domain by the total luminosity
                  eave_local(i,j,k,1:3) = xeave(1:3) * lum_local(i,j,k,1:3)
 
+                 ! Leo says: original code
+                 ! call SpatialDeterminant(gxx(i,j,k),gxy(i,j,k),gxz(i,j,k),gyy(i,j,k),gyz(i,j,k),gzz(i,j,k),det) ! This subroutine is in Utils.F90
+                 ! This is a copy & past of the SpatialDeterminant found in Utils.F90
+                 det = -gxz(i,j,k)**2*gyy(i,j,k) + 2*gxy(i,j,k)*gxz(i,j,k)*gyz(i,j,k) - gxx(i,j,k)*gyz(i,j,k)**2 - gxy(i,j,k)**2*gzz(i,j,k) + gxx(i,j,k)*gyy(i,j,k)*gzz(i,j,k)
+
+                 ! Leo says: Full 3D
+                 radial_velocity = (x(i, j, k) * vel(i, j, k, 1) + y(i, j, k) * vel(i, j, k, 2) + z(i, j, k) * vel(i, j, k, 3)) / ((x(i, j, k)**2 + y(i, j, k)**2 + z(i, j, k)**2) ** 0.5d0 + 1.0d-8)
+                 if (isnan(radial_velocity)) then
+                    call CCTK_WARN(1,"Radial velocity is NaN!")
+                    !call CCTK_WARN(1,"x, y, z") x(i, j, k), y(i, j, k), z(i, j, k)
+                 endif
+                 lum_inf_nue(i, j, k) = xlum(1) * alp(i, j, k)**2 * w_lorentz(i, j, k) * (1.0d0 + radial_velocity) * sqrt(det) * lumfac * Binv
+                 lum_inf_nua(i, j, k) = xlum(2) * alp(i, j, k)**2 * w_lorentz(i, j, k) * (1.0d0 + radial_velocity) * sqrt(det) * lumfac * Binv
+                 lum_inf_nux(i, j, k) = xlum(3) * alp(i, j, k)**2 * w_lorentz(i, j, k) * (1.0d0 + radial_velocity) * sqrt(det) * lumfac * Binv
               endif
            enddo
         enddo
@@ -630,15 +713,22 @@ contains
     integer :: n
     real*8  :: fin(4,n)
     real*8  :: x,y,fout(n)
-    real*8  :: invdxdy
+    real*8  :: invdxdy,dx,dy
 
     !      y2 f3           f4
     !
     !
     !      y1 f1           f2
     !         x1           x2
-
-    invdxdy = 1.0d0/( (xin(2)-xin(1))*(yin(2)-yin(1)) )
+    ! Leo says: original code
+    ! invdxdy = 1.0d0/( (xin(2)-xin(1))*(yin(2)-yin(1)) )
+    ! Leo says: Spritz MOD by LSADD
+    dy = yin(2)-yin(1)
+    dx = xin(2)-xin(1)
+    if(dy.eq.0.0d0) dy = 1.0e-8
+    if(dx.eq.0.0d0) dx = 1.0e-8
+    invdxdy = 1.0d0/( dx*dy )
+    ! Leo says: end of Spritz MOD by LSADD
 
 #ifdef SYMMETRIC_OPERATORS
     fout(1:n) = invdxdy * (  (fin(1,1:n) * (xin(2)-x) &
@@ -663,9 +753,9 @@ contains
     implicit none
     real*8  :: xin(2),yin(2),zin(2)
     integer :: n
-    real*8  :: fin(8,n)
+    real*8  :: fin(8,n),fint2D(4,n)
     real*8  :: x,y,z,fout(n)
-    real*8  :: invdxdydz
+    real*8  :: invdxdydz,dx,dy,dz
 
     !        y2 f7           f8
     !
@@ -678,8 +768,17 @@ contains
     !  z1
     !        y1 f1           f2
     !           x1           x2
-
-    invdxdydz = 1.0d0/( (xin(2)-xin(1))*(yin(2)-yin(1))*(zin(2)-zin(1)) )
+    ! Leo says: original code
+    ! invdxdydz = 1.0d0/( (xin(2)-xin(1))*(yin(2)-yin(1))*(zin(2)-zin(1)) )
+    ! Leo says: Spritz MOD by LSADD
+    dz = zin(2)-zin(1)
+    dy = yin(2)-yin(1)
+    dx = xin(2)-xin(1)
+    if(dz.eq.0.0d0) dz = 1.0e-8
+    if(dy.eq.0.0d0) dy = 1.0e-8
+    if(dx.eq.0.0d0) dx = 1.0e-8
+    invdxdydz = 1.0d0/( dx*dy*dz )
+    ! Leo says: end of Spritz MOD by LSADD
 
     ! auto-generated via mathematica, terms slightly reordered:
 #ifdef SYMMETRIC_OPERATORS
@@ -704,7 +803,6 @@ contains
          fin(2,1:n)*(x - xin(1))*(yin(2) - y)*(zin(2) - z) +  &
          fin(1,1:n)*(xin(2) - x)*(yin(2) - y)*(zin(2) - z) ) 
 #endif
-
   end subroutine linterp3Dn
 
   subroutine linterp(x1,x2,y1,y2,x,y)
@@ -847,14 +945,20 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   !cactus relates stuff
   character(len=512) :: warnline
 
+  ! IGM stuff
+  real*8 :: igm_rhomin,igm_yemin,igm_yemax
+  igm_rhomin = eos_rhomin*igm_eos_table_floor_safety_factor
+  igm_yemin  = eos_yemin *igm_eos_table_floor_safety_factor
+  igm_yemax  = eos_yemax *igm_eos_table_ceiling_safety_factor
+
   matter_rho = rho
-  matter_temperature = max(temp,GRHydro_hot_atmo_temp)
-  matter_ye = min(max(ye,GRHydro_Y_e_min),GRHydro_Y_e_max)
+  matter_temperature = max(temp,igm_T_atm)
+  matter_ye = min(max(ye,igm_yemin),igm_yemax)
 
   keytemp = 1
   keyerr = 0
   anyerr = 0
-  call EOS_Omni_full(eoskey,keytemp,GRHydro_eos_rf_prec,npoints,&
+  call EOS_Omni_full(eoskey,keytemp,igm_eos_root_finding_precision,npoints,&
        matter_rho*rho_gf,matter_enr,matter_temperature,matter_ye, &
        matter_prs,matter_ent,matter_cs2,matter_dedt,matter_dpderho, &
        matter_dpdrhoe,matter_xa,matter_xh,matter_xn,matter_xp,matter_abar, &
@@ -885,8 +989,7 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   endif
 
   !Don't do anything in the atmosphere
-  if(matter_rho*rho_gf.lt. &
-       (1.0d0+GRHydro_atmo_tolerance)*rho_min) then 
+  if(matter_rho*rho_gf.lt.igm_rhomin) then 
      lum(1:3) = 0.0d0
      depsdt = 0.0d0
      dyedt = 0.0d0
@@ -918,7 +1021,13 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   
   scattering_kappa = rho*avo*0.0625d0*sigma_0/me_mev**2* &
        matter_abar*(1.0d0-matter_zbar/matter_abar)**2
-
+  ! Leo says: Spritz comment:
+  ! only have 1 factor of A because kappa multiples the number fraction, not mass fractions
+  ! LSMOD sometimes this generated errors, due to matter_abar = 0
+  if(isnan(scattering_kappa)) then
+    scattering_kappa = 0.0d0
+  endif
+  ! Leo says: end of spritz comment
   kappa_tilde_nu_scat(1,3) = matter_xh*scattering_kappa
   kappa_tilde_nu_scat(2,3) = matter_xh*scattering_kappa
   kappa_tilde_nu_scat(3,3) = matter_xh*scattering_kappa
@@ -963,6 +1072,15 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
        kappa_tilde_nu_scat(3,3) + kappa_tilde_nu_abs(3,1) + &
        kappa_tilde_nu_abs(3,2) + kappa_tilde_nu_abs(3,3)
 
+  ! Leo says: useful Spritz comment:
+  ! Federico: Q_diff components below should be compared with the following references:
+  ! - Rosswog, Liebendorfer, mnras (2003) - Eq (A35)
+  ! - Galeazzi, Kastaun, Rezzolla, Font, PRD (2013) - Eq (A35)
+  ! NOTE1: the factor 6 at the denominator, seems to be different from the
+  !        references, where it is set to 3.
+  ! NOTE2: one possible explanation for NOTE1 can be found in reference:
+  !        - O'Connor, Ott, (2010) - point (ii) before Eq. (25)
+  !!! TO BE CLARIFIED !!!
   rate_const = 4.0d0*pi*clite*zeta(1)/(hc_mevcm**3*6.0d0*chi(1)**2)
   R_diff(1) = rate_const*temp*get_fermi_integral_leak(0,eta_nue)
   Q_diff(1) = rate_const*temp**2*get_fermi_integral_leak(1,eta_nue)
@@ -975,18 +1093,46 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   R_diff(3) = rate_const*temp*get_fermi_integral_leak(0,eta_nux)
   Q_diff(3) = rate_const*temp**2*get_fermi_integral_leak(1,eta_nux)
 
+  ! Leo says: Spritz MOD by LSADD
+  if((isnan(R_diff(1)).or.isnan(R_diff(2)).or.isnan(R_diff(3))).and.reflevel.ge.0) then
+    write(*,*) "Problem in diffusion rates, R_diff(nue),R_diff(nua),zeta(1),zeta(2),zeta(3): ",R_diff(1),R_diff(2),R_diff(3),rate_const
+  endif
+  ! Leo says: end of Spritz MOD by LSADD
+
   !now for the free emission
   beta = pi*clite*(1.0d0+3.0d0*alpha**2)*sigma_0/(hc_mevcm**3*me_mev**2)
   
   R_loc = 0.0d0
   Q_loc = 0.0d0
 
+  ! Leo says: useful Spritz comment:
+  ! electron capture rates
+  ! Federico: Following equations for Q_loc(i), with i = 1,2 should be compared to:
+  ! - Galeazzi, Kastaun, Rezzolla, Font, PRD (2013) - i=1 --> Eq (A4)
+  !                                                   i=2 --> Eq (A2)
+  !           Alternatively, check:
+  ! - Rosswog, Liebendorfer, mnras (2003) - i=1 --> Eq (A10)
+  !                                         i=2 --> Eq (A13)
   R_loc(1) = beta*eta_pn*temp**5*get_fermi_integral_leak(4,eta_e)
   Q_loc(1) = beta*eta_pn*temp**6*get_fermi_integral_leak(5,eta_e)
   R_loc(2) = beta*eta_np*temp**5*get_fermi_integral_leak(4,-eta_e)
   Q_loc(2) = beta*eta_np*temp**6*get_fermi_integral_leak(5,-eta_e)
+  ! Leo says: Spritz MOD by LSADD
+  if(temp < 0) then
+    R_loc(1) = 0.0d0
+    R_loc(2) = 0.0d0
+    Q_loc(1) = 0.0d0
+    Q_loc(2) = 0.0d0
+  endif
+  ! Leo says: end of Spritz MOD by LSADD
 
+  ! Leo says: useful Spritz comment:
   !e-e+ pair processes from Ruffert et al.
+  ! Federico: The following equations for Q_loc(i) should be compared with:
+  ! - Ruffert, Janka, Schafer (1995) - Eq. (B16)
+  !           Also check:
+  ! - Galeazzi, Kastaun, Rezzolla, Font, PRD (2013) - Eq. (A13), (A16) and (A18)
+  ! NOTE: In this last Eq. (A18) there is a typo because a factor 1/2 is missing.
   fermi_fac = (get_fermi_integral_leak(4,eta_e)/ &
        (get_fermi_integral_leak(3,eta_e)+verysmall) + &
        get_fermi_integral_leak(4,-eta_e)/&
@@ -1009,12 +1155,28 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   Q_loc(1) = Q_loc(1) + R_pair*0.5d0*(enr_tilde_m*enr_p+enr_m*enr_tilde_p)/(enr_m*enr_p)
   R_loc(2) = R_loc(2) + R_pair
   Q_loc(2) = Q_loc(2) + R_pair*0.5d0*(enr_tilde_m*enr_p+enr_m*enr_tilde_p)/(enr_m*enr_p)
+
+  ! Leo says: Spritz MOD by LSADD
+  if(isnan(R_loc(1)).or.isnan(R_loc(2))) then
+    write(*,*) "Problem in e-e+ processes, R_pair: ",R_pair
+  endif
+  ! Leo says: end of Spritz MOD by LSADD
   
   R_pair =  pair_const/(9.0d0*block_factor_x**2)*((Cv-Ca)**2+(Cv+Ca-2.0d0)**2)
   R_loc(3) = R_loc(3) + R_pair
   Q_loc(3) = Q_loc(3) + R_pair*0.5d0*(enr_tilde_m*enr_p+enr_m*enr_tilde_p)/(enr_m*enr_p)
 
-  !plasmon decay from Ruffert et al.
+  ! Leo says: Spritz MOD by LSADD
+  if(isnan(R_loc(3))) then
+    write(*,*) "Problem in e-e+ processes for nux, R_pair: ",R_pair
+  endif
+  ! Leo says: end of Spritz MOD by LSADD
+
+  ! Leo says: useful Spritz comment
+  ! plasmon decay from Ruffert et al.
+  ! Federico: The equations for the following Q_loc(i) should be compared with:
+  ! - Ruffert, Janka, Schafer (1995) - Eq. (B17)
+  ! - Galeazzi, Kastaun, Rezzolla, Font, PRD (2013) - Eq. (A25)
   gamma = gamma_0*sqrt((pi**2+3.0d0*eta_e**2)/3.0d0)
   block_factor_e = 1.0d0 + exp(eta_nue-(1.0d0+0.5d0*gamma**2/(1.0d0+gamma)))
   block_factor_a = 1.0d0 + exp(eta_nua-(1.0d0+0.5d0*gamma**2/(1.0d0+gamma)))
@@ -1033,10 +1195,21 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   R_loc(3) = R_loc(3) + R_gamma 
   Q_loc(3) = Q_loc(3) + R_gamma*0.5d0*temp*(2.0d0+gamma**2/(1.0d0+gamma))
 
-
+  ! Leo says: useful Spritz comment
+  ! Nucleon-nucleon bremsstrahlung, Burrows et al.
+  ! Federico: The following equations for Q_loc(i) should be compared with:
+  ! - Burrows, Reddy, Thomphson, Nucl. Phys. A (2006) - Eq. (142) and the following text.
   R_pair = 0.231d0*(2.0778d2/mev_to_erg)*0.5d0* &
        (matter_xn**2+matter_xp**2+28.0d0/3.0d0*matter_xn*matter_xp)* &
        rho**2*temp**(4.5d0)
+  ! Leo says: Spritz MOD by LSADD
+  if(temp < 0) then
+    R_pair = 0
+  endif
+  ! Leo says: end of Spritz MOD by LSADD
+
+  ! Leo syas: useful Spritz comment:
+  ! LSADD: probably from <omega> = 4.364 T, Burrows et al.
   Q_pair = R_pair*temp/0.231d0*0.504d0
           
   R_loc(1) = R_loc(1) + R_pair
@@ -1046,18 +1219,27 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   Q_loc(2) = Q_loc(2) + Q_pair
   R_loc(3) = R_loc(3) + 4.0d0*R_pair
   Q_loc(3) = Q_loc(3) + 4.0d0*Q_pair
+  ! Leo says: Spritz MOD by LSADD
+  if((isnan(R_loc(1)).or.isnan(R_loc(2)).or.isnan(R_loc(3))).and.reflevel.ge.0) then
+    write(*,*) "Problem in plasmon decay processes, gamma_const,gamma,R_gamma,R_pair: ",gamma_const,gamma,R_gamma,R_pair
+  endif
+  ! Leo says: end of Spritz MOD by LSADD
 
-  !now calculate leakage!!!!!!!
+  ! Leo says: useful Spritz comment
+  ! now calculate leakage!!!!!!!
+  ! Federico: Check the following references for Q_eff:
+  ! - Rosswog, Liebendorfer, mnras (2003) - Eq. (A2)
+  ! - Galeazzi, Kastaun, Rezzolla, Font, PRD (2013) - Eq. (62)
+  ! - O'Connor, Ott (2010) - Eq (25).
   R_eff(:) = R_loc(:)/(1.0d0+R_loc(:)/R_diff(:))
   Q_eff(:) = Q_loc(:)/(1.0d0+Q_loc(:)/Q_diff(:))
 
   eave(1:3) = Q_eff(1:3)/R_eff(1:3)
 
-
   if (do_heat.ne.0) then
-     
+     ! Leo says: useful Spritz comment
+     ! LSMOD: heatflux includes luminosity from inner radius, shell volume and lepton blocking factor.
      heat_const = f_heat*(1.0d0+3.0d0*alpha**2) * sigma_0 / (me_mev**2 * massn_cgs) * 0.25d0 !cm^2/MeV^2/g
-
      F(1:2) = (4.275d0*tau(1:2)+1.15d0)*exp(-2.0d0*tau(1:2))
     
      heat_eff(1) = heat_const * rho * matter_xn * heatflux(1) * &
@@ -1066,8 +1248,6 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
           heaterms(2)**2 * F(2) / mev_to_erg ! cm^2/MeV^2/g * g/cm^3 erg/s/cm^2 MeV^2 MeV/erg = MeV/cm^3/s
 
      lum(1:2) = (Q_eff(1:2)-heat_eff(1:2))*mev_to_erg !ergs/cm^3/s
-! debug:
-!     lum(1:2) = (Q_eff(1:2))*mev_to_erg !ergs/cm^3/s
      lum(3) = Q_eff(3)*mev_to_erg !ergs/cm^3/s
 
      heatout(1:2) = heat_eff(1:2)*mev_to_erg !ergs/cm^3/s
@@ -1088,6 +1268,57 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
      dyedt = -(R_eff(1)-R_eff(2))*massn_cgs/rho
   endif
 
+  ! Leo says: Spritz addition
+  !if (lum(1).ge.1.0d52.and.reflevel.ge.Spritz_c2p_warn_from_reflevel) then
+  ! Federico: we are deciding the maximum luminosity to be computed via the parameter ZelmaniLeak::maximum_luminosity
+  !           which is by default a huge value (1.0e60 [erg/s])
+  if (lum(1).ge.maximum_luminosity.and.reflevel.ge.0) then
+     call CCTK_WARN(1,"In my opinion, luminosity is too high. Setting to zero.")
+     write(warnline,"(A15,i10)") "reflevel: ", reflevel
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "rho: ", rho
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "temp: ", temp
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "Y_e: ", ye
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "dyedt*ldt ", dyedt*ldt
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "X_n,X_p,X_a,X_h: ", matter_xn, matter_xp, &
+          matter_xa, matter_xh
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "eps: ", matter_enr
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "depsdt*ldt:", depsdt*ldt
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A30,1P10E15.6)") "matter_enr+depsdt*ldt:", matter_enr+depsdt*ldt
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A30,1P10E15.6)") "radius:", rad
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A30,1P10E15.6)") "R_pair,R_gamma,pair_const,zeta(1):", R_pair,R_gamma,pair_const,zeta(1)
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A30,1P10E15.6)") "Q_loc(1),Q_diff(1):", Q_loc(1),Q_diff(1)
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A30,1P10E15.6)") "rate_const,chi(1):", rate_const,chi(1)
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "lum(1:3): ", lum(1), lum(2), lum(3)
+     call CCTK_WARN(1,warnline)
+     lum(1) = 0.0d0
+     lum(2) = 0.0d0
+     lum(3) = 0.0d0
+     depsdt = 0.0d0
+     dyedt  = 0.0d0
+     eave(1) = 0.0d0
+     eave(2) = 0.0d0
+     eave(3) = 0.0d0
+     heatout(1) = 0.0d0
+     heatout(2) = 0.0d0
+     heatout(3) = 0.0d0
+     netheatout(1) = 0.0d0
+     netheatout(2) = 0.0d0
+     netheatout(3) = 0.0d0
+  endif
+
   if (ye+dyedt*ldt.le.eos_yemin*1.05d0) then
      dyedt = 0.0d0
      depsdt = 0.0d0
@@ -1100,7 +1331,7 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
 
 
   if (matter_enr+depsdt*ldt.lt.-energy_shift*inv_eps_gf.and.&
-       (reflevel.eq.-1.or.reflevel.ge.grhydro_c2p_warn_from_reflevel)) then
+       (reflevel.eq.-1.or.reflevel.ge.0)) then
      !$OMP CRITICAL
      call CCTK_WARN(1,"Problem in leakage; energy change too large")
      write(warnline,"(A15,i10)") "reflevel: ", reflevel
@@ -1124,9 +1355,82 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
      call CCTK_WARN(1,warnline)
      write(warnline,"(A30,1P10E15.6)") "radius:", rad
      call CCTK_WARN(1,warnline)
+     write(warnline,"(A30,1P10E15.6)") "R_pair,R_gamma,pair_const,zeta(1):", R_pair,R_gamma,pair_const,zeta(1)
+     call CCTK_WARN(1,warnline)
      call CCTK_WARN(0,"aborting")
      !$OMP END CRITICAL
   endif
-  
+
+  if ((isnan(lum(1)).or.isnan(lum(2)).or.isnan(lum(3))).and.reflevel.ge.0) then
+     !$OMP CRITICAL
+     call CCTK_WARN(1,"Problem in leakage; NaN in luminosity")
+     write(warnline,"(A15,i10)") "reflevel: ", reflevel
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "rho: ", rho
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "temp: ", temp
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "Y_e: ", ye
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "dyedt*ldt ", dyedt*ldt
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "X_n,X_p,X_a,X_h: ", matter_xn, matter_xp, &
+          matter_xa, matter_xh
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "eps: ", matter_enr
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "depsdt*ldt:", depsdt*ldt
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A30,1P10E15.6)") "matter_enr+depsdt*ldt:", matter_enr+depsdt*ldt
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A30,1P10E15.6)") "radius:", rad
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A30,1P10E15.6)") "R_pair,R_gamma,pair_const,zeta(1):", R_pair,R_gamma,pair_const,zeta(1)
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A30,1P10E15.6)") "Q_loc(1),Q_diff(1):", Q_loc(1),Q_diff(1)
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A30,1P10E15.6)") "rate_const,chi(1):", rate_const,chi(1)
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "lum(1:3): ", lum(1), lum(2), lum(3)
+     call CCTK_WARN(1,warnline)
+     call CCTK_WARN(0,"aborting")
+     !$OMP END CRITICAL
+  endif
+
+  if (lum(1).ge.1.0d52.and.reflevel.ge.0) then
+     !$OMP CRITICAL
+     call CCTK_WARN(1,"In my opinion, luminosity is too high.")
+     write(warnline,"(A15,i10)") "reflevel: ", reflevel
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "rho: ", rho
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "temp: ", temp
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "Y_e: ", ye
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "dyedt*ldt ", dyedt*ldt
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "X_n,X_p,X_a,X_h: ", matter_xn, matter_xp, &
+          matter_xa, matter_xh
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "eps: ", matter_enr
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "depsdt*ldt:", depsdt*ldt
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A30,1P10E15.6)") "matter_enr+depsdt*ldt:", matter_enr+depsdt*ldt
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A30,1P10E15.6)") "radius:", rad
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A30,1P10E15.6)") "R_pair,R_gamma,pair_const,zeta(1):", R_pair,R_gamma,pair_const,zeta(1)
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A30,1P10E15.6)") "Q_loc(1),Q_diff(1):", Q_loc(1),Q_diff(1)
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A30,1P10E15.6)") "rate_const,chi(1):", rate_const,chi(1)
+     call CCTK_WARN(1,warnline)
+     write(warnline,"(A15,1P10E15.6)") "lum(1:3): ", lum(1), lum(2), lum(3)
+     call CCTK_WARN(1,warnline)
+     call CCTK_WARN(0,"aborting")
+     !$OMP END CRITICAL
+  endif
 
 end subroutine calc_leak
