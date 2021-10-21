@@ -6,23 +6,32 @@ been completed in IllinoisGRMHD.
 |      Filename       | Status  |   Comments   |
 .---------------------.---------.--------------.
 .---------------------.---------.--------------.
+.---------------------.---------.--------------.
+| configuration.ccl   |  Done   | Modification |
+.---------------------.---------.--------------.
+| param.ccl           |  Done   | Modification |
+.---------------------.---------.--------------.
+| interface.ccl       |  Done   | Modification |
+.---------------------.---------.--------------.
+| schedule.ccl        |  Done   | Modification |
+.---------------------.---------.--------------.
 | tau.cc              |  Done   | Modification |
 .---------------------.---------.--------------.
-| output-control.cc   | Pending |   Addition   |
+| output-control.cc   | Pending |   Addition   | *
 .---------------------.---------.--------------.
-| outputsettings.cc   | Pending |   Addition   |
+| outputsettings.cc   | Pending |   Addition   | *
 .---------------------.---------.--------------.
 | neutrino-pressure.c |  Done   | Modification |
 .---------------------.---------.--------------.
-| paramcheck.c        | Pending |   Addition   |
+| paramcheck.c        | Pending |   Addition   | *
 .---------------------.---------.--------------.
-| calc-pnu.F90        | Pending | Modification |
+| calc_pnu.F90        |  Done   | Modification |
 .---------------------.---------.--------------.
-| calc-taus.F90       | Pending | Modification |
+| calc_taus.F90       |  Done   | Modification |
 .---------------------.---------.--------------.
-| startup.F90         | Pending | Modification |
+| startup.F90         |  Done   | Modification |
 .---------------------.---------.--------------.
-| Tmunu.F90           | Pending | Modification |
+| Tmunu.F90           |  Done   | Modification |
 .---------------------.---------.--------------.
-| calc-leak.F90       | Pending | Modification |
+| calc_leak.F90       |  Done   | Modification |
 .---------------------.---------.--------------.
