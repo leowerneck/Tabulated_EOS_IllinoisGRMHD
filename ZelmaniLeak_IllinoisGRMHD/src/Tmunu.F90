@@ -119,7 +119,8 @@ subroutine ZelmaniLeak_Tmunu(CCTK_ARGUMENTS)
             uxlow = velxlow
             uylow = velylow
             uzlow = velzlow
-! Calculate Tmunu (the lower components!)
+            ! Calculate Tmunu (the lower components!)
+            ! Eq. (38) of https://arxiv.org/pdf/0912.2393.pdf
             eTtt(i,j,k) = eTtt(i,j,k) + tmunutemp*utlow**2 + pnu(i,j,k)*(beta2 - alp(i,j,k)**2)
             
             eTtx(i,j,k) = eTtx(i,j,k) + tmunutemp*utlow*uxlow + pnu(i,j,k)*betaxlow
