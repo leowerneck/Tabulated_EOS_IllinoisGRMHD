@@ -226,12 +226,14 @@ subroutine fit_ye(incomingrho,outgoingye,yeofrho_logrho2,yeofrho_logrho1, &
   end if
   
   logincomingrho = log10(incomingrho)
-  
+
+  ! Leo says: Part I of Eq. (1) in https://arxiv.org/pdf/astro-ph/0504072.pdf
   x = max(-1.0d0,min(1.0d0,(2.0d0*logincomingrho - yeofrho_logrho2 - yeofrho_logrho1) &
        /(yeofrho_logrho2-yeofrho_logrho1)))
   
   absx = abs(x)
-  
+
+  ! Leo says: Part II of Eq. (1) in https://arxiv.org/pdf/astro-ph/0504072.pdf
   outgoingye = 0.5d0*(yeofrho_ye2+yeofrho_ye1) + x/2.0d0*(yeofrho_ye2-yeofrho_ye1) &
        + yeofrho_yec*(1.0d0-absx+4.0d0*absx*(absx-0.5d0)*(absx-1.0d0))
   

@@ -257,3 +257,19 @@ STRING ZL_SD2_gf_VarString "GRMHD conserved momentum (z-direction) gridfunction"
   "GRHydro::scon[2]"        :: "GRHydro conserved momentum (z-direction) gridfunction"
   ".+"                      :: "Or use you can use your own thorn's conserved momentum gridfunction"
 } "IllinoisGRMHD::mhd_st_z"
+
+restricted:
+STRING ZL_temperature_gf_VarString "Temperature gridfunction"
+{
+  "IllinoisGRMHD::igm_temperature" :: "IllinoisGRMHD temperature gridfunction"
+  "HydroBase::temperature"         :: "HydroBase temperature gridfunction"
+  ".+"                             :: "Or use you can use your own thorn's temperature gridfunction"
+} "IllinoisGRMHD::igm_temperature"
+
+restricted:
+STRING ZL_entropy_gf_VarString "Entropy gridfunction"
+{
+  "IllinoisGRMHD::igm_entropy" :: "IllinoisGRMHD entropy gridfunction"
+  "HydroBase::entropy"         :: "HydroBase entropy gridfunction"
+  ".+"                             :: "Or use you can use your own thorn's entropy gridfunction"
+} "IllinoisGRMHD::igm_entropy"

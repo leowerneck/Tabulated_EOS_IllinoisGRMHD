@@ -59,10 +59,4 @@ subroutine ZelmaniLeak_startup_global(CCTK_ARGUMENTS)
 
   endif
 
-  if(rho_abs_min .lt. 0.0) then
-     call CCTK_WARN(0,"Must set GRHydro::rho_abs_min!")
-  endif
-
-
-
 end subroutine ZelmaniLeak_startup_global
