@@ -58,11 +58,11 @@ subroutine ZelmaniLeak_ye_of_rho(CCTK_ARGUMENTS)
      do j=1,ny
         do i=1,nx
            keytemp = 0
-           call EOS_Omni_short(eoskey,keytemp,GRHydro_eos_rf_prec,&
+           call EOS_Omni_short(eoskey,keytemp,igm_eos_root_finding_precision,&
                 n,rho(i,j,k),eps(i,j,k),temperature(i,j,k),y_e(i,j,k),&
                 xdummy,entropy(i,j,k),xdummy,xdummy,&
                 xdummy,xdummy,munu(i,j,k),keyerr,anyerr)
-           if(anyerr.ne.0.and.rl.ge.GRHydro_c2p_warn_from_reflevel) then
+           if(anyerr.ne.0.and.rl.ge.-1) then
               call CCTK_WARN(1,"EOS error in ZelmaniLeak::ye_of_rho 1")
               write(warnline,"(4i6)") i,j,k,rl
               call CCTK_WARN(1,warnline)
@@ -115,7 +115,7 @@ subroutine ZelmaniLeak_ye_of_rho(CCTK_ARGUMENTS)
                     
                     ! now use the entropy to update things
                     keytemp = 2
-                    call EOS_Omni_short(eoskey,keytemp,GRHydro_eos_rf_prec,&
+                    call EOS_Omni_short(eoskey,keytemp,igm_eos_root_finding_precision,&
                          n,rho(i,j,k),eps(i,j,k),temperature(i,j,k),y_e(i,j,k),&
                          press(i,j,k),entropy(i,j,k),xdummy,xdummy,&
                          xdummy,xdummy,xdummy,keyerr,anyerr)
@@ -171,7 +171,7 @@ subroutine ZelmaniLeak_ye_of_rho(CCTK_ARGUMENTS)
                     
                     ! now use the entropy to update things
                     keytemp = 2
-                    call EOS_Omni_short(eoskey,keytemp,GRHydro_eos_rf_prec,&
+                    call EOS_Omni_short(eoskey,keytemp,igm_eos_root_finding_precision,&
                          n,rho(i,j,k),eps(i,j,k),temperature(i,j,k),y_e(i,j,k),&
                          press(i,j,k),entropy(i,j,k),xdummy,xdummy,&
                          xdummy,xdummy,xdummy,keyerr,anyerr)
@@ -293,7 +293,7 @@ subroutine ZelmaniLeak_calc_entropy(CCTK_ARGUMENTS)
      do j=1,ny
         do i=1,nx
            keytemp = 0
-           call EOS_Omni_short(eoskey,keytemp,GRHydro_eos_rf_prec,&
+           call EOS_Omni_short(eoskey,keytemp,igm_eos_root_finding_precision,&
                 n,rho(i,j,k),eps(i,j,k),temperature(i,j,k),y_e(i,j,k),&
                 xdummy,entropy(i,j,k),xdummy,xdummy,&
                 xdummy,xdummy,munu(i,j,k),keyerr,anyerr)
