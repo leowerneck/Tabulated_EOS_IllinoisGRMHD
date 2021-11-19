@@ -43,7 +43,7 @@ void ZLtau_setup_local(CCTK_ARGUMENTS) {
       lum_int_local[i]  = 0.0e0;
       net_heat_local[i] = 0.0e0;
       heat_local[i]     = 0.0e0;
-      eave_local[i] = 0.0e0;
+      eave_local[i]     = 0.0e0;
     }
   }
 
@@ -52,7 +52,7 @@ void ZLtau_setup_local(CCTK_ARGUMENTS) {
   /* ZelmaniLeak thorn, based on Spritz     */
   /******************************************/
   if(CCTK_QueryGroupStorage(cctkGH,"ZelmaniLeak::luminosity_local")) {
-    for(int i=0;i<cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2];i++) { //*3
+    for(int i=0;i<cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2];i++) {
       lum_nue[i] = 0.0e0;
       lum_nua[i] = 0.0e0;
       lum_nux[i] = 0.0e0;
@@ -60,7 +60,7 @@ void ZLtau_setup_local(CCTK_ARGUMENTS) {
   }
 
   if(CCTK_QueryGroupStorage(cctkGH,"ZelmaniLeak::luminosity_infinity_local")) {
-    for(int i=0;i<cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2];i++) { //*3
+    for(int i=0;i<cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2];i++) {
       lum_inf_nue[i] = 0.0e0;
       lum_inf_nua[i] = 0.0e0;
       lum_inf_nux[i] = 0.0e0;
@@ -119,43 +119,43 @@ void ZLtau_setup(CCTK_ARGUMENTS) {
       *dphi = 0.0;
     isym = octant;
   } else if CCTK_EQUALS(symm,"bitant") {
-    if(ntheta > 1)
+      if(ntheta > 1)
 #ifdef SYMMETRIC_OPERATORS
-      *dtheta =   M_PI / (ntheta-1.5) / 2.0; // 1.5 such that 2.*1.5 matches 2*(N-1)-1
+        *dtheta =   M_PI / (ntheta-1.5) / 2.0; // 1.5 such that 2.*1.5 matches 2*(N-1)-1
 #else
-      *dtheta =   M_PI / (ntheta-1) / 2.0;
+        *dtheta =   M_PI / (ntheta-1) / 2.0;
 #endif
-    else
-      *dtheta = 0.0;
-    if(nphi > 1)
+      else
+        *dtheta = 0.0;
+      if(nphi > 1)
 #ifdef SYMMETRIC_OPERATORS
-      *dphi   = 2*M_PI / (nphi  -2);
+        *dphi   = 2*M_PI / (nphi  -2);
 #else
-      *dphi   = 2*M_PI / (nphi  -1);
+        *dphi   = 2*M_PI / (nphi  -1);
 #endif
-    else
-      *dphi = 0.0;
-    isym = bitant;
-  } else if CCTK_EQUALS(symm,"full") {
-    if(ntheta > 1) 
-      *dtheta =   M_PI / (ntheta-1);
-    else
-      *dtheta = 0.0;
-    if(nphi > 1)
+      else
+        *dphi = 0.0;
+      isym = bitant;
+    } else if CCTK_EQUALS(symm,"full") {
+      if(ntheta > 1) 
+        *dtheta =   M_PI / (ntheta-1);
+      else
+        *dtheta = 0.0;
+      if(nphi > 1)
 #ifdef SYMMETRIC_OPERATORS
-      *dphi = 2*M_PI / (nphi  -2);
+        *dphi = 2*M_PI / (nphi  -2);
 #else
-      *dphi = 2*M_PI / (nphi  -1);
+        *dphi = 2*M_PI / (nphi  -1);
 #endif
-    else
-      *dphi = 0.0;
-    isym = full;
-  } else {
+      else
+        *dphi = 0.0;
+      isym = full;
+    } else {
     CCTK_WARN(0,"This symmetry is unknown");
   }
   
   // inner drad
-  *drad   =  rad_max / (nrad - 1);
+  *drad = rad_max / (nrad - 1);
   // outer drad is tougher, since it's nonequidistant
   double prec = 1.0e-8;
   double alpha = alpha_grid(rad_max,rad_max_outer,nrad_outer,*drad,prec);
@@ -215,101 +215,101 @@ void ZLtau_setup(CCTK_ARGUMENTS) {
   // Calculate coordinates
 #ifdef SYMMETRIC_OPERATORS
   if(isym == full) {
-    #pragma omp parallel for
+#pragma omp parallel for
     for(int ii=0;ii<nrad+nrad_outer;ii++)
       for(int jj=0;jj<ntheta;jj++)
         for(int kk=0;kk<nphi/2;kk++)
-    {
-      int const iind3d = ii+(nrad+nrad_outer)*(jj+ntheta*kk);
-      CCTK_REAL const xrad   = rad[ii];
-      CCTK_REAL const xtheta = theta[jj];
-      CCTK_REAL const xphi   = phi[kk];
-      CCTK_REAL xx, yy, zz;
-      CCTK_REAL const xx0 = 0., yy0 = 0., zz0 = 0.;
+          {
+            int const iind3d = ii+(nrad+nrad_outer)*(jj+ntheta*kk);
+            CCTK_REAL const xrad   = rad[ii];
+            CCTK_REAL const xtheta = theta[jj];
+            CCTK_REAL const xphi   = phi[kk];
+            CCTK_REAL xx, yy, zz;
+            CCTK_REAL const xx0 = 0., yy0 = 0., zz0 = 0.;
 
-      spher2cart (xrad,xtheta,xphi, &xx,&yy,&zz, &xx0, &yy0, &zz0);
-      //    fprintf(stdout,"%5d %5d %5d %15.6E %15.6E %15.6E\n",
-      //	    ii,jj,kk,xx,yy,zz);
-      zi_x[iind3d] = *x0 + xx;
-      zi_y[iind3d] = *y0 + yy;
-      zi_z[iind3d] = *z0 + zz;
+            spher2cart (xrad,xtheta,xphi, &xx,&yy,&zz, &xx0, &yy0, &zz0);
+            //    fprintf(stdout,"%5d %5d %5d %15.6E %15.6E %15.6E\n",
+            //	    ii,jj,kk,xx,yy,zz);
+            zi_x[iind3d] = *x0 + xx;
+            zi_y[iind3d] = *y0 + yy;
+            zi_z[iind3d] = *z0 + zz;
 
-      int const iind3ds = ii+(nrad+nrad_outer)*((ntheta-1-jj)+ntheta*((kk+nphi/2) % nphi));
-      zi_x[iind3ds] = *x0 - xx;
-      zi_y[iind3ds] = *y0 - yy;
-      zi_z[iind3ds] = *z0 - zz;
-    }
+            int const iind3ds = ii+(nrad+nrad_outer)*((ntheta-1-jj)+ntheta*((kk+nphi/2) % nphi));
+            zi_x[iind3ds] = *x0 - xx;
+            zi_y[iind3ds] = *y0 - yy;
+            zi_z[iind3ds] = *z0 - zz;
+          }
   } else if(isym == bitant) {
     assert(0 && "bitant mode not yet supported"); // not sure how to handle x<0 half of domain
   } else {
-    #pragma omp parallel for
+#pragma omp parallel for
     for(int ii=0;ii<nrad+nrad_outer;ii++)
       for(int jj=0;jj<ntheta;jj++)
         for(int kk=0;kk<nphi;kk++)
-    {
-      int const iind3d = ii+(nrad+nrad_outer)*(jj+ntheta*kk);
-      CCTK_REAL const xrad   = rad[ii];
-      CCTK_REAL const xtheta = theta[jj];
-      CCTK_REAL const xphi   = phi[kk];
-      CCTK_REAL xx, yy, zz;
-      CCTK_REAL const xx0 = 0., yy0 = 0., zz0 = 0.;
+          {
+            int const iind3d = ii+(nrad+nrad_outer)*(jj+ntheta*kk);
+            CCTK_REAL const xrad   = rad[ii];
+            CCTK_REAL const xtheta = theta[jj];
+            CCTK_REAL const xphi   = phi[kk];
+            CCTK_REAL xx, yy, zz;
+            CCTK_REAL const xx0 = 0., yy0 = 0., zz0 = 0.;
 
-      spher2cart (xrad,xtheta,xphi, &xx,&yy,&zz, &xx0, &yy0, &zz0);
-      //    fprintf(stdout,"%5d %5d %5d %15.6E %15.6E %15.6E\n",
-      //	    ii,jj,kk,xx,yy,zz);
-      zi_x[iind3d] = *x0 + xx;
-      zi_y[iind3d] = *y0 + yy;
-      zi_z[iind3d] = *z0 + zz;
-    }
+            spher2cart (xrad,xtheta,xphi, &xx,&yy,&zz, &xx0, &yy0, &zz0);
+            //    fprintf(stdout,"%5d %5d %5d %15.6E %15.6E %15.6E\n",
+            //	    ii,jj,kk,xx,yy,zz);
+            zi_x[iind3d] = *x0 + xx;
+            zi_y[iind3d] = *y0 + yy;
+            zi_z[iind3d] = *z0 + zz;
+          }
   }
 
   for(int ii=0;ii<nrad+nrad_outer;ii++)
     for(int jj=0;jj<ntheta;jj++)
       for(int kk=0;kk<nphi;kk++)
-  {
-    int const iind3d = ii+(nrad+nrad_outer)*(jj+ntheta*kk);
-    CCTK_REAL const xrad   = rad[ii];
-    CCTK_REAL const xtheta = theta[jj];
-    CCTK_REAL const xphi   = fabs(phi[kk]);
-    CCTK_REAL xx, yy, zz;
-    CCTK_REAL const xx0 = 0., yy0 = 0., zz0 = 0.;
+        {
+          int const iind3d = ii+(nrad+nrad_outer)*(jj+ntheta*kk);
+          CCTK_REAL const xrad   = rad[ii];
+          CCTK_REAL const xtheta = theta[jj];
+          CCTK_REAL const xphi   = fabs(phi[kk]);
+          CCTK_REAL xx, yy, zz;
+          CCTK_REAL const xx0 = 0., yy0 = 0., zz0 = 0.;
     
-    spher2cart (xrad,xtheta,xphi, &xx,&yy,&zz, &xx0, &yy0, &zz0);
-    if(kk < nphi/2 || isym == octant) {
-      xx = *x0 + xx;
-      yy = *y0 + yy;
-    } else {
-      xx = *x0 - xx;
-      yy = *y0 - yy;
-    }
-    if(fabs(zi_x[iind3d] - xx) > 1e-8*fabs(zi_x[iind3d] + xx) || fabs(zi_y[iind3d] - yy) > 1e-8*fabs(zi_y[iind3d] + yy) || fabs(zi_z[iind3d] - zz) > 1e-8*fabs(zi_z[iind3d] + zz)) {
-      fprintf(stderr, "Unexpected coordiante (%.18e,%.18e,%.18e) instead of (%.18e,%.18e,%.18e) for sphere coords (%.18e,%.18e,%.18e) index (%d,%d,%d) of (%d,%d)\n",
-      xx,yy,zz,zi_x[iind3d],zi_y[iind3d],zi_z[iind3d],xrad,xtheta,xphi,ii,jj,kk,ntheta,nphi);
-    }
+          spher2cart (xrad,xtheta,xphi, &xx,&yy,&zz, &xx0, &yy0, &zz0);
+          if(kk < nphi/2 || isym == octant) {
+            xx = *x0 + xx;
+            yy = *y0 + yy;
+          } else {
+            xx = *x0 - xx;
+            yy = *y0 - yy;
+          }
+          if(fabs(zi_x[iind3d] - xx) > 1e-8*fabs(zi_x[iind3d] + xx) || fabs(zi_y[iind3d] - yy) > 1e-8*fabs(zi_y[iind3d] + yy) || fabs(zi_z[iind3d] - zz) > 1e-8*fabs(zi_z[iind3d] + zz)) {
+            fprintf(stderr, "Unexpected coordiante (%.18e,%.18e,%.18e) instead of (%.18e,%.18e,%.18e) for sphere coords (%.18e,%.18e,%.18e) index (%d,%d,%d) of (%d,%d)\n",
+                    xx,yy,zz,zi_x[iind3d],zi_y[iind3d],zi_z[iind3d],xrad,xtheta,xphi,ii,jj,kk,ntheta,nphi);
+          }
 
-  } //LC_ENDLOOP3 (ZLtau_get_rays);
+        } //LC_ENDLOOP3 (ZLtau_get_rays);
 #else
   //  LC_LOOP3 (ZLtau_get_rays,
   //          ii,jj,kk, 0,0,0, nrad,ntheta,nphi, nrad,ntheta,nphi)
-  #pragma omp parallel for
+#pragma omp parallel for
   for(int ii=0;ii<nrad+nrad_outer;ii++)
     for(int jj=0;jj<ntheta;jj++)
       for(int kk=0;kk<nphi;kk++)
-  {
-    int const iind3d = ii+(nrad+nrad_outer)*(jj+ntheta*kk);
-    CCTK_REAL const xrad   = rad[ii];
-    CCTK_REAL const xtheta = jj * (*dtheta);
-    CCTK_REAL const xphi   = kk * (*dphi);
-    CCTK_REAL xx, yy, zz;
+        {
+          int const iind3d = ii+(nrad+nrad_outer)*(jj+ntheta*kk);
+          CCTK_REAL const xrad   = rad[ii];
+          CCTK_REAL const xtheta = jj * (*dtheta);
+          CCTK_REAL const xphi   = kk * (*dphi);
+          CCTK_REAL xx, yy, zz;
     
-    spher2cart (xrad,xtheta,xphi, &xx,&yy,&zz, x0, y0, z0);
-    //    fprintf(stdout,"%5d %5d %5d %15.6E %15.6E %15.6E\n",
-    //	    ii,jj,kk,xx,yy,zz);
-    zi_x[iind3d] = xx;
-    zi_y[iind3d] = yy;
-    zi_z[iind3d] = zz;
-  } //LC_ENDLOOP3 (ZLtau_get_rays);
-      //} LC_ENDLOOP3 (ZLtau_get_rays);
+          spher2cart (xrad,xtheta,xphi, &xx,&yy,&zz, x0, y0, z0);
+          //    fprintf(stdout,"%5d %5d %5d %15.6E %15.6E %15.6E\n",
+          //	    ii,jj,kk,xx,yy,zz);
+          zi_x[iind3d] = xx;
+          zi_y[iind3d] = yy;
+          zi_z[iind3d] = zz;
+        } //LC_ENDLOOP3 (ZLtau_get_rays);
+  //} LC_ENDLOOP3 (ZLtau_get_rays);
 #endif
 
   // some informative output
@@ -414,7 +414,7 @@ void ZLtau_get_rays(CCTK_ARGUMENTS)
     assert(err==0);
   }
 
- // calculate the line element
+  // calculate the line element
 #pragma omp parallel for
   for (int kk=0; kk<nphi; ++kk) {
     for (int jj=0; jj<ntheta; ++jj) {
@@ -472,16 +472,16 @@ void ZLtau_set_origin_init(CCTK_ARGUMENTS)
   }
 
   for(int i=0;i<(nrad+nrad_outer)*nphi*ntheta*3;i++) {
-      zi_xiross[i] = 0.0;
-      zi_tauruff[i] = 0.0;
-      zi_heatflux[i] = 0.0;
-      zi_lum_local[i] = 0.0;
-   }  
+    zi_xiross[i] = 0.0;
+    zi_tauruff[i] = 0.0;
+    zi_heatflux[i] = 0.0;
+    zi_lum_local[i] = 0.0;
+  }  
 
   for(int i=0;i<nphi*ntheta*3;i++) {
     zi_heaterms[i] = 0.0;
     zi_heateave[i] = 0.0;
-   }  
+  }  
 
   return;
 }

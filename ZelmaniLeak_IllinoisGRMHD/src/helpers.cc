@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <cmath>
 
-
 double alpha_grid(double rmin, double rmax, int nzones,
 		  double drmin, double prec) {
 
@@ -46,6 +45,8 @@ double alpha_grid(double rmin, double rmax, int nzones,
     //    printf("%d %15.6E %15.6E %15.6E %15.6E\n",it,alpha,f,fabs(f/rmax),prec);
     it++;
   }
+  // Leo says: this condition can never be
+  //    triggered based on the code above.
   if (it >= 200) {
     alpha = -1.0e0;
   }
