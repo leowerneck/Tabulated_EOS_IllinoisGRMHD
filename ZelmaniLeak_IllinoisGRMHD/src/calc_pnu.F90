@@ -3,6 +3,22 @@
 #include "cctk_Parameters.h"
 #include "cctk_Functions.h"
 ! 4/3*pi*(1MeV)^4/(hc)^3
+! Leo says: convert everything to cgs first!
+! Python snippet:
+! import numpy as np
+! import astropy.constants as ct
+! import astropy.units as units
+! c          = ct.c.cgs.value
+! h          = ct.h.cgs.value
+! MeV_to_erg = units.MeV.to(units.erg)
+! const      = (4/3)*np.pi/(h*c)**3 * MeV_to_erg**4
+! print("Computed value:",const)
+! print("In the code   : 3.52127727d24")
+! print("Relative error:",np.abs((const-3.52127727e24)/const))
+! Output:
+! Computed value: 3.521275355092826e+24
+! In the code   : 3.52127727d24
+! Relative error: 5.438106881631993e-07
 #define PRESS_NU_CONSTANT 3.52127727d24
 #define PI 3.14159265358979d0
 #define PI4 97.4090910340024d0
@@ -54,7 +70,7 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
   character(len=512) :: warnline
   integer :: iflux,ixoffset,iyoffset,izoffset
   CCTK_REAL :: invdxyz
- 
+
   ! pnu vars
   CCTK_REAL :: eta
   CCTK_REAL :: pnufac
@@ -72,7 +88,7 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
 
   allocate(dpnudr(nx,ny,nz))
 
-  
+
 
   ! compute neutrino pressure
   ! do so only for densities about 1/10 of the density
@@ -102,10 +118,30 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
                  call CCTK_WARN(1,warnline)
                  call CCTK_WARN(0,"Problem in Pnu EOS call 1!")
               endif
-              
+
               ! let's compute the neutrino pressure
               eta = munu(i,j,k)/temperature(i,j,k)
+              ! Leo says:
+              ! The expression implemented below is obtained using
+              ! Eq. 3.19 of http://adsabs.harvard.edu/pdf/1977ApJ...212..859B.
+              ! Note that:
+              ! -> F3const  = (7/60)*pi^{4} = 11.364... = (5.682) * 2
+              ! -> pi^{2}/2 = 4.935... = (2.467) * 2
+              ! -> 1/4 = (1/8) * 2
+              ! The factors in parenthesis above are the ones that appear
+              ! in Eq. 3.19 of the paper, and they are multiplied by a factor
+              ! of 2 because the neutrino pressure contains
+              !
+              ! P_{nu} ~ F_{3}(eta) + F_{3}(-eta),
+              !
+              ! which eliminates all the terms with odd powers of eta and
+              ! multiplies the factors multiplying the even powers of eta
+              ! by two.
               F3 = F3const + 0.5d0*eta*eta*(PI2 + 0.5d0*eta*eta)
+
+              ! Leo says: Eq. 36 of https://arxiv.org/pdf/0912.2393.pdf:
+              !
+              ! P_{nu} = (4pi/3(hc)^3) T^{4} [ F_{3}(eta) + F_{3}(-eta) ]
               pnu(i,j,k) = F3 * pnuconst * temperature(i,j,k)**4
            else
               pnu(i,j,k) = 0.0d0
@@ -157,19 +193,43 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
         do j=IGM_stencil-1,ny-IGM_stencil+1
            do i=IGM_stencil-1,nx-IGM_stencil+1
 
-                 dpnudr(i,j,k) =  &
-                      (  pnu(i+ixoffset,j+iyoffset,k+izoffset) -  &
-                      pnu(i-ixoffset,j-iyoffset,k-izoffset) )  &
-                      * invdxyz 
-              
-                 detg = SPATIAL_DETERMINANT(gxx(i,j,k),gxy(i,j,k),
-                 gxz(i,j,k),gyy(i,j,k),gyz(i,j,k),gzz(i,j,k))
-                 stress = dpnudr(i,j,k)*alp(i,j,k)*sqrt(detg) * &
-                      (tanh( (rho(i,j,k) - pnu_rho_start*rho_gf) / &
-                      (pnu_rho_start*rho_gf/10.0d0)) + 1.0d0)/2.0d0
+              ! Leo says: second-order centered finite differences
+              dpnudr(i,j,k) =  &
+                   (  pnu(i+ixoffset,j+iyoffset,k+izoffset) -  &
+                   pnu(i-ixoffset,j-iyoffset,k-izoffset) )  &
+                   * invdxyz
 
-                 srhs(i,j,k) = srhs(i,j,k) - stress
-                 taurhs(i,j,k) = taurhs(i,j,k) - vel(i,j,k,iflux)*stress
+              detg = SPATIAL_DETERMINANT(gxx(i,j,k),gxy(i,j,k),
+              gxz(i,j,k),gyy(i,j,k),gyz(i,j,k),gzz(i,j,k))
+
+              ! Leo says: The source terms for tau and S^{i} are given
+              !           by Eqs. (37) in https://arxiv.org/pdf/0912.2393.pdf.
+              !
+              ! We note, however, that the implementation above is not exactly
+              ! the same as the one appearing in the paper, since the paper
+              ! focuses on the case of 1D GRHD. For GRMHD, one would start with
+              !
+              ! nabla_{\mu}T^{\mu\nu} = <Source terms>,
+              !
+              ! which explains the factor sqrt(-g) = alpha*sqrt(gamma) appearing
+              ! below. The base source term is just partial_{i}P_{nu}.
+              !
+              ! As mentioned above, the function
+              !
+              ! f(rho) = 0.5 * [ tanh( (rho_{b} - rho_{start}) / (rho_{start}/10) ) + 1 ]
+              !
+              ! is used to transition smoothly from the regime where the source terms
+              ! do not contribute (rho_{b} < rho_{start}) and the regime where they
+              ! do contribute (rho_{b} > rho_{start}).
+              stress = dpnudr(i,j,k)*alp(i,j,k)*sqrt(detg) * &
+                   (tanh( (rho(i,j,k) - pnu_rho_start*rho_gf) / &
+                   (pnu_rho_start*rho_gf/10.0d0)) + 1.0d0)/2.0d0
+
+              ! Leo says: First of Eqs. (37) in https://arxiv.org/pdf/0912.2393.pdf.
+              srhs(i,j,k) = srhs(i,j,k) - stress
+
+              ! Leo says: Second of Eqs. (37) in https://arxiv.org/pdf/0912.2393.pdf.
+              taurhs(i,j,k) = taurhs(i,j,k) - vel(i,j,k,iflux)*stress
 
            enddo
         enddo
