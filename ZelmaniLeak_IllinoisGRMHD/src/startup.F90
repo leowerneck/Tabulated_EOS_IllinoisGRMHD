@@ -38,17 +38,17 @@ subroutine ZelmaniLeak_startup_global(CCTK_ARGUMENTS)
      if(allocated(rhotable)) return
 
      call CCTK_INFO("Reading Y_e(rho) profile!")
-     ! setting module variables                                                                                     
+     ! setting module variables
      density_factor = rho_gf
      nzones = Zones
      rho_min = 5.0d5
      rho_max = 5.0d14
-     ! allocating memory for profile file data   
+     ! allocating memory for profile file data
      allocate(prhoa(Profile_Zones))
      allocate(pyea(Profile_zones))
      allocate(yetable(nzones))
      allocate(rhotable(nzones))
-     ! Let's figure out the profile filename                                                                        
+     ! Let's figure out the profile filename
      call CCTK_FortranString(length,Profile_File,profilefilename)
      call readprofile_ye(profilefilename,Profile_Zones,prhoa,pyea)
      call setuprho_ye(nzones,rho_min,rho_max,rhotable)
