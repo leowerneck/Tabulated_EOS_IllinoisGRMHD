@@ -24,7 +24,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
 
   integer :: nx,ny,nz
   integer :: i,j,k
-  integer :: ii,jj,kk,ll,jj_offset, jj_origin
+  integer :: ii,jj,kk,ll,jj_offset, jj_origins
   integer :: rl
   real*8  :: xchi(3),xtau(3)
   real*8  :: xr,xt,xp,xtemp
@@ -109,7 +109,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
   ! setting up...
   ldt = CCTK_DELTA_TIME*inv_time_gf
   rl = aint(log10(dble(cctk_levfac(1)))/log10(2.0d0))
-  
+
   ! remember symmetries and ghost zones when implementing this!!!
   if(ntheta.eq.1 .and. nphi.eq.1) then
      ! simplest case; spherically symmetric leakage
@@ -125,7 +125,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
               net_heat_local(i,j,k,1:3) = 0.0d0
 
               ! no leakage in the atmosphere (if there is one)
-              if(rho(i,j,k) .le. igm_rhomin) cycle
+              if(rho(i,j,k) .le. leakage_rho_threshold) cycle
 
               if(rl.ge.-1) then
 
@@ -139,7 +139,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                     xeave(1:3) = 0.0d0
                     xheat(1:3) = 0.0d0
                     xnetheat(1:3) = 0.0d0
-                 
+
                     ! this means that our data point is between ii and ii+1
                     call linterp(rad(ii),rad(ii+1), &
                          zi_xiross(ii,1,1,1),zi_xiross(ii+1,1,1,1),xr,xchi(1))
@@ -153,8 +153,8 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                     call linterp(rad(ii),rad(ii+1), &
                          zi_tauruff(ii,1,1,2),zi_tauruff(ii+1,1,1,2),xr,xtau(2))
                     call linterp(rad(ii),rad(ii+1), &
-                        zi_tauruff(ii,1,1,3),zi_tauruff(ii+1,1,1,3),xr,xtau(3))
-                    
+                         zi_tauruff(ii,1,1,3),zi_tauruff(ii+1,1,1,3),xr,xtau(3))
+
                     call linterp(rad(ii),rad(ii+1), &
                          zi_heatflux(ii,1,1,1),zi_heatflux(ii+1,1,1,1),xr,xheatflux(1))
                     call linterp(rad(ii),rad(ii+1), &
@@ -190,7 +190,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                        call CCTK_WARN(1,warnline)
                        call CCTK_WARN(0,"Aborting!")
                     endif
-                    
+
 
                     y_e(i,j,k) = y_e(i,j,k) + dyedt * ldt
                     eps(i,j,k) = eps(i,j,k) + depsdt * ldt * eps_gf
@@ -203,7 +203,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                     lum_nua(i,j,k) = xlum(2) * Binv
                     lum_nux(i,j,k) = xlum(3) * Binv
                     ! Leo says: end of Spritz MOD by LSADD
-                    
+
                     net_heat_local(i,j,k,1:3) = xnetheat(1:3) * lumfac * Binv
                     heat_local(i,j,k,1:3) = xheat(1:3) * lumfac * Binv
 
@@ -219,8 +219,8 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                     ! Leo says: spherically symmetric leakage
                     radial_velocity = (x(i, j, k) * vel(i, j, k, 1) + y(i, j, k) * vel(i, j, k, 2) + z(i, j, k) * vel(i, j, k, 3)) / ((x(i, j, k)**2 + y(i, j, k)**2 + z(i, j, k)**2) ** 0.5d0 + 1.0d-8)
                     if (isnan(radial_velocity)) then
-                        call CCTK_WARN(1,"Radial velocity is NaN!")
-                        !call CCTK_WARN(1,"x, y, z") x(i, j, k), y(i, j, k), z(i, j, k)
+                       call CCTK_WARN(1,"Radial velocity is NaN!")
+                       !call CCTK_WARN(1,"x, y, z") x(i, j, k), y(i, j, k), z(i, j, k)
                     endif
                     lum_inf_nue(i, j, k) = xlum(1) * alp(i, j, k)**2 * w_lorentz(i, j, k) * (1.0d0 + radial_velocity) * sqrt(det) * lumfac * Binv
                     lum_inf_nua(i, j, k) = xlum(2) * alp(i, j, k)**2 * w_lorentz(i, j, k) * (1.0d0 + radial_velocity) * sqrt(det) * lumfac * Binv
@@ -230,7 +230,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
            enddo
         enddo
      enddo
-     !$OMP END PARALLEL DO 
+     !$OMP END PARALLEL DO
   else if(ntheta.gt.1.and.nphi.eq.1) then
      ! axisymmetric case, 2D interpolation
      !$OMP PARALLEL DO PRIVATE(i,j,k,xr,xt,ii,jj,ll,xchi,xtau,depsdt,dyedt,xlum, &
@@ -245,7 +245,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
               net_heat_local(i,j,k,1:3) = 0.0d0
 
               ! no leakage in the atmosphere (if there is one)
-              if(rho(i,j,k) .le. igm_rhomin) cycle
+              if(rho(i,j,k) .le. leakage_rho_threshold) cycle
 
 
               ! only leak inside max leak radius
@@ -268,12 +268,12 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                     if(xt.gt.pio2) then
                        xt = pi - xt
                     endif
-                             endif
+                 endif
 #endif
                  jj = floor(xt/dtheta)+1
                  jj = max(1,min(ntheta-1,jj))
 
-                  ! interpolation setup
+                 ! interpolation setup
                  rr(1) = rad(ii)
                  rr(2) = rad(ii+1)
                  tt(1) = theta(jj)
@@ -353,7 +353,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                             zi_heatflux(ll,1,1,3),zi_heateave(ll,1,1:3)
                     enddo
                     close(666)
-!                    call CCTK_WARN(0,"end debug")                                                      
+                    !                    call CCTK_WARN(0,"end debug")                                                      
                     !$OMP END CRITICAL
                  endif
 #endif
@@ -386,8 +386,8 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  ! Leo says: axisymmetric leakage
                  radial_velocity = (x(i, j, k) * vel(i, j, k, 1) + y(i, j, k) * vel(i, j, k, 2) + z(i, j, k) * vel(i, j, k, 3)) / ((x(i, j, k)**2 + y(i, j, k)**2 + z(i, j, k)**2) ** 0.5d0 + 1.0d-8)
                  if (isnan(radial_velocity)) then
-                     call CCTK_WARN(1,"Radial velocity is NaN!")
-                     !call CCTK_WARN(1,"x, y, z") x(i, j, k), y(i, j, k), z(i, j, k)
+                    call CCTK_WARN(1,"Radial velocity is NaN!")
+                    !call CCTK_WARN(1,"x, y, z") x(i, j, k), y(i, j, k), z(i, j, k)
                  endif
                  lum_inf_nue(i, j, k) = xlum(1) * alp(i, j, k)**2 * w_lorentz(i, j, k) * (1.0d0 + radial_velocity) * sqrt(det) * lumfac * Binv
                  lum_inf_nua(i, j, k) = xlum(2) * alp(i, j, k)**2 * w_lorentz(i, j, k) * (1.0d0 + radial_velocity) * sqrt(det) * lumfac * Binv
@@ -396,8 +396,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
            enddo
         enddo
      enddo
-     !$OMP END PARALLEL DO                                 
-
+     !$OMP END PARALLEL DO
   else 
      ! full 3D case
      !$OMP PARALLEL DO PRIVATE(i,j,k,xr,xt,xp,ii,jj,kk,ll,jj_offset,jj_origin, &
@@ -414,7 +413,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
               eave_local(i,j,k,1:3) = 0.0d0
 
               ! no leakage in the atmosphere (if there is one)
-              if(rho(i,j,k) .le. igm_rhomin) cycle
+              if(rho(i,j,k) .le. leakage_rho_threshold) cycle
 
               ! only leak inside max leak radius
               if(r(i,j,k).lt.rad_max-drad*1.1d0) then
@@ -425,9 +424,9 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  ! theta with symmetry handling
 #ifdef SYMMETRIC_OPERATORS
                  if(xr .ne. 0d0) then
-                   xt = asin(z(i,j,k)/xr)
+                    xt = asin(z(i,j,k)/xr)
                  else
-                   xt = 0d0
+                    xt = 0d0
                  end if
                  if(isym.eq.2.or.isym.eq.3) then
                     if(xt.lt.0.) then
@@ -455,48 +454,48 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  !   are inaccurate
                  jj = ceiling(abs(xt)/(0.5d0*dtheta)) ! measured in halfs of dtheta away from xt=0
                  if(mod(jj,2) .eq. 0) then ! round up to next odd integer
-                   jj = jj + 1
+                    jj = jj + 1
                  end if
                  ! at this point jj is (2*i+1) in the formulae above. We now
                  ! have to convert to the actual index into the array.
                  if(xt.ge.0d0) then ! we always interpolate from xt=0 outwards
-                   ! since jj is beyond theta, pick an offset so that
-                   ! jj+jj_offset is between theta and 0
-                   jj_offset = -1
-                   ! 2*i+1 = jj => i = (jj-1)/2 and we need ntheta/2+1 + i
-                   jj = jj_origin+1 + (jj-1)/2
-                   jj = max(2,min(ntheta,jj))                ! limit to valid range
+                    ! since jj is beyond theta, pick an offset so that
+                    ! jj+jj_offset is between theta and 0
+                    jj_offset = -1
+                    ! 2*i+1 = jj => i = (jj-1)/2 and we need ntheta/2+1 + i
+                    jj = jj_origin+1 + (jj-1)/2
+                    jj = max(2,min(ntheta,jj))                ! limit to valid range
                  else
-                   ! since jj is beyond theta, pick an offset so that
-                   ! jj+jj_offset is between theta and 0
-                   jj_offset = +1
-                   ! 2*i+1 = jj => i = (jj-1)/2 and we need ntheta/2 - i
-                   jj = jj_origin - (jj-1)/2
-                   jj = max(1,min(ntheta-1,jj))                ! limit to valid range
+                    ! since jj is beyond theta, pick an offset so that
+                    ! jj+jj_offset is between theta and 0
+                    jj_offset = +1
+                    ! 2*i+1 = jj => i = (jj-1)/2 and we need ntheta/2 - i
+                    jj = jj_origin - (jj-1)/2
+                    jj = max(1,min(ntheta-1,jj))                ! limit to valid range
                  end if
-                 
+
                  ! phi measured either from +x or -x axis but always [0:pi]
                  if(y(i,j,k) .gt. 0d0 .or. y(i,j,k) .eq. 0d0 .and. x(i,j,k) .ge. 0d0) then
-                   xp = atan2(y(i,j,k),x(i,j,k))
+                    xp = atan2(y(i,j,k),x(i,j,k))
                  else
-                   xp = atan2(-y(i,j,k),-x(i,j,k))
+                    xp = atan2(-y(i,j,k),-x(i,j,k))
                  end if
                  if(isym.eq.3) then
-                   ! phi repeats every pi/2, and phi is already limited to [0:pi]
-                   if(xp.ge.pio2) then
-                     xp = xp - pio2
-                   end if
+                    ! phi repeats every pi/2, and phi is already limited to [0:pi]
+                    if(xp.ge.pio2) then
+                       xp = xp - pio2
+                    end if
                  end if
                  kk = int(xp/dphi) + 1
                  if(isym.eq.3) then
-                   kk = max(1,min(nphi-1,kk))
+                    kk = max(1,min(nphi-1,kk))
                  else
-                   kk = max(1,min(nphi/2-1,kk))
-                   if(.not. (y(i,j,k) .gt. 0d0 .or. &
-                             y(i,j,k) .eq. 0d0 .and. x(i,j,k) .ge. 0d0)) then
-                     kk = nphi/2 + kk
-                     xp = -xp
-                   end if
+                    kk = max(1,min(nphi/2-1,kk))
+                    if(.not. (y(i,j,k) .gt. 0d0 .or. &
+                         y(i,j,k) .eq. 0d0 .and. x(i,j,k) .ge. 0d0)) then
+                       kk = nphi/2 + kk
+                       xp = -xp
+                    end if
                  end if
 #else
                  xt = acos(z(i,j,k)/(xr+tiny))
@@ -507,7 +506,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  endif
                  jj = floor(xt/dtheta)+1
                  jj = max(1,min(ntheta-1,jj))
-                 
+
                  ! phi with symmetry handling
                  xp = atan2(y(i,j,k),x(i,j,k)+tiny)
                  if(xp.lt.0) then
@@ -541,40 +540,40 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  fint3D(1,1:3) = zi_xiross(ii,jj,kk,1:3)
                  fint3D(1,4:6) = zi_tauruff(ii,jj,kk,1:3)
                  fint3D(1,7:9) = zi_heatflux(ii,jj,kk,1:3)
-!
+                 !
                  fint3D(2,1:3) = zi_xiross(ii,jj+jj_offset,kk,1:3)
                  fint3D(2,4:6) = zi_tauruff(ii,jj+jj_offset,kk,1:3)
                  fint3D(2,7:9) = zi_heatflux(ii,jj+jj_offset,kk,1:3)
-!
+                 !
                  fint3D(3,1:3) = zi_xiross(ii,jj,kk+1,1:3)
                  fint3D(3,4:6) = zi_tauruff(ii,jj,kk+1,1:3)
                  fint3D(3,7:9) = zi_heatflux(ii,jj,kk+1,1:3)
-!
+                 !
                  fint3D(4,1:3) = zi_xiross(ii,jj+jj_offset,kk+1,1:3)
                  fint3D(4,4:6) = zi_tauruff(ii,jj+jj_offset,kk+1,1:3)
                  fint3D(4,7:9) = zi_heatflux(ii,jj+jj_offset,kk+1,1:3)
-!
+                 !
                  fint3D(5,1:3) = zi_xiross(ii+1,jj,kk,1:3)
                  fint3D(5,4:6) = zi_tauruff(ii+1,jj,kk,1:3)
                  fint3D(5,7:9) = zi_heatflux(ii+1,jj,kk,1:3)
-!
+                 !
                  fint3D(6,1:3) = zi_xiross(ii+1,jj+jj_offset,kk,1:3)
                  fint3D(6,4:6) = zi_tauruff(ii+1,jj+jj_offset,kk,1:3)
                  fint3D(6,7:9) = zi_heatflux(ii+1,jj+jj_offset,kk,1:3)
-!
+                 !
                  fint3D(7,1:3) = zi_xiross(ii+1,jj,kk+1,1:3)
                  fint3D(7,4:6) = zi_tauruff(ii+1,jj,kk+1,1:3)
                  fint3D(7,7:9) = zi_heatflux(ii+1,jj,kk+1,1:3)
-!
+                 !
                  fint3D(8,1:3) = zi_xiross(ii+1,jj+jj_offset,kk+1,1:3)
                  fint3D(8,4:6) = zi_tauruff(ii+1,jj+jj_offset,kk+1,1:3)
                  fint3D(8,7:9) = zi_heatflux(ii+1,jj+jj_offset,kk+1,1:3)
 
                  if((rr(1) - xr)*(rr(2) - xr) .gt. 0d0 .or. &
-                    (tt(1) - xt)*(tt(2) - xt) .gt. 0d0 .or. &
-                    (pp(1) - xp)*(pp(2) - xp) .gt. 0d0) then
-                       write(warnline,"('suspicious interpolation interval (',E15.6,',',E15.6,')x(',E15.6,',',E15.6,')x(',E15.6,',',E15.6,') for point (',3E15.6,')')") rr(1),rr(2),tt(1),tt(2),pp(1),pp(2),xr,xt,xp
-                       call CCTK_WARN(1,warnline)
+                      (tt(1) - xt)*(tt(2) - xt) .gt. 0d0 .or. &
+                      (pp(1) - xp)*(pp(2) - xp) .gt. 0d0) then
+                    write(warnline,"('suspicious interpolation interval (',E15.6,',',E15.6,')x(',E15.6,',',E15.6,')x(',E15.6,',',E15.6,') for point (',3E15.6,')')") rr(1),rr(2),tt(1),tt(2),pp(1),pp(2),xr,xt,xp
+                    call CCTK_WARN(1,warnline)
                  end if
                  call linterp3Dn(tt,pp,rr,fint3D,nfs,xt,xp,xr,fint_out)
                  xchi = fint_out(1:3)
@@ -584,7 +583,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
 
                  if(isnan(xtau(1))) then
                     if(CCTK_MyProc(cctkGH).eq.0) then
-                    !$OMP CRITICAL
+                       !$OMP CRITICAL
                        write(warnline,"(3i6,1P10E15.6)") i,j,k,x(i,j,k),y(i,j,k),z(i,j,k)
                        call CCTK_WARN(1,warnline)
                        write(warnline,"(i5,1P10E15.6)") ii,rad(ii),xr,rad(ii+1)
@@ -596,10 +595,10 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                        write(warnline,"(1P10E15.6)") xtau(1:3)
                        call CCTK_WARN(0,warnline)
                        call CCTK_WARN(0,"aborting!!!")
-                    !$OMP END CRITICAL
+                       !$OMP END CRITICAL
                     endif
                  endif
-            
+
                  xlum(1:3)  = 0.0d0  
                  xeave(1:3) = 0.0d0
                  xheat(1:3)  = 0.0d0
@@ -619,6 +618,9 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  fint(4,1:3) = zi_heateave(jj+jj_offset,kk+1,1:3)
                  fint(4,4:6) = zi_heaterms(jj+jj_offset,kk+1,1:3)
 
+                 ! Leo says: double check that these quantities are
+                 !           the ones given by Eqs. (A3) and (A4) of
+                 !           https://arxiv.org/abs/astro-ph/0302301
                  call linterp2Dn(tt,pp,fint,nfs2,xt,xp,fint_out)
                  xheateave(1:3) = fint_out(1:3)
                  xheaterms(1:3) = fint_out(4:6)
@@ -627,7 +629,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  xtemp = max(temperature(i,j,k),igm_T_atm)
                  ! Leo says: Spritz MOD by LSADD
                  if(isnan(xchi(1)).or.isnan(xchi(2)).or.isnan(xchi(3))) then
-                   write(*,*) "xchi is NaN. ",rr,tt,pp
+                    write(*,*) "xchi is NaN. ",rr,tt,pp
                  endif
                  ! Leo says: end of Spritz MOD by LSADD
                  call calc_leak(rho(i,j,k)*inv_rho_gf,xtemp,&
@@ -661,7 +663,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
 
                  y_e(i,j,k) = y_e(i,j,k) + dyedt * ldt
                  eps(i,j,k) = eps(i,j,k) + depsdt * ldt * eps_gf
-                 
+
                  lum_local(i,j,k,1:3) = xlum(1:3) * lumfac * Binv
                  lum_int_local(i,j,k,1:3) = lum_int_local(i,j,k,1:3) + lum_local(i,j,k,1:3)*ldt
 
@@ -696,11 +698,8 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
            enddo
         enddo
      enddo
-     !$OMP END PARALLEL DO 
+     !$OMP END PARALLEL DO
   endif
-
-
-
 
 contains 
   subroutine linterp2Dn(xin,yin,fin,n,x,y,fout)
@@ -732,14 +731,14 @@ contains
 
 #ifdef SYMMETRIC_OPERATORS
     fout(1:n) = invdxdy * (  (fin(1,1:n) * (xin(2)-x) &
-                            + fin(2,1:n) * (x-xin(1)))*(yin(2)-y) &
-                           + (fin(3,1:n) * (xin(2)-x) &
-                            + fin(4,1:n) * (x-xin(1)))*(y-yin(1)) )
+         + fin(2,1:n) * (x-xin(1)))*(yin(2)-y) &
+         + (fin(3,1:n) * (xin(2)-x) &
+         + fin(4,1:n) * (x-xin(1)))*(y-yin(1)) )
 #else
     fout(1:n) = invdxdy * (  fin(1,1:n) * (xin(2)-x)*(yin(2)-y) &
-                           + fin(2,1:n) * (x-xin(1))*(yin(2)-y) &
-                           + fin(3,1:n) * (xin(2)-x)*(y-yin(1)) &
-                           + fin(4,1:n) * (x-xin(1))*(y-yin(1)) )
+         + fin(2,1:n) * (x-xin(1))*(yin(2)-y) &
+         + fin(3,1:n) * (xin(2)-x)*(y-yin(1)) &
+         + fin(4,1:n) * (x-xin(1))*(y-yin(1)) )
 #endif
 
 
@@ -784,13 +783,13 @@ contains
 #ifdef SYMMETRIC_OPERATORS
     fout(1:n) = invdxdydz * (                                     &
          ((fin(8,1:n)*(x - xin(1)) +                              &
-           fin(7,1:n)*(xin(2) - x))*(y - yin(1)) +                &
-          (fin(6,1:n)*(x - xin(1)) +                              &
-           fin(5,1:n)*(xin(2) - x))*(yin(2) - y))*(z - zin(1)) +  &
+         fin(7,1:n)*(xin(2) - x))*(y - yin(1)) +                &
+         (fin(6,1:n)*(x - xin(1)) +                              &
+         fin(5,1:n)*(xin(2) - x))*(yin(2) - y))*(z - zin(1)) +  &
          ((fin(4,1:n)*(x - xin(1)) +                              &
-           fin(3,1:n)*(xin(2) - x))*(y - yin(1)) +                &
-          (fin(2,1:n)*(x - xin(1)) +                              &
-           fin(1,1:n)*(xin(2) - x))*(yin(2) - y))*(zin(2) - z)    &
+         fin(3,1:n)*(xin(2) - x))*(y - yin(1)) +                &
+         (fin(2,1:n)*(x - xin(1)) +                              &
+         fin(1,1:n)*(xin(2) - x))*(yin(2) - y))*(zin(2) - z)    &
          )
 #else
     fout(1:n) = invdxdydz * (                                 &
@@ -808,48 +807,48 @@ contains
   subroutine linterp(x1,x2,y1,y2,x,y)
 
 #ifdef HAVE_CAPABILITY_Fortran
-  use cctk
+    use cctk
 #endif
-  implicit none
+    implicit none
 
-  CCTK_REAL slope,x1,x2,y1,y2,x,y
+    CCTK_REAL slope,x1,x2,y1,y2,x,y
 
-  if (x2.lt.x1) then
-     call CCTK_WARN(0,"Error in linterp!")
-  endif
+    if (x2.lt.x1) then
+       call CCTK_WARN(0,"Error in linterp!")
+    endif
 
-  slope = (y2 - y1) / (x2 - x1)
-  y = slope*(x-x1) + y1
+    slope = (y2 - y1) / (x2 - x1)
+    y = slope*(x-x1) + y1
 
   end subroutine  linterp
 
   subroutine linterp3(x1,x2,y1,y2,x,y)
 
 #ifdef HAVE_CAPABILITY_Fortran
-  use cctk
+    use cctk
 #endif
-  implicit none
+    implicit none
 
-  CCTK_REAL slope(3),x1(3),x2(3),y1(3),y2(3),x,y(3)
+    CCTK_REAL slope(3),x1(3),x2(3),y1(3),y2(3),x,y(3)
 
-  slope = (y2 - y1) / (x2 - x1)
-  y = slope*(x-x1) + y1
+    slope = (y2 - y1) / (x2 - x1)
+    y = slope*(x-x1) + y1
 
-end subroutine  linterp3
+  end subroutine  linterp3
 
 end subroutine ZelmaniLeak_CalcLeak
 
 subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
      depsdt,dyedt,ldt,lum,eave,heatout,netheatout,rho_min,reflevel,rad)
-! WARNING: Be careful when changing the arguments to this function; it is also
-! called from calc_tau to get the luminosity available for heating
-! along the rays.
+  ! WARNING: Be careful when changing the arguments to this function; it is also
+  ! called from calc_tau to get the luminosity available for heating
+  ! along the rays.
 
 
-!  use eosmodule, only : energy_shift, eos_yemin, eos_yemax
+  !  use eosmodule, only : energy_shift, eos_yemin, eos_yemax
   use EOS_Omni_module, only: energy_shift, eos_yemin, eos_yemax, &
        rho_gf, inv_rho_gf, inv_eps_gf
- 
+
 #ifdef HAVE_CAPABILITY_Fortran
   use cctk
 #endif
@@ -988,8 +987,8 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
      return
   endif
 
-  !Don't do anything in the atmosphere
-  if(matter_rho*rho_gf.lt.igm_rhomin) then 
+  ! Don't do anything in the atmosphere
+  if(matter_rho*rho_gf.lt.leakage_rho_threshold) then 
      lum(1:3) = 0.0d0
      depsdt = 0.0d0
      dyedt = 0.0d0
@@ -1001,39 +1000,55 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   eta_p = matter_mup/temp
   eta_n = matter_mun/temp
 
-
   eta_hat = eta_n - eta_p - Qnp/temp
   eta_nue = eta_e - eta_n + eta_p !fully includes effects of rest masses
   eta_nua = -eta_nue
   eta_nux = 0.0d0
 
   !interpolate etas like we do in GR1D
+  ! Leo says: Eq. (24) of https://arxiv.org/abs/0912.2393
   eta_nue = eta_nue*(1.0d0-exp(-tau(1)))
   eta_nua = eta_nua*(1.0d0-exp(-tau(2)))
-  
+
+  ! Leo says: this is sigma_{nui,nuc} * rho * N_{avo},
+  !           where sigma_{nui,nuc} is given just below
+  !           Eq. (A17) of https://arxiv.org/abs/astro-ph/0302301
   scattering_kappa = rho*avo*0.25d0*sigma_0/me_mev**2
-  kappa_tilde_nu_scat(1,1) = matter_xn*scattering_kappa
-  kappa_tilde_nu_scat(1,2) = matter_xp*scattering_kappa
-  kappa_tilde_nu_scat(2,1) = matter_xn*scattering_kappa
-  kappa_tilde_nu_scat(2,2) = matter_xp*scattering_kappa
-  kappa_tilde_nu_scat(3,1) = matter_xn*scattering_kappa
-  kappa_tilde_nu_scat(3,2) = matter_xp*scattering_kappa
-  
+  kappa_tilde_nu_scat(1,1) = matter_xn*scattering_kappa ! Leo says: electron neutrino scattering off neutrons
+  kappa_tilde_nu_scat(1,2) = matter_xp*scattering_kappa ! Leo says: electron neutrino scattering off protons
+  kappa_tilde_nu_scat(2,1) = matter_xn*scattering_kappa ! Leo says: electron antineutrino scattering off neutrons
+  kappa_tilde_nu_scat(2,2) = matter_xp*scattering_kappa ! Leo says: electron antineutrino scattering off protons
+  kappa_tilde_nu_scat(3,1) = matter_xn*scattering_kappa ! Leo says: heavy-lepton neutrinos scattering off neutrons
+  kappa_tilde_nu_scat(3,2) = matter_xp*scattering_kappa ! Leo says: heavy-lepton neutrinos scattering off protons
+
+  ! Leo says: this is sigma_{nui,A} * rho * N_{avo},
+  !           where sigma_{nui,A} is given just below
+  !           Eq. (A18) of https://arxiv.org/abs/astro-ph/0302301
+  !           One factor of A is missing because kappa multiples the
+  !           number fraction, not mass fractions.
   scattering_kappa = rho*avo*0.0625d0*sigma_0/me_mev**2* &
        matter_abar*(1.0d0-matter_zbar/matter_abar)**2
+
   ! Leo says: Spritz comment:
-  ! only have 1 factor of A because kappa multiples the number fraction, not mass fractions
   ! LSMOD sometimes this generated errors, due to matter_abar = 0
   if(isnan(scattering_kappa)) then
-    scattering_kappa = 0.0d0
+     scattering_kappa = 0.0d0
   endif
   ! Leo says: end of spritz comment
-  kappa_tilde_nu_scat(1,3) = matter_xh*scattering_kappa
-  kappa_tilde_nu_scat(2,3) = matter_xh*scattering_kappa
-  kappa_tilde_nu_scat(3,3) = matter_xh*scattering_kappa
 
+  kappa_tilde_nu_scat(1,3) = matter_xh*scattering_kappa ! Leo says: electron neutrino scattering off heavy nuclei
+  kappa_tilde_nu_scat(2,3) = matter_xh*scattering_kappa ! Leo says: electron antineutrino scattering off heavy nuclei
+  kappa_tilde_nu_scat(3,3) = matter_xh*scattering_kappa ! Leo says: heavy-lepton neutrinos scattering off heavy nuclei
+
+  ! Leo says: Eq. (A8) in https://arxiv.org/abs/1306.4953
+  !           There is an extra multiplicative factor of
+  !           N_{avo} * rho
   eta_pn = avo*rho*(matter_xn-matter_xp)/(exp(eta_hat)-1.0d0)
   eta_pn = max(eta_pn,0.0d0)
+
+  ! Leo says: Eq. (A8) in https://arxiv.org/abs/1306.4953
+  !           with n <-> p. Note again the extra multiplicative
+  !           factor of N_{avo} * rho
   eta_np = avo*rho*(matter_xp-matter_xn)/(exp(-eta_hat)-1.0d0)
   eta_np = max(eta_np,0.0d0)
 
@@ -1044,21 +1059,37 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   endif
 
   !absorption
+  ! Leo says: Constants in Eq. (A11) of Ruffert et al. (1996)
+  !           https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   abs_kappa = (1.0d0+3.0d0*alpha**2)*0.25d0*sigma_0/me_mev**2
+
+  ! Leo says: Eq. (A15) of Ruffert et al. (1996)
+  !           https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   block_factor = 1.0d0 + exp(eta_e-get_fermi_integral_leak(5,eta_nue)/ &
        (get_fermi_integral_leak(4,eta_nue)+verysmall))
+
+  ! Leo says: Eq. (A11) of Ruffert et al. (1996) without Fermi-Dirac integrals
+  !           https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   kappa_tilde_nu_abs(1,1) = eta_np*abs_kappa/block_factor
   kappa_tilde_nu_abs(2,1) = 0.0d0 !no absorption of a-type on neutrons
   kappa_tilde_nu_abs(3,1) = 0.0d0 !no absorption of x-type neutrinos
   kappa_tilde_nu_abs(1,2) = 0.0d0 !no absorption of e-type on protons
+
+  ! Leo says: Eq. (A16) of Ruffert et al. (1996)
+  !           https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   block_factor = 1.0d0 + exp(-eta_e-get_fermi_integral_leak(5,eta_nua)/ &
        (get_fermi_integral_leak(4,eta_nua)+verysmall))
+
+  ! Leo says: Eq. (A16) of Ruffert et al. (1996) without Fermi-Dirac integrals
+  !           https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   kappa_tilde_nu_abs(2,2) = eta_pn*abs_kappa/block_factor
   kappa_tilde_nu_abs(3,2) = 0.0d0 !no absorption of x-type neutrinos
   kappa_tilde_nu_abs(1,3) = 0.0d0 !no absorption on nuclei
   kappa_tilde_nu_abs(2,3) = 0.0d0 !no absorption on nuclei
   kappa_tilde_nu_abs(3,3) = 0.0d0 !no absorption on nuclei
 
+  ! Leo says: zeta = lambda^{-1}E^{-2}, as defined in Eqs. (A32) and
+  !           (A33) of https://arxiv.org/abs/1306.4953
   !sum up opacities to get zeta (again, factoring out energy dependence)
   zeta(1) = kappa_tilde_nu_scat(1,1) + kappa_tilde_nu_scat(1,2) + &
        kappa_tilde_nu_scat(1,3) + kappa_tilde_nu_abs(1,1) + &
@@ -1074,13 +1105,13 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
 
   ! Leo says: useful Spritz comment:
   ! Federico: Q_diff components below should be compared with the following references:
-  ! - Rosswog, Liebendorfer, mnras (2003) - Eq (A35)
-  ! - Galeazzi, Kastaun, Rezzolla, Font, PRD (2013) - Eq (A35)
+  ! - Rosswog, Liebendorfer, mnras (2003) - Eq (A35) - https://arxiv.org/abs/astro-ph/0302301
+  ! - Galeazzi, Kastaun, Rezzolla, Font, PRD (2013) - Eq (A35) - https://arxiv.org/abs/1306.4953
   ! NOTE1: the factor 6 at the denominator, seems to be different from the
   !        references, where it is set to 3.
   ! NOTE2: one possible explanation for NOTE1 can be found in reference:
   !        - O'Connor, Ott, (2010) - point (ii) before Eq. (25)
-  !!! TO BE CLARIFIED !!!
+!!! TO BE CLARIFIED !!!
   rate_const = 4.0d0*pi*clite*zeta(1)/(hc_mevcm**3*6.0d0*chi(1)**2)
   R_diff(1) = rate_const*temp*get_fermi_integral_leak(0,eta_nue)
   Q_diff(1) = rate_const*temp**2*get_fermi_integral_leak(1,eta_nue)
@@ -1088,20 +1119,21 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   rate_const = 4.0d0*pi*clite*zeta(2)/(hc_mevcm**3*6.0d0*chi(2)**2)
   R_diff(2) = rate_const*temp*get_fermi_integral_leak(0,eta_nua)
   Q_diff(2) = rate_const*temp**2*get_fermi_integral_leak(1,eta_nua)
-       
+
   rate_const = 16.0d0*pi*clite*zeta(3)/(hc_mevcm**3*6.0d0*chi(3)**2)
   R_diff(3) = rate_const*temp*get_fermi_integral_leak(0,eta_nux)
   Q_diff(3) = rate_const*temp**2*get_fermi_integral_leak(1,eta_nux)
 
   ! Leo says: Spritz MOD by LSADD
   if((isnan(R_diff(1)).or.isnan(R_diff(2)).or.isnan(R_diff(3))).and.reflevel.ge.0) then
-    write(*,*) "Problem in diffusion rates, R_diff(nue),R_diff(nua),zeta(1),zeta(2),zeta(3): ",R_diff(1),R_diff(2),R_diff(3),rate_const
+     write(*,*) "Problem in diffusion rates, R_diff(nue),R_diff(nua),zeta(1),zeta(2),zeta(3): ",R_diff(1),R_diff(2),R_diff(3),rate_const
   endif
   ! Leo says: end of Spritz MOD by LSADD
 
   !now for the free emission
+  ! Leo says: Eq. (A6) in https://arxiv.org/abs/1306.4953
   beta = pi*clite*(1.0d0+3.0d0*alpha**2)*sigma_0/(hc_mevcm**3*me_mev**2)
-  
+
   R_loc = 0.0d0
   Q_loc = 0.0d0
 
@@ -1113,16 +1145,29 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   !           Alternatively, check:
   ! - Rosswog, Liebendorfer, mnras (2003) - i=1 --> Eq (A10)
   !                                         i=2 --> Eq (A13)
+
+  ! Leo says: Neutrino emission rate due to electron capture
+  ! Eq. (A6) in https://arxiv.org/abs/astro-ph/0302301
   R_loc(1) = beta*eta_pn*temp**5*get_fermi_integral_leak(4,eta_e)
+
+  ! Leo says: Neutrino cooling rate due to electron capture
+  ! Eq. (A10) in https://arxiv.org/abs/astro-ph/0302301
   Q_loc(1) = beta*eta_pn*temp**6*get_fermi_integral_leak(5,eta_e)
+
+  ! Leo says: Neutrino emission rate due to positron capture
+  ! Eq. (A12) in https://arxiv.org/abs/astro-ph/0302301
   R_loc(2) = beta*eta_np*temp**5*get_fermi_integral_leak(4,-eta_e)
+
+  ! Leo says: Neutrino cooling rate due to positron capture
+  ! Eq. (A13) in https://arxiv.org/abs/astro-ph/0302301
   Q_loc(2) = beta*eta_np*temp**6*get_fermi_integral_leak(5,-eta_e)
+
   ! Leo says: Spritz MOD by LSADD
   if(temp < 0) then
-    R_loc(1) = 0.0d0
-    R_loc(2) = 0.0d0
-    Q_loc(1) = 0.0d0
-    Q_loc(2) = 0.0d0
+     R_loc(1) = 0.0d0
+     R_loc(2) = 0.0d0
+     Q_loc(1) = 0.0d0
+     Q_loc(2) = 0.0d0
   endif
   ! Leo says: end of Spritz MOD by LSADD
 
@@ -1133,42 +1178,80 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   !           Also check:
   ! - Galeazzi, Kastaun, Rezzolla, Font, PRD (2013) - Eq. (A13), (A16) and (A18)
   ! NOTE: In this last Eq. (A18) there is a typo because a factor 1/2 is missing.
+
+  ! Leo says: Fermi-Dirac integrals in
+  ! Eq. (A15) in https://arxiv.org/abs/astro-ph/0302301
   fermi_fac = (get_fermi_integral_leak(4,eta_e)/ &
        (get_fermi_integral_leak(3,eta_e)+verysmall) + &
        get_fermi_integral_leak(4,-eta_e)/&
        (get_fermi_integral_leak(3,-eta_e)+verysmall))
+
+  ! Eq. (B9) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   block_factor_e = 1.0d0+exp(eta_nue-0.5d0*fermi_fac)
   block_factor_a = 1.0d0+exp(eta_nua-0.5d0*fermi_fac)
   block_factor_x = 1.0d0+exp(eta_nux-0.5d0*fermi_fac)
 
+  ! Leo says: Electron energy moment
+  ! Eq. (B5) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   enr_m = 8.0d0*pi/hc_mevcm**3*temp**4*get_fermi_integral_leak(3,eta_e)
+
+  ! Leo says: Positron energy moment
+  ! Eq. (B5) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   enr_p = 8.0d0*pi/hc_mevcm**3*temp**4*get_fermi_integral_leak(3,-eta_e)
-  
+
+  ! Leo says: "Tilded" electron energy moment
+  ! Eq. (B6) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   enr_tilde_m = 8.0d0*pi/hc_mevcm**3*temp**5*get_fermi_integral_leak(4,eta_e)
+
+  ! Leo says: "Tilded" positron energy moment
+  ! Eq. (B6) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   enr_tilde_p = 8.0d0*pi/hc_mevcm**3*temp**5*get_fermi_integral_leak(4,-eta_e)
-  
+
+  ! Leo says: constants appearing in
+  ! Eq. (B8) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   pair_const = sigma_0*clite/me_mev**2*enr_m*enr_p
-  
+
+  ! Leo says: Electron neutrino/antineutrino emission rate
+  !           due to electron-positron pair annihilation
+  ! Eq. (B8) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   R_pair =  pair_const/(36.0d0*block_factor_e*block_factor_a)* &
-       ((Cv-Ca)**2+(Cv+Ca)**2)
+       ((Cv-Ca)**2+(Cv+Ca)**2) ! Leo says: (C_{1}+C_{2})
+
+  ! Leo says: total electron neutrino emission rate is the sum of all emission rates
   R_loc(1) = R_loc(1) + R_pair
-  Q_loc(1) = Q_loc(1) + R_pair*0.5d0*(enr_tilde_m*enr_p+enr_m*enr_tilde_p)/(enr_m*enr_p)
+
+  ! Leo says: total electron antineutrino emission rate is the sum of all emission rates
   R_loc(2) = R_loc(2) + R_pair
+
+  ! Leo says: total electron neutrino cooling rate is the sum of all cooling rates
+  ! This uses Eq. (B16) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
+  Q_loc(1) = Q_loc(1) + R_pair*0.5d0*(enr_tilde_m*enr_p+enr_m*enr_tilde_p)/(enr_m*enr_p)
+
+  ! Leo says: total electron antineutrino cooling rate is the sum of all cooling rates
+  ! This uses Eq. (B16) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   Q_loc(2) = Q_loc(2) + R_pair*0.5d0*(enr_tilde_m*enr_p+enr_m*enr_tilde_p)/(enr_m*enr_p)
 
   ! Leo says: Spritz MOD by LSADD
   if(isnan(R_loc(1)).or.isnan(R_loc(2))) then
-    write(*,*) "Problem in e-e+ processes, R_pair: ",R_pair
+     write(*,*) "Problem in e-e+ processes, R_pair: ",R_pair
   endif
   ! Leo says: end of Spritz MOD by LSADD
-  
+
+  ! Leo says: Heavy lepton neutrino/antineutrino emission rate
+  !           due to electron-positron pair annihilation
+  ! Eq. (B10) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   R_pair =  pair_const/(9.0d0*block_factor_x**2)*((Cv-Ca)**2+(Cv+Ca-2.0d0)**2)
+
+  ! Leo says: total heavy lepton neutrino emission rate is the sum of all emission rates
   R_loc(3) = R_loc(3) + R_pair
+
+  ! Leo says: total heavy lepton neutrino cooling rate is the sum of all cooling rates
+  ! This uses Eq. (B16) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   Q_loc(3) = Q_loc(3) + R_pair*0.5d0*(enr_tilde_m*enr_p+enr_m*enr_tilde_p)/(enr_m*enr_p)
 
   ! Leo says: Spritz MOD by LSADD
   if(isnan(R_loc(3))) then
-    write(*,*) "Problem in e-e+ processes for nux, R_pair: ",R_pair
+     write(*,*) "Problem in e-e+ processes for nux, R_pair: ",R_pair
   endif
   ! Leo says: end of Spritz MOD by LSADD
 
@@ -1177,51 +1260,93 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   ! Federico: The equations for the following Q_loc(i) should be compared with:
   ! - Ruffert, Janka, Schafer (1995) - Eq. (B17)
   ! - Galeazzi, Kastaun, Rezzolla, Font, PRD (2013) - Eq. (A25)
+
+  ! Leo says: Eq. (A23) in https://arxiv.org/abs/1306.4953, implemented
+  ! using the notation of https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
+  ! (see paragraph below Eq. B12).
   gamma = gamma_0*sqrt((pi**2+3.0d0*eta_e**2)/3.0d0)
+
+  ! Leo says: Eq. (B13) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   block_factor_e = 1.0d0 + exp(eta_nue-(1.0d0+0.5d0*gamma**2/(1.0d0+gamma)))
   block_factor_a = 1.0d0 + exp(eta_nua-(1.0d0+0.5d0*gamma**2/(1.0d0+gamma)))
   block_factor_x = 1.0d0 + exp(eta_nux-(1.0d0+0.5d0*gamma**2/(1.0d0+gamma)))
-  
+
+  ! Leo says: Constants appearing in Eq. (B12) in
+  ! https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   gamma_const = pi**3*sigma_0*clite*temp**8/(me_mev**2*3.0d0*fsc*hc_mevcm**6)* &
        gamma**6*exp(-gamma)*(1.0d0+gamma)
-  
+
+  ! Leo says: Electron neutrino/antineutrino cooling rate due to plasmon decay
+  ! Eq. (B11) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   R_gamma = Cv**2*gamma_const/(block_factor_e*block_factor_a)
+
+  ! Leo says: total electron neutrino emission rate is the sum of all emission rates
   R_loc(1) = R_loc(1) + R_gamma
-  Q_loc(1) = Q_loc(1) + R_gamma*0.5d0*temp*(2.0d0+gamma**2/(1.0d0+gamma))
+
+  ! Leo says: total electron antineutrino emission rate is the sum of all emission rates
   R_loc(2) = R_loc(2) + R_gamma
+
+  ! Leo says: total electron neutrino cooling rate is the sum of all cooling rates
+  ! This uses Eq. (B17) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
+  Q_loc(1) = Q_loc(1) + R_gamma*0.5d0*temp*(2.0d0+gamma**2/(1.0d0+gamma))
+
+  ! Leo says: total electron antineutrino cooling rate is the sum of all cooling rates
+  ! This uses Eq. (B17) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   Q_loc(2) = Q_loc(2) + R_gamma*0.5d0*temp*(2.0d0+gamma**2/(1.0d0+gamma))
 
+  ! Leo says: Heavy nuclei neutrino/antineutrino cooling rate due to plasmon decay
+  ! Eq. (B12) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   R_gamma = (Cv-1.0d0)**2*4.0d0*gamma_const/block_factor_x**2
-  R_loc(3) = R_loc(3) + R_gamma 
+
+  ! Leo says: total heavy lepton neutrino emission rate is the sum of all emission rates
+  R_loc(3) = R_loc(3) + R_gamma
+
+  ! Leo says: total heavy lepton neutrino cooling rate is the sum of all cooling rates
+  ! This uses Eq. (B17) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   Q_loc(3) = Q_loc(3) + R_gamma*0.5d0*temp*(2.0d0+gamma**2/(1.0d0+gamma))
 
   ! Leo says: useful Spritz comment
   ! Nucleon-nucleon bremsstrahlung, Burrows et al.
   ! Federico: The following equations for Q_loc(i) should be compared with:
   ! - Burrows, Reddy, Thomphson, Nucl. Phys. A (2006) - Eq. (142) and the following text.
+
+  ! Leo says: Eq. (2.1) in https://pos.sissa.it/100/154/pdf
+  ! TODO: why 0.231?
   R_pair = 0.231d0*(2.0778d2/mev_to_erg)*0.5d0* &
        (matter_xn**2+matter_xp**2+28.0d0/3.0d0*matter_xn*matter_xp)* &
        rho**2*temp**(4.5d0)
   ! Leo says: Spritz MOD by LSADD
   if(temp < 0) then
-    R_pair = 0
+     R_pair = 0
   endif
   ! Leo says: end of Spritz MOD by LSADD
 
-  ! Leo syas: useful Spritz comment:
+  ! Leo says: useful Spritz comment:
   ! LSADD: probably from <omega> = 4.364 T, Burrows et al.
+  ! Leo says: Eq. (2.1) in https://pos.sissa.it/100/154/pdf
+  ! TODO: why 0.504?
   Q_pair = R_pair*temp/0.231d0*0.504d0
-          
+
+  ! Leo says: total electron neutrino emission/cooling rates
+  !           are the sum of all emission/cooling rates
   R_loc(1) = R_loc(1) + R_pair
   Q_loc(1) = Q_loc(1) + Q_pair
-          
+
+  ! Leo says: total electron antineutrino emission/cooling rates
+  !           are the sum of all emission/cooling rates
   R_loc(2) = R_loc(2) + R_pair
   Q_loc(2) = Q_loc(2) + Q_pair
+
+  ! Leo says: total heavy nuclei neutrino emission/cooling rates
+  !           are the sum of all emission/cooling rates
+  !           The factor of 4 appears to be related to g_{nu}, as described below
+  !           Eq. (B19) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   R_loc(3) = R_loc(3) + 4.0d0*R_pair
   Q_loc(3) = Q_loc(3) + 4.0d0*Q_pair
+
   ! Leo says: Spritz MOD by LSADD
   if((isnan(R_loc(1)).or.isnan(R_loc(2)).or.isnan(R_loc(3))).and.reflevel.ge.0) then
-    write(*,*) "Problem in plasmon decay processes, gamma_const,gamma,R_gamma,R_pair: ",gamma_const,gamma,R_gamma,R_pair
+     write(*,*) "Problem in plasmon decay processes, gamma_const,gamma,R_gamma,R_pair: ",gamma_const,gamma,R_gamma,R_pair
   endif
   ! Leo says: end of Spritz MOD by LSADD
 
@@ -1231,40 +1356,71 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   ! - Rosswog, Liebendorfer, mnras (2003) - Eq. (A2)
   ! - Galeazzi, Kastaun, Rezzolla, Font, PRD (2013) - Eq. (62)
   ! - O'Connor, Ott (2010) - Eq (25).
+
+  ! Leo says: Eq. (A1) in https://arxiv.org/abs/astro-ph/0302301
   R_eff(:) = R_loc(:)/(1.0d0+R_loc(:)/R_diff(:))
+
+  ! Leo says: Eq. (A2) in https://arxiv.org/abs/astro-ph/0302301
   Q_eff(:) = Q_loc(:)/(1.0d0+Q_loc(:)/Q_diff(:))
 
+  ! Leo says: Eq. (A11) in https://arxiv.org/abs/astro-ph/0302301
   eave(1:3) = Q_eff(1:3)/R_eff(1:3)
 
   if (do_heat.ne.0) then
      ! Leo says: useful Spritz comment
      ! LSMOD: heatflux includes luminosity from inner radius, shell volume and lepton blocking factor.
+
+     ! Leo says: Constants in Eq. (31) of https://arxiv.org/abs/0912.2393
      heat_const = f_heat*(1.0d0+3.0d0*alpha**2) * sigma_0 / (me_mev**2 * massn_cgs) * 0.25d0 !cm^2/MeV^2/g
+
+     ! Leo says: See paragraph below Eq. (31) of https://arxiv.org/abs/0912.2393
      F(1:2) = (4.275d0*tau(1:2)+1.15d0)*exp(-2.0d0*tau(1:2))
-    
+
+     ! Leo says: Eq. (31) of https://arxiv.org/abs/0912.2393 (i=n)
      heat_eff(1) = heat_const * rho * matter_xn * heatflux(1) * &
           heaterms(1)**2 * F(1) / mev_to_erg ! cm^2/MeV^2/g * g/cm^3 erg/s/cm^2 MeV^2 MeV/erg = MeV/cm^3/s
+
+     ! Leo says: Eq. (31) of https://arxiv.org/abs/0912.2393 (i=p)
      heat_eff(2) = heat_const * rho * matter_xp * heatflux(2) * &
           heaterms(2)**2 * F(2) / mev_to_erg ! cm^2/MeV^2/g * g/cm^3 erg/s/cm^2 MeV^2 MeV/erg = MeV/cm^3/s
 
+     ! Leo says: Electron neutrino/antineutrino luminosity:
+     !           leakage related integrand of Eq. (32)
+     !           of https://arxiv.org/abs/0912.2393
      lum(1:2) = (Q_eff(1:2)-heat_eff(1:2))*mev_to_erg !ergs/cm^3/s
+
+     ! Leo says: Heavy lepton neutrino luminosity:
+     !           leakage related integrand of Eq. (32)
+     !           of https://arxiv.org/abs/0912.2393
      lum(3) = Q_eff(3)*mev_to_erg !ergs/cm^3/s
 
+     ! Leo says: Heating due to electron neutrinos/antineutrinos
      heatout(1:2) = heat_eff(1:2)*mev_to_erg !ergs/cm^3/s
+
+     ! Leo says: Heating due to heavy lepton neutrinos
      heatout(3) = 0.0d0
 
      netheatout(1) = abs(min(0.0d0,lum(1)))
      netheatout(2) = abs(min(0.0d0,lum(2)))
      netheatout(3) = 0.0d0
-     
+
+     ! Leo says: Energy source term. See e.g.,
+     ! Eqs. (21) and (22) of https://arxiv.org/abs/2012.10174
      depsdt = -sum(lum(1:3))/rho
+
+     ! Leo says: Electron fraction source term. See e.g.,
+     ! Eqs. (19) and (20) of https://arxiv.org/abs/2012.10174
      dyedt = -(R_eff(1)-R_eff(2)+heat_eff(2)/heateave(2)-heat_eff(1)/heateave(1))*massn_cgs/rho
-! debug:
-!     dyedt = -(R_eff(1)-R_eff(2))*massn_cgs/rho
+     ! debug:
+     !     dyedt = -(R_eff(1)-R_eff(2))*massn_cgs/rho
 
   else
      lum(1:3) = Q_eff(1:3)*mev_to_erg
+
+     ! Leo says: Energy source term without heating
      depsdt = -sum(Q_eff(1:3))*mev_to_erg/rho
+
+     ! Leo says: Electron fraction source term without heating
      dyedt = -(R_eff(1)-R_eff(2))*massn_cgs/rho
   endif
 
