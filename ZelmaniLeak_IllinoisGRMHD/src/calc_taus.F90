@@ -44,143 +44,141 @@ subroutine ZelmaniLeak_CalcTau(CCTK_ARGUMENTS)
 
   if(have_interp_data.ne.1) return
 
-
   if(mod((cctk_iteration-1),update_tau_every).ne.0) return
 
   !$OMP PARALLEL DO PRIVATE(i,k,j,ds,oldtau,xrho,compos,ii,dvol,domega, &
   !$OMP radshock, radgain, dummy) &
   !$OMP REDUCTION(+:lum_total_from_below,net_heating, &
   !$OMP             lum_total_from_below_with_nux)
-     do k=1,nphi
-        do j=1,ntheta
-           ds(:) = zi_ds(:,j,k) * INV_LENGTH_GF
-           oldtau(:,1:3) = zi_tauruff(:,j,k,1:3)
-           xrho(:) = zi_rho(:,j,k)*INV_RHO_GF
-           xrad(:) = rad(:)*INV_LENGTH_GF
+  do k=1,nphi
+     do j=1,ntheta
+        ds(:) = zi_ds(:,j,k) * INV_LENGTH_GF
+        oldtau(:,1:3) = zi_tauruff(:,j,k,1:3)
+        xrho(:) = zi_rho(:,j,k)*INV_RHO_GF
+        xrad(:) = rad(:)*INV_LENGTH_GF
 
-           call calc_taus(xrho,zi_temp(:,j,k),zi_ye(:,j,k),&
-                oldtau,zi_tauruff(:,j,k,1:3),zi_xiross(:,j,k,1:3), &
-                zi_heatflux(:,j,k,1:3),zi_heaterms(j,k,1:3),zi_heateave(j,k,1:3), &
-                zi_lum_local(:,j,k,1:3),(nrad+nrad_outer),xrad,ds,compos,xentropy, &
-                igm_rhomin)
+        call calc_taus(xrho,zi_temp(:,j,k),zi_ye(:,j,k),&
+             oldtau,zi_tauruff(:,j,k,1:3),zi_xiross(:,j,k,1:3), &
+             zi_heatflux(:,j,k,1:3),zi_heaterms(j,k,1:3),zi_heateave(j,k,1:3), &
+             zi_lum_local(:,j,k,1:3),(nrad+nrad_outer),xrad,ds,compos,xentropy, &
+             igm_rhomin)
 
-           zi_rho(:,j,k) = xrho(:)*RHO_GF
-           
+        zi_rho(:,j,k) = xrho(:)*RHO_GF
+
 #ifdef SYMMETRIC_OPERATORS
-           ! we use a coordinate system with z=r*sin(theta)
-           domega = cos(theta(j))*dtheta*dphi
+        ! we use a coordinate system with z=r*sin(theta)
+        domega = cos(theta(j))*dtheta*dphi
 #else
-           domega = sin(theta(j))*dtheta*dphi
+        domega = sin(theta(j))*dtheta*dphi
 #endif
-           radshock = 0.0d0
-           radgain = 0.0d0
-           ! determine shock and gain radii for this ray
-           do ii=1,nrad+nrad_outer
-              if(radshock .lt. 1.0d-10 .and. compos(ii,1) .ge. 0.5d0) then
-                 radshock = xrad(ii)
-              endif
-              if(radgain .lt. 1.0d-10 .and. &
-                   -sum(zi_lum_local(ii,j,k,:)) .gt. 0.0d0) then
-                 radgain = xrad(ii)
-              endif
-           enddo
-
-           do ii=1,nrad+nrad_outer-1
-              dvol = (0.5d0*(xrad(ii)+xrad(ii+1)))**2 * (xrad(ii+1)-xrad(ii)) * domega
-              if(xrad(ii).lt.radgain) then
-                 lum_total_from_below = lum_total_from_below + &
-                      sum(zi_lum_local(ii,j,k,1:2)) * dvol
-                 lum_total_from_below_with_nux = lum_total_from_below_with_nux + &
-                      sum(zi_lum_local(ii,j,k,1:3)) * dvol
-              endif
-              if(xrad(ii).ge.radgain.and.xrad(ii).le.radshock) then
-                 net_heating = net_heating + max(0.0d0,&
-                      -sum(zi_lum_local(ii,j,k,1:2))) * dvol
-              endif
-
-           enddo
-
-#if 0
-! debugging output -- call EOS and get mass fractions
-           if(k==1 .and. j==1) then
-              if(CCTK_MyProc(cctkGH).eq.0) then
-                 open(666,file="composoutx11.dat")
-                 do ii=1,nrad
-                    write(666,"(i5,1P20E15.6)") ii,cctk_time,rad(ii),xrho(ii),&
-                         zi_temp(ii,j,k),zi_ye(ii,j,k),xentropy(ii),&
-                         compos(ii,:),sum(zi_lum_local(ii,j,k,1:3))
-                 enddo
-                 write(666,*) " "
-                 write(666,*) " "
-                 close(666)
-              endif
+        radshock = 0.0d0
+        radgain = 0.0d0
+        ! determine shock and gain radii for this ray
+        do ii=1,nrad+nrad_outer
+           if(radshock .lt. 1.0d-10 .and. compos(ii,1) .ge. 0.5d0) then
+              radshock = xrad(ii)
            endif
-
-           if(k==1 .and. j==5) then
-              if(CCTK_MyProc(cctkGH).eq.0) then
-                 open(666,file="composoutx15.dat")
-                 do ii=1,nrad
-                    write(666,"(i5,1P20E15.6)") ii,cctk_time,rad(ii),xrho(ii),&
-                         zi_temp(ii,j,k),zi_ye(ii,j,k),xentropy(ii),&
-                         compos(ii,:),sum(zi_lum_local(ii,j,k,1:3))
-                 enddo
-                 write(666,*) " "
-                 write(666,*) " "
-                 close(666)
-              endif
+           if(radgain .lt. 1.0d-10 .and. &
+                -sum(zi_lum_local(ii,j,k,:)) .gt. 0.0d0) then
+              radgain = xrad(ii)
            endif
-#endif
+        enddo
 
-
-
-#if 0
-           ! additional debugging if something goes wrong with the
-           ! optical depth calculation
-           do i=nrad,1,-1
-              if(zi_tauruff(i,j,k,1).ne.zi_tauruff(i,j,k,1) .or. &
-                   zi_tauruff(i,j,k,2).ne.zi_tauruff(i,j,k,2) .or. &
-                   zi_tauruff(i,j,k,3).ne.zi_tauruff(i,j,k,3)) then 
-                 !$OMP CRITICAL(debugtau1)
-                 write(warnline,"(4i5)") i,j,k,nrad
-                 call CCTK_WARN(1,warnline)
-                 write(warnline,"(1P10E15.6)") rad(i),theta(j),phi(k)
-                 call CCTK_WARN(1,warnline)
-                 write(warnline,"(1P10E15.6)") zi_rho(i,j,k),zi_temp(i,j,k),zi_ye(i,j,k)
-                 call CCTK_WARN(1,warnline)
-                 write(warnline,"(1P10E15.6)") zi_rho(i-1,j,k),zi_temp(i-1,j,k),zi_ye(i-1,j,k)
-                 call CCTK_WARN(1,warnline)
-                 write(warnline,"(1P10E15.6)") zi_rho(i+1,j,k),zi_temp(i+1,j,k),zi_ye(i+1,j,k)
-                 call CCTK_WARN(1,warnline)
-                 if(CCTK_MyProc(cctkGH).eq.0) then
-                    open(666,file="tauout.dat")
-                    do ii=1,nrad
-                       write(666,"(i5,1P20E15.6)") ii,oldtau(ii,1:3),zi_tauruff(ii,j,k,1:3),zi_ds(ii,j,k),&
-                            zi_rho(ii,j,k),zi_temp(ii,j,k),zi_ye(ii,j,k),rad(ii)
-                    enddo
-                    close(666)
-                    call CCTK_WARN(0,"aborting")
-                 endif
-                 !$OMP END CRITICAL(debugtau1)
-              endif
-           enddo
-#endif
-
+        do ii=1,nrad+nrad_outer-1
+           dvol = (0.5d0*(xrad(ii)+xrad(ii+1)))**2 * (xrad(ii+1)-xrad(ii)) * domega
+           if(xrad(ii).lt.radgain) then
+              lum_total_from_below = lum_total_from_below + &
+                   sum(zi_lum_local(ii,j,k,1:2)) * dvol
+              lum_total_from_below_with_nux = lum_total_from_below_with_nux + &
+                   sum(zi_lum_local(ii,j,k,1:3)) * dvol
+           endif
+           if(xrad(ii).ge.radgain.and.xrad(ii).le.radshock) then
+              net_heating = net_heating + max(0.0d0,&
+                   -sum(zi_lum_local(ii,j,k,1:2))) * dvol
+           endif
 
         enddo
-     enddo
-    !$OMP END PARALLEL DO 
 
 #if 0
-     if(CCTK_MyProc(cctkGH).eq.0) then
-        write(6,"(1P10E15.6)") net_heating, &
-             lum_total_from_below,net_heating/(lum_total_from_below+1.0d-10),&
-             lum_total_from_below_with_nux,&
-             net_heating/(lum_total_from_below_with_nux+1.0d-10)
-     endif
+        ! debugging output -- call EOS and get mass fractions
+        if(k==1 .and. j==1) then
+           if(CCTK_MyProc(cctkGH).eq.0) then
+              open(666,file="composoutx11.dat")
+              do ii=1,nrad
+                 write(666,"(i5,1P20E15.6)") ii,cctk_time,rad(ii),xrho(ii),&
+                      zi_temp(ii,j,k),zi_ye(ii,j,k),xentropy(ii),&
+                      compos(ii,:),sum(zi_lum_local(ii,j,k,1:3))
+              enddo
+              write(666,*) " "
+              write(666,*) " "
+              close(666)
+           endif
+        endif
+
+        if(k==1 .and. j==5) then
+           if(CCTK_MyProc(cctkGH).eq.0) then
+              open(666,file="composoutx15.dat")
+              do ii=1,nrad
+                 write(666,"(i5,1P20E15.6)") ii,cctk_time,rad(ii),xrho(ii),&
+                      zi_temp(ii,j,k),zi_ye(ii,j,k),xentropy(ii),&
+                      compos(ii,:),sum(zi_lum_local(ii,j,k,1:3))
+              enddo
+              write(666,*) " "
+              write(666,*) " "
+              close(666)
+           endif
+        endif
 #endif
 
-     heating_efficiency = net_heating/(lum_total_from_below+1.0d-10)
 
+
+#if 0
+        ! additional debugging if something goes wrong with the
+        ! optical depth calculation
+        do i=nrad,1,-1
+           if(zi_tauruff(i,j,k,1).ne.zi_tauruff(i,j,k,1) .or. &
+                zi_tauruff(i,j,k,2).ne.zi_tauruff(i,j,k,2) .or. &
+                zi_tauruff(i,j,k,3).ne.zi_tauruff(i,j,k,3)) then
+              !$OMP CRITICAL(debugtau1)
+              write(warnline,"(4i5)") i,j,k,nrad
+              call CCTK_WARN(1,warnline)
+              write(warnline,"(1P10E15.6)") rad(i),theta(j),phi(k)
+              call CCTK_WARN(1,warnline)
+              write(warnline,"(1P10E15.6)") zi_rho(i,j,k),zi_temp(i,j,k),zi_ye(i,j,k)
+              call CCTK_WARN(1,warnline)
+              write(warnline,"(1P10E15.6)") zi_rho(i-1,j,k),zi_temp(i-1,j,k),zi_ye(i-1,j,k)
+              call CCTK_WARN(1,warnline)
+              write(warnline,"(1P10E15.6)") zi_rho(i+1,j,k),zi_temp(i+1,j,k),zi_ye(i+1,j,k)
+              call CCTK_WARN(1,warnline)
+              if(CCTK_MyProc(cctkGH).eq.0) then
+                 open(666,file="tauout.dat")
+                 do ii=1,nrad
+                    write(666,"(i5,1P20E15.6)") ii,oldtau(ii,1:3),zi_tauruff(ii,j,k,1:3),zi_ds(ii,j,k),&
+                         zi_rho(ii,j,k),zi_temp(ii,j,k),zi_ye(ii,j,k),rad(ii)
+                 enddo
+                 close(666)
+                 call CCTK_WARN(0,"aborting")
+              endif
+              !$OMP END CRITICAL(debugtau1)
+           endif
+        enddo
+#endif
+
+
+     enddo
+  enddo
+  !$OMP END PARALLEL DO 
+
+#if 0
+  if(CCTK_MyProc(cctkGH).eq.0) then
+     write(6,"(1P10E15.6)") net_heating, &
+          lum_total_from_below,net_heating/(lum_total_from_below+1.0d-10),&
+          lum_total_from_below_with_nux,&
+          net_heating/(lum_total_from_below_with_nux+1.0d-10)
+  endif
+#endif
+
+  heating_efficiency = net_heating/(lum_total_from_below+1.0d-10)
 
 end subroutine ZelmaniLeak_CalcTau
 
@@ -239,7 +237,7 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
 
   integer :: i !counter
   integer :: rl
-  
+
   !heating variables
   real*8 :: radial_luminosity(2),lumrad(nzones,3)
   integer :: ns_location(3)
@@ -279,7 +277,7 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
   real*8 :: xerr
   real*8 :: xerr_out = 1.0d-10
   real*8 :: xlye,xyn,xyp,xynp,xypn,t1,t2
-  
+
   integer :: icount
   integer, parameter :: icount_max = 200
   integer, parameter :: eoskey = 4
@@ -308,7 +306,7 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
   igm_yemax  = eos_yemax*igm_eos_table_ceiling_safety_factor
 
 
-!#############################
+  !#############################
 
   if(oldtauruff(1,1).gt.0.0d0) then
      have_old_tau = .true.
@@ -348,7 +346,7 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
      if(ye(i).lt.0.0d0.or.ye(i).gt.0.53d0.and.(i.lt.nzones-1.and.i.gt.1)) then
         ye(i) = 0.5d0*(ye(i-1)+ye(i+1))
      endif
-     
+
      matter_rho = rho(i)
      matter_temperature = max(temp(i),igm_T_atm)
      matter_ye = max(igm_yemin,min(igm_yemax,ye(i))) ! ye(i)
@@ -391,23 +389,23 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
      eta_e(i) = matter_mue/matter_temperature
      eta_p(i) = matter_mup/matter_temperature
      eta_n(i) = matter_mun/matter_temperature
-          
+
      massfracs_xa(i) = matter_xa
      massfracs_xh(i) = matter_xh
      massfracs_xp(i) = matter_xp
      massfracs_xn(i) = matter_xn
      massfracs_abar(i) = matter_abar
      massfracs_zbar(i) = matter_zbar
-          
+
      eta_hat(i) = eta_n(i)-eta_p(i) - Qnp/matter_temperature
      eta_nue(i) = eta_e(i) - eta_n(i) + eta_p(i) !fully includes effects of rest masses
      eta_nua(i) = -eta_nue(i)
      eta_nux(i) = 0.0d0     
-     
+
   enddo
 
-!#############################
-  
+  !#############################
+
   !now calculate Ruffert tau
 
   !use previous tauruff
@@ -437,12 +435,12 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
      ! (A11) constant part
      kappa_const_abs(i) = (1.0d0+3.0d0*alpha**2)/4.0d0 * t1
   enddo
-  
+
   ! Loop to get converged result for tau.
   ! This is discussed in the text between equations (A5) and
   ! (A6). Note that for the initial iteration tau is set to
   ! 1 and the etas are set to 1.0d-5
-  
+
   icount = 1
   xerr = 1.0d0
 
@@ -458,15 +456,15 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
           + kappa_abs_n(:)
      ! antis; (A18)
      kappa_tot(:,2) = &
-              kappa_scat_p(:,2) &
-            + kappa_scat_n(:,2) &
-            + kappa_abs_p(:)
+          kappa_scat_p(:,2) &
+          + kappa_scat_n(:,2) &
+          + kappa_abs_p(:)
 
      ! nu_xs (A19)
      kappa_tot(:,3) = &
           + kappa_scat_p(:,3) &
           + kappa_scat_n(:,3) !&
-       
+
      ! Integrate optical depths: Equation (A20)
      ! Note that this is not done for particle and energy transport
      if(icount.gt.2.or..not.have_old_tau) then
@@ -483,8 +481,8 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
         local_eta_nux(i) = 0.0d0   ! (A2)
         local_eta_nue(i) = eta_nue(i) * (1.0d0-exp(-tauruff(i,1))) ! (A3); note that the ^0 etas are set to 0.0d0
         local_eta_nua(i) = eta_nua(i) * (1.0d0-exp(-tauruff(i,2))) ! (A4)
-        
-        
+
+
         !assuming completely dissociated
         xlye = ye(i)
         xyn = (1.0d0-xlye) / (1.0d0 + 2.0d0/3.0d0 * max(eta_n(i),0.0d0)) ! (A8)
@@ -505,29 +503,29 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
              get_fermi_integral_leak(3,local_eta_nue(i))
         t2 = 1.0d0 + exp(eta_e(i)-get_fermi_integral_leak(5,local_eta_nue(i)) / &
              get_fermi_integral_leak(4,local_eta_nue(i))) ! (A15)
-        
+
         kappa_scat_n(i,1) = kappa_const_scat_n(i) * xyn  * t1
         kappa_scat_p(i,1) = kappa_const_scat_p(i) * xyp  * t1
         kappa_abs_n(i) = kappa_const_abs(i) * xynp * t1 / t2 ! (A11)
-        
+
         ! anti-electron neutrinos
         t1 = get_fermi_integral_leak(5,local_eta_nua(i)) / & 
              get_fermi_integral_leak(3,local_eta_nua(i))
         t2 = 1.0d0 + exp(-eta_e(i)-get_fermi_integral_leak(5,local_eta_nua(i)) / &
              get_fermi_integral_leak(4,local_eta_nua(i))) ! (A16)
-        
+
         kappa_scat_n(i,2) = kappa_const_scat_n(i) * xyn  * t1 ! (A6)
         kappa_scat_p(i,2) = kappa_const_scat_p(i) * xyp  * t1
         kappa_abs_p(i) = kappa_const_abs(i) * xypn * t1 / t2 ! (A12)
-        
+
         ! nux neutrinos
         t1 = get_fermi_integral_leak(5,local_eta_nux(i)) / & 
              get_fermi_integral_leak(3,local_eta_nux(i))
         kappa_scat_n(i,3) = kappa_const_scat_n(i) * xyn * t1 ! (A6)
         kappa_scat_p(i,3) = kappa_const_scat_p(i) * xyp * t1
-        
+
      enddo
-     
+
      ! compute relative change xerr
      xerr = 0.0d0
      do i=1,nzones
@@ -535,9 +533,9 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
         xerr = max(xerr,abs(kappa_tot(i,2)/kappa_tot_p(i,2)-1.0d0))
         xerr = max(xerr,abs(kappa_tot(i,3)/kappa_tot_p(i,3)-1.0d0))
      enddo
-     
+
      icount = icount + 1
-     
+
   enddo
 
   if(icount.ge.icount_max) then
@@ -560,13 +558,13 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
   eta_nux(:) = local_eta_nux(:)
 
 
-!#######################################
-  
-!Rosswog chi
-  
+  !#######################################
+
+  !Rosswog chi
+
   zeta(:,:) = 0.0d0
   chi(:,:) = 0.0d0
-      
+
   do i=1,nzones
 
      !scattering
@@ -577,7 +575,7 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
      kappa_tilde_nu_scat(i,2,2) = massfracs_xp(i)*scattering_kappa
      kappa_tilde_nu_scat(i,3,1) = massfracs_xn(i)*scattering_kappa
      kappa_tilde_nu_scat(i,3,2) = massfracs_xp(i)*scattering_kappa
-       
+
 
      scattering_kappa = rho(i)*avo*0.0625d0*sigma_0/me_mev**2* &
           massfracs_abar(i)*(1.0d0-massfracs_zbar(i)/massfracs_abar(i))**2 ! only have 1 factor of A because kappa multiples the number fraction, not mass fractions
@@ -624,9 +622,9 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
      zeta(i,3) = kappa_tilde_nu_scat(i,3,1) + kappa_tilde_nu_scat(i,3,2) + &
           kappa_tilde_nu_scat(i,3,3) + kappa_tilde_nu_abs(i,3,1) + &
           kappa_tilde_nu_abs(i,3,2) + kappa_tilde_nu_abs(i,3,3)
-     
+
   enddo
-  
+
   do i=nzones-1,1,-1
      !integrate zeta to get chi, tau with energy dependence factored out
      chi(i,1) = chi(i+1,1) + zeta(i,1)*ds(i)
@@ -635,7 +633,7 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
   enddo
 
   chi(nzones,:) = chi(nzones-1,:)
-  
+
   chiross = chi
 
   !neutrinosphere located at tau = 2/3
@@ -689,10 +687,10 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
              get_fermi_integral_leak(5,eta_nua(ns_location(2)))/ &
              get_fermi_integral_leak(4,eta_nua(ns_location(2)))))
      enddo
-     
+
      rl = -1 
      do i=1,nzones-1
-     
+
         leak_dummy1 = 0.0d0
         leak_dummy2 = 0.0d0
         leak_dummy3 = 0.0d0 !this is ldt, the actual leakage will take care of overflow of dyedt
@@ -705,7 +703,7 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
         call calc_leak(rho(i),temp(i),ye(i),chi(i,:),tauruff(i,:),heatflux(i,:), &
              heaterms,heateave,leak_dummy1,leak_dummy2,leak_dummy3,&
              lum,leak_dummy4,leak_dummy5,leak_dummy6,rho_min,rl,rad(i))
-     
+
         !lum coming from calc_leak is not actually luminosity, rather, 
         !must multiply by volume (of spherical shell)
         !then add to integrated luminosity
@@ -714,7 +712,7 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
         lum_local(i,1:3) = lum(1:3)
         lumrad(i,1) = leak_dummy5(1)
         lumrad(i,2) = leak_dummy5(2)
-     
+
         !this is what gets interpolated and put into the leak routine.
         heatflux(i+1,1) = radial_luminosity(1)/(4.0d0*pi*((rad(i)+rad(i+1))/2.0d0)**2)&
              * lepton_blocking(i,1) !luminosity/4pir^2
@@ -753,11 +751,11 @@ function get_fermi_integral_leak(ifermi,eta)
   real*8 get_fermi_integral_leak
   real*8 eta
   real*8 fermi_integral_analytical
-  
+
   fermi_integral_analytical = 0.0d0
-  
+
   ! Expressions for Fermi integrals given in Takahashi et al. 1978 
-  if (eta.gt.1.D-3) then  
+  if (eta.gt.1.D-3) then
      select case (ifermi)
      case (0)
         fermi_integral_analytical = &
@@ -781,7 +779,7 @@ function get_fermi_integral_leak(ifermi,eta)
              (eta**6/6.0D0 + 8.2247d0*eta**4 + 113.6439d0*eta**2 + &
              236.5323d0)/(1.0D0+EXP(-1.9727d0*eta))
      end select
-     
+
   else
      select case (ifermi)
      case (0)
@@ -803,9 +801,9 @@ function get_fermi_integral_leak(ifermi,eta)
         fermi_integral_analytical = &
              120.0D0*EXP(eta) / (1.0D0 + 0.0147d0*EXP(0.9431d0*eta))
      end select
-     
+
   endif
   get_fermi_integral_leak = fermi_integral_analytical
-  
+
   return
 end function get_fermi_integral_leak
