@@ -109,7 +109,7 @@ void ZLtau_setup(CCTK_ARGUMENTS) {
 #ifdef SYMMETRIC_OPERATORS
       *dtheta =  M_PI / (ntheta-1.5) / 2.0;
 #else
-      *dtheta =  M_PI / (ntheta-1) / 2.0;
+    *dtheta =  M_PI / (ntheta-1) / 2.0;
 #endif
     else
       *dtheta = 0.0;
@@ -123,7 +123,7 @@ void ZLtau_setup(CCTK_ARGUMENTS) {
 #ifdef SYMMETRIC_OPERATORS
         *dtheta =   M_PI / (ntheta-1.5) / 2.0; // 1.5 such that 2.*1.5 matches 2*(N-1)-1
 #else
-        *dtheta =   M_PI / (ntheta-1) / 2.0;
+      *dtheta =   M_PI / (ntheta-1) / 2.0;
 #endif
       else
         *dtheta = 0.0;
@@ -131,7 +131,7 @@ void ZLtau_setup(CCTK_ARGUMENTS) {
 #ifdef SYMMETRIC_OPERATORS
         *dphi   = 2*M_PI / (nphi  -2);
 #else
-        *dphi   = 2*M_PI / (nphi  -1);
+      *dphi   = 2*M_PI / (nphi  -1);
 #endif
       else
         *dphi = 0.0;
@@ -145,7 +145,7 @@ void ZLtau_setup(CCTK_ARGUMENTS) {
 #ifdef SYMMETRIC_OPERATORS
         *dphi = 2*M_PI / (nphi  -2);
 #else
-        *dphi = 2*M_PI / (nphi  -1);
+      *dphi = 2*M_PI / (nphi  -1);
 #endif
       else
         *dphi = 0.0;
@@ -227,7 +227,7 @@ void ZLtau_setup(CCTK_ARGUMENTS) {
             CCTK_REAL xx, yy, zz;
             CCTK_REAL const xx0 = 0., yy0 = 0., zz0 = 0.;
 
-            spher2cart (xrad,xtheta,xphi, &xx,&yy,&zz, &xx0, &yy0, &zz0);
+            spher2cart(xrad,xtheta,xphi, &xx,&yy,&zz, &xx0, &yy0, &zz0);
             //    fprintf(stdout,"%5d %5d %5d %15.6E %15.6E %15.6E\n",
             //	    ii,jj,kk,xx,yy,zz);
             zi_x[iind3d] = *x0 + xx;
@@ -254,7 +254,7 @@ void ZLtau_setup(CCTK_ARGUMENTS) {
             CCTK_REAL xx, yy, zz;
             CCTK_REAL const xx0 = 0., yy0 = 0., zz0 = 0.;
 
-            spher2cart (xrad,xtheta,xphi, &xx,&yy,&zz, &xx0, &yy0, &zz0);
+            spher2cart(xrad,xtheta,xphi, &xx,&yy,&zz, &xx0, &yy0, &zz0);
             //    fprintf(stdout,"%5d %5d %5d %15.6E %15.6E %15.6E\n",
             //	    ii,jj,kk,xx,yy,zz);
             zi_x[iind3d] = *x0 + xx;
@@ -274,7 +274,7 @@ void ZLtau_setup(CCTK_ARGUMENTS) {
           CCTK_REAL xx, yy, zz;
           CCTK_REAL const xx0 = 0., yy0 = 0., zz0 = 0.;
     
-          spher2cart (xrad,xtheta,xphi, &xx,&yy,&zz, &xx0, &yy0, &zz0);
+          spher2cart(xrad,xtheta,xphi, &xx,&yy,&zz, &xx0, &yy0, &zz0);
           if(kk < nphi/2 || isym == octant) {
             xx = *x0 + xx;
             yy = *y0 + yy;
@@ -302,7 +302,7 @@ void ZLtau_setup(CCTK_ARGUMENTS) {
           CCTK_REAL const xphi   = kk * (*dphi);
           CCTK_REAL xx, yy, zz;
     
-          spher2cart (xrad,xtheta,xphi, &xx,&yy,&zz, x0, y0, z0);
+          spher2cart(xrad,xtheta,xphi, &xx,&yy,&zz, x0, y0, z0);
           //    fprintf(stdout,"%5d %5d %5d %15.6E %15.6E %15.6E\n",
           //	    ii,jj,kk,xx,yy,zz);
           zi_x[iind3d] = xx;
@@ -313,18 +313,18 @@ void ZLtau_setup(CCTK_ARGUMENTS) {
 #endif
 
   // some informative output
-  CCTK_VInfo (CCTK_THORNSTRING,"Radii:");
+  CCTK_VInfo(CCTK_THORNSTRING,"Radii:");
   for(int ii=0;ii<nrad+nrad_outer;ii++) {
     if(ii<1)
       fprintf(stdout,"%4d %15.6E M\n",ii,rad[ii]);
     else
       fprintf(stdout,"%4d %15.6E M dr= %15.6E\n",ii,rad[ii],rad[ii]-rad[ii-1]);
   }
-  CCTK_VInfo (CCTK_THORNSTRING,"Theta angles:");
+  CCTK_VInfo(CCTK_THORNSTRING,"Theta angles:");
   for(int jj=0;jj<ntheta;jj++) {
     fprintf(stdout,"%4d %15.6E Pi\n",jj,theta[jj]/M_PI);
   }
-  CCTK_VInfo (CCTK_THORNSTRING,"Phi angles:");
+  CCTK_VInfo(CCTK_THORNSTRING,"Phi angles:");
   for(int kk=0;kk<nphi;kk++) {
     fprintf(stdout,"%4d %15.6E Pi\n",kk,phi[kk]/M_PI);
   }
@@ -353,13 +353,13 @@ void ZLtau_get_rays(CCTK_ARGUMENTS)
 
   // Interpolate
   {
-    int const interp_handle = CCTK_InterpHandle (interpolator);
-    assert (interp_handle >= 0);
+    int const interp_handle = CCTK_InterpHandle(interpolator);
+    assert(interp_handle >= 0);
     int const options_handle =
-      Util_TableCreateFromString (interpolator_options);
-    assert (options_handle >= 0);
-    int const coords_handle = CCTK_CoordSystemHandle (coordinate_system);
-    assert (coords_handle >= 0);
+      Util_TableCreateFromString(interpolator_options);
+    assert(options_handle >= 0);
+    int const coords_handle = CCTK_CoordSystemHandle(coordinate_system);
+    assert(coords_handle >= 0);
     
     // interpolate ONLY points on proc 0, then
     // do an MPI broadcast of the results
@@ -371,10 +371,10 @@ void ZLtau_get_rays(CCTK_ARGUMENTS)
     void const *const interp_coords[] = { zi_x, zi_y, zi_z };
     
     CCTK_INT const input_array_indices[] = {
-      CCTK_VarIndex ("HydroBase::rho"),
-      CCTK_VarIndex ("HydroBase::temperature"),
-      CCTK_VarIndex ("HydroBase::Y_e"),
-      CCTK_VarIndex ("ZelmaniLeak::ZLtau_grr")
+      CCTK_VarIndex("HydroBase::rho"),
+      CCTK_VarIndex("HydroBase::temperature"),
+      CCTK_VarIndex("HydroBase::Y_e"),
+      CCTK_VarIndex("ZelmaniLeak::ZLtau_grr")
     };
     int ninputs =
       sizeof input_array_indices / sizeof *input_array_indices;
@@ -385,23 +385,23 @@ void ZLtau_get_rays(CCTK_ARGUMENTS)
       CCTK_VARIABLE_REAL,
       CCTK_VARIABLE_REAL
     };
-    assert (sizeof output_array_types / sizeof *output_array_types == ninputs);
+    assert(sizeof output_array_types / sizeof *output_array_types == ninputs);
 
     void *const output_arrays[] = { 
       zi_rho, zi_temp, zi_ye, zi_grr
     };
 
-    assert (sizeof output_arrays / sizeof *output_arrays == ninputs);
+    assert(sizeof output_arrays / sizeof *output_arrays == ninputs);
 
     int const ierr =
-      CCTK_InterpGridArrays (cctkGH, 3,
-                             interp_handle, options_handle, coords_handle,
-                             npoints, CCTK_VARIABLE_REAL, interp_coords,
-                             ninputs, input_array_indices,
-                             ninputs, output_array_types, output_arrays);
-    assert (not ierr);
+      CCTK_InterpGridArrays(cctkGH, 3,
+                            interp_handle, options_handle, coords_handle,
+                            npoints, CCTK_VARIABLE_REAL, interp_coords,
+                            ninputs, input_array_indices,
+                            ninputs, output_array_types, output_arrays);
+    assert(not ierr);
 
-    Util_TableDestroy (options_handle);
+    Util_TableDestroy(options_handle);
   }
 
   // now proc 0 broadcasts the interpolation results
@@ -416,9 +416,9 @@ void ZLtau_get_rays(CCTK_ARGUMENTS)
 
   // calculate the line element
 #pragma omp parallel for
-  for (int kk=0; kk<nphi; ++kk) {
-    for (int jj=0; jj<ntheta; ++jj) {
-      for (int ii=0; ii<nrad+nrad_outer-1;ii++) {
+  for(int kk=0; kk<nphi; ++kk) {
+    for(int jj=0; jj<ntheta; ++jj) {
+      for(int ii=0; ii<nrad+nrad_outer-1;ii++) {
         int const iind3d = ii+(nrad+nrad_outer)*(jj+ntheta*kk);
 	zi_ds[iind3d] = sqrt(zi_grr[iind3d]) * (rad[ii+1]-rad[ii]);
       }
@@ -444,7 +444,7 @@ void ZLtau_get_rays(CCTK_ARGUMENTS)
 
   end = clock();
   elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
-  CCTK_VInfo (CCTK_THORNSTRING,"time used in proc 0: %5.2f",elapsed);
+  CCTK_VInfo(CCTK_THORNSTRING,"time used in proc 0: %5.2f",elapsed);
   CCTK_Info(CCTK_THORNSTRING, "Done interpolating for tau");
   *have_interp_data = 1;
 
