@@ -1,0 +1,18 @@
+Cactus Code Thorn ZelmaniM1
+Author(s)    : Luke Roberts <RobertsL@nscl.msu.edu>
+             : Christian D. Ott <cott@tapir.caltech.edu>
+Maintainer(s): Luke Roberts <RobertsL@nscl.msu.edu>
+             : Christian D. Ott <cott@tapir.caltech.edu>
+Licence      : MIT
+--------------------------------------------------------------------------
+
+1. Purpose
+
+Solve two moment radiative transfer equations.
+Works with gravitational redshifts. Velocity dependence needs work.
+Scattering is currently purely elastic.
+
+
+
+
+

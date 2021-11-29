@@ -1,0 +1,15 @@
+../../exe/sim/mpirun -np 12 -x OMP_NUM_THREADS=1 ../../exe/cactus_sim ../../arrangements/Zelmani/ZelmaniM1/test/spheretest_octant.par 2>&1 | tee spheretest_octant.log
+
+../../exe/sim/mpirun -np 12 -x OMP_NUM_THREADS=1 ../../exe/cactus_sim ../../arrangements/Zelmani/ZelmaniM1/test/spheretest_octant_g2.par 2>&1 | tee spheretest_octant_g2.log
+
+
+
+for t in PreProlongateBarrier Prolongate PostProlongateBarrier; do echo $t; for n in 00 01 02 03 04 05 06 07 08 09 10 11; do grep main/Evolve/CallEvol/CCTK_EVOL/CallFunction/syncs/$t: spheretest_octant/carpet-timing-statistics.00$n.txt | awk '{ print '$n',$2; }'; done; done
+
+for t in PreProlongateBarrier Prolongate PostProlongateBarrier; do echo $t; for n in 00 01 02 03 04 05 06 07 08 09 10 11; do grep main/Evolve/CallEvol/CCTK_EVOL/CallFunction/syncs/$t: spheretest_octant_g2/carpet-timing-statistics.00$n.txt | awk '{ print '$n',$2; }'; done; done
+
+
+
+p [0:] "spheretest_octant/zelmanim1-enu.x.asc" u 6:($1==8?$9:0/0) w lp, "spheretest_octant_g2/zelmanim1-enu.x.asc" u 6:($1==8?$9:0/0) w lp
+
+p [0:] "spheretest_octant/zelmanim1-fnu.x.asc" u 6:($1==8?$9:0/0) w lp, "spheretest_octant_g2/zelmanim1-fnu.x.asc" u 6:($1==8?$9:0/0) w lp
