@@ -424,6 +424,8 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
   local_eta_nua(:) = 0.0d0
 
   !cross section coeffs
+  ! Leo says: Constants below Eq. (A1) in
+  ! https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
   csn_0 = (1.0d0 + 5.0d0*alpha**2) / 24.0d0
   csp_0 = (4.0d0*(Cv-1.0d0)**2 + 5.0d0*alpha**2) / 24.0d0
 
@@ -444,6 +446,10 @@ subroutine calc_taus(rho,temp,ye,oldtauruff,tauruff,chiross, &
   icount = 1
   xerr = 1.0d0
 
+  ! Leo says: Note that kappa_scat_* and kappa_abs_*
+  !           have not been computed yet! This is an
+  !           iterative loop, which begins with the
+  !           initial guesses for kappa set above.
   do while(xerr.gt.xerr_out .and. icount.lt.icount_max)
      ! copy over current into previous kappa
      kappa_tot_p = kappa_tot
