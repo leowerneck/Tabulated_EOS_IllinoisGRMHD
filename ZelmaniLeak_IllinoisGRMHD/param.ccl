@@ -220,13 +220,13 @@ restricted:
 CCTK_REAL ZL_rho_threshold "For rho [g/cm^3] greater than this threshold leakage is enabled."
 {
   (0.0d0:*) :: "Should be greater than zero"
-} 1.0d10
+} 2.0e12
 
 restricted:
 CCTK_REAL ZL_rho_atmosphere "Atmosphere density [g/cm^3]."
 {
   (0.0d0:*) :: "Should be greater than zero"
-} 1.0d7
+} 1.0e7
 
 restricted:
 CCTK_REAL ZL_yemin "Minimum electron fraction"
@@ -250,7 +250,7 @@ restricted:
 CCTK_REAL ZL_eos_root_finding_precision "Root-finding precision for EOS calls."
 {
   (0.0d0:*) :: "Should be greater than zero"
-} 1.0d-8
+} 1.0e-8
 
 restricted:
 STRING ZL_tau_gf_VarString "Conserved energy gridfunction"

@@ -21,6 +21,10 @@ subroutine ZelmaniLeak_startup(CCTK_ARGUMENTS)
      pnu = 0.0d0
   endif
 
+  ! Leo says: initialize global density to something that
+  !           will trigger leakage
+  ZL_global_rho_max = ZL_rho_threshold*100
+
 end subroutine ZelmaniLeak_startup
 
 subroutine ZelmaniLeak_startup_global(CCTK_ARGUMENTS)

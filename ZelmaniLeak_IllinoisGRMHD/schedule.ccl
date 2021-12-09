@@ -2,6 +2,7 @@
 
 STORAGE: munu
 STORAGE: in_merger # Leo says: Added
+STORAGE: ZL_global_rho_max
 
 if(do_tau || force_tau_interp) {
    STORAGE: zelmani_interpolated_variables
@@ -48,12 +49,9 @@ schedule group HydroBase_Boundaries IN ZelmaniLeakChangeYe AFTER ZelmaniLeak_ye_
 } "Do the boundaries after Y_e change"
 
 # Need to sync primitives as well!
-if (sync_conserved_only)
+schedule group GRHydro_PrimitiveBoundaries IN ZelmaniLeakChangeYe AFTER ZelmaniLeak_ye_of_rho BEFORE HydroBase_Boundaries
 {
-   schedule group GRHydro_PrimitiveBoundaries IN ZelmaniLeakChangeYe AFTER ZelmaniLeak_ye_of_rho BEFORE HydroBase_Boundaries
-   {
-   } "Do primitive boundaries after Y_e change!"
-}
+} "Do primitive boundaries after Y_e change!"
 
 schedule ZelmaniLeak_ParamCheck IN CCTK_PARAMCHECK
 {
