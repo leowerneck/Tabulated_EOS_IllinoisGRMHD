@@ -58,8 +58,8 @@ void ZelmaniLeak_ParamCheck(CCTK_ARGUMENTS)
   }
 
   // TODO: instead consider adding STORAGE statements to schedule.ccl?
-  if(CCTK_ActiveTimeLevels(cctkGH, ZL_entropy_gf_VarString) == 0 ||
-     CCTK_ActiveTimeLevels(cctkGH, ZL_temperature_gf_VarString) == 0) {
-    CCTK_ERROR("Require storage for entropy and temperature. If using IllinoisGRMHD, one needs igm_entropy and igm_temperature. If using GRHydro, one needs the HydroBase counterparts.");
+  if(CCTK_ActiveTimeLevels(cctkGH, "HydroBase::temperature") == 0 ||
+     CCTK_ActiveTimeLevels(cctkGH, "HydroBase::entropy"    ) == 0) {
+    CCTK_ERROR("Require storage for temperature and entropy.");
   }
 }

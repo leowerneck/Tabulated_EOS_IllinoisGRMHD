@@ -58,7 +58,7 @@ subroutine ZelmaniLeak_ye_of_rho(CCTK_ARGUMENTS)
      do j=1,ny
         do i=1,nx
            keytemp = 0
-           call EOS_Omni_short(eoskey,keytemp,igm_eos_root_finding_precision,&
+           call EOS_Omni_short(eoskey,keytemp,ZL_eos_root_finding_precision,&
                 n,rho(i,j,k),eps(i,j,k),temperature(i,j,k),y_e(i,j,k),&
                 xdummy,entropy(i,j,k),xdummy,xdummy,&
                 xdummy,xdummy,munu(i,j,k),keyerr,anyerr)
@@ -80,7 +80,7 @@ subroutine ZelmaniLeak_ye_of_rho(CCTK_ARGUMENTS)
   enddo
   !$OMP END PARALLEL DO
 
-  if(bounce.ne.1.and.do_ye_of_rho.ne.0) then
+  if(in_merger.ne.1.and.do_ye_of_rho.ne.0) then
      if(do_ye_of_rho_from_profile.eq.0) then
         !$OMP PARALLEL DO PRIVATE(i, j, k, xrho, xye, xye_new, delta_ye, sold, sup,&
         !$OMP                     keyerr, anyerr, keytemp, delta_s, xdummy, epsold,&
@@ -115,7 +115,7 @@ subroutine ZelmaniLeak_ye_of_rho(CCTK_ARGUMENTS)
                     
                     ! now use the entropy to update things
                     keytemp = 2
-                    call EOS_Omni_short(eoskey,keytemp,igm_eos_root_finding_precision,&
+                    call EOS_Omni_short(eoskey,keytemp,ZL_eos_root_finding_precision,&
                          n,rho(i,j,k),eps(i,j,k),temperature(i,j,k),y_e(i,j,k),&
                          press(i,j,k),entropy(i,j,k),xdummy,xdummy,&
                          xdummy,xdummy,xdummy,keyerr,anyerr)
@@ -171,7 +171,7 @@ subroutine ZelmaniLeak_ye_of_rho(CCTK_ARGUMENTS)
                     
                     ! now use the entropy to update things
                     keytemp = 2
-                    call EOS_Omni_short(eoskey,keytemp,igm_eos_root_finding_precision,&
+                    call EOS_Omni_short(eoskey,keytemp,ZL_eos_root_finding_precision,&
                          n,rho(i,j,k),eps(i,j,k),temperature(i,j,k),y_e(i,j,k),&
                          press(i,j,k),entropy(i,j,k),xdummy,xdummy,&
                          xdummy,xdummy,xdummy,keyerr,anyerr)
@@ -293,7 +293,7 @@ subroutine ZelmaniLeak_calc_entropy(CCTK_ARGUMENTS)
      do j=1,ny
         do i=1,nx
            keytemp = 0
-           call EOS_Omni_short(eoskey,keytemp,igm_eos_root_finding_precision,&
+           call EOS_Omni_short(eoskey,keytemp,ZL_eos_root_finding_precision,&
                 n,rho(i,j,k),eps(i,j,k),temperature(i,j,k),y_e(i,j,k),&
                 xdummy,entropy(i,j,k),xdummy,xdummy,&
                 xdummy,xdummy,munu(i,j,k),keyerr,anyerr)

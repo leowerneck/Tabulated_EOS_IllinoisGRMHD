@@ -44,6 +44,9 @@ CCTK_FNAME(ZelmaniLeak_CalcPnu)( CCTK_REAL      * taurhs,
                                  CCTK_INT const * const nx,
                                  CCTK_INT const * const ny,
                                  CCTK_INT const * const nz,
+                                 CCTK_INT const * const ngx,
+                                 CCTK_INT const * const ngy,
+                                 CCTK_INT const * const ngz,
 			         CCTK_REAL      * dtime );
 
 
@@ -65,7 +68,7 @@ void ZelmaniLeak_NeutrinoPressureWrap(CCTK_ARGUMENTS)
   CCTK_REAL dy = CCTK_DELTA_SPACE(1);
   CCTK_REAL dz = CCTK_DELTA_SPACE(2);
 
-  if(*global_rho_max*INVRHOGF < pnu_rho_start) return;
+  if(*ZL_global_rho_max*INVRHOGF < pnu_rho_start) return;
 
   /* Original:
   varindex = CCTK_VarIndex("GRHydro::tau"); */
@@ -105,6 +108,8 @@ void ZelmaniLeak_NeutrinoPressureWrap(CCTK_ARGUMENTS)
      w_lorentz,vel,alp,
      gxx,gxy,gxz,gyy,gyz,gzz,
      x,y,z,&dx,&dy,&dz,
-     &cctk_lsh[0], &cctk_lsh[1], &cctk_lsh[2], &dtime);
+     &cctk_lsh[0], &cctk_lsh[1], &cctk_lsh[2],
+     &cctk_nghostzones[0], &cctk_nghostzones[1], &cctk_nghostzones[2],
+     &dtime);
 
 }

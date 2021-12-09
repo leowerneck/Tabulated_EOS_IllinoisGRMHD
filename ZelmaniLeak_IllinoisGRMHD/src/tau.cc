@@ -341,7 +341,7 @@ void ZLtau_get_rays(CCTK_ARGUMENTS)
 
   // don't do anything if we are not interested in doing anything
   if(!force_tau_interp) 
-    if(!do_tau || !(*in_prebounce || *bounce)) return;
+    if(!do_tau || !(*in_merger)) return;
 
   if( (cctk_iteration-1) % update_tau_every != 0) return;
   CCTK_Info(CCTK_THORNSTRING, "Interpolating for tau");

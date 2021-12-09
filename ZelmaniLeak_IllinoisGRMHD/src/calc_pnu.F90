@@ -34,7 +34,7 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
                                wlorentz, vel,&
                                alp, gxx,gxy,gxz,gyy,gyz,gzz,&
                                x,y,z,dx,dy,dz,&
-                               nx,ny,nz,dtime)
+                               nx,ny,nz,ngx,ngy,ngz,dtime)
 
   use EOS_Omni_module
 #ifdef HAVE_CAPABILITY_Fortran
@@ -46,6 +46,7 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
   DECLARE_CCTK_FUNCTIONS
 
   integer   :: nx,ny,nz
+  integer   :: ngx,ngy,ngz
   CCTK_REAL :: taurhs(nx,ny,nz)
   CCTK_REAL,target :: sxrhs(nx,ny,nz)
   CCTK_REAL,target :: syrhs(nx,ny,nz)
@@ -103,7 +104,7 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
               keyerr = 0
               anyerr = 0
               xeps = 0.0d0
-              call EOS_Omni_short(eoskey,keytemp,igm_eos_root_finding_precision,&
+              call EOS_Omni_short(eoskey,keytemp,ZL_eos_root_finding_precision,&
                    n,rho(i,j,k),xeps,temperature(i,j,k),y_e(i,j,k),&
                    xdummy,xdummy,xdummy,xdummy,&
                    xdummy,xdummy,munu(i,j,k),keyerr,anyerr)
@@ -189,9 +190,9 @@ subroutine ZelmaniLeak_CalcPnu(taurhs,sxrhs,syrhs,szrhs,&
      ! via a tanh at the transition density
      !
      !$OMP PARALLEL DO PRIVATE(i, j, k, detg, stress)
-     do k=IGM_stencil-1,nz-IGM_stencil+1
-        do j=IGM_stencil-1,ny-IGM_stencil+1
-           do i=IGM_stencil-1,nx-IGM_stencil+1
+     do k=ngz+1,nz-ngz+1
+        do j=ngy+1,ny-ngy+1
+           do i=ngx+1,nx-ngx+1
 
               ! Leo says: second-order centered finite differences
               dpnudr(i,j,k) =  &

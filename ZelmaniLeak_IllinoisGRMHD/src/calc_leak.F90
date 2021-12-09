@@ -24,7 +24,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
 
   integer :: nx,ny,nz
   integer :: i,j,k
-  integer :: ii,jj,kk,ll,jj_offset, jj_origins
+  integer :: ii,jj,kk,ll,jj_offset, jj_origin
   integer :: rl
   real*8  :: xchi(3),xtau(3)
   real*8  :: xr,xt,xp,xtemp
@@ -34,7 +34,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
   real*8  :: dyedt
   real*8  :: ldt
   real*8  :: lumfac
-  CCTK_REAL :: t,p
+  ! CCTK_REAL :: t,p
   CCTK_REAL, parameter :: tiny  = 1.0d-10
   character(len=512) :: warnline
 
@@ -45,19 +45,13 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
   real*8 :: rr(2),tt(2),pp(2)
   integer isym
 
-  ! Leo says: IGM stuff
-  real*8 :: igm_rhomin
-
   ! Leo says: Spritz MOD - nu variables
   real*8 :: det,radial_velocity
   det = 0.0d0
-  detradial_velocity = 0.0d0
+  radial_velocity = 0.0d0
   lum_inf_nue = 0.0d0
   lum_inf_nua = 0.0d0
   lum_inf_nux = 0.0d0
-
-  ! Leo says: IGM stuff
-  igm_rhomin = eos_rhomin*igm_eos_table_floor_safety_factor
 
   nx = cctk_lsh(1)
   ny = cctk_lsh(2)
@@ -125,7 +119,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
               net_heat_local(i,j,k,1:3) = 0.0d0
 
               ! no leakage in the atmosphere (if there is one)
-              if(rho(i,j,k) .le. leakage_rho_threshold) cycle
+              if(rho(i,j,k) .le. ZL_rho_threshold) cycle
 
               if(rl.ge.-1) then
 
@@ -164,11 +158,11 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                     tau3D(i,j,k,1:3) = xtau(1:3)
 
                     ! if the temperature is below our minimum, floor it
-                    xtemp = max(temperature(i,j,k),igm_T_atm)
+                    xtemp = max(temperature(i,j,k),ZL_T_atmosphere)
                     call calc_leak(rho(i,j,k)*inv_rho_gf,xtemp,&
                          y_e(i,j,k),xchi,xtau,xheatflux,zi_heaterms(1,1,:),&
                          zi_heateave(1,1,:),depsdt,dyedt,ldt,xlum,xeave,xheat,&
-                         xnetheat,igm_rhomin, rl,r(i,j,k))
+                         xnetheat,ZL_rho_atmosphere, rl,r(i,j,k))
 
                     if(isnan(xlum(1)) .or. &
                          isnan(xlum(2)) .or. &
@@ -245,7 +239,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
               net_heat_local(i,j,k,1:3) = 0.0d0
 
               ! no leakage in the atmosphere (if there is one)
-              if(rho(i,j,k) .le. leakage_rho_threshold) cycle
+              if(rho(i,j,k) .le. ZL_rho_threshold) cycle
 
 
               ! only leak inside max leak radius
@@ -314,11 +308,11 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                       zi_heaterms(jj,1,1:3),zi_heaterms(jj+1,1,1:3),xt,xheaterms(1:3))
 
                  ! if the temperature is below our minimum, floor it
-                 xtemp = max(temperature(i,j,k),igm_T_atm)
+                 xtemp = max(temperature(i,j,k),ZL_T_atmosphere)
                  call calc_leak(rho(i,j,k)*inv_rho_gf,xtemp,&
                       y_e(i,j,k),xchi,xtau,xheatflux,xheaterms,&
                       xheateave,depsdt,dyedt,ldt,xlum,xeave,xheat,xnetheat,&
-                      igm_rhomin,rl,r(i,j,k))
+                      ZL_rho_atmosphere,rl,r(i,j,k))
 
                  if(isnan(xlum(1)) .or. &
                       isnan(xlum(2)) .or. &
@@ -413,7 +407,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
               eave_local(i,j,k,1:3) = 0.0d0
 
               ! no leakage in the atmosphere (if there is one)
-              if(rho(i,j,k) .le. leakage_rho_threshold) cycle
+              if(rho(i,j,k) .le. ZL_rho_threshold) cycle
 
               ! only leak inside max leak radius
               if(r(i,j,k).lt.rad_max-drad*1.1d0) then
@@ -626,7 +620,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  xheaterms(1:3) = fint_out(4:6)
 
                  ! if the temperature is below our minimum, floor it
-                 xtemp = max(temperature(i,j,k),igm_T_atm)
+                 xtemp = max(temperature(i,j,k),ZL_T_atmosphere)
                  ! Leo says: Spritz MOD by LSADD
                  if(isnan(xchi(1)).or.isnan(xchi(2)).or.isnan(xchi(3))) then
                     write(*,*) "xchi is NaN. ",rr,tt,pp
@@ -635,7 +629,7 @@ subroutine ZelmaniLeak_CalcLeak(CCTK_ARGUMENTS)
                  call calc_leak(rho(i,j,k)*inv_rho_gf,xtemp,&
                       y_e(i,j,k),xchi,xtau,xheatflux,xheaterms,&
                       xheateave,depsdt,dyedt,ldt,xlum,xeave,xheat,xnetheat,&
-                      igm_rhomin,rl,r(i,j,k))
+                      ZL_rho_atmosphere,rl,r(i,j,k))
 
                  if(isnan(xlum(1)) .or. &
                       isnan(xlum(2)) .or. &
@@ -944,20 +938,14 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   !cactus relates stuff
   character(len=512) :: warnline
 
-  ! IGM stuff
-  real*8 :: igm_rhomin,igm_yemin,igm_yemax
-  igm_rhomin = eos_rhomin*igm_eos_table_floor_safety_factor
-  igm_yemin  = eos_yemin *igm_eos_table_floor_safety_factor
-  igm_yemax  = eos_yemax *igm_eos_table_ceiling_safety_factor
-
   matter_rho = rho
-  matter_temperature = max(temp,igm_T_atm)
-  matter_ye = min(max(ye,igm_yemin),igm_yemax)
+  matter_temperature = max(temp,ZL_T_atmosphere)
+  matter_ye = min(max(ye,ZL_yemin),ZL_yemax)
 
   keytemp = 1
   keyerr = 0
   anyerr = 0
-  call EOS_Omni_full(eoskey,keytemp,igm_eos_root_finding_precision,npoints,&
+  call EOS_Omni_full(eoskey,keytemp,ZL_eos_root_finding_precision,npoints,&
        matter_rho*rho_gf,matter_enr,matter_temperature,matter_ye, &
        matter_prs,matter_ent,matter_cs2,matter_dedt,matter_dpderho, &
        matter_dpdrhoe,matter_xa,matter_xh,matter_xn,matter_xp,matter_abar, &
@@ -988,7 +976,7 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
   endif
 
   ! Don't do anything in the atmosphere
-  if(matter_rho*rho_gf.lt.leakage_rho_threshold) then 
+  if(matter_rho*rho_gf.lt.ZL_rho_threshold) then 
      lum(1:3) = 0.0d0
      depsdt = 0.0d0
      dyedt = 0.0d0
@@ -1129,7 +1117,7 @@ subroutine calc_leak(rho,temp,ye,chi,tau,heatflux,heaterms,heateave,&
      write(*,*) "Problem in diffusion rates, R_diff(nue),R_diff(nua),zeta(1),zeta(2),zeta(3): ",R_diff(1),R_diff(2),R_diff(3),rate_const
   endif
   ! Leo says: end of Spritz MOD by LSADD
-
+  
   !now for the free emission
   ! Leo says: Eq. (A6) in https://arxiv.org/abs/1306.4953
   beta = pi*clite*(1.0d0+3.0d0*alpha**2)*sigma_0/(hc_mevcm**3*me_mev**2)

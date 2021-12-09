@@ -196,16 +196,6 @@ CCTK_REAL maximum_luminosity "huge value in order to control maximum computed lu
   (0.0d0:* :: "Should be greather than zero ..."
 } 1.0e60
 
-######################################################################
-# Leo says: adjusted parameters to match those in IllinoisGRMHD
-shares: IllinoisGRMHD
-
-USES REAL igm_eos_root_finding_precision
-USES REAL igm_eos_table_floor_safety_factor
-USES REAL igm_eos_table_ceiling_safety_factor
-USES REAL igm_T_atm
-USES REAL rho_b_atm
-
 #######################################################################
 
 #########################################
@@ -226,5 +216,62 @@ CCTK_INT ZelmaniLeak_MaxNumConstrainedVars "The maximum number of constrained va
   15         :: "A small range, depending on testing or not"
 } 15
 
+restricted:
+CCTK_REAL ZL_rho_threshold "For rho [g/cm^3] greater than this threshold leakage is enabled."
+{
+  (0.0d0:*) :: "Should be greater than zero"
+} 1.0d10
 
+restricted:
+CCTK_REAL ZL_rho_atmosphere "Atmosphere density [g/cm^3]."
+{
+  (0.0d0:*) :: "Should be greater than zero"
+} 1.0d7
 
+restricted:
+CCTK_REAL ZL_yemin "Minimum electron fraction"
+{
+  (0.0d0:*) :: "Should be greater than zero"
+} 0.05
+
+restricted:
+CCTK_REAL ZL_yemax "Maximum electron fraction"
+{
+  (0.0d0:*) :: "Should be greater than zero"
+} 0.5
+
+restricted:
+CCTK_REAL ZL_T_atmosphere "Atmosphere temperature [MeV]."
+{
+  (0.0d0:*) :: "Should be greater than zero"
+} 0.01
+
+restricted:
+CCTK_REAL ZL_eos_root_finding_precision "Root-finding precision for EOS calls."
+{
+  (0.0d0:*) :: "Should be greater than zero"
+} 1.0d-8
+
+restricted:
+STRING ZL_tau_gf_VarString "Conserved energy gridfunction"
+{
+  "IllinoisGRMHD::tau" :: "IllinoisGRMHD conserved energy gridfunction"
+} "IllinoisGRMHD::tau"
+
+restricted:
+STRING ZL_SD0_gf_VarString "Conserved momentum gridfunction (x-direction)"
+{
+  "IllinoisGRMHD::mhd_st_x" :: "IllinoisGRMHD conserved momentum gridfunction (x-direction)"
+} "IllinoisGRMHD::mhd_st_x"
+
+restricted:
+STRING ZL_SD1_gf_VarString "Conserved momentum gridfunction (y-direction)"
+{
+  "IllinoisGRMHD::mhd_st_y" :: "IllinoisGRMHD conserved momentum gridfunction (y-direction)"
+} "IllinoisGRMHD::mhd_st_y"
+
+restricted:
+STRING ZL_SD2_gf_VarString "Conserved momentum gridfunction (z-direction)"
+{
+  "IllinoisGRMHD::mhd_st_z" :: "IllinoisGRMHD conserved momentum gridfunction (z-direction)"
+} "IllinoisGRMHD::mhd_st_z"

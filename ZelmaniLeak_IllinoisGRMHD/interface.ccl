@@ -139,3 +139,6 @@ CCTK_INT have_interp_data TYPE=scalar TAGS='checkpoint="no"'
 # Leo says: new variable, set to 1 after merger (replacing CoreCollapseControl)
 public:
 CCTK_INT in_merger TYPE=SCALAR "is 1 when in merger has happened"
+
+public:
+CCTK_REAL ZL_global_rho_max TYPE=SCALAR "maximum density on the grid"
