@@ -1,11 +1,12 @@
 BASEDIR = $(shell pwd)
 WVU_EOS_DIR = $(BASEDIR)/WVU_EOS
+LEAKAGE_DIR = $(BASEDIR)/Leakage
 
 CC       = gcc
-CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(WVU_EOS_DIR) -I/usr/local/opt/hdf5/include
+CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(WVU_EOS_DIR) -I$(LEAKAGE_DIR) -I/usr/local/opt/hdf5/include
 
 CXX      = g++
-CXXFLAGS = -Wall -O2 -fopenmp -march=native -I$(WVU_EOS_DIR) -I/usr/local/opt/hdf5/include
+CXXFLAGS = -Wall -O2 -fopenmp -march=native -I$(WVU_EOS_DIR) -I$(LEAKAGE_DIR) -I/usr/local/opt/hdf5/include
 
 LD_FLAGS = -L/usr/local/opt/hdf5/lib -lhdf5
 
@@ -21,13 +22,18 @@ WVU_EOS_SRC = WVU_EOS_Tabulated_general_interpolators.cc \
 WVU_EOS_INC = $(WVU_EOS_DIR)/WVU_EOS_Tabulated_headers.hh \
               $(WVU_EOS_DIR)/WVU_EOS_Tabulated_helpers.hh
 
+LEAKAGE_SRC = Leakage_Fermi_Dirac_integrals.cc
+
+LEAKAGE_INC = $(LEAKAGE_DIR)/Leakage.hh
+
 SRC = standalone.cc
 
 
 OBJ = $(addprefix obj/,$(SRC:.cc=.o)) \
-      $(addprefix obj/,$(WVU_EOS_SRC:.cc=.o))
+      $(addprefix obj/,$(WVU_EOS_SRC:.cc=.o)) \
+      $(addprefix obj/,$(LEAKAGE_SRC:.cc=.o))
 
-INC = Basic_defines.hh $(WVU_EOS_INC)
+INC = Basic_defines.hh $(WVU_EOS_INC) $(LEAKAGE_INC)
 
 all: obj_dir $(EXE)
 
@@ -40,19 +46,22 @@ $(EXE): $(OBJ) $(COBJ)
 obj/standalone.o: standalone.cc $(INC)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-obj/WVU_EOS_Tabulated_general_interpolators.o: WVU_EOS/WVU_EOS_Tabulated_general_interpolators.cc $(INC)
+obj/WVU_EOS_Tabulated_general_interpolators.o: $(WVU_EOS_DIR)/WVU_EOS_Tabulated_general_interpolators.cc $(INC)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-obj/WVU_EOS_Tabulated_known_T.o: WVU_EOS/WVU_EOS_Tabulated_known_T.cc $(INC)
+obj/WVU_EOS_Tabulated_known_T.o: $(WVU_EOS_DIR)/WVU_EOS_Tabulated_known_T.cc $(INC)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-obj/WVU_EOS_Tabulated_unknown_T.o: WVU_EOS/WVU_EOS_Tabulated_unknown_T.cc $(INC)
+obj/WVU_EOS_Tabulated_unknown_T.o: $(WVU_EOS_DIR)/WVU_EOS_Tabulated_unknown_T.cc $(INC)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-obj/WVU_EOS_readtable.o: WVU_EOS/WVU_EOS_readtable.cc $(INC)
+obj/WVU_EOS_readtable.o: $(WVU_EOS_DIR)/WVU_EOS_readtable.cc $(INC)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-obj/WVU_EOS_free_memory.o: WVU_EOS/WVU_EOS_free_memory.cc $(INC)
+obj/WVU_EOS_free_memory.o: $(WVU_EOS_DIR)/WVU_EOS_free_memory.cc $(INC)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+obj/Leakage_Fermi_Dirac_integrals.o: $(LEAKAGE_DIR)/Leakage_Fermi_Dirac_integrals.cc $(INC)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
