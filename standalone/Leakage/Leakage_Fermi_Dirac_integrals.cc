@@ -3,7 +3,7 @@
 // https://adsabs.harvard.edu/pdf/1978A%26A....67..185T
 #include "Leakage.hh"
 
-REAL fermi_dirac_integral(const int N, const double z) {
+REAL Leakage_Fermi_Dirac_integral(const int N, const double z) {
   if( z > 1e-3 )
     switch(N) {
     case(0):
@@ -29,6 +29,10 @@ REAL fermi_dirac_integral(const int N, const double z) {
     case(5):
       // Fifth equation in Eqs. (A2) in [1].
       return((z*z*z*z*z*z/6.0 + 8.2247*z*z*z*z + 113.6439*z*z + 236.5323)/(1.0+exp(-1.9727*z)));
+      break;
+    default:
+      fprintf(stderr,"(Leakage) Unsupported Fermi-Dirac integral order %d\n",N);
+      exit(1);
       break;
   }
   else {
@@ -56,6 +60,10 @@ REAL fermi_dirac_integral(const int N, const double z) {
     case(5):
       // Fifth equation in Eqs. (A3) in [1].
       return((120.0 * exp(z)) / (1.0 + 0.0147 * exp(0.9431 * z)));
+      break;
+    default:
+      fprintf(stderr,"(Leakage) Unsupported Fermi-Dirac integral order %d\n",N);
+      exit(1);
       break;
     }
   }
