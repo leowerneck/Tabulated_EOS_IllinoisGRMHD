@@ -3,6 +3,11 @@
 
 int main(int argc, char **argv) {
 
+  if( argc != 2 ) {
+    fprintf(stderr,"(Leakage) Correct usage is ./Leakage_standalone eos_file_path\n");
+    exit(1);
+  }
+
   WVU_EOS_ReadTable(argv[1]);
   WVU_EOS_free_memory();
 
