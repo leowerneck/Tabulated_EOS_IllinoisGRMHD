@@ -1,14 +1,14 @@
-BASEDIR = $(shell pwd)
+BASEDIR = .
 WVU_EOS_DIR = $(BASEDIR)/WVU_EOS
-LEAKAGE_DIR = $(BASEDIR)/Leakage
+LEAKAGE_DIR = $(BASEDIR)/NRPyLeakage
 
 CC       = gcc
-CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(WVU_EOS_DIR) -I$(LEAKAGE_DIR) -I/usr/local/opt/hdf5/include
+CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(WVU_EOS_DIR) -I$(LEAKAGE_DIR) -I/usr/lib/x86_64-linux-gnu/hdf5/serial/include
 
 CXX      = g++
-CXXFLAGS = -Wall -O2 -fopenmp -march=native -I$(WVU_EOS_DIR) -I$(LEAKAGE_DIR) -I/usr/local/opt/hdf5/include
+CXXFLAGS = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(WVU_EOS_DIR) -I$(LEAKAGE_DIR) -I/usr/lib/x86_64-linux-gnu/hdf5/serial/include
 
-LD_FLAGS = -L/usr/local/opt/hdf5/lib -lhdf5
+LD_FLAGS = -L/usr/lib/x86_64-linux-gnu/hdf5/serial/lib -lhdf5
 
 EXE  = standalone
 CSRC =
@@ -22,9 +22,9 @@ WVU_EOS_SRC = WVU_EOS_Tabulated_general_interpolators.cc \
 WVU_EOS_INC = $(WVU_EOS_DIR)/WVU_EOS_Tabulated_headers.hh \
               $(WVU_EOS_DIR)/WVU_EOS_Tabulated_helpers.hh
 
-LEAKAGE_SRC = Leakage_Fermi_Dirac_integrals.cc
+LEAKAGE_SRC = Leakage_Fermi_Dirac_integrals.cc Leakage_compute_free_rates.cc
 
-LEAKAGE_INC = $(LEAKAGE_DIR)/Leakage.hh
+#LEAKAGE_INC = $(LEAKAGE_DIR)/Leakage.hh
 
 SRC = standalone.cc
 
@@ -62,6 +62,9 @@ obj/WVU_EOS_free_memory.o: $(WVU_EOS_DIR)/WVU_EOS_free_memory.cc $(INC)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 obj/Leakage_Fermi_Dirac_integrals.o: $(LEAKAGE_DIR)/Leakage_Fermi_Dirac_integrals.cc $(INC)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+obj/Leakage_compute_free_rates.o: $(LEAKAGE_DIR)/Leakage_compute_free_rates.cc $(INC)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
