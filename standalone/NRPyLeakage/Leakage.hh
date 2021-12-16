@@ -22,9 +22,10 @@ namespace Leakage {
   constexpr REAL eta_nue_0 = 0.0;
   constexpr REAL eta_anue_0 = 0.0;
   constexpr REAL units_geom_to_cgs_density = 6.175828479261933e+17;
+  constexpr REAL units_cgs_to_geom_density = 1.619215953548485e-18;
   // "Derived" parameters
   constexpr REAL C_V = C_A + 2*sinthw2;
-  constexpr REAL beta = N_A*c_light*sigma_0/((m_e_c2)*(m_e_c2));
+  constexpr REAL beta = c_light*sigma_0/((m_e_c2)*(m_e_c2));
   constexpr REAL C1pC2_nue_anue = ((-C_A + C_V)*(-C_A + C_V)) + ((C_A + C_V)*(C_A + C_V));
   constexpr REAL C1pC2_nux_anux = ((-C_A + C_V)*(-C_A + C_V)) + ((C_A + C_V - 2)*(C_A + C_V - 2));
 }
