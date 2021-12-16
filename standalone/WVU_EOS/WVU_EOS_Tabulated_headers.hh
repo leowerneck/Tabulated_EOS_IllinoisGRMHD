@@ -23,8 +23,8 @@ namespace WVU_EOS {
   // Name of the variables. This is only used to print
   // information about the keys during startup
   static std::string table_var_names[ntables] { "logpress","logenergy","entropy","munu","cs2","dedt",
-                                                "dpdrhoe", "dpderho", "muhat", "mu_e", "mu_p", "mu_n",
-                                                "Xa","Xh","Xn","Xp","Abar","Zbar","Gamma"};
+      "dpdrhoe", "dpderho", "muhat", "mu_e", "mu_p", "mu_n",
+      "Xa","Xh","Xn","Xp","Abar","Zbar","Gamma"};
 
   // Error handling struct
   struct eos_error_report {
@@ -37,104 +37,114 @@ namespace WVU_EOS {
 
 extern "C" {
 
-// Table reader
-void WVU_EOS_ReadTable(const char *nuceos_table_name);
+  // Table reader
+  void WVU_EOS_ReadTable(const char *nuceos_table_name);
 
-// Free all memory allocated for the table
-void WVU_EOS_free_memory();
+  // Free all memory allocated for the table
+  void WVU_EOS_free_memory();
 
-// ------------------------------------------------------
-// ------------- New general interpolators --------------
-// ------------------------------------------------------
-void WVU_EOS_from_rho_Ye_T_interpolate_n_quantities( const int& n,
-                                                     const REAL& rho,
-                                                     const REAL& Ye,
-                                                     const REAL& T,
-                                                     const int *restrict tablevars_keys,
-                                                     REAL *restrict tablevars,
-                                                     WVU_EOS::eos_error_report *restrict report );
+  // ------------------------------------------------------
+  // ------------- New general interpolators --------------
+  // ------------------------------------------------------
+  void WVU_EOS_from_rho_Ye_T_interpolate_n_quantities( const int& n,
+                                                       const REAL& rho,
+                                                       const REAL& Ye,
+                                                       const REAL& T,
+                                                       const int *restrict tablevars_keys,
+                                                       REAL *restrict tablevars,
+                                                       WVU_EOS::eos_error_report *restrict report );
 
-void WVU_EOS_from_rho_Ye_aux_find_T_and_interpolate_n_quantities( const int& n,
-                                                                  const REAL& prec,
-                                                                  const REAL& rho,
-                                                                  const REAL& Ye,
-                                                                  const REAL& tablevar_in,
-                                                                  const int& tablevar_in_key,
-                                                                  const int *restrict tablevars_keys,
-                                                                  REAL *restrict tablevars,
-                                                                  REAL *restrict T,
-                                                                  WVU_EOS::eos_error_report *restrict report );
+  void WVU_EOS_from_rho_Ye_aux_find_T_and_interpolate_n_quantities( const int& n,
+                                                                    const REAL& prec,
+                                                                    const REAL& rho,
+                                                                    const REAL& Ye,
+                                                                    const REAL& tablevar_in,
+                                                                    const int& tablevar_in_key,
+                                                                    const int *restrict tablevars_keys,
+                                                                    REAL *restrict tablevars,
+                                                                    REAL *restrict T,
+                                                                    WVU_EOS::eos_error_report *restrict report );
 
-// ------------------------------------------------------
-// ------ Functions where the temperature is known ------
-// ------------------------------------------------------
-void WVU_EOS_P_and_eps_from_rho_Ye_T_impl( const REAL rho,
-                                           const REAL Ye,
-                                           const REAL T,
-                                           REAL *restrict P,
-                                           REAL *restrict eps );
+  // ------------------------------------------------------
+  // ------ Functions where the temperature is known ------
+  // ------------------------------------------------------
+  void WVU_EOS_P_and_eps_from_rho_Ye_T( const REAL rho,
+                                        const REAL Ye,
+                                        const REAL T,
+                                        REAL *restrict P,
+                                        REAL *restrict eps );
 
-void WVU_EOS_P_eps_and_S_from_rho_Ye_T_impl( const REAL rho,
-                                             const REAL Ye,
-                                             const REAL T,
-                                             REAL *restrict P,
-                                             REAL *restrict eps,
-                                             REAL *restrict S );
+  void WVU_EOS_P_eps_and_S_from_rho_Ye_T( const REAL rho,
+                                          const REAL Ye,
+                                          const REAL T,
+                                          REAL *restrict P,
+                                          REAL *restrict eps,
+                                          REAL *restrict S );
 
-void WVU_EOS_P_eps_S_and_cs2_from_rho_Ye_T_impl( const REAL rho,
-                                                 const REAL Ye,
-                                                 const REAL T,
-                                                 REAL *restrict P,
-                                                 REAL *restrict eps,
-                                                 REAL *restrict S,
-                                                 REAL *restrict cs2 );
+  void WVU_EOS_P_eps_S_and_cs2_from_rho_Ye_T( const REAL rho,
+                                              const REAL Ye,
+                                              const REAL T,
+                                              REAL *restrict P,
+                                              REAL *restrict eps,
+                                              REAL *restrict S,
+                                              REAL *restrict cs2 );
 
-void WVU_EOS_P_eps_and_depsdT_from_rho_Ye_T_impl( const REAL rho,
-                                                  const REAL Ye,
-                                                  const REAL T,
-                                                  REAL *restrict P,
-                                                  REAL *restrict eps,
-                                                  REAL *restrict depsdT );
+  void WVU_EOS_P_eps_and_depsdT_from_rho_Ye_T( const REAL rho,
+                                               const REAL Ye,
+                                               const REAL T,
+                                               REAL *restrict P,
+                                               REAL *restrict eps,
+                                               REAL *restrict depsdT );
 
-void WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T_impl( const REAL rho,
-                                                                       const REAL Ye,
-                                                                       const REAL T,
-                                                                       REAL *restrict P,
-                                                                       REAL *restrict eps,
-                                                                       REAL *restrict dPdrho,
-                                                                       REAL *restrict dPdT,
-                                                                       REAL *restrict depsdrho,
-                                                                       REAL *restrict depsdT );
+  void WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T( const REAL rho,
+                                                                    const REAL Ye,
+                                                                    const REAL T,
+                                                                    REAL *restrict P,
+                                                                    REAL *restrict eps,
+                                                                    REAL *restrict dPdrho,
+                                                                    REAL *restrict dPdT,
+                                                                    REAL *restrict depsdrho,
+                                                                    REAL *restrict depsdT );
 
-// ------------------------------------------------------
-// ---- Functions where the temperature is not known ----
-// ------------------------------------------------------
-void WVU_EOS_P_and_T_from_rho_Ye_eps_impl( const REAL rho,
-                                           const REAL Ye,
-                                           const REAL eps,
-                                           REAL *restrict P,
-                                           REAL *restrict T );
+  void WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T( const REAL rho,
+                                                          const REAL Ye,
+                                                          const REAL T,
+                                                          REAL *restrict mu_e,
+                                                          REAL *restrict mu_p,
+                                                          REAL *restrict mu_n,
+                                                          REAL *restrict muhat,
+                                                          REAL *restrict X_p,
+                                                          REAL *restrict X_n );
 
-void WVU_EOS_P_S_and_T_from_rho_Ye_eps_impl( const REAL rho,
-                                             const REAL Ye,
-                                             const REAL eps,
-                                             REAL *restrict P,
-                                             REAL *restrict S,
-                                             REAL *restrict T );
+  // ------------------------------------------------------
+  // ---- Functions where the temperature is not known ----
+  // ------------------------------------------------------
+  void WVU_EOS_P_and_T_from_rho_Ye_eps( const REAL rho,
+                                        const REAL Ye,
+                                        const REAL eps,
+                                        REAL *restrict P,
+                                        REAL *restrict T );
 
-void WVU_EOS_eps_S_and_T_from_rho_Ye_P_impl( const REAL rho,
-                                             const REAL Ye,
-                                             const REAL P,
-                                             REAL *restrict eps,
-                                             REAL *restrict S,
-                                             REAL *restrict T );
+  void WVU_EOS_P_S_and_T_from_rho_Ye_eps( const REAL rho,
+                                          const REAL Ye,
+                                          const REAL eps,
+                                          REAL *restrict P,
+                                          REAL *restrict S,
+                                          REAL *restrict T );
 
-void WVU_EOS_P_eps_and_T_from_rho_Ye_S_impl( const REAL rho,
-                                             const REAL Ye,
-                                             const REAL S,
-                                             REAL *restrict P,
-                                             REAL *restrict eps,
-                                             REAL *restrict T );
+  void WVU_EOS_eps_S_and_T_from_rho_Ye_P( const REAL rho,
+                                          const REAL Ye,
+                                          const REAL P,
+                                          REAL *restrict eps,
+                                          REAL *restrict S,
+                                          REAL *restrict T );
+
+  void WVU_EOS_P_eps_and_T_from_rho_Ye_S( const REAL rho,
+                                          const REAL Ye,
+                                          const REAL S,
+                                          REAL *restrict P,
+                                          REAL *restrict eps,
+                                          REAL *restrict T );
 } // extern "C"
 
 // ----------------------------------------

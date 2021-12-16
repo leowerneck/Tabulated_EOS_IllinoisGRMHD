@@ -11,11 +11,11 @@
 // ---------- T(rho,Ye,eps) ----------
 // ---------- P(rho,Ye,T)   ----------
 // -----------------------------------
-extern "C" void WVU_EOS_P_and_T_from_rho_Ye_eps_impl( const REAL rho,
-                                                      const REAL Ye,
-                                                      const REAL eps,
-                                                      REAL *restrict P,
-                                                      REAL *restrict T ) {
+extern "C" void WVU_EOS_P_and_T_from_rho_Ye_eps( const REAL rho,
+                                                 const REAL Ye,
+                                                 const REAL eps,
+                                                 REAL *restrict P,
+                                                 REAL *restrict T ) {
   // Number of interpolated quantities: 1 (P)
   const int n = 1;
   // Set the key to the auxiliary variable (eps)
@@ -49,12 +49,12 @@ extern "C" void WVU_EOS_P_and_T_from_rho_Ye_eps_impl( const REAL rho,
 // ---------- P(rho,Ye,T)   ----------
 // ---------- S(rho,Ye,T)   ----------
 // -----------------------------------
-extern "C" void WVU_EOS_P_S_and_T_from_rho_Ye_eps_impl( const REAL rho,
-                                                        const REAL Ye,
-                                                        const REAL eps,
-                                                        REAL *restrict P,
-                                                        REAL *restrict S,
-                                                        REAL *restrict T ) {
+extern "C" void WVU_EOS_P_S_and_T_from_rho_Ye_eps( const REAL rho,
+                                                   const REAL Ye,
+                                                   const REAL eps,
+                                                   REAL *restrict P,
+                                                   REAL *restrict S,
+                                                   REAL *restrict T ) {
   // Number of interpolated quantities: 2 (P and S)
   const int n = 2;
   // Set the key to the auxiliary variable (eps)
@@ -90,13 +90,13 @@ extern "C" void WVU_EOS_P_S_and_T_from_rho_Ye_eps_impl( const REAL rho,
 // ----------      S(rho,Ye,T) ----------
 // ---------- depsdT(rho,Ye,T) ----------
 // --------------------------------------
-extern "C" void WVU_EOS_P_S_T_and_depsdT_from_rho_Ye_eps_impl( const REAL rho,
-                                                               const REAL Ye,
-                                                               const REAL eps,
-                                                               REAL *restrict P,
-                                                               REAL *restrict S,
-                                                               REAL *restrict depsdT,
-                                                               REAL *restrict T ) {
+extern "C" void WVU_EOS_P_S_T_and_depsdT_from_rho_Ye_eps( const REAL rho,
+                                                          const REAL Ye,
+                                                          const REAL eps,
+                                                          REAL *restrict P,
+                                                          REAL *restrict S,
+                                                          REAL *restrict depsdT,
+                                                          REAL *restrict T ) {
   // Number of interpolated quantities: 3 (P, S, and depsdT)
   const int n = 3;
   // Set the key to the auxiliary variable (eps)
@@ -132,12 +132,12 @@ extern "C" void WVU_EOS_P_S_T_and_depsdT_from_rho_Ye_eps_impl( const REAL rho,
 // ---------- eps(rho,Ye,T) ----------
 // ---------- S(rho,Ye,T)   ----------
 // -----------------------------------
-extern "C" void WVU_EOS_eps_S_and_T_from_rho_Ye_P_impl( const REAL rho,
-                                                        const REAL Ye,
-                                                        const REAL P,
-                                                        REAL *restrict eps,
-                                                        REAL *restrict S,
-                                                        REAL *restrict T ) {
+extern "C" void WVU_EOS_eps_S_and_T_from_rho_Ye_P( const REAL rho,
+                                                   const REAL Ye,
+                                                   const REAL P,
+                                                   REAL *restrict eps,
+                                                   REAL *restrict S,
+                                                   REAL *restrict T ) {
   // Number of interpolated quantities: 2 (eps and S)
   const int n = 2;
   // Set the key to the auxiliary variable (P)
@@ -172,12 +172,12 @@ extern "C" void WVU_EOS_eps_S_and_T_from_rho_Ye_P_impl( const REAL rho,
 // ---------- P(rho,Ye,T)   ----------
 // ---------- eps(rho,Ye,T) ----------
 // -----------------------------------
-extern "C" void WVU_EOS_P_eps_and_T_from_rho_Ye_S_impl( const REAL rho,
-                                                        const REAL Ye,
-                                                        const REAL S,
-                                                        REAL *restrict P,
-                                                        REAL *restrict eps,
-                                                        REAL *restrict T ) {
+extern "C" void WVU_EOS_P_eps_and_T_from_rho_Ye_S( const REAL rho,
+                                                   const REAL Ye,
+                                                   const REAL S,
+                                                   REAL *restrict P,
+                                                   REAL *restrict eps,
+                                                   REAL *restrict T ) {
   // Number of interpolated quantities: 2 (P and eps)
   const int n = 2;
   // Set the key to the auxiliary variable (S)

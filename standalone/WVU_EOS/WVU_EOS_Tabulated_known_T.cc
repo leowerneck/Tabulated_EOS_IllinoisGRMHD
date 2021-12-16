@@ -11,11 +11,11 @@
 // ----------- eps(rho,Ye,T) -----------
 // -------------------------------------
 extern "C"
-void WVU_EOS_P_and_eps_from_rho_Ye_T_impl( const REAL rho,
-                                           const REAL Ye,
-                                           const REAL T,
-                                           REAL *restrict P,
-                                           REAL *restrict eps ) {
+void WVU_EOS_P_and_eps_from_rho_Ye_T( const REAL rho,
+                                      const REAL Ye,
+                                      const REAL T,
+                                      REAL *restrict P,
+                                      REAL *restrict eps ) {
   // Number of interpolated quantities: 2 (P and eps)
   const int n = 2;
   // Table variables keys
@@ -45,12 +45,12 @@ void WVU_EOS_P_and_eps_from_rho_Ye_T_impl( const REAL rho,
 // -----------   S(rho,Ye,T) -----------
 // -------------------------------------
 extern "C"
-void WVU_EOS_P_eps_and_S_from_rho_Ye_T_impl( const REAL rho,
-                                             const REAL Ye,
-                                             const REAL T,
-                                             REAL *restrict P,
-                                             REAL *restrict eps,
-                                             REAL *restrict S ) {
+void WVU_EOS_P_eps_and_S_from_rho_Ye_T( const REAL rho,
+                                        const REAL Ye,
+                                        const REAL T,
+                                        REAL *restrict P,
+                                        REAL *restrict eps,
+                                        REAL *restrict S ) {
   // Number of interpolated quantities: 3 (P, eps, and S)
   const int n = 3;
   // Table variables keys
@@ -82,13 +82,13 @@ void WVU_EOS_P_eps_and_S_from_rho_Ye_T_impl( const REAL rho,
 // ----------- cs2(rho,Ye,T) -----------
 // -------------------------------------
 extern "C"
-void WVU_EOS_P_eps_S_and_cs2_from_rho_Ye_T_impl( const REAL rho,
-                                                 const REAL Ye,
-                                                 const REAL T,
-                                                 REAL *restrict P,
-                                                 REAL *restrict eps,
-                                                 REAL *restrict S,
-                                                 REAL *restrict cs2 ) {
+void WVU_EOS_P_eps_S_and_cs2_from_rho_Ye_T( const REAL rho,
+                                            const REAL Ye,
+                                            const REAL T,
+                                            REAL *restrict P,
+                                            REAL *restrict eps,
+                                            REAL *restrict S,
+                                            REAL *restrict cs2 ) {
   // Number of interpolated quantities: 3 (P, eps, S, and cs2)
   const int n = 4;
   // Table variables keys
@@ -122,12 +122,12 @@ void WVU_EOS_P_eps_S_and_cs2_from_rho_Ye_T_impl( const REAL rho,
 // ----------- depsdT(rho,Ye,T) -----------
 // ----------------------------------------
 extern "C"
-void WVU_EOS_P_eps_and_depsdT_from_rho_Ye_T_impl( const REAL rho,
-                                                  const REAL Ye,
-                                                  const REAL T,
-                                                  REAL *restrict P,
-                                                  REAL *restrict eps,
-                                                  REAL *restrict depsdT ) {
+void WVU_EOS_P_eps_and_depsdT_from_rho_Ye_T( const REAL rho,
+                                             const REAL Ye,
+                                             const REAL T,
+                                             REAL *restrict P,
+                                             REAL *restrict eps,
+                                             REAL *restrict depsdT ) {
   // Number of interpolated quantities: 3 (P, eps, and deps/dT)
   const int n = 3;
   // Table variables keys
@@ -161,15 +161,15 @@ void WVU_EOS_P_eps_and_depsdT_from_rho_Ye_T_impl( const REAL rho,
 // ----------   depsdT(rho,Ye,T) ----------
 // ----------------------------------------
 extern "C"
-void WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T_impl( const REAL rho,
-                                                                       const REAL Ye,
-                                                                       const REAL T,
-                                                                       REAL *restrict P,
-                                                                       REAL *restrict eps,
-                                                                       REAL *restrict dPdrho,
-                                                                       REAL *restrict dPdT,
-                                                                       REAL *restrict depsdrho,
-                                                                       REAL *restrict depsdT ) {
+void WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T( const REAL rho,
+                                                                  const REAL Ye,
+                                                                  const REAL T,
+                                                                  REAL *restrict P,
+                                                                  REAL *restrict eps,
+                                                                  REAL *restrict dPdrho,
+                                                                  REAL *restrict dPdT,
+                                                                  REAL *restrict depsdrho,
+                                                                  REAL *restrict depsdT ) {
   // This function is a little different than the others. We need
   // dP/dT and deps/drho, but we can only get from the table the
   // following quantities:
@@ -215,4 +215,49 @@ void WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T_impl( const REA
   *dPdT     = outvars[4]*(*depsdT);
   // and deps/drho
   *depsdrho = (*dPdrho)/outvars[4];
+}
+
+// -------------------------------------
+// ----------  mu_e(rho,Ye,T) ----------
+// ----------  mu_p(rho,Ye,T) ----------
+// ----------  mu_n(rho,Ye,T) ----------
+// ---------- muhat(rho,Ye,T) ----------
+// ----------   X_p(rho,Ye,T) ----------
+// ----------   X_n(rho,Ye,T) ----------
+// -------------------------------------
+extern "C"
+void WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T( const REAL rho,
+                                                        const REAL Ye,
+                                                        const REAL T,
+                                                        REAL *restrict mu_e,
+                                                        REAL *restrict mu_p,
+                                                        REAL *restrict mu_n,
+                                                        REAL *restrict muhat,
+                                                        REAL *restrict X_p,
+                                                        REAL *restrict X_n) {
+  // Number of interpolated quantities: 6 (mu_e, mu_p, mu_n, mu_hat, X_p, and X_n)
+  const int n = 6;
+  // Table variables keys
+  const int keys[n] = {WVU_EOS::muhat_key, WVU_EOS::mu_e_key, WVU_EOS::mu_p_key, WVU_EOS::mu_n_key, WVU_EOS::Xn_key, WVU_EOS::Xp_key};
+  // Declare error variable
+  WVU_EOS::eos_error_report report;
+  // Set output variable array
+  REAL outvars[n];
+
+  // Get P and eps
+  WVU_EOS_from_rho_Ye_T_interpolate_n_quantities( n,rho,Ye,T, keys,outvars, &report );
+
+  // Error handling
+  if( report.error ) {
+    fprintf(stderr,"(WVU_EOS) Inside WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
+    // May want to terminate depending on the error. We'll just warn for now.
+  }
+
+  // Then update mu_e, mu_p, mu_n, mu_hat, X_p, and X_n
+  *muhat = outvars[0];
+  *mu_e  = outvars[1];
+  *mu_p  = outvars[2];
+  *mu_n  = outvars[3];
+  *X_n   = outvars[4];
+  *X_p   = outvars[5];
 }
