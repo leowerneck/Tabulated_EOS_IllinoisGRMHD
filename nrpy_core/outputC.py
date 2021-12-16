@@ -9,7 +9,7 @@
 # Step 0.a: Define __all__, which is the complete
 #           list of symbols imported when
 #           "from outputC import *" is called.
-__all__ = ['lhrh', 'outCparams', 'nrpyAbs', 'superfast_uniq', 'check_if_string__error_if_not',
+__all__ = ['lhrh', 'outCparams', 'nrpyAbs', 'nrpyFermiDiracintegrals', 'superfast_uniq', 'check_if_string__error_if_not',
            'outputC','parse_outCparams_string',
            'outC_NRPy_basic_defines_h_dict',
            'outC_function_prototype_dict', 'outC_function_dict', 'Cfunction', 'add_to_Cfunction_dict', 'outCfunction']
@@ -30,6 +30,7 @@ outCparams = namedtuple('outCparams', 'preindent includebraces declareoutputvars
 #    nrpyAbs, we can sidestep the internal SymPy evaluation and force the C
 #    codegen to output our desired fabs().
 nrpyAbs = sp.Function('nrpyAbs')
+nrpyFermiDiracintegrals = sp.Function("nrpyFermiDiracintegrals")
 custom_functions_for_SymPy_ccode = {
     "nrpyAbs": "fabs",
     'Pow': [(lambda b, e: e == 0.5, lambda b, e: 'sqrt(%s)'     % (b)),
@@ -45,7 +46,8 @@ custom_functions_for_SymPy_ccode = {
             (lambda b, e: e ==-3, lambda b, e: '(1.0/((%s)*(%s)*(%s)))'           % (b,b,b)),
             (lambda b, e: e ==-4, lambda b, e: '(1.0/((%s)*(%s)*(%s)*(%s)))'      % (b,b,b,b)),
             (lambda b, e: e ==-5, lambda b, e: '(1.0/((%s)*(%s)*(%s)*(%s)*(%s)))' % (b,b,b,b,b)),
-            (lambda b, e: e !=-5, 'pow')]
+            (lambda b, e: e !=-5, 'pow')],
+    "nrpyFermiDiracintegrals": "Leakage_Fermi_Dirac_integrals"
 ##    (lambda b, e: e != 2, 'pow')]
 }
 
