@@ -1,15 +1,16 @@
 BASEDIR = .
 WVU_EOS_DIR = $(BASEDIR)/WVU_EOS
 LEAKAGE_DIR = $(BASEDIR)/NRPyLeakage
+TESTS_DIR   = $(BASEDIR)/Leakage_tests
 
 HDF5_DIR = /usr/local/opt/hdf5
 #HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
 
 CC       = gcc
-CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(WVU_EOS_DIR) -I$(LEAKAGE_DIR) -I$(HDF5_DIR)/include
+CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(WVU_EOS_DIR) -I$(LEAKAGE_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
 
 CXX      = g++
-CXXFLAGS = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(WVU_EOS_DIR) -I$(LEAKAGE_DIR) -I$(HDF5_DIR)/include
+CXXFLAGS = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(WVU_EOS_DIR) -I$(LEAKAGE_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
 
 LD_FLAGS = -L$(HDF5_DIR)/lib -lhdf5
 
@@ -25,15 +26,20 @@ WVU_EOS_SRC = WVU_EOS_Tabulated_general_interpolators.cc \
 WVU_EOS_INC = $(WVU_EOS_DIR)/WVU_EOS_Tabulated_headers.hh \
               $(WVU_EOS_DIR)/WVU_EOS_Tabulated_helpers.hh
 
-LEAKAGE_SRC = Leakage_Fermi_Dirac_integrals.cc Leakage_compute_free_rates.cc
+LEAKAGE_SRC = Leakage_Fermi_Dirac_integrals.cc \
+              Leakage_compute_GRMHD_source_terms.cc
 
 LEAKAGE_INC = $(LEAKAGE_DIR)/Leakage.hh
 
+TESTS_SRC   = Leakage_optically_thin_regime_semi_analytic.cc
+TESTS_INC   = $(TESTS_DIR)/Leakage_tests.hh
+
 OBJ = $(addprefix obj/,$(SRC:.cc=.o)) \
       $(addprefix obj/,$(WVU_EOS_SRC:.cc=.o)) \
-      $(addprefix obj/,$(LEAKAGE_SRC:.cc=.o))
+      $(addprefix obj/,$(LEAKAGE_SRC:.cc=.o)) \
+      $(addprefix obj/,$(TESTS_SRC:.cc=.o))
 
-INC = Basic_defines.hh $(WVU_EOS_INC) $(LEAKAGE_INC)
+INC = Basic_defines.hh $(WVU_EOS_INC) $(LEAKAGE_INC) $(TESTS_INC)
 
 all: obj_dir $(EXE)
 
@@ -64,7 +70,10 @@ obj/WVU_EOS_free_memory.o: $(WVU_EOS_DIR)/WVU_EOS_free_memory.cc $(INC)
 obj/Leakage_Fermi_Dirac_integrals.o: $(LEAKAGE_DIR)/Leakage_Fermi_Dirac_integrals.cc $(INC)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-obj/Leakage_compute_free_rates.o: $(LEAKAGE_DIR)/Leakage_compute_free_rates.cc $(INC)
+obj/Leakage_compute_GRMHD_source_terms.o: $(LEAKAGE_DIR)/Leakage_compute_GRMHD_source_terms.cc $(INC)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+obj/Leakage_optically_thin_regime_semi_analytic.o: $(TESTS_DIR)/Leakage_optically_thin_regime_semi_analytic.cc $(INC)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:

@@ -23,6 +23,7 @@ namespace Leakage {
   constexpr REAL eta_anue_0 = 0.0;
   constexpr REAL units_geom_to_cgs_density = 6.175828479261933e+17;
   constexpr REAL units_cgs_to_geom_density = 1.619215953548485e-18;
+  constexpr REAL units_MeV_to_geom = 8.396457816868713e-16;
   // "Derived" parameters
   constexpr REAL C_V = C_A + 2*sinthw2;
   constexpr REAL beta = c_light*sigma_0/((m_e_c2)*(m_e_c2));
@@ -35,16 +36,13 @@ extern "C"
 REAL Leakage_Fermi_Dirac_integrals(const int k, const REAL z);
 
 extern "C"
-void Leakage_compute_free_rates(const REAL rho_b,
+void Leakage_compute_GRMHD_source_terms(const REAL rho_b,
                 const REAL Y_e,
                 const REAL T,
                 const REAL tau_nue,
                 const REAL tau_anue,
-                REAL *restrict R_free_total_nue ,
-                REAL *restrict R_free_total_anue,
-                REAL *restrict R_free_total_nux ,
-                REAL *restrict Q_free_total_nue ,
-                REAL *restrict Q_free_total_anue,
-                REAL *restrict Q_free_total_nux);
+                const REAL tau_nux,
+                REAL *restrict R_source,
+                REAL *restrict Q_source);
 
 #endif // LEAKAGE_HH_
