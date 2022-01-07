@@ -3,8 +3,8 @@ WVU_EOS_DIR = $(BASEDIR)/WVU_EOS
 LEAKAGE_DIR = $(BASEDIR)/NRPyLeakage
 TESTS_DIR   = $(BASEDIR)/Leakage_tests
 
-HDF5_DIR = /usr/local/opt/hdf5
-#HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
+# HDF5_DIR = /usr/local/opt/hdf5
+HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
 
 CC       = gcc
 CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(WVU_EOS_DIR) -I$(LEAKAGE_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
@@ -78,3 +78,6 @@ obj/Leakage_optically_thin_regime_semi_analytic.o: $(TESTS_DIR)/Leakage_opticall
 
 clean:
 	rm -rf $(EXE) $(OBJ) $(COBJ) obj
+
+veryclean: clean
+	rm -rf *.txt
