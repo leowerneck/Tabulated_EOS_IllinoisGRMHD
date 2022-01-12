@@ -10,8 +10,6 @@
 
 // helpers.hh edited by Lorenzo Sala
 
-#include "NRPyEOS_Tabulated_headers.h"
-
 //------------------------------------------
 static inline __attribute__((always_inline))  
 int NRPyEOS_checkbounds(const NRPyEOS_params *restrict eos_params,

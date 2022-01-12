@@ -7,8 +7,7 @@
 //              from (rho,Ye,aux), where aux is any table quantity other
 //              than (rho,Ye,T).
 #include "Basic_defines.h"
-#include "NRPyEOS_Tabulated_headers.h"
-#include "NRPyEOS_Tabulated_helpers.h"
+#include "NRPyEOS.h"
 
 // General interpolator to get table quantities from (rho,Ye,T)
 void NRPyEOS_from_rho_Ye_T_interpolate_n_quantities( const NRPyEOS_params *restrict eos_params,

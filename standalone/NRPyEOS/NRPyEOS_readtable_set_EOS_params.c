@@ -20,7 +20,7 @@
     }                                                                    \
   }
 
-void NRPyEOS_ReadTable(const char *nuceos_table_name, NRPyEOS_params *restrict eos_params) {
+void NRPyEOS_readtable_set_EOS_params(const char *nuceos_table_name, NRPyEOS_params *restrict eos_params) {
 
   printf("(NRPyEOS) *******************************\n");
   printf("(NRPyEOS) Reading EOS table from file:\n");

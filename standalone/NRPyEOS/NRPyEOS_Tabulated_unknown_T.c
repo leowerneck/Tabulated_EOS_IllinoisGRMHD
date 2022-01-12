@@ -5,7 +5,7 @@
 //              tables quantities neeeded by WVUThorns from (rho,Ye,aux),
 //              where aux is any table quantity other than (rho,Ye,T).
 
-#include "NRPyEOS_Tabulated_headers.hh"
+#include "NRPyEOS.h"
 
 // -----------------------------------
 // ---------- T(rho,Ye,eps) ----------
@@ -25,7 +25,7 @@ void NRPyEOS_P_and_T_from_rho_Ye_eps( const NRPyEOS_params *restrict eos_params,
   // Table variables keys
   const int keys[1] = {NRPyEOS_press_key};
   // Declare error variable
-  NRPyEOS_eos_error_report report;
+  NRPyEOS_error_report report;
   // Set output variable array
   REAL outvars[n];
   // Set root-finding precision
@@ -37,7 +37,7 @@ void NRPyEOS_P_and_T_from_rho_Ye_eps( const NRPyEOS_params *restrict eos_params,
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_and_T_from_rho_Ye_eps. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_and_T_from_rho_Ye_eps. Error message: %s (key = %d)",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -65,7 +65,7 @@ void NRPyEOS_P_S_and_T_from_rho_Ye_eps( const NRPyEOS_params *restrict eos_param
   // Table variables keys
   const int keys[2] = {NRPyEOS_press_key,NRPyEOS_entropy_key};
   // Declare error variable
-  NRPyEOS_eos_error_report report;
+  NRPyEOS_error_report report;
   // Set output variable array
   REAL outvars[n];
   // Set root-finding precision
@@ -77,7 +77,7 @@ void NRPyEOS_P_S_and_T_from_rho_Ye_eps( const NRPyEOS_params *restrict eos_param
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_S_and_T_from_rho_Ye_eps. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_S_and_T_from_rho_Ye_eps. Error message: %s (key = %d)",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -108,7 +108,7 @@ void NRPyEOS_P_S_T_and_depsdT_from_rho_Ye_eps( const NRPyEOS_params *restrict eo
   // Table variables keys
   const int keys[3] = {NRPyEOS_press_key,NRPyEOS_entropy_key,NRPyEOS_depsdT_key};
   // Declare error variable
-  NRPyEOS_eos_error_report report;
+  NRPyEOS_error_report report;
   // Set output variable array
   REAL outvars[n];
   // Set root-finding precision
@@ -120,7 +120,7 @@ void NRPyEOS_P_S_T_and_depsdT_from_rho_Ye_eps( const NRPyEOS_params *restrict eo
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_S_T_and_depsdT_from_rho_Ye_eps. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_S_T_and_depsdT_from_rho_Ye_eps. Error message: %s (key = %d)",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -150,7 +150,7 @@ void NRPyEOS_eps_S_and_T_from_rho_Ye_P( const NRPyEOS_params *restrict eos_param
   // Table variables keys
   const int keys[2] = {NRPyEOS_eps_key,NRPyEOS_entropy_key};
   // Declare error variable
-  NRPyEOS_eos_error_report report;
+  NRPyEOS_error_report report;
   // Set output variable array
   REAL outvars[n];
   // Set root-finding precision
@@ -162,7 +162,7 @@ void NRPyEOS_eps_S_and_T_from_rho_Ye_P( const NRPyEOS_params *restrict eos_param
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_eps_S_and_T_from_rho_Ye_P. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_eps_S_and_T_from_rho_Ye_P. Error message: %s (key = %d)",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -191,7 +191,7 @@ void NRPyEOS_P_eps_and_T_from_rho_Ye_S( const NRPyEOS_params *restrict eos_param
   // Table variables keys
   const int keys[2] = {NRPyEOS_press_key,NRPyEOS_eps_key};
   // Declare error variable
-  NRPyEOS_eos_error_report report;
+  NRPyEOS_error_report report;
   // Set output variable array
   REAL outvars[n];
   // Set root-finding precision
@@ -203,7 +203,7 @@ void NRPyEOS_P_eps_and_T_from_rho_Ye_S( const NRPyEOS_params *restrict eos_param
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_eps_S_and_T_from_rho_Ye_P. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_eps_S_and_T_from_rho_Ye_P. Error message: %s (key = %d)",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 

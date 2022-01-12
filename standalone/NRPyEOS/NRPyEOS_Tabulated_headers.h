@@ -12,7 +12,7 @@
 #include "NRPyEOS.h"
 
 // Table reader
-void NRPyEOS_ReadTable(const char *nuceos_table_name, NRPyEOS_params *restrict eos_params);
+void NRPyEOS_readtable_set_EOS_params(const char *nuceos_table_name, NRPyEOS_params *restrict eos_params);
 
 // Free all memory allocated for the table
 void NRPyEOS_free_memory();

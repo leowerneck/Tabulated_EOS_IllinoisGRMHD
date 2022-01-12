@@ -83,4 +83,10 @@ typedef struct _NRPyEOS_error_report_ {
   char message[512];
 } NRPyEOS_error_report;
 
+// Function prototypes
+#include "NRPyEOS_Tabulated_headers.h"
+
+// Helper (inline) functions
+#include "NRPyEOS_Tabulated_helpers.h"
+
 #endif // NRPy_EOS_H_
