@@ -1,10 +1,10 @@
 # HDF5 directory
-HDF_DIR = /usr/local/opt/hdf5
-# HDF_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
+# HDF_DIR = /usr/local/opt/hdf5
+HDF_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
 
 CC      = gcc
 CFLAGS  = -Wall -I../ -I$(HDF_DIR)/include
-LDFLAGS = -L$(HDF_DIR)/lib -lhdf5
+LDFLAGS = -L$(HDF_DIR)/lib -lhdf5 -lm
 
 all: NRPyEOS_validation
 
