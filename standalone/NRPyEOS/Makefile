@@ -31,3 +31,6 @@ NRPyEOS_validation: NRPyEOS_readtable_set_EOS_params.o NRPyEOS_free_memory.o NRP
 
 clean:
 	rm -f *.o NRPyEOS_validation
+
+veryclean: clean
+	rm -f *.txt
