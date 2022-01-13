@@ -2,6 +2,7 @@ BASEDIR = .
 WVU_EOS_DIR = $(BASEDIR)/WVU_EOS
 LEAKAGE_DIR = $(BASEDIR)/NRPyLeakage
 TESTS_DIR   = $(BASEDIR)/Leakage_tests
+HARM_DIR    = $(BASEDIR)/HARM_Leakage
 
 # HDF5_DIR = /usr/local/opt/hdf5
 HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
@@ -34,12 +35,16 @@ LEAKAGE_INC = $(LEAKAGE_DIR)/Leakage.hh
 TESTS_SRC   = Leakage_optically_thin_regime_semi_analytic.cc
 TESTS_INC   = $(TESTS_DIR)/Leakage_tests.hh
 
+HARM_SRC    = HARM_neutrinos.cc
+HARM_INC    = $(HARM_DIR)/HARM_neutrinos.hh
+
 OBJ = $(addprefix obj/,$(SRC:.cc=.o)) \
       $(addprefix obj/,$(WVU_EOS_SRC:.cc=.o)) \
       $(addprefix obj/,$(LEAKAGE_SRC:.cc=.o)) \
-      $(addprefix obj/,$(TESTS_SRC:.cc=.o))
+      $(addprefix obj/,$(TESTS_SRC:.cc=.o)) \
+      $(addprefix obj/,$(HARM_SRC:.cc=.o))
 
-INC = Basic_defines.hh $(WVU_EOS_INC) $(LEAKAGE_INC) $(TESTS_INC)
+INC = Basic_defines.hh $(WVU_EOS_INC) $(LEAKAGE_INC) $(TESTS_INC) $(HARM_INC)
 
 all: obj_dir $(EXE)
 
@@ -74,6 +79,9 @@ obj/Leakage_compute_GRMHD_source_terms.o: $(LEAKAGE_DIR)/Leakage_compute_GRMHD_s
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 obj/Leakage_optically_thin_regime_semi_analytic.o: $(TESTS_DIR)/Leakage_optically_thin_regime_semi_analytic.cc $(INC)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+obj/HARM_neutrinos.o: $(HARM_DIR)/HARM_neutrinos.cc
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:

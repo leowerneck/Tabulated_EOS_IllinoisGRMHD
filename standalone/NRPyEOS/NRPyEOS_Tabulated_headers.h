@@ -15,7 +15,7 @@
 void NRPyEOS_readtable_set_EOS_params(const char *nuceos_table_name, NRPyEOS_params *restrict eos_params);
 
 // Free all memory allocated for the table
-void NRPyEOS_free_memory();
+void NRPyEOS_free_memory(NRPyEOS_params *restrict eos_params);
 
 // ------------------------------------------------------
 // ------------- New general interpolators --------------
@@ -44,6 +44,18 @@ void NRPyEOS_from_rho_Ye_aux_find_T_and_interpolate_n_quantities( const NRPyEOS_
 // ------------------------------------------------------
 // ------ Functions where the temperature is known ------
 // ------------------------------------------------------
+void NRPyEOS_P_from_rho_Ye_T( const NRPyEOS_params *restrict eos_params,
+                              const REAL rho,
+                              const REAL Ye,
+                              const REAL T,
+                              REAL *restrict P );
+
+void NRPyEOS_eps_from_rho_Ye_T( const NRPyEOS_params *restrict eos_params,
+                                const REAL rho,
+                                const REAL Ye,
+                                const REAL T,
+                                REAL *restrict eps );
+
 void NRPyEOS_P_and_eps_from_rho_Ye_T( const NRPyEOS_params *restrict eos_params,
                                       const REAL rho,
                                       const REAL Ye,
@@ -97,6 +109,17 @@ void NRPyEOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T( const NRPyEOS_params *re
                                                         REAL *restrict muhat,
                                                         REAL *restrict X_p,
                                                         REAL *restrict X_n );
+
+void NRPyEOS_P_eps_mue_mup_mun_and_muhat_from_rho_Ye_T( const NRPyEOS_params *restrict eos_params,
+                                                        const REAL rho,
+                                                        const REAL Ye,
+                                                        const REAL T,
+                                                        REAL *restrict P,
+                                                        REAL *restrict eps,
+                                                        REAL *restrict mu_e,
+                                                        REAL *restrict mu_p,
+                                                        REAL *restrict mu_n,
+                                                        REAL *restrict muhat );
 
 // ------------------------------------------------------
 // ---- Functions where the temperature is not known ----
