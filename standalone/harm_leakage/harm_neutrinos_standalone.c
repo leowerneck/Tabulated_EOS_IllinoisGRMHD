@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "NRPyEOS.h"
-#include "harm3d_neutrinos.h"
+#include "harm_neutrinos.h"
 
 int main(int argc, char **argv) {
 
