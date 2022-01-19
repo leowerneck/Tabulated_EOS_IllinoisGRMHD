@@ -27,6 +27,7 @@
 #define MIN(a,b) ( (a) < (b) ? (a) : (b) )
 
 // nuc_eos stuff
+#define H5_USE_16_API 1
 #define HAVEGR 1
 #define NTABLES 19
 #define LENGTHGF 6.77269222552442e-06
