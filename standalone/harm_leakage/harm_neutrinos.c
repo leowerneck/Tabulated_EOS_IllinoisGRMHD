@@ -14,16 +14,6 @@
 
 *****************************************************************************/
 
-void neutrino_absorption_heating_rate(const NRPyEOS_params *restrict eos_params, double *ph, double *optical_depth,double *R_code_units, double *Q_code_units);
-
-void neutrino_electron_Q(const NRPyEOS_params *restrict eos_params,
-                         double *ph, double *optical_depth, double *Q_code_units );
-
-void antineutrino_electron_Q(const NRPyEOS_params *restrict eos_params,
-                             double *ph, double *optical_depth, double *Q_code_units );
-
-void neutrino_x_Q(const NRPyEOS_params *restrict eos_params, double *ph, double *optical_depth, double *Q_code_units );
-
 inline void check_electron_fraction(double *pf);
 
 
@@ -96,7 +86,7 @@ void neutrino_absorption_heating_rate(const NRPyEOS_params *restrict eos_params,
 {
 
 #if( N_OPTICAL_DEPTHS )
-  double Q_tot,  R_tot_nu_e, R_tot_anti_nu_e, R_tot; 
+  double __attribute__((unused)) Q_tot,  R_tot_nu_e, R_tot_anti_nu_e, R_tot; 
 
   Q_tot=0.;
 
@@ -151,10 +141,10 @@ void neutrino_absorption_heating_rate(const NRPyEOS_params *restrict eos_params,
                      &neutron_degeneracy, &muhat_degeneracy, &eta__nu_e, &eta__nu_e_bar, &eta__nu_mu, &eta__nu_mu_bar, &eta__nu_tau, &eta__nu_tau_bar);
 
 
-  for(i_optdepth=0; i_optdepth < N_OPTICAL_DEPTHS/2; i_optdepth++){
+  for(int i_optdepth=0; i_optdepth < N_OPTICAL_DEPTHS/2; i_optdepth++){
 
 
-    int neutrino_flavor, anti_neutrino_flavor;
+    int __attribute__((unused)) neutrino_flavor, anti_neutrino_flavor;
 
     neutrino_flavor=i_optdepth;
 
@@ -209,23 +199,23 @@ void neutrino_absorption_heating_rate(const NRPyEOS_params *restrict eos_params,
     proton_fraction=get_particle_fraction(PROTON, electron_fraction);
 
 
-    double Tau_Q, Tau_R;
+    double __attribute__((unused)) Tau_Q, Tau_R;
     Tau_Q=optical_depth[N_OPTICAL_DEPTHS/2+i_optdepth];
     Tau_R=optical_depth[i_optdepth];
 
 
-    Q_tot=Q_tot+effective_emission_rate(neutrino_flavor, NEUTRINO_ENERGY, rho, energy_density, temperature,
+    Q_tot=Q_tot+effective_emission_rate(eos_params, neutrino_flavor, NEUTRINO_ENERGY, rho, energy_density, temperature,
                                         electron_fraction, muhat_degeneracy, neutron_fraction, proton_fraction, neutrino_degeneracy,
                                         anti_neutrino_degeneracy, neutron_degeneracy, proton_degeneracy, electron_degeneracy, Tau_Q);
 
 
     if(neutrino_flavor==0){
-      R_tot_nu_e=effective_emission_rate(neutrino_flavor, NEUTRINO_NUMBER, rho, energy_density, temperature,
+      R_tot_nu_e=effective_emission_rate(eos_params, neutrino_flavor, NEUTRINO_NUMBER, rho, energy_density, temperature,
                                          electron_fraction, muhat_degeneracy, neutron_fraction, proton_fraction, neutrino_degeneracy, 
                                          anti_neutrino_degeneracy, neutron_degeneracy, proton_degeneracy, electron_degeneracy, Tau_R);
     }
     else if (neutrino_flavor==1){
-      R_tot_anti_nu_e=effective_emission_rate(neutrino_flavor, NEUTRINO_NUMBER, rho, energy_density, temperature,
+      R_tot_anti_nu_e=effective_emission_rate(eos_params, neutrino_flavor, NEUTRINO_NUMBER, rho, energy_density, temperature,
                                               electron_fraction, muhat_degeneracy, neutron_fraction, proton_fraction, neutrino_degeneracy, 
                                               anti_neutrino_degeneracy, neutron_degeneracy, proton_degeneracy, electron_degeneracy, Tau_R);
     }
@@ -249,14 +239,15 @@ void neutrino_electron_Q(const NRPyEOS_params *restrict eos_params,
 {
 
 #if( N_OPTICAL_DEPTHS )
-  double Q_tot,  R_tot_nu_e, R_tot_anti_nu_e, R_tot; 
+  int i_optdepth;
+  double __attribute__((unused)) Q_tot,  R_tot_nu_e, R_tot_anti_nu_e, R_tot; 
 
   Q_tot=0.;
   i_optdepth=0;
 
 
 
-  int neutrino_flavor, anti_neutrino_flavor;
+  int __attribute__((unused)) neutrino_flavor, anti_neutrino_flavor;
   
   neutrino_flavor=i_optdepth;
 
@@ -335,11 +326,11 @@ void neutrino_electron_Q(const NRPyEOS_params *restrict eos_params,
   proton_fraction=get_particle_fraction(PROTON, electron_fraction);
 
 
-  double Tau_Q, Tau_R;
+  double __attribute__((unused)) Tau_Q, Tau_R;
   Tau_Q=optical_depth[N_OPTICAL_DEPTHS/2+i_optdepth];
 
 
-  Q_tot=Q_tot+effective_emission_rate(neutrino_flavor, NEUTRINO_ENERGY, rho, energy_density, temperature,
+  Q_tot=Q_tot+effective_emission_rate(eos_params, neutrino_flavor, NEUTRINO_ENERGY, rho, energy_density, temperature,
                                       electron_fraction, muhat_degeneracy, neutron_fraction, proton_fraction, neutrino_degeneracy, 
                                       anti_neutrino_degeneracy, neutron_degeneracy, proton_degeneracy, electron_degeneracy, Tau_Q);
 
@@ -362,14 +353,15 @@ void antineutrino_electron_Q(const NRPyEOS_params *restrict eos_params,
 {
 
 #if( N_OPTICAL_DEPTHS )
-  double Q_tot,  R_tot_nu_e, R_tot_anti_nu_e, R_tot; 
+  int i_optdepth;
+  double __attribute__((unused)) Q_tot,  R_tot_nu_e, R_tot_anti_nu_e, R_tot; 
 
   Q_tot=0.;
   i_optdepth=1;
 
 
 
-  int neutrino_flavor, anti_neutrino_flavor;
+  int __attribute__((unused)) neutrino_flavor, anti_neutrino_flavor;
   
   neutrino_flavor=i_optdepth;
 
@@ -448,11 +440,11 @@ void antineutrino_electron_Q(const NRPyEOS_params *restrict eos_params,
   proton_fraction=get_particle_fraction(PROTON, electron_fraction);
 
 
-  double Tau_Q, Tau_R;
+  double __attribute__((unused)) Tau_Q, Tau_R;
   Tau_Q=optical_depth[N_OPTICAL_DEPTHS/2+i_optdepth];
 
 
-  Q_tot=Q_tot+effective_emission_rate(neutrino_flavor, NEUTRINO_ENERGY, rho, energy_density, temperature,
+  Q_tot=Q_tot+effective_emission_rate(eos_params, neutrino_flavor, NEUTRINO_ENERGY, rho, energy_density, temperature,
                                       electron_fraction, muhat_degeneracy, neutron_fraction, proton_fraction, neutrino_degeneracy, 
                                       anti_neutrino_degeneracy, neutron_degeneracy, proton_degeneracy, electron_degeneracy, Tau_Q);
 
@@ -476,14 +468,15 @@ void neutrino_x_Q(const NRPyEOS_params *restrict eos_params,
 {
 
 #if( N_OPTICAL_DEPTHS )
-  double Q_tot,  R_tot_nu_e, R_tot_anti_nu_e, R_tot; 
+  int i_optdepth;
+  double __attribute__((unused)) Q_tot,  R_tot_nu_e, R_tot_anti_nu_e, R_tot; 
 
   Q_tot=0.;
   i_optdepth=5;
 
 
 
-  int neutrino_flavor, anti_neutrino_flavor;
+  int __attribute__((unused)) neutrino_flavor, anti_neutrino_flavor;
   
   neutrino_flavor=i_optdepth;
 
@@ -562,11 +555,11 @@ void neutrino_x_Q(const NRPyEOS_params *restrict eos_params,
   proton_fraction=get_particle_fraction(PROTON, electron_fraction);
 
 
-  double Tau_Q, Tau_R;
+  double __attribute__((unused)) Tau_Q, Tau_R;
   Tau_Q=optical_depth[N_OPTICAL_DEPTHS/2+i_optdepth];
 
 
-  Q_tot=Q_tot+effective_emission_rate(neutrino_flavor, NEUTRINO_ENERGY, rho, energy_density, temperature,
+  Q_tot=Q_tot+effective_emission_rate(eos_params, neutrino_flavor, NEUTRINO_ENERGY, rho, energy_density, temperature,
                                       electron_fraction, muhat_degeneracy, neutron_fraction, proton_fraction, neutrino_degeneracy, 
                                       anti_neutrino_degeneracy, neutron_degeneracy, proton_degeneracy, electron_degeneracy, Tau_Q);
 
@@ -1931,8 +1924,8 @@ double beta_process_emission_rate__neutrino_energy(int neutrino_flavor, double r
   }
   else {
     /* HEREHERE -- should there be a "default value " in this switch ? */
-    // fprintf(stdout,"(harm3d_neutrinos - ERROR) Invalid value of neutrino_flavor "); 
-    // fprintf(stdout,"\t neutrino_flavor  = %d \n", neutrino_flavor); fflush(stdout); 
+    fprintf(stdout,"(harm3d_neutrinos - ERROR) Invalid value of neutrino_flavor "); 
+    fprintf(stdout,"\t neutrino_flavor  = %d \n", neutrino_flavor); fflush(stdout); 
     // fail(FAIL_BASIC,0);
     exit(1);
     return(0.); 

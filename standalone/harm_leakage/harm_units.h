@@ -56,3 +56,5 @@
 
 
 #define atomicWeight (1.) /* all Helium & metal are broken down to H^+ due to high temp.'s */
+#define Q_CONV (1.42134688491e-56)  /* conversion from eV/(cm3s) to code units (for neutrinos) it is 1./(length_gf**3.*time_gf) * ev_to_erg * (eps_gf*mass_gf)   */
+#define R_CONV (7.97315453692e-24)  /* conversion from mass/(cm3s) to code units (for neutrinos) it is 1/msun/(length_gf**3.*time_gf) */

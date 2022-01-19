@@ -16,6 +16,7 @@
 #define YE       (8) /* electron fraction component            */
 #define TEMP     (9) /* Temperature (in MeV)                   */
 #define NUMPRIMS (10)
+#define N_OPTICAL_DEPTHS (4)
 
 // HARM types (from globals.h)
 struct of_geom {
@@ -214,6 +215,16 @@ double average_neutrino_energy_emitted(const NRPyEOS_params *restrict eos_params
 void neutrino_source_func(const NRPyEOS_params *restrict eos_params,
                           double *ph, double *optical_depth, struct of_state *q, struct of_geom *geom,
                           int ii, int jj, int kk, double *dU);
+
+void neutrino_absorption_heating_rate(const NRPyEOS_params *restrict eos_params, double *ph, double *optical_depth,double *R_code_units, double *Q_code_units);
+
+void neutrino_electron_Q(const NRPyEOS_params *restrict eos_params,
+                         double *ph, double *optical_depth, double *Q_code_units );
+
+void antineutrino_electron_Q(const NRPyEOS_params *restrict eos_params,
+                             double *ph, double *optical_depth, double *Q_code_units );
+
+void neutrino_x_Q(const NRPyEOS_params *restrict eos_params, double *ph, double *optical_depth, double *Q_code_units );
 
 //typedef struct Nodes {
 //    int origin;
