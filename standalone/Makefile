@@ -1,50 +1,50 @@
 BASEDIR = .
-WVU_EOS_DIR = $(BASEDIR)/WVU_EOS
+NRPyEOS_DIR = $(BASEDIR)/NRPyEOS
 LEAKAGE_DIR = $(BASEDIR)/NRPyLeakage
 TESTS_DIR   = $(BASEDIR)/Leakage_tests
-HARM_DIR    = $(BASEDIR)/HARM_Leakage
+HARM_DIR    = $(BASEDIR)/harm_leakage
 
 # HDF5_DIR = /usr/local/opt/hdf5
 HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
 
 CC       = gcc
-CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(WVU_EOS_DIR) -I$(LEAKAGE_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
+CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
 
 CXX      = g++
-CXXFLAGS = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(WVU_EOS_DIR) -I$(LEAKAGE_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
+CXXFLAGS = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
 
-LD_FLAGS = -L$(HDF5_DIR)/lib -lhdf5
+LD_FLAGS = -lm -L$(HDF5_DIR)/lib -lhdf5
 
-SRC  = standalone.cc
-EXE  = $(SRC:.cc=)
+SRC  = standalone.c
+EXE  = $(SRC:.c=)
 
-WVU_EOS_SRC = WVU_EOS_Tabulated_general_interpolators.cc \
-              WVU_EOS_Tabulated_known_T.cc \
-              WVU_EOS_Tabulated_unknown_T.cc \
-              WVU_EOS_readtable.cc \
-              WVU_EOS_free_memory.cc
+NRPyEOS_SRC = NRPyEOS_Tabulated_general_interpolators.c \
+              NRPyEOS_Tabulated_known_T.c \
+              NRPyEOS_Tabulated_unknown_T.c \
+              NRPyEOS_readtable_set_EOS_params.c \
+              NRPyEOS_free_memory.c
 
-WVU_EOS_INC = $(WVU_EOS_DIR)/WVU_EOS_Tabulated_headers.hh \
-              $(WVU_EOS_DIR)/WVU_EOS_Tabulated_helpers.hh
+NRPyEOS_INC = $(NRPyEOS_DIR)/NRPyEOS_Tabulated_headers.h \
+              $(NRPyEOS_DIR)/NRPyEOS_Tabulated_helpers.h
 
-LEAKAGE_SRC = Leakage_Fermi_Dirac_integrals.cc \
-              Leakage_compute_GRMHD_source_terms.cc
+LEAKAGE_SRC = NRPyLeakage_Fermi_Dirac_integrals.c \
+              NRPyLeakage_compute_GRMHD_source_terms.c
 
-LEAKAGE_INC = $(LEAKAGE_DIR)/Leakage.hh
+LEAKAGE_INC = $(LEAKAGE_DIR)/NRPyLeakage.h
 
-TESTS_SRC   = Leakage_optically_thin_regime_semi_analytic.cc
-TESTS_INC   = $(TESTS_DIR)/Leakage_tests.hh
+TESTS_SRC   = Leakage_optically_thin_regime_semi_analytic.c
+TESTS_INC   = $(TESTS_DIR)/Leakage_tests.h
 
-HARM_SRC    = HARM_neutrinos.cc
-HARM_INC    = $(HARM_DIR)/HARM_neutrinos.hh
+HARM_SRC    = harm_neutrinos.c
+HARM_INC    = $(HARM_DIR)/harm_neutrinos.h
 
-OBJ = $(addprefix obj/,$(SRC:.cc=.o)) \
-      $(addprefix obj/,$(WVU_EOS_SRC:.cc=.o)) \
-      $(addprefix obj/,$(LEAKAGE_SRC:.cc=.o)) \
-      $(addprefix obj/,$(TESTS_SRC:.cc=.o)) \
-      $(addprefix obj/,$(HARM_SRC:.cc=.o))
+OBJ = $(addprefix obj/,$(SRC:.c=.o)) \
+      $(addprefix obj/,$(NRPyEOS_SRC:.c=.o)) \
+      $(addprefix obj/,$(LEAKAGE_SRC:.c=.o)) \
+      $(addprefix obj/,$(TESTS_SRC:.c=.o)) \
+      $(addprefix obj/,$(HARM_SRC:.c=.o))
 
-INC = Basic_defines.hh $(WVU_EOS_INC) $(LEAKAGE_INC) $(TESTS_INC) $(HARM_INC)
+INC = Basic_defines.h $(NRPyEOS_INC) $(LEAKAGE_INC) $(TESTS_INC) $(HARM_INC)
 
 all: obj_dir $(EXE)
 
@@ -52,37 +52,37 @@ obj_dir:
 	mkdir -p obj
 
 $(EXE): $(OBJ) $(COBJ)
-	$(CXX) $(CXXLAGS) $(OBJ) $(COBJ) -o $(EXE) $(LD_FLAGS)
+	$(CC) $(CFLAGS) $(OBJ) $(COBJ) -o $(EXE) $(LD_FLAGS)
 
-obj/standalone.o: standalone.cc $(INC)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+obj/standalone.o: standalone.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/WVU_EOS_Tabulated_general_interpolators.o: $(WVU_EOS_DIR)/WVU_EOS_Tabulated_general_interpolators.cc $(INC)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+obj/NRPyEOS_Tabulated_general_interpolators.o: $(NRPyEOS_DIR)/NRPyEOS_Tabulated_general_interpolators.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/WVU_EOS_Tabulated_known_T.o: $(WVU_EOS_DIR)/WVU_EOS_Tabulated_known_T.cc $(INC)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+obj/NRPyEOS_Tabulated_known_T.o: $(NRPyEOS_DIR)/NRPyEOS_Tabulated_known_T.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/WVU_EOS_Tabulated_unknown_T.o: $(WVU_EOS_DIR)/WVU_EOS_Tabulated_unknown_T.cc $(INC)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+obj/NRPyEOS_Tabulated_unknown_T.o: $(NRPyEOS_DIR)/NRPyEOS_Tabulated_unknown_T.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/WVU_EOS_readtable.o: $(WVU_EOS_DIR)/WVU_EOS_readtable.cc $(INC)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+obj/NRPyEOS_readtable_set_EOS_params.o: $(NRPyEOS_DIR)/NRPyEOS_readtable_set_EOS_params.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/WVU_EOS_free_memory.o: $(WVU_EOS_DIR)/WVU_EOS_free_memory.cc $(INC)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+obj/NRPyEOS_free_memory.o: $(NRPyEOS_DIR)/NRPyEOS_free_memory.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/Leakage_Fermi_Dirac_integrals.o: $(LEAKAGE_DIR)/Leakage_Fermi_Dirac_integrals.cc $(INC)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+obj/NRPyLeakage_Fermi_Dirac_integrals.o: $(LEAKAGE_DIR)/NRPyLeakage_Fermi_Dirac_integrals.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/Leakage_compute_GRMHD_source_terms.o: $(LEAKAGE_DIR)/Leakage_compute_GRMHD_source_terms.cc $(INC)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+obj/NRPyLeakage_compute_GRMHD_source_terms.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_GRMHD_source_terms.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/Leakage_optically_thin_regime_semi_analytic.o: $(TESTS_DIR)/Leakage_optically_thin_regime_semi_analytic.cc $(INC)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+obj/Leakage_optically_thin_regime_semi_analytic.o: $(TESTS_DIR)/Leakage_optically_thin_regime_semi_analytic.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/HARM_neutrinos.o: $(HARM_DIR)/HARM_neutrinos.cc
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+obj/harm_neutrinos.o: $(HARM_DIR)/harm_neutrinos.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -rf $(EXE) $(OBJ) $(COBJ) obj

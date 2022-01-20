@@ -51,8 +51,8 @@ int main(int argc, char **argv) {
   printf("(harm) B-field  x : %.15e\n"       ,prims[B1  ]);
   printf("(harm) B-field  y : %.15e\n"       ,prims[B2  ]);
   printf("(harm) B-field  z : %.15e\n"       ,prims[B3  ]);
-  printf("(harm) R_function : %.15e\n"       ,R_function);
-  printf("(harm) Q_function : %.15e\n"       ,Q_function);
+  printf("(harm) R_function : %.15e\n"       ,R_function/prims[RHO]);
+  printf("(harm) Q_function : %.15e\n"       ,Q_function/prims[RHO]);
 
   // Step 5: Free memory
   NRPyEOS_free_memory(&eos_params);

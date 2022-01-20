@@ -1,4 +1,4 @@
-#include "Basic_defines.hh"
+#include "Basic_defines.h"
 
 /*
  * (c) Leo Werneck
@@ -6,8 +6,7 @@
  * in Takahashi, Eid, and Hillebrandt (1978)
  * https://adsabs.harvard.edu/pdf/1978A%26A....67..185T
  */
-extern "C"
-REAL Leakage_Fermi_Dirac_integrals(const int k, const REAL z) {
+REAL NRPyLeakage_Fermi_Dirac_integrals(const int k, const REAL z) {
 
 
   REAL Fermi_Dirac_integral = 0.0;

@@ -226,6 +226,15 @@ void neutrino_absorption_heating_rate(const NRPyEOS_params *restrict eos_params,
   *Q_code_units=Q_tot*Q_CONV; //need to change units from eV/(cm3s) to code units.
   R_tot=(-R_tot_nu_e + R_tot_anti_nu_e)*C_amu; // Ruffert eq. 14 and 15 considering that we are evolving Ye*rho this is assuming we are using SRO tables that have the density in terms of the mass of the neutron
   *R_code_units=R_tot*R_CONV;
+
+  printf("(harm) ***************************************************\n");
+  printf("(harm) Before unit changes (i.e., everything in cgs):\n");
+  printf("(harm) rho      : %.15e\n",rho);
+  printf("(harm) R_tot    : %.15e\n",R_tot);
+  printf("(harm) Q_tot    : %.15e\n",Q_tot);
+  printf("(harm) R_tot/rho: %.15e\n",R_tot/rho);
+  printf("(harm) Q_tot/rho: %.15e\n",Q_tot/rho);
+  printf("(harm) ***************************************************\n");
   return;
 
 #endif
@@ -329,11 +338,12 @@ void neutrino_electron_Q(const NRPyEOS_params *restrict eos_params,
   double __attribute__((unused)) Tau_Q, Tau_R;
   Tau_Q=optical_depth[N_OPTICAL_DEPTHS/2+i_optdepth];
 
+  
+
 
   Q_tot=Q_tot+effective_emission_rate(eos_params, neutrino_flavor, NEUTRINO_ENERGY, rho, energy_density, temperature,
                                       electron_fraction, muhat_degeneracy, neutron_fraction, proton_fraction, neutrino_degeneracy, 
                                       anti_neutrino_degeneracy, neutron_degeneracy, proton_degeneracy, electron_degeneracy, Tau_Q);
-
 
 
   Q_tot=Q_tot; //ruffert B25
@@ -1618,7 +1628,7 @@ double get_total_transport_opacity(const NRPyEOS_params *restrict eos_params,
   //fprintf(stderr, "ye %e\n", electron_fraction);
   //fprintf(stderr, "rho %e\n", rho);
 
-  double muhat_degeneracy,neutrino_degeneracy, neutron_degeneracy,proton_degeneracy,electron_degeneracy;
+  double muhat_degeneracy,neutrino_degeneracy=0, neutron_degeneracy,proton_degeneracy,electron_degeneracy;
   double __attribute__((unused)) anti_neutrino_degeneracy;
 
   muhat_degeneracy=0.;
