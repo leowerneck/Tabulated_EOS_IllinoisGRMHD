@@ -1915,6 +1915,9 @@ double beta_process_emission_rate__neutrino_energy(int neutrino_flavor, double r
     /* !! why don't we just call beta_process_emission_rate__neutrino_number() because it's the same function modulo the energy_moment ari: done  */
     R_beta=beta_process_emission_rate__neutrino_number(neutrino_flavor, rho, temperature, electron_fraction, neutrino_degeneracy, muhat_degeneracy, electron_degeneracy);
     //return ((1.0 + 3.0 * C_alpha_neutrino_sq) / 8.0) * (C_A_sigma_0 / (C_me2_c3)) * rho * Y_pn * energy_moment * blocking_factor;  /* [1](B14) + */
+
+    printf("(harm) R_beta_nue  = %.15e\n",R_beta*energy_moment_star/energy_moment_tilde);
+    
     return R_beta*energy_moment_star/energy_moment_tilde; /* [1](B14) */
 
   }
@@ -1929,6 +1932,9 @@ double beta_process_emission_rate__neutrino_energy(int neutrino_flavor, double r
     /* !! I added a factor of rho in the next line because I think it was missing:  */ 
     /* !! why don't we just call beta_process_emission_rate__neutrino_number() because it's the same function modulo the energy_moment   ari: done*/
     //return ((1.0 + 3.0 * C_alpha_neutrino_sq) / 8.0) * (C_A_sigma_0 / (C_me2_c3)) * rho * Y_np * energy_moment * blocking_factor;  /* [1](B15) +  */
+
+    printf("(harm) R_beta_anue = %.15e\n",R_beta*energy_moment_star/energy_moment_tilde);
+    
     return R_beta*energy_moment_star/energy_moment_tilde; /* [1](B15)  */
 
   }

@@ -8,10 +8,10 @@ HARM_DIR    = $(BASEDIR)/harm_leakage
 HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
 
 CC       = gcc
-CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
+CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(HARM_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
 
 CXX      = g++
-CXXFLAGS = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
+CXXFLAGS = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(HARM_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
 
 LD_FLAGS = -lm -L$(HDF5_DIR)/lib -lhdf5
 
@@ -28,6 +28,8 @@ NRPyEOS_INC = $(NRPyEOS_DIR)/NRPyEOS_Tabulated_headers.h \
               $(NRPyEOS_DIR)/NRPyEOS_Tabulated_helpers.h
 
 LEAKAGE_SRC = NRPyLeakage_Fermi_Dirac_integrals.c \
+              NRPyLeakage_compute_GRMHD_source_terms_nrpy_constants.c \
+              NRPyLeakage_compute_GRMHD_source_terms_harm_constants.c \
               NRPyLeakage_compute_GRMHD_source_terms.c
 
 LEAKAGE_INC = $(LEAKAGE_DIR)/NRPyLeakage.h
@@ -73,6 +75,12 @@ obj/NRPyEOS_free_memory.o: $(NRPyEOS_DIR)/NRPyEOS_free_memory.c $(INC)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 obj/NRPyLeakage_Fermi_Dirac_integrals.o: $(LEAKAGE_DIR)/NRPyLeakage_Fermi_Dirac_integrals.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+obj/NRPyLeakage_compute_GRMHD_source_terms_nrpy_constants.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_GRMHD_source_terms_nrpy_constants.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+obj/NRPyLeakage_compute_GRMHD_source_terms_harm_constants.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_GRMHD_source_terms_harm_constants.c $(INC)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 obj/NRPyLeakage_compute_GRMHD_source_terms.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_GRMHD_source_terms.c $(INC)

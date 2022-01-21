@@ -8,7 +8,7 @@
 inline
 void rhs( const NRPyEOS_params *restrict eos_params, const REAL rho_b, const REAL Y_e, const REAL T, REAL *restrict rhs_gfs ) {
   REAL R_source,Q_source;
-  NRPyLeakage_compute_GRMHD_source_terms(eos_params,rho_b,Y_e,T,1e100,1e100,1e100,&R_source,&Q_source);
+  NRPyLeakage_compute_GRMHD_source_terms(USE_NRPY_CONSTANTS,eos_params,rho_b,Y_e,T,1e100,1e100,1e100,&R_source,&Q_source);
   rhs_gfs[Y_E] = R_source/rho_b;
   rhs_gfs[EPS] = Q_source/rho_b;
 }
