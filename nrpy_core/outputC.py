@@ -47,7 +47,7 @@ custom_functions_for_SymPy_ccode = {
             (lambda b, e: e ==-4, lambda b, e: '(1.0/((%s)*(%s)*(%s)*(%s)))'      % (b,b,b,b)),
             (lambda b, e: e ==-5, lambda b, e: '(1.0/((%s)*(%s)*(%s)*(%s)*(%s)))' % (b,b,b,b,b)),
             (lambda b, e: e !=-5, 'pow')],
-    "nrpyFermiDiracintegrals": "Leakage_Fermi_Dirac_integrals"
+    "nrpyFermiDiracintegrals": "NRPyLeakage_Fermi_Dirac_integrals"
 ##    (lambda b, e: e != 2, 'pow')]
 }
 
