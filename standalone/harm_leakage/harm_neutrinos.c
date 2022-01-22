@@ -227,14 +227,14 @@ void neutrino_absorption_heating_rate(const NRPyEOS_params *restrict eos_params,
   R_tot=(-R_tot_nu_e + R_tot_anti_nu_e)*C_amu; // Ruffert eq. 14 and 15 considering that we are evolving Ye*rho this is assuming we are using SRO tables that have the density in terms of the mass of the neutron
   *R_code_units=R_tot*R_CONV;
 
-  printf("(harm) ***************************************************\n");
-  printf("(harm) Before unit changes (i.e., everything in cgs):\n");
-  printf("(harm) rho      : %.15e\n",rho);
-  printf("(harm) R_tot    : %.15e\n",R_tot);
-  printf("(harm) Q_tot    : %.15e\n",Q_tot);
-  printf("(harm) R_tot/rho: %.15e\n",R_tot/rho);
-  printf("(harm) Q_tot/rho: %.15e\n",Q_tot/rho);
-  printf("(harm) ***************************************************\n");
+  // printf("(harm) ***************************************************\n");
+  // printf("(harm) Before unit changes (i.e., everything in cgs):\n");
+  // printf("(harm) rho      : %.15e\n",rho);
+  // printf("(harm) R_tot    : %.15e\n",R_tot);
+  // printf("(harm) Q_tot    : %.15e\n",Q_tot);
+  // printf("(harm) R_tot/rho: %.15e\n",R_tot/rho);
+  // printf("(harm) Q_tot/rho: %.15e\n",Q_tot/rho);
+  // printf("(harm) ***************************************************\n");
   return;
 
 #endif
@@ -1027,6 +1027,17 @@ void get_degeneracy_all(const NRPyEOS_params *restrict eos_params,
   *eta__nu_tau = 0.0; //[1] A2 ari+
   *eta__nu_tau_bar = 0.0;
 
+  // fprintf(stderr,"(harm) mu_e                = %.15e\n",xmu_e);
+  // fprintf(stderr,"(harm) mu_p                = %.15e\n",xmu_p);
+  // fprintf(stderr,"(harm) mu_n                = %.15e\n",xmu_n);
+  // fprintf(stderr,"(harm) muhat               = %.15e\n",xmu_hat);
+  // fprintf(stderr,"(harm) eta_e               = %.15e\n",*eta_e);
+  // fprintf(stderr,"(harm) eta_p               = %.15e\n",*eta_p);
+  // fprintf(stderr,"(harm) eta_n               = %.15e\n",*eta_n);
+  // fprintf(stderr,"(harm) etahat              = %.15e\n",*eta_muhat);
+  // fprintf(stderr,"(harm) eta_nue             = %.15e\n",*eta__nu_e);
+  // fprintf(stderr,"(harm) eta_anue            = %.15e\n",*eta__nu_e_bar);
+  
   return;
 
 }
@@ -1370,7 +1381,8 @@ double get_phase_space_blocking_value(int interaction, int particle_type, double
     case ELECTRON:
       fermi_int_order_5 = get_Fermi_integral(5, neutrino_degeneracy);
       fermi_int_order_4 = get_Fermi_integral(4, neutrino_degeneracy);
-      return 1.0 / (1.0 + exp(-((fermi_int_order_5 / fermi_int_order_4) - electron_degeneracy))); //[1] A15 ari+
+      const double bf   = 1.0 / (1.0 + exp(-((fermi_int_order_5 / fermi_int_order_4) - electron_degeneracy)));
+      return( bf ); //[1] A15 ari+
       break;
 	
     case POSITRON:
@@ -1390,6 +1402,12 @@ double get_phase_space_blocking_value(int interaction, int particle_type, double
     case NEUTRINO:
       fermi_int_order_5 = get_Fermi_integral(5, electron_degeneracy);    /* [1](B3)  ??? Should this not use electron_degeneracy (ari: yes, it should, fixed it) */
       fermi_int_order_4 = get_Fermi_integral(4, electron_degeneracy);    /* [1](B3)  ??? Should this not use electron_degeneracy */
+      // fprintf(stderr,"(harm) eta_e               = %.15e\n",electron_degeneracy);
+      // fprintf(stderr,"(harm) eta_nue             = %.15e\n",neutrino_degeneracy);
+      // fprintf(stderr,"(harm) FD_5_nue            = %.15e\n",fermi_int_order_5);
+      // fprintf(stderr,"(harm) FD_4_nue            = %.15e\n",fermi_int_order_4);
+      // fprintf(stderr,"(harm) Ratio               = %.15e\n",fermi_int_order_5/fermi_int_order_4);
+      // fprintf(stderr,"(harm) arg of exp          = %.15e\n",-((fermi_int_order_5 / fermi_int_order_4) - electron_degeneracy));
       return 1.0 / (1.0 + exp(-((fermi_int_order_5 / fermi_int_order_4) - neutrino_degeneracy)));  /* [1](B3)  */
       break;
 	
@@ -1791,6 +1809,7 @@ double get_total_transport_opacity(const NRPyEOS_params *restrict eos_params,
   }
 
   /* HEREHERE -- should there be a "default value " in this switch ? */
+  fprintf(stdout,"(harm3d_neutrinos - ERROR) Inside get_total_transport_opacity\n");
   fprintf(stdout,"(harm3d_neutrinos - ERROR) Invalid value of neutrino_flavor "); 
   fprintf(stdout,"\t neutrino_flavor  = %d \n", neutrino_flavor); fflush(stdout); 
   // fail(FAIL_BASIC,0);
@@ -1837,15 +1856,17 @@ double beta_process_emission_rate__neutrino_number(int neutrino_flavor, double r
       Y_pn=get_particle_fraction(PROTON, electron_fraction);
     }/* [1](A14) + */
 
+    // printf("(harm) ***************** R_beta_nue *****************\n");
     energy_moment = get_energy_moment(ELECTRON, TILDE, temperature, electron_degeneracy);
     blocking_factor = get_phase_space_blocking_value(BETA_PROCESS, NEUTRINO, electron_degeneracy, neutrino_degeneracy); /* [1](B3) + */
-
-    //fprintf(stderr, "Y_pn %e\n", Y_pn);
-    //fprintf(stderr, "energy_moment %e\n", energy_moment);
-    //fprintf(stderr, "blocking_factor %e\n", blocking_factor);
-
-    /* !! I added a factor of rho in the next line because I think it was missing: ari: yes, agree */ 
-    return ((1.0 + 3.0 * C_alpha_neutrino_sq) / 8.0) * (C_A_sigma_0 / (C_me2_c3_ev)) * rho * Y_pn * energy_moment * blocking_factor;  /* [1](B1) + */
+    const double R_beta = ((1.0 + 3.0 * C_alpha_neutrino_sq) / 8.0) * (C_A_sigma_0 / (C_me2_c3_ev)) * rho * Y_pn * energy_moment * blocking_factor;
+    // fprintf(stderr,"(harm) blocking_factor     = %.15e\n",blocking_factor);
+    // fprintf(stderr,"(harm) energy_moment_star  = %.15e\n",energy_moment_star);
+    // fprintf(stderr,"(harm) energy_moment_tilde = %.15e\n",energy_moment_tilde);
+    // fprintf(stderr,"(harm) R_beta_nue          = %.15e\n",R_beta);
+    // fprintf(stderr,"(harm) **********************************************\n");
+    
+    return R_beta;  /* [1](B1) + */
 
   }
   else if (neutrino_flavor == nu__e_bar) {
@@ -1864,10 +1885,11 @@ double beta_process_emission_rate__neutrino_number(int neutrino_flavor, double r
   }
   else {
     /* HEREHERE -- should there be a "default value " in this switch ? */
-    fprintf(stdout,"(harm3d_neutrinos - ERROR) Invalid value of neutrino_flavor "); 
-    fprintf(stdout,"\t neutrino_flavor  = %d \n", neutrino_flavor); fflush(stdout); 
+    // fprintf(stdout,"(harm3d_neutrinos - ERROR) Inside beta_process_emission_rate__neutrino_number\n");
+    // fprintf(stdout,"(harm3d_neutrinos - ERROR) Invalid value of neutrino_flavor "); 
+    // fprintf(stdout,"\t neutrino_flavor  = %d \n", neutrino_flavor); fflush(stdout); 
     // fail(FAIL_BASIC,0);
-    exit(1);
+    // exit(1);
     return(0.); 
   }
 
@@ -1905,6 +1927,8 @@ double beta_process_emission_rate__neutrino_energy(int neutrino_flavor, double r
 
 
   if (neutrino_flavor == nu__e) {
+
+
     //Y_pn = exp(proton_degeneracy - neutron_degeneracy) *
     //                         ((2.0 * electron_fraction - 1.0) / (exp(proton_degeneracy - neutron_degeneracy) - 1.0)); /* [1](A14) + */
     energy_moment_star = get_energy_moment(ELECTRON, STAR, temperature, electron_degeneracy);
@@ -1915,8 +1939,6 @@ double beta_process_emission_rate__neutrino_energy(int neutrino_flavor, double r
     /* !! why don't we just call beta_process_emission_rate__neutrino_number() because it's the same function modulo the energy_moment ari: done  */
     R_beta=beta_process_emission_rate__neutrino_number(neutrino_flavor, rho, temperature, electron_fraction, neutrino_degeneracy, muhat_degeneracy, electron_degeneracy);
     //return ((1.0 + 3.0 * C_alpha_neutrino_sq) / 8.0) * (C_A_sigma_0 / (C_me2_c3)) * rho * Y_pn * energy_moment * blocking_factor;  /* [1](B14) + */
-
-    printf("(harm) R_beta_nue  = %.15e\n",R_beta*energy_moment_star/energy_moment_tilde);
     
     return R_beta*energy_moment_star/energy_moment_tilde; /* [1](B14) */
 
@@ -1933,17 +1955,18 @@ double beta_process_emission_rate__neutrino_energy(int neutrino_flavor, double r
     /* !! why don't we just call beta_process_emission_rate__neutrino_number() because it's the same function modulo the energy_moment   ari: done*/
     //return ((1.0 + 3.0 * C_alpha_neutrino_sq) / 8.0) * (C_A_sigma_0 / (C_me2_c3)) * rho * Y_np * energy_moment * blocking_factor;  /* [1](B15) +  */
 
-    printf("(harm) R_beta_anue = %.15e\n",R_beta*energy_moment_star/energy_moment_tilde);
+    // printf("(harm) R_beta_anue = %.15e\n",R_beta*energy_moment_star/energy_moment_tilde);
     
     return R_beta*energy_moment_star/energy_moment_tilde; /* [1](B15)  */
 
   }
   else {
     /* HEREHERE -- should there be a "default value " in this switch ? */
-    fprintf(stdout,"(harm3d_neutrinos - ERROR) Invalid value of neutrino_flavor "); 
-    fprintf(stdout,"\t neutrino_flavor  = %d \n", neutrino_flavor); fflush(stdout); 
+    // fprintf(stdout,"(harm3d_neutrinos - ERROR) Inside beta_process_emission_rate__neutrino_energy\n");
+    // fprintf(stdout,"(harm3d_neutrinos - ERROR) Invalid value of neutrino_flavor "); 
+    // fprintf(stdout,"\t neutrino_flavor  = %d \n", neutrino_flavor); fflush(stdout); 
     // fail(FAIL_BASIC,0);
-    exit(1);
+    // exit(1);
     return(0.); 
   }
 
@@ -2019,6 +2042,7 @@ double electron_positron_pair_annihilation_emission_rate__neutrino_number(int ne
   }
   else { 
     /* HEREHERE -- should there be a "default value " in this switch ? */
+    fprintf(stdout,"(harm3d_neutrinos - ERROR) Inside electron_positron_pair_annihilation_emission_rate__neutrino_number\n");
     fprintf(stdout,"(harm3d_neutrinos - ERROR) Invalid value of neutrino_flavor "); 
     fprintf(stdout,"\t neutrino_flavor  = %d \n", neutrino_flavor); fflush(stdout); 
     // fail(FAIL_BASIC,0);
@@ -2136,6 +2160,7 @@ double plasmon_decay_emission_rate__neutrino_number(int neutrino_flavor, double 
   }
   else { 
     /* HEREHERE -- should there be a "default value " in this switch ? */
+    fprintf(stdout,"(harm3d_neutrinos - ERROR) Inside plasmon_decay_emission_rate__neutrino_number\n");
     fprintf(stdout,"(harm3d_neutrinos - ERROR) Invalid value of neutrino_flavor  "); 
     fprintf(stdout,"\t neutrino_flavor  = %d \n", neutrino_flavor); fflush(stdout); 
     // fail(FAIL_BASIC,0);
@@ -2337,6 +2362,25 @@ double get_inverse_emission_timescale(int neutrino_flavor, int type_of_transport
     //fprintf(stderr, "R_plasmon %e\n", R_plasmon);
     //fprintf(stderr, "number_density %e\n", number_density);
 
+    if( neutrino_flavor == nu__e ) {
+      fprintf(stderr,"(harm) Electron neutrino:\n");
+      fprintf(stderr,"(harm) R_beta_nue         = %.15e\n",R_Beta);
+      fprintf(stderr,"(harm) R_pair_nue_anue    = %.15e\n",R_ee);
+      fprintf(stderr,"(harm) R_plasmon_nue_anue = %.15e\n",R_plasmon);
+    }
+    else if( neutrino_flavor == nu__e_bar ) {
+      fprintf(stderr,"(harm) Electron antineutrino:\n");
+      fprintf(stderr,"(harm) R_beta_anue        = %.15e\n",R_Beta);
+      fprintf(stderr,"(harm) R_pair_nue_anue    = %.15e\n",R_ee);
+      fprintf(stderr,"(harm) R_plasmon_nue_anue = %.15e\n",R_plasmon);
+    }
+    else {
+      fprintf(stderr,"(harm) Heavy lepton neutrinos:\n");
+      fprintf(stderr,"(harm) R_beta_nux_anux    = %.15e\n",R_Beta);
+      fprintf(stderr,"(harm) R_pair_nux_anux    = %.15e\n",R_ee);
+      fprintf(stderr,"(harm) R_plasmon_nux_anux = %.15e\n",R_plasmon);
+    }
+
     return (R_Beta + R_ee + R_plasmon) / number_density; /* [1](B20) + */
 
     break;
@@ -2364,6 +2408,25 @@ double get_inverse_emission_timescale(int neutrino_flavor, int type_of_transport
 
     if(energy_density<1e-20){
       energy_density=1e-20;
+    }
+
+    if( neutrino_flavor == nu__e ) {
+      fprintf(stderr,"(harm) Electron neutrino:\n");
+      fprintf(stderr,"(harm) Q_beta_nue         = %.15e\n",Q_Beta);
+      fprintf(stderr,"(harm) Q_pair_nue_anue    = %.15e\n",Q_ee);
+      fprintf(stderr,"(harm) Q_plasmon_nue_anue = %.15e\n",Q_plasmon);
+    }
+    else if( neutrino_flavor == nu__e_bar ) {
+      fprintf(stderr,"(harm) Electron antineutrino:\n");
+      fprintf(stderr,"(harm) Q_beta_anue        = %.15e\n",Q_Beta);
+      fprintf(stderr,"(harm) Q_pair_nue_anue    = %.15e\n",Q_ee);
+      fprintf(stderr,"(harm) Q_plasmon_nue_anue = %.15e\n",Q_plasmon);
+    }
+    else {
+      fprintf(stderr,"(harm) Heavy lepton neutrinos:\n");
+      fprintf(stderr,"(harm) Q_beta_nux_anux    = %.15e\n",Q_Beta);
+      fprintf(stderr,"(harm) Q_pair_nux_anux    = %.15e\n",Q_ee);
+      fprintf(stderr,"(harm) Q_plasmon_nux_anux = %.15e\n",Q_plasmon);
     }
 
     return (Q_Beta + Q_ee + Q_plasmon) / energy_density;  /* [1](B21) + */
@@ -2546,6 +2609,7 @@ double average_neutrino_energy_emitted(const NRPyEOS_params *restrict eos_params
     break;
   default:
     /* HEREHERE -- should there be a "default value " in this switch ? */
+    fprintf(stdout,"(harm3d_neutrinos - ERROR) Inside average_neutrino_energy_emitted\n");
     fprintf(stdout,"(harm3d_neutrinos - ERROR) Invalid value of neutrino_flavor "); 
     fprintf(stdout,"\t neutrino_flavor  = %d \n", neutrino_flavor); fflush(stdout);
     exit(1);

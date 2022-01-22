@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
 
   // Test Leakage
   const REAL rho_b    = 1e-12;
-  const REAL Y_e      = 0.05;
+  const REAL Y_e      = 0.5;
   const REAL T        = 1.0;
   const REAL tau_nue  = 0.0;
   const REAL tau_anue = 0.0;
@@ -28,11 +28,29 @@ int main(int argc, char **argv) {
   REAL P,eps;
   NRPyEOS_P_and_eps_from_rho_Ye_T(&eos_params,rho_b,Y_e,T,&P,&eps);
 
+  const int which_constants = USE_HARM_CONSTANTS;
+
+  REAL cgs_to_geom_density, cgs_to_geom_R, cgs_to_geom_Q;
+  if( which_constants == USE_NRPY_CONSTANTS ) {
+    cgs_to_geom_density = NRPyLeakage_units_cgs_to_geom_density;
+    cgs_to_geom_R       = NRPyLeakage_units_cgs_to_geom_R;
+    cgs_to_geom_Q       = NRPyLeakage_units_cgs_to_geom_Q;
+  }
+  else if( which_constants == USE_HARM_CONSTANTS ) {
+    cgs_to_geom_density = NRPyLeakage_harm_units_cgs_to_geom_density;
+    cgs_to_geom_R       = NRPyLeakage_harm_units_cgs_to_geom_R;
+    cgs_to_geom_Q       = NRPyLeakage_harm_units_cgs_to_geom_Q;
+  }
+  else {
+    fprintf(stderr,"(NRPyLeakage) Unsupported constants %d\n",which_constants);
+    exit(1);
+  }
+
   printf("(NRPyLeakage) **********************************************\n");
   printf("(NRPyLeakage) Units conversion factors:\n");
-  printf("(NRPyLeakage) Density [cgs to  code]: %.15e\n",NRPyLeakage_units_cgs_to_geom_density);
-  printf("(NRPyLeakage) R       [cgs to  code]: %.15e\n",NRPyLeakage_units_cgs_to_geom_R);
-  printf("(NRPyLeakage) Q       [cgs to  code]: %.15e\n",NRPyLeakage_units_cgs_to_geom_Q);
+  printf("(NRPyLeakage) Density [cgs to  code]: %.15e\n",cgs_to_geom_density);
+  printf("(NRPyLeakage) R       [cgs to  code]: %.15e\n",cgs_to_geom_R);
+  printf("(NRPyLeakage) Q       [cgs to  code]: %.15e\n",cgs_to_geom_Q);
   printf("(NRPyLeakage) **********************************************\n");
   printf("(HARMLeakage) **********************************************\n");
   printf("(HARMLeakage) Units conversion factors:\n");
@@ -49,7 +67,7 @@ int main(int argc, char **argv) {
   printf("(NRPyLeakage) Energy            = %.15e\n",eps);
 
   REAL R_source,Q_source;
-  NRPyLeakage_compute_GRMHD_source_terms(USE_NRPY_CONSTANTS,&eos_params,rho_b,Y_e,T,tau_nue,tau_anue,tau_nux,&R_source,&Q_source);
+  NRPyLeakage_compute_GRMHD_source_terms(which_constants,&eos_params,rho_b,Y_e,T,tau_nue,tau_anue,tau_nux,&R_source,&Q_source);
   printf("(NRPyLeakage) R_source          = %.15e\n",R_source);
   printf("(NRPyLeakage) Q_source          = %.15e\n",Q_source);
   printf("(NRPyLeakage) rhs_Y_e           = %.15e\n",R_source/rho_b);

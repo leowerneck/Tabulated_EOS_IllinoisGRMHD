@@ -16,7 +16,7 @@
 #define YE       (8) /* electron fraction component            */
 #define TEMP     (9) /* Temperature (in MeV)                   */
 #define NUMPRIMS (10)
-#define N_OPTICAL_DEPTHS (4)
+#define N_OPTICAL_DEPTHS (12)
 
 // HARM types (from globals.h)
 struct of_geom {
@@ -56,7 +56,7 @@ struct of_state {
 #define POSITRON    (9)
 #define MUHAT       (10) 
 
-#define NUMBER_OF_NEUTRINO_TYPES    (6)
+#define NUMBER_OF_NEUTRINO_TYPES (6)
 
 /*
  * Used in determining number fractions for electrons, protons, and neutrons
