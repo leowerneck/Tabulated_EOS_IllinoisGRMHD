@@ -2362,24 +2362,24 @@ double get_inverse_emission_timescale(int neutrino_flavor, int type_of_transport
     //fprintf(stderr, "R_plasmon %e\n", R_plasmon);
     //fprintf(stderr, "number_density %e\n", number_density);
 
-    if( neutrino_flavor == nu__e ) {
-      fprintf(stderr,"(harm) Electron neutrino:\n");
-      fprintf(stderr,"(harm) R_beta_nue         = %.15e\n",R_Beta);
-      fprintf(stderr,"(harm) R_pair_nue_anue    = %.15e\n",R_ee);
-      fprintf(stderr,"(harm) R_plasmon_nue_anue = %.15e\n",R_plasmon);
-    }
-    else if( neutrino_flavor == nu__e_bar ) {
-      fprintf(stderr,"(harm) Electron antineutrino:\n");
-      fprintf(stderr,"(harm) R_beta_anue        = %.15e\n",R_Beta);
-      fprintf(stderr,"(harm) R_pair_nue_anue    = %.15e\n",R_ee);
-      fprintf(stderr,"(harm) R_plasmon_nue_anue = %.15e\n",R_plasmon);
-    }
-    else {
-      fprintf(stderr,"(harm) Heavy lepton neutrinos:\n");
-      fprintf(stderr,"(harm) R_beta_nux_anux    = %.15e\n",R_Beta);
-      fprintf(stderr,"(harm) R_pair_nux_anux    = %.15e\n",R_ee);
-      fprintf(stderr,"(harm) R_plasmon_nux_anux = %.15e\n",R_plasmon);
-    }
+    // if( neutrino_flavor == nu__e ) {
+    //   fprintf(stderr,"(harm) Electron neutrino:\n");
+    //   fprintf(stderr,"(harm) R_beta_nue         = %.15e\n",R_Beta);
+    //   fprintf(stderr,"(harm) R_pair_nue_anue    = %.15e\n",R_ee);
+    //   fprintf(stderr,"(harm) R_plasmon_nue_anue = %.15e\n",R_plasmon);
+    // }
+    // else if( neutrino_flavor == nu__e_bar ) {
+    //   fprintf(stderr,"(harm) Electron antineutrino:\n");
+    //   fprintf(stderr,"(harm) R_beta_anue        = %.15e\n",R_Beta);
+    //   fprintf(stderr,"(harm) R_pair_nue_anue    = %.15e\n",R_ee);
+    //   fprintf(stderr,"(harm) R_plasmon_nue_anue = %.15e\n",R_plasmon);
+    // }
+    // else {
+    //   fprintf(stderr,"(harm) Heavy lepton neutrinos:\n");
+    //   fprintf(stderr,"(harm) R_beta_nux_anux    = %.15e\n",R_Beta);
+    //   fprintf(stderr,"(harm) R_pair_nux_anux    = %.15e\n",R_ee);
+    //   fprintf(stderr,"(harm) R_plasmon_nux_anux = %.15e\n",R_plasmon);
+    // }
 
     return (R_Beta + R_ee + R_plasmon) / number_density; /* [1](B20) + */
 
@@ -2410,24 +2410,24 @@ double get_inverse_emission_timescale(int neutrino_flavor, int type_of_transport
       energy_density=1e-20;
     }
 
-    if( neutrino_flavor == nu__e ) {
-      fprintf(stderr,"(harm) Electron neutrino:\n");
-      fprintf(stderr,"(harm) Q_beta_nue         = %.15e\n",Q_Beta);
-      fprintf(stderr,"(harm) Q_pair_nue_anue    = %.15e\n",Q_ee);
-      fprintf(stderr,"(harm) Q_plasmon_nue_anue = %.15e\n",Q_plasmon);
-    }
-    else if( neutrino_flavor == nu__e_bar ) {
-      fprintf(stderr,"(harm) Electron antineutrino:\n");
-      fprintf(stderr,"(harm) Q_beta_anue        = %.15e\n",Q_Beta);
-      fprintf(stderr,"(harm) Q_pair_nue_anue    = %.15e\n",Q_ee);
-      fprintf(stderr,"(harm) Q_plasmon_nue_anue = %.15e\n",Q_plasmon);
-    }
-    else {
-      fprintf(stderr,"(harm) Heavy lepton neutrinos:\n");
-      fprintf(stderr,"(harm) Q_beta_nux_anux    = %.15e\n",Q_Beta);
-      fprintf(stderr,"(harm) Q_pair_nux_anux    = %.15e\n",Q_ee);
-      fprintf(stderr,"(harm) Q_plasmon_nux_anux = %.15e\n",Q_plasmon);
-    }
+    // if( neutrino_flavor == nu__e ) {
+    //   fprintf(stderr,"(harm) Electron neutrino:\n");
+    //   fprintf(stderr,"(harm) Q_beta_nue         = %.15e\n",Q_Beta);
+    //   fprintf(stderr,"(harm) Q_pair_nue_anue    = %.15e\n",Q_ee);
+    //   fprintf(stderr,"(harm) Q_plasmon_nue_anue = %.15e\n",Q_plasmon);
+    // }
+    // else if( neutrino_flavor == nu__e_bar ) {
+    //   fprintf(stderr,"(harm) Electron antineutrino:\n");
+    //   fprintf(stderr,"(harm) Q_beta_anue        = %.15e\n",Q_Beta);
+    //   fprintf(stderr,"(harm) Q_pair_nue_anue    = %.15e\n",Q_ee);
+    //   fprintf(stderr,"(harm) Q_plasmon_nue_anue = %.15e\n",Q_plasmon);
+    // }
+    // else {
+    //   fprintf(stderr,"(harm) Heavy lepton neutrinos:\n");
+    //   fprintf(stderr,"(harm) Q_beta_nux_anux    = %.15e\n",Q_Beta);
+    //   fprintf(stderr,"(harm) Q_pair_nux_anux    = %.15e\n",Q_ee);
+    //   fprintf(stderr,"(harm) Q_plasmon_nux_anux = %.15e\n",Q_plasmon);
+    // }
 
     return (Q_Beta + Q_ee + Q_plasmon) / energy_density;  /* [1](B21) + */
 

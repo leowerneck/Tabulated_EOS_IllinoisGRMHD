@@ -4,8 +4,8 @@ LEAKAGE_DIR = $(BASEDIR)/NRPyLeakage
 TESTS_DIR   = $(BASEDIR)/Leakage_tests
 HARM_DIR    = $(BASEDIR)/harm_leakage
 
-# HDF5_DIR = /usr/local/opt/hdf5
-HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
+HDF5_DIR = /usr/local/opt/hdf5
+# HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
 
 CC       = gcc
 CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(HARM_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
@@ -96,4 +96,4 @@ clean:
 	rm -rf $(EXE) $(OBJ) $(COBJ) obj
 
 veryclean: clean
-	rm -rf *.txt
+	rm -rf *.txt *.png
