@@ -86,7 +86,7 @@ obj/NRPyLeakage_compute_GRMHD_source_terms_harm_constants.o: $(LEAKAGE_DIR)/NRPy
 obj/NRPyLeakage_compute_GRMHD_source_terms.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_GRMHD_source_terms.c $(INC)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/Leakage_optically_thin_regime_semi_analytic.o: $(TESTS_DIR)/Leakage_optically_thin_regime_semi_analytic.c $(INC)
+obj/Leakage_optically_thin_regime_semi_analytic.o: $(TESTS_DIR)/optically_thin/Leakage_optically_thin_regime_semi_analytic.c $(INC)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 obj/harm_neutrinos.o: $(HARM_DIR)/harm_neutrinos.c

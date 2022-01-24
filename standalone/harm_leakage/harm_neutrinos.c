@@ -86,10 +86,11 @@ void neutrino_absorption_heating_rate(const NRPyEOS_params *restrict eos_params,
 {
 
 #if( N_OPTICAL_DEPTHS )
-  double __attribute__((unused)) Q_tot,  R_tot_nu_e, R_tot_anti_nu_e, R_tot; 
+  double Q_tot,  R_tot_nu_e, R_tot_anti_nu_e, R_tot; 
 
+  R_tot_nu_e=0.;
+  R_tot_anti_nu_e=0.;
   Q_tot=0.;
-
   R_tot=0.;
 
   if(ph[RHO]<eos_params->eos_rhomin){
