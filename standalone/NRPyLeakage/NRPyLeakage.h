@@ -10,7 +10,7 @@
 #define NRPyLeakage_enable_pair_nux_anux (1)
 #define NRPyLeakage_enable_plasmon_nue_anue (1)
 #define NRPyLeakage_enable_plasmon_nux_anux (1)
-#define NRPyLeakage_enable_brems_nui_anui (0)
+#define NRPyLeakage_enable_brems_nui_anui (1)
 #define USE_NRPY_CONSTANTS (0)
 #define USE_HARM_CONSTANTS (1)
 #define NRPyLeakage_Q_npmass (1.2935)
