@@ -4,12 +4,12 @@
 #include "NRPyEOS.h"
 
 // "Primary" parameters
-#define NRPyLeakage_enable_beta_nue (0)
+#define NRPyLeakage_enable_beta_nue (1)
 #define NRPyLeakage_enable_beta_anue (1)
-#define NRPyLeakage_enable_pair_nue_anue (0)
-#define NRPyLeakage_enable_pair_nux_anux (0)
-#define NRPyLeakage_enable_plasmon_nue_anue (0)
-#define NRPyLeakage_enable_plasmon_nux_anux (0)
+#define NRPyLeakage_enable_pair_nue_anue (1)
+#define NRPyLeakage_enable_pair_nux_anux (1)
+#define NRPyLeakage_enable_plasmon_nue_anue (1)
+#define NRPyLeakage_enable_plasmon_nux_anux (1)
 #define NRPyLeakage_enable_brems_nui_anui (0)
 #define USE_NRPY_CONSTANTS (0)
 #define USE_HARM_CONSTANTS (1)

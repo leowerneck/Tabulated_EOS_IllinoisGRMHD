@@ -16,7 +16,7 @@
 #define YE       (8) /* electron fraction component            */
 #define TEMP     (9) /* Temperature (in MeV)                   */
 #define NUMPRIMS (10)
-#define N_OPTICAL_DEPTHS (12)
+#define N_OPTICAL_DEPTHS (6)
 
 // HARM types (from globals.h)
 struct of_geom {

@@ -6,7 +6,7 @@
 #define Y_E 0
 #define EPS 1
 
-inline
+static inline
 void rhs( const int which_constants,
           const NRPyEOS_params *restrict eos_params,
           const REAL rho_b,
@@ -14,28 +14,27 @@ void rhs( const int which_constants,
           const REAL eps,
           const REAL T,
           REAL *restrict rhs_gfs ) {
-  // double optical_depth[N_OPTICAL_DEPTHS];
-  // for(int i=0;i<N_OPTICAL_DEPTHS;i++) optical_depth[i] = 0.0;
+  double optical_depth[N_OPTICAL_DEPTHS];
+  for(int i=0;i<N_OPTICAL_DEPTHS;i++) optical_depth[i] = 0.0;
 
-  // double prims[NUMPRIMS];
-  // prims[RHO ] = rho_b;
-  // prims[YE  ] = Y_e;
-  // prims[TEMP] = T;
-  // prims[UU  ] = eps*prims[RHO];
-  // for(int i=0;i<3;i++) {
-  //   prims[U1+i] = 0.0;
-  //   prims[B1+i] = 0.0;
-  // }
+  double prims[NUMPRIMS];
+  prims[RHO ] = rho_b;
+  prims[YE  ] = Y_e;
+  prims[TEMP] = T;
+  prims[UU  ] = eps*prims[RHO];
+  for(int i=0;i<3;i++) {
+    prims[U1+i] = 0.0;
+    prims[B1+i] = 0.0;
+  }
 
   REAL R_source,Q_source;
-  // neutrino_absorption_heating_rate(eos_params, prims, optical_depth, &R_source, &Q_source);
-  NRPyLeakage_compute_GRMHD_source_terms(which_constants,eos_params,rho_b,Y_e,T,0,0,0,&R_source,&Q_source);
+  neutrino_absorption_heating_rate(eos_params, prims, optical_depth, &R_source, &Q_source);
 
   rhs_gfs[Y_E] = R_source/rho_b;
-  rhs_gfs[EPS] = -Q_source/rho_b;
+  rhs_gfs[EPS] = Q_source/rho_b;
 }
 
-inline
+static inline
 void rk4_step_ode( const int which_constants,
                    const NRPyEOS_params *restrict eos_params,
                    const REAL dt,
@@ -82,11 +81,11 @@ void rk4_step_ode( const int which_constants,
     gfs[i] += (dt/6.0)*( k1[i] + 2.0*( k2[i] + k3[i] ) + k4[i] );
 }
 
-void Leakage_optically_thin_regime_semi_analytic( const int which_constants,
-                                                  const NRPyEOS_params *restrict eos_params,
-                                                  const REAL initial_rho_b,
-                                                  const REAL initial_Y_e,
-                                                  const REAL initial_T ) {
+void OpticallyThinGas_harm_leakage( const int which_constants,
+                                    const NRPyEOS_params *restrict eos_params,
+                                    const REAL initial_rho_b,
+                                    const REAL initial_Y_e,
+                                    const REAL initial_T ) {
   const REAL t_final = 0.5*NRPyLeakage_units_cgs_to_geom_T;
   const REAL dt      = 0.001*NRPyLeakage_units_cgs_to_geom_T;
   const int n_steps  = (int)(t_final/dt+0.5);
@@ -98,7 +97,7 @@ void Leakage_optically_thin_regime_semi_analytic( const int which_constants,
   REAL gfs[2] = {initial_Y_e,eps};
 
 
-  FILE *fp = fopen("semi_analytic_optically_thin.txt","w");
+  FILE *fp = fopen("opticallythingas_semi_analytic_harm.txt","w");
   fprintf(fp,"%.15e %.15e %.15e %.15e\n",t*NRPyLeakage_units_geom_to_cgs_T,gfs[Y_E],gfs[EPS],initial_T);
   for(int n=0;n<n_steps;n++) {
     rk4_step_ode(which_constants,eos_params,dt,initial_rho_b,gfs);
