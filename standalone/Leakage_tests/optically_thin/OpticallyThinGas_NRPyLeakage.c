@@ -17,8 +17,9 @@ void rhs( const int which_constants,
   const REAL tau_nue[2]  = {0.0,0.0};
   const REAL tau_anue[2] = {0.0,0.0};
   const REAL tau_nux[2]  = {0.0,0.0};
-  REAL R_source,Q_source;
-  NRPyLeakage_compute_GRMHD_source_terms(which_constants,eos_params,rho_b,Y_e,T,tau_nue,tau_anue,tau_nux,&R_source,&Q_source);
+  REAL R_source,Q_source,kappa_nue[2],kappa_anue[2],kappa_nux[2];
+  NRPyLeakage_compute_GRMHD_source_terms_and_opacities(which_constants,eos_params,rho_b,Y_e,T,tau_nue,tau_anue,tau_nux,
+                                                       &R_source,&Q_source,kappa_nue,kappa_anue,kappa_nux);
 
   // fprintf(stderr,"(NRPyLeakage) R_source = %.15e\n",R_source/rho_b);
   // fprintf(stderr,"(NRPyLeakage) Q_source = %.15e\n",-Q_source/NRPyLeakage_harm_units_cgs_to_geom_Q/1.6021766339999996e-06);

@@ -28,9 +28,9 @@ NRPyEOS_INC = $(NRPyEOS_DIR)/NRPyEOS_Tabulated_headers.h \
               $(NRPyEOS_DIR)/NRPyEOS_Tabulated_helpers.h
 
 LEAKAGE_SRC = NRPyLeakage_Fermi_Dirac_integrals.c \
-              NRPyLeakage_compute_GRMHD_source_terms_nrpy_constants.c \
-              NRPyLeakage_compute_GRMHD_source_terms_harm_constants.c \
-              NRPyLeakage_compute_GRMHD_source_terms.c \
+              NRPyLeakage_compute_GRMHD_source_terms_and_opacities_nrpy_constants.c \
+              NRPyLeakage_compute_GRMHD_source_terms_and_opacities_harm_constants.c \
+              NRPyLeakage_compute_GRMHD_source_terms_and_opacities.c \
               NRPyLeakage_compute_optical_depths.c
 
 LEAKAGE_INC = $(LEAKAGE_DIR)/NRPyLeakage.h
@@ -78,13 +78,13 @@ obj/NRPyEOS_free_memory.o: $(NRPyEOS_DIR)/NRPyEOS_free_memory.c $(INC)
 obj/NRPyLeakage_Fermi_Dirac_integrals.o: $(LEAKAGE_DIR)/NRPyLeakage_Fermi_Dirac_integrals.c $(INC)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/NRPyLeakage_compute_GRMHD_source_terms_nrpy_constants.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_GRMHD_source_terms_nrpy_constants.c $(INC)
+obj/NRPyLeakage_compute_GRMHD_source_terms_and_opacities_nrpy_constants.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_GRMHD_source_terms_and_opacities_nrpy_constants.c $(INC)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/NRPyLeakage_compute_GRMHD_source_terms_harm_constants.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_GRMHD_source_terms_harm_constants.c $(INC)
+obj/NRPyLeakage_compute_GRMHD_source_terms_and_opacities_harm_constants.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_GRMHD_source_terms_and_opacities_harm_constants.c $(INC)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/NRPyLeakage_compute_GRMHD_source_terms.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_GRMHD_source_terms.c $(INC)
+obj/NRPyLeakage_compute_GRMHD_source_terms_and_opacities.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_GRMHD_source_terms_and_opacities.c $(INC)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 obj/NRPyLeakage_compute_optical_depths.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_optical_depths.c $(INC)

@@ -7,15 +7,18 @@
  * Compute GRMHD source terms following Ruffert et al. (1996)
  * https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
  */
-void NRPyLeakage_compute_GRMHD_source_terms_harm_constants(const NRPyEOS_params *restrict eos_params,
-                                                           const REAL rho_b,
-                                                           const REAL Y_e,
-                                                           const REAL T,
-                                                           const REAL *restrict tau_nue,
-                                                           const REAL *restrict tau_anue,
-                                                           const REAL *restrict tau_nux,
-                                                           REAL *restrict R_source,
-                                                           REAL *restrict Q_source) {
+void NRPyLeakage_compute_GRMHD_source_terms_and_opacities_harm_constants(const NRPyEOS_params *restrict eos_params,
+                                                                         const REAL rho_b,
+                                                                         const REAL Y_e,
+                                                                         const REAL T,
+                                                                         const REAL *restrict tau_nue,
+                                                                         const REAL *restrict tau_anue,
+                                                                         const REAL *restrict tau_nux,
+                                                                         REAL *restrict R_source,
+                                                                         REAL *restrict Q_source,
+                                                                         REAL *restrict kappa_nue,
+                                                                         REAL *restrict kappa_anue,
+                                                                         REAL *restrict kappa_nux) {
 
 
   // Step 1: Get chemical potentials and mass
@@ -105,31 +108,43 @@ tmp_41 = Y_e*((5.0/24.0)*tmp_3 + tmp_40)/((2.0/3.0)*MAX(mu_p*tmp_0, 0) + 1);
   const REAL tmp_43 = NRPyLeakage_Fermi_Dirac_integrals(5, tmp_9);
   const REAL tmp_44 = Y_np*((3.0/4.0)*tmp_3 + 1.0/4.0);
   const REAL tmp_45 = tmp_44/(exp(tmp_1 - tmp_43/tmp_37) + 1);
-  const REAL tmp_46 = (3.0/2.0)*NRPyLeakage_harm_hc3/(M_PI*NRPyLeakage_harm_c_light);
-  const REAL tmp_47 = tmp_46/((T)*(T)*(T));
-  const REAL tmp_48 = NRPyLeakage_Fermi_Dirac_integrals(5, -tmp_1);
-  const REAL tmp_49 = NRPyLeakage_enable_beta_anue*Y_np/(exp(tmp_19 - tmp_48/tmp_17) + 1);
-  const REAL tmp_50 = tmp_17*tmp_49*tmp_6 + tmp_31;
-  const REAL tmp_51 = (1.0/(NRPyLeakage_Fermi_Dirac_integrals(2, tmp_19)));
-  const REAL tmp_52 = NRPyLeakage_Fermi_Dirac_integrals(4, tmp_19);
-  const REAL tmp_53 = tmp_35*tmp_51*tmp_52;
-  const REAL tmp_54 = NRPyLeakage_Fermi_Dirac_integrals(5, tmp_19);
-  const REAL tmp_55 = tmp_44/(exp(-tmp_1 - tmp_54/tmp_52) + 1);
-  const REAL tmp_56 = NRPyLeakage_Brems_C2*pow(T, 5.5)*tmp_11;
-  const REAL tmp_57 = pow(T, 9)*tmp_21;
-  const REAL tmp_59 = (1.0/36.0)*NRPyLeakage_beta*(32*tmp_13*tmp_14*tmp_2*tmp_57 + 32*tmp_14*tmp_15*tmp_17*tmp_57);
-  const REAL tmp_60 = NRPyLeakage_beta*tmp_57*(tmp_27 + 2);
-  const REAL tmp_61 = (1.0/(NRPyLeakage_Fermi_Dirac_integrals(3, 0)));
-  const REAL tmp_62 = tmp_61*NRPyLeakage_Fermi_Dirac_integrals(5, 0);
-  const REAL tmp_63 = pow(T, 6)*tmp_5;
-  const REAL tmp_64 = tmp_20*tmp_59 + (1.0/6.0)*tmp_30*tmp_60 + tmp_56;
-  const REAL tmp_65 = tmp_10*tmp_63*tmp_7 + tmp_64;
-  const REAL tmp_66 = tmp_46/((T)*(T)*(T)*(T));
-  const REAL tmp_68 = (1.0/(NRPyLeakage_Fermi_Dirac_integrals(3, tmp_9)));
-  const REAL tmp_70 = tmp_35*tmp_43*tmp_68;
-  const REAL tmp_71 = tmp_48*tmp_49*tmp_63 + tmp_64;
-  const REAL tmp_72 = (1.0/(NRPyLeakage_Fermi_Dirac_integrals(3, tmp_19)));
-  const REAL tmp_74 = tmp_35*tmp_54*tmp_72;
-  *R_source = NRPyLeakage_amu*NRPyLeakage_harm_units_cgs_to_geom_R*(-tmp_32/(((tau_nue[0])*(tau_nue[0]))*tmp_32*tmp_36*tmp_47/(tmp_34*tmp_39 + tmp_36*tmp_37*tmp_42 + tmp_39*tmp_45) + 1) + tmp_50/(((tau_anue[0])*(tau_anue[0]))*tmp_47*tmp_50*tmp_51/(tmp_34*tmp_53 + tmp_41*tmp_53 + tmp_53*tmp_55) + 1));
-  *Q_source = NRPyLeakage_harm_units_cgs_to_geom_Q*(-tmp_65/(((tau_nue[1])*(tau_nue[1]))*tmp_65*tmp_66*tmp_68/(tmp_34*tmp_70 + tmp_42*tmp_43*tmp_68 + tmp_45*tmp_70) + 1) - tmp_71/(((tau_anue[1])*(tau_anue[1]))*tmp_66*tmp_71*tmp_72/(tmp_34*tmp_74 + tmp_42*tmp_54*tmp_72 + tmp_55*tmp_74) + 1) - 4*(NRPyLeakage_C1pC2_nux_anux*NRPyLeakage_enable_pair_nux_anux*tmp_59/((exp(tmp_18) + 1)*(exp(tmp_18) + 1)) + NRPyLeakage_enable_plasmon_nux_anux*tmp_29*tmp_40*tmp_60/((exp(tmp_28) + 1)*(exp(tmp_28) + 1)) + tmp_56)/(((tau_nux[1])*(tau_nux[1]))*tmp_61*tmp_65*tmp_66/(tmp_34*tmp_35*tmp_62 + tmp_42*tmp_62) + 1));
+  const REAL tmp_46 = tmp_34*tmp_39 + tmp_36*tmp_37*tmp_42 + tmp_39*tmp_45;
+  const REAL tmp_47 = (3.0/2.0)*NRPyLeakage_harm_hc3/(M_PI*NRPyLeakage_harm_c_light);
+  const REAL tmp_48 = tmp_47/((T)*(T)*(T));
+  const REAL tmp_49 = NRPyLeakage_Fermi_Dirac_integrals(5, -tmp_1);
+  const REAL tmp_50 = NRPyLeakage_enable_beta_anue*Y_np/(exp(tmp_19 - tmp_49/tmp_17) + 1);
+  const REAL tmp_51 = tmp_17*tmp_50*tmp_6 + tmp_31;
+  const REAL tmp_52 = (1.0/(NRPyLeakage_Fermi_Dirac_integrals(2, tmp_19)));
+  const REAL tmp_53 = NRPyLeakage_Fermi_Dirac_integrals(4, tmp_19);
+  const REAL tmp_54 = tmp_35*tmp_52*tmp_53;
+  const REAL tmp_55 = NRPyLeakage_Fermi_Dirac_integrals(5, tmp_19);
+  const REAL tmp_56 = tmp_44/(exp(-tmp_1 - tmp_55/tmp_53) + 1);
+  const REAL tmp_57 = tmp_34*tmp_54 + tmp_41*tmp_54 + tmp_54*tmp_56;
+  const REAL tmp_58 = NRPyLeakage_Brems_C2*pow(T, 5.5)*tmp_11;
+  const REAL tmp_59 = pow(T, 9)*tmp_21;
+  const REAL tmp_61 = (1.0/36.0)*NRPyLeakage_beta*(32*tmp_13*tmp_14*tmp_2*tmp_59 + 32*tmp_14*tmp_15*tmp_17*tmp_59);
+  const REAL tmp_62 = NRPyLeakage_beta*tmp_59*(tmp_27 + 2);
+  const REAL tmp_63 = (1.0/(NRPyLeakage_Fermi_Dirac_integrals(3, 0)));
+  const REAL tmp_64 = tmp_63*NRPyLeakage_Fermi_Dirac_integrals(5, 0);
+  const REAL tmp_66 = tmp_34*tmp_35*tmp_64 + tmp_42*tmp_64;
+  const REAL tmp_67 = pow(T, 6)*tmp_5;
+  const REAL tmp_68 = tmp_20*tmp_61 + (1.0/6.0)*tmp_30*tmp_62 + tmp_58;
+  const REAL tmp_69 = tmp_10*tmp_67*tmp_7 + tmp_68;
+  const REAL tmp_70 = tmp_47/((T)*(T)*(T)*(T));
+  const REAL tmp_72 = (1.0/(NRPyLeakage_Fermi_Dirac_integrals(3, tmp_9)));
+  const REAL tmp_74 = tmp_35*tmp_43*tmp_72;
+  const REAL tmp_75 = tmp_34*tmp_74 + tmp_42*tmp_43*tmp_72 + tmp_45*tmp_74;
+  const REAL tmp_76 = tmp_49*tmp_50*tmp_67 + tmp_68;
+  const REAL tmp_77 = (1.0/(NRPyLeakage_Fermi_Dirac_integrals(3, tmp_19)));
+  const REAL tmp_79 = tmp_35*tmp_55*tmp_77;
+  const REAL tmp_80 = tmp_34*tmp_79 + tmp_42*tmp_55*tmp_77 + tmp_56*tmp_79;
+  const REAL tmp_81 = NRPyLeakage_Fermi_Dirac_integrals(4, 0)/NRPyLeakage_Fermi_Dirac_integrals(2, 0);
+  *R_source = NRPyLeakage_amu*NRPyLeakage_harm_units_cgs_to_geom_R*(-tmp_32/(((tau_nue[0])*(tau_nue[0]))*tmp_32*tmp_36*tmp_48/tmp_46 + 1) + tmp_51/(((tau_anue[0])*(tau_anue[0]))*tmp_48*tmp_51*tmp_52/tmp_57 + 1));
+  *Q_source = NRPyLeakage_harm_units_cgs_to_geom_Q*(-tmp_69/(((tau_nue[1])*(tau_nue[1]))*tmp_69*tmp_70*tmp_72/tmp_75 + 1) - tmp_76/(((tau_anue[1])*(tau_anue[1]))*tmp_70*tmp_76*tmp_77/tmp_80 + 1) - 4*(NRPyLeakage_C1pC2_nux_anux*NRPyLeakage_enable_pair_nux_anux*tmp_61/((exp(tmp_18) + 1)*(exp(tmp_18) + 1)) + NRPyLeakage_enable_plasmon_nux_anux*tmp_29*tmp_40*tmp_62/((exp(tmp_28) + 1)*(exp(tmp_28) + 1)) + tmp_58)/(((tau_nux[1])*(tau_nux[1]))*tmp_63*tmp_69*tmp_70/tmp_66 + 1));
+  kappa_nue[0] = tmp_46;
+  kappa_nue[1] = tmp_75;
+  kappa_anue[0] = tmp_57;
+  kappa_anue[1] = tmp_80;
+  kappa_nux[0] = tmp_34*tmp_35*tmp_81 + tmp_42*tmp_81;
+  kappa_nux[1] = tmp_66;
 }

@@ -69,35 +69,44 @@
 // Function prototypes
 REAL NRPyLeakage_Fermi_Dirac_integrals(const int k, const REAL z);
 
-void NRPyLeakage_compute_GRMHD_source_terms_nrpy_constants(const NRPyEOS_params *restrict eos_params,
-                                                           const REAL rho_b,
-                                                           const REAL Y_e,
-                                                           const REAL T,
-                                                           const REAL *restrict tau_nue,
-                                                           const REAL *restrict tau_anue,
-                                                           const REAL *restrict tau_nux,
-                                                           REAL *restrict R_source,
-                                                           REAL *restrict Q_source);
+void NRPyLeakage_compute_GRMHD_source_terms_and_opacities_nrpy_constants(const NRPyEOS_params *restrict eos_params,
+                                                                         const REAL rho_b,
+                                                                         const REAL Y_e,
+                                                                         const REAL T,
+                                                                         const REAL *restrict tau_nue,
+                                                                         const REAL *restrict tau_anue,
+                                                                         const REAL *restrict tau_nux,
+                                                                         REAL *restrict R_source,
+                                                                         REAL *restrict Q_source,
+                                                                         REAL *restrict kappa_nue,
+                                                                         REAL *restrict kappa_anue,
+                                                                         REAL *restrict kappa_nux);
 
-void NRPyLeakage_compute_GRMHD_source_terms_harm_constants(const NRPyEOS_params *restrict eos_params,
-                                                           const REAL rho_b,
-                                                           const REAL Y_e,
-                                                           const REAL T,
-                                                           const REAL *restrict tau_nue,
-                                                           const REAL *restrict tau_anue,
-                                                           const REAL *restrict tau_nux,
-                                                           REAL *restrict R_source,
-                                                           REAL *restrict Q_source);
+void NRPyLeakage_compute_GRMHD_source_terms_and_opacities_harm_constants(const NRPyEOS_params *restrict eos_params,
+                                                                         const REAL rho_b,
+                                                                         const REAL Y_e,
+                                                                         const REAL T,
+                                                                         const REAL *restrict tau_nue,
+                                                                         const REAL *restrict tau_anue,
+                                                                         const REAL *restrict tau_nux,
+                                                                         REAL *restrict R_source,
+                                                                         REAL *restrict Q_source,
+                                                                         REAL *restrict kappa_nue,
+                                                                         REAL *restrict kappa_anue,
+                                                                         REAL *restrict kappa_nux);
 
-void NRPyLeakage_compute_GRMHD_source_terms(const int which_constants_to_use,
-                                            const NRPyEOS_params *restrict eos_params,
-                                            const REAL rho_b,
-                                            const REAL Y_e,
-                                            const REAL T,
-                                            const REAL *restrict tau_nue,
-                                            const REAL *restrict tau_anue,
-                                            const REAL *restrict tau_nux,
-                                            REAL *restrict R_source,
-                                            REAL *restrict Q_source);
+void NRPyLeakage_compute_GRMHD_source_terms_and_opacities(const int which_constants_to_use,
+                                                          const NRPyEOS_params *restrict eos_params,
+                                                          const REAL rho_b,
+                                                          const REAL Y_e,
+                                                          const REAL T,
+                                                          const REAL *restrict tau_nue,
+                                                          const REAL *restrict tau_anue,
+                                                          const REAL *restrict tau_nux,
+                                                          REAL *restrict R_source,
+                                                          REAL *restrict Q_source,
+                                                          REAL *restrict kappa_nue,
+                                                          REAL *restrict kappa_anue,
+                                                          REAL *restrict kappa_nux);
 
 #endif // NRPYLEAKAGE_H_

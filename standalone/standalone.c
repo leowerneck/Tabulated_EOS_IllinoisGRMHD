@@ -39,15 +39,21 @@ int main(int argc, char **argv) {
   printf("(NRPyLeakage) Pressure          = %.15e\n",P);
   printf("(NRPyLeakage) Energy            = %.15e\n",eps);
 
-  REAL R_source,Q_source;
-  NRPyLeakage_compute_GRMHD_source_terms(which_constants,&eos_params,rho_b,Y_e,T,tau_nue,tau_anue,tau_nux,&R_source,&Q_source);
+  REAL R_source,Q_source,kappa_nue[2],kappa_anue[2],kappa_nux[2];
+  NRPyLeakage_compute_GRMHD_source_terms_and_opacities(which_constants,&eos_params,rho_b,Y_e,T,tau_nue,tau_anue,tau_nux,
+                                                       &R_source,&Q_source,kappa_nue,kappa_anue,kappa_nux);
   printf("(NRPyLeakage) ******************************************\n");
   printf("(NRPyLeakage) Values obtained using NRPyLeakage:\n");
-  printf("(NRPyLeakage) R_source = %.15e\n",R_source);
-  printf("(NRPyLeakage) Q_source = %.15e\n",Q_source);
-  printf("(NRPyLeakage) rhs_Y_e  = %.15e\n",R_source/rho_b);
-  printf("(NRPyLeakage) rhs_eps  = %.15e\n",Q_source/rho_b);
-
+  printf("(NRPyLeakage) R_source     = %.15e\n",R_source);
+  printf("(NRPyLeakage) Q_source     = %.15e\n",Q_source);
+  printf("(NRPyLeakage) kappa_0_nue  = %.15e\n",kappa_nue[0]);
+  printf("(NRPyLeakage) kappa_1_nue  = %.15e\n",kappa_nue[1]);
+  printf("(NRPyLeakage) kappa_0_anue = %.15e\n",kappa_anue[0]);
+  printf("(NRPyLeakage) kappa_1_anue = %.15e\n",kappa_anue[1]);
+  printf("(NRPyLeakage) kappa_0_nux  = %.15e\n",kappa_nux[0]);
+  printf("(NRPyLeakage) kappa_1_nux  = %.15e\n",kappa_nux[1]);
+  printf("(NRPyLeakage) rhs_Y_e      = %.15e\n",R_source/rho_b);
+  printf("(NRPyLeakage) rhs_eps      = %.15e\n",Q_source/rho_b);
 
   double prims[NUMPRIMS];
   prims[RHO ] = rho_b;
