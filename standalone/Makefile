@@ -4,8 +4,8 @@ LEAKAGE_DIR = $(BASEDIR)/NRPyLeakage
 TESTS_DIR   = $(BASEDIR)/Leakage_tests
 HARM_DIR    = $(BASEDIR)/harm_leakage
 
-# HDF5_DIR = /usr/local/opt/hdf5
-HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
+HDF5_DIR = /usr/local/opt/hdf5
+# HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
 
 CC       = gcc
 CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(HARM_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
@@ -30,7 +30,8 @@ NRPyEOS_INC = $(NRPyEOS_DIR)/NRPyEOS_Tabulated_headers.h \
 LEAKAGE_SRC = NRPyLeakage_Fermi_Dirac_integrals.c \
               NRPyLeakage_compute_GRMHD_source_terms_nrpy_constants.c \
               NRPyLeakage_compute_GRMHD_source_terms_harm_constants.c \
-              NRPyLeakage_compute_GRMHD_source_terms.c
+              NRPyLeakage_compute_GRMHD_source_terms.c \
+              NRPyLeakage_compute_optical_depths.c
 
 LEAKAGE_INC = $(LEAKAGE_DIR)/NRPyLeakage.h
 
@@ -84,6 +85,9 @@ obj/NRPyLeakage_compute_GRMHD_source_terms_harm_constants.o: $(LEAKAGE_DIR)/NRPy
 	$(CC) $(CFLAGS) -c $< -o $@
 
 obj/NRPyLeakage_compute_GRMHD_source_terms.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_GRMHD_source_terms.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+obj/NRPyLeakage_compute_optical_depths.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_optical_depths.c $(INC)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 obj/OpticallyThinGas_NRPyLeakage.o: $(TESTS_DIR)/optically_thin/OpticallyThinGas_NRPyLeakage.c $(INC)
