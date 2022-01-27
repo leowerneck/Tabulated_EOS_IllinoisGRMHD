@@ -31,16 +31,16 @@ def generate_plot(outfile,harm_data_nue,harm_data_anue,nrpy_data_nue,nrpy_data_a
     lw = 1.5
 
     # Plot harm data
-    ax[0].plot(harm_data_nue[0] ,harm_data_nue[3] -1   ,label=r"\texttt{HARM}"+l1,c='red',lw=lw)
-    ax[0].plot(harm_data_anue[0],harm_data_anue[3]-1   ,label=r"\texttt{HARM}"+l2,c='green',lw=lw)
-    ax[1].plot(harm_data_nue[0] ,harm_data_nue[1] -5e-1,label=r"\texttt{HARM}"+l1,c='red',lw=lw)
-    ax[1].plot(harm_data_anue[0],harm_data_anue[1]-5e-3,label=r"\texttt{HARM}"+l2,c='green',lw=lw)
+    ax[0].plot(harm_data_nue[0] ,harm_data_nue[3] -1   ,label=r"\texttt{HARM}, $Y_{\rm e}(0) = 0.5$"+l1,c='red',lw=lw)
+    ax[0].plot(harm_data_anue[0],harm_data_anue[3]-1   ,label=r"\texttt{HARM}, $Y_{\rm e}(0) = 0.005$"+l2,c='green',lw=lw)
+    ax[1].plot(harm_data_nue[0] ,harm_data_nue[1] -5e-1,label=r"\texttt{HARM}, $Y_{\rm e}(0) = 0.5$"+l1,c='red',lw=lw)
+    ax[1].plot(harm_data_anue[0],harm_data_anue[1]-5e-3,label=r"\texttt{HARM}, $Y_{\rm e}(0) = 0.005$"+l2,c='green',lw=lw)
 
     # Plot NRPy data
-    ax[0].plot(nrpy_data_nue[0] ,nrpy_data_nue[3] -1   ,label=r"\texttt{NRPyLeakage}"+l1,c='blue',lw=lw,ls="--")
-    ax[0].plot(nrpy_data_anue[0],nrpy_data_anue[3]-1   ,label=r"\texttt{NRPyLeakage}"+l2,c='orange',lw=lw,ls="--")
-    ax[1].plot(nrpy_data_nue[0] ,nrpy_data_nue[1] -5e-1,label=r"\texttt{NRPyLeakage}"+l1,c='blue',lw=lw,ls="--")
-    ax[1].plot(nrpy_data_anue[0],nrpy_data_anue[1]-5e-3,label=r"\texttt{NRPyLeakage}"+l2,c='orange',lw=lw,ls="--")
+    ax[0].plot(nrpy_data_nue[0] ,nrpy_data_nue[3] -1   ,label=r"\texttt{NRPyLeakage}, $Y_{\rm e}(0) = 0.5$"+l1,c='blue',lw=lw,ls="--")
+    ax[0].plot(nrpy_data_anue[0],nrpy_data_anue[3]-1   ,label=r"\texttt{NRPyLeakage}, $Y_{\rm e}(0) = 0.005$"+l2,c='orange',lw=lw,ls="--")
+    ax[1].plot(nrpy_data_nue[0] ,nrpy_data_nue[1] -5e-1,label=r"\texttt{NRPyLeakage}, $Y_{\rm e}(0) = 0.5$"+l1,c='blue',lw=lw,ls="--")
+    ax[1].plot(nrpy_data_anue[0],nrpy_data_anue[1]-5e-3,label=r"\texttt{NRPyLeakage}, $Y_{\rm e}(0) = 0.005$"+l2,c='orange',lw=lw,ls="--")
 
     # Save figure
     for i in range(2):
@@ -70,3 +70,11 @@ nrpy_data_anue = np.loadtxt(os.path.join("optically_thin","results_igm_paper","n
 generate_plot("NRPyLeakage_semi_analytic_results_all.png",harm_data_nue,harm_data_anue,nrpy_data_nue,nrpy_data_anue,
               [0,0.5],[0,0.5],[-5.25e-3,0.25e-3],[-0.15,0.15],[-5e-3,-4e-3,-3e-3,-2e-3,-1e-3,0],
               [r"$-5{\times}10^{-3}$",r"$-4{\times}10^{-3}$",r"$-3{\times}10^{-3}$",r"$-2{\times}10^{-3}$",r"$-1{\times}10^{-3}$",r"$0$"])
+
+# harm_data_nue  = np.loadtxt("harm_large_Ye.dat").T
+# harm_data_anue = np.loadtxt("harm_small_Ye.dat").T
+# nrpy_data_nue  = np.loadtxt("nrpy_large_Ye.dat").T
+# nrpy_data_anue = np.loadtxt("nrpy_small_Ye.dat").T
+# generate_plot("NRPyLeakage_semi_analytic_results_all.png",harm_data_nue,harm_data_anue,nrpy_data_nue,nrpy_data_anue,
+#               [0,0.5],[0,0.5],[-5.25e-3,0.25e-3],[-0.15,0.15],[-5e-3,-4e-3,-3e-3,-2e-3,-1e-3,0],
+#               [r"$-5{\times}10^{-3}$",r"$-4{\times}10^{-3}$",r"$-3{\times}10^{-3}$",r"$-2{\times}10^{-3}$",r"$-1{\times}10^{-3}$",r"$0$"])

@@ -4,8 +4,8 @@ LEAKAGE_DIR = $(BASEDIR)/NRPyLeakage
 TESTS_DIR   = $(BASEDIR)/Leakage_tests
 HARM_DIR    = $(BASEDIR)/harm_leakage
 
-HDF5_DIR = /usr/local/opt/hdf5
-# HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
+# HDF5_DIR = /usr/local/opt/hdf5
+HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
 
 CC       = gcc
 CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(HARM_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
@@ -37,7 +37,7 @@ LEAKAGE_INC = $(LEAKAGE_DIR)/NRPyLeakage.h
 TESTS_SRC   = OpticallyThinGas_NRPyLeakage.c OpticallyThinGas_harm_leakage.c 
 TESTS_INC   = $(TESTS_DIR)/Leakage_tests.h
 
-HARM_SRC    = harm_neutrinos.c harm_optical_depth.c
+HARM_SRC    = harm_neutrinos.c #harm_optical_depth.c
 HARM_INC    = $(HARM_DIR)/harm_neutrinos.h $(HARM_DIR)/harm_units.h 
 
 OBJ = $(addprefix obj/,$(SRC:.c=.o)) \

@@ -18,12 +18,12 @@ int main(int argc, char **argv) {
   NRPyEOS_readtable_set_EOS_params(argv[1],&eos_params);
 
   // Test Leakage
-  const REAL rho_b    = strtod(argv[2],NULL);
-  const REAL Y_e      = strtod(argv[3],NULL);
-  const REAL T        = strtod(argv[4],NULL);
-  const REAL tau_nue  = 0.0;
-  const REAL tau_anue = 0.0;
-  const REAL tau_nux  = 0.0;
+  const REAL rho_b       = strtod(argv[2],NULL);
+  const REAL Y_e         = strtod(argv[3],NULL);
+  const REAL T           = strtod(argv[4],NULL);
+  const REAL tau_nue[2]  = {0.0,0.0};
+  const REAL tau_anue[2] = {0.0,0.0};
+  const REAL tau_nux[2]  = {0.0,0.0};
 
   REAL P,eps;
   NRPyEOS_P_and_eps_from_rho_Ye_T(&eos_params,rho_b,Y_e,T,&P,&eps);

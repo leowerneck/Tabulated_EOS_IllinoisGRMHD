@@ -12,9 +12,9 @@ void NRPyLeakage_compute_GRMHD_source_terms(const int which_constants_to_use,
                                             const REAL rho_b,
                                             const REAL Y_e,
                                             const REAL T,
-                                            const REAL tau_nue,
-                                            const REAL tau_anue,
-                                            const REAL tau_nux,
+                                            const REAL *restrict tau_nue,
+                                            const REAL *restrict tau_anue,
+                                            const REAL *restrict tau_nux,
                                             REAL *restrict R_source,
                                             REAL *restrict Q_source) {
 
