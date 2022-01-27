@@ -84,8 +84,8 @@ int main(int argc, char **argv) {
   
 
   // Now compute optically thin
-  OpticallyThinGas_NRPyLeakage(which_constants,&eos_params,rho_b,Y_e,T);
-  OpticallyThinGas_harm_leakage(which_constants,&eos_params,rho_b,Y_e,T);
+  // OpticallyThinGas_NRPyLeakage(which_constants,&eos_params,rho_b,Y_e,T);
+  // OpticallyThinGas_harm_leakage(which_constants,&eos_params,rho_b,Y_e,T);
 
   // Free memory allocated for EOS table
   NRPyEOS_free_memory(&eos_params);

@@ -109,4 +109,29 @@ void NRPyLeakage_compute_GRMHD_source_terms_and_opacities(const int which_consta
                                                           REAL *restrict kappa_anue,
                                                           REAL *restrict kappa_nux);
 
+void NRPyLeakage_compute_optical_depths(const int N0,
+                                        const int N1,
+                                        const int N2,
+                                        const int Ng0,
+                                        const int Ng1,
+                                        const int Ng2,
+                                        const int dxx0,
+                                        const int dxx1,
+                                        const int dxx2,
+                                        const REAL *restrict gammaDD00,
+                                        const REAL *restrict gammaDD11,
+                                        const REAL *restrict gammaDD22,
+                                        const REAL *restrict kappa_0_nue,
+                                        const REAL *restrict kappa_1_nue,
+                                        const REAL *restrict kappa_0_anue,
+                                        const REAL *restrict kappa_1_anue,
+                                        const REAL *restrict kappa_0_nux,
+                                        const REAL *restrict kappa_1_nux,
+                                        REAL *restrict tau_0_nue,
+                                        REAL *restrict tau_1_nue,
+                                        REAL *restrict tau_0_anue,
+                                        REAL *restrict tau_1_anue,
+                                        REAL *restrict tau_0_nux,
+                                        REAL *restrict tau_1_nux);
+
 #endif // NRPYLEAKAGE_H_

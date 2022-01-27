@@ -1743,6 +1743,9 @@ double get_total_transport_opacity(const NRPyEOS_params *restrict eos_params,
       //fprintf(stderr, "temperature %e\n", temperature);
       kappa_s_p=SMALL_kappa;
     }
+
+    fprintf(stderr,"(harm) kappa_%d_nue  = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p + kappa_a_n);
+    
     return kappa_s_n + kappa_s_p + kappa_a_n;  /* [1](A17) + */
 
     break;
@@ -1784,6 +1787,8 @@ double get_total_transport_opacity(const NRPyEOS_params *restrict eos_params,
       kappa_s_p=SMALL_kappa;
     }
 
+    fprintf(stderr,"(harm) kappa_%d_anue = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p + kappa_a_p);
+
     return kappa_s_n + kappa_s_p + kappa_a_p;  /* [1](A18) + */
 
     break;
@@ -1803,6 +1808,9 @@ double get_total_transport_opacity(const NRPyEOS_params *restrict eos_params,
     if(!isfinite(kappa_s_p)){
       kappa_s_p=SMALL_kappa;
     }
+
+    fprintf(stderr,"(harm) kappa_%d_nux  = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p);
+    
     return kappa_s_n + kappa_s_p;  /* [1](A19) + */
 
     break;
