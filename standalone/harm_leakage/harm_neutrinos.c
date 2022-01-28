@@ -1744,7 +1744,10 @@ double get_total_transport_opacity(const NRPyEOS_params *restrict eos_params,
       kappa_s_p=SMALL_kappa;
     }
 
-    fprintf(stderr,"(harm) kappa_%d_nue  = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p + kappa_a_n);
+    fprintf(stderr,"(harm) kappa_s_n_%d_nue  = %.15e\n",type_of_transport,kappa_s_n);
+    fprintf(stderr,"(harm) kappa_s_p_%d_nue  = %.15e\n",type_of_transport,kappa_s_p);
+    fprintf(stderr,"(harm) kappa_a_%d_nue    = %.15e\n",type_of_transport,kappa_a_n);
+    fprintf(stderr,"(harm) kappa_%d_nue      = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p + kappa_a_n);
     
     return kappa_s_n + kappa_s_p + kappa_a_n;  /* [1](A17) + */
 
@@ -1787,7 +1790,10 @@ double get_total_transport_opacity(const NRPyEOS_params *restrict eos_params,
       kappa_s_p=SMALL_kappa;
     }
 
-    fprintf(stderr,"(harm) kappa_%d_anue = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p + kappa_a_p);
+    fprintf(stderr,"(harm) kappa_s_n_%d_anue = %.15e\n",type_of_transport,kappa_s_n);
+    fprintf(stderr,"(harm) kappa_s_p_%d_anue = %.15e\n",type_of_transport,kappa_s_p);
+    fprintf(stderr,"(harm) kappa_a_%d_anue   = %.15e\n",type_of_transport,kappa_a_p);
+    fprintf(stderr,"(harm) kappa_%d_anue     = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p + kappa_a_p);
 
     return kappa_s_n + kappa_s_p + kappa_a_p;  /* [1](A18) + */
 
@@ -1809,7 +1815,9 @@ double get_total_transport_opacity(const NRPyEOS_params *restrict eos_params,
       kappa_s_p=SMALL_kappa;
     }
 
-    fprintf(stderr,"(harm) kappa_%d_nux  = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p);
+    fprintf(stderr,"(harm) kappa_s_n_%d_nux  = %.15e\n",type_of_transport,kappa_s_n);
+    fprintf(stderr,"(harm) kappa_s_p_%d_nux  = %.15e\n",type_of_transport,kappa_s_p);
+    fprintf(stderr,"(harm) kappa_%d_nux      = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p);
     
     return kappa_s_n + kappa_s_p;  /* [1](A19) + */
 
