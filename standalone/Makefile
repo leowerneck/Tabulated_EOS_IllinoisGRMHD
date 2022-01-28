@@ -35,7 +35,11 @@ LEAKAGE_SRC = NRPyLeakage_Fermi_Dirac_integrals.c \
 
 LEAKAGE_INC = $(LEAKAGE_DIR)/NRPyLeakage.h
 
-TESTS_SRC   = OpticallyThinGas_NRPyLeakage.c OpticallyThinGas_harm_leakage.c 
+TESTS_SRC   = OpticallyThinGas_NRPyLeakage.c \
+              OpticallyThinGas_harm_leakage.c \
+              ConstantDensitySphere_NRPyLeakage.c \
+              ConstantDensitySphere_harm_leakage.c
+
 TESTS_INC   = $(TESTS_DIR)/Leakage_tests.h
 
 HARM_SRC    = harm_neutrinos.c #harm_optical_depth.c
@@ -94,6 +98,12 @@ obj/OpticallyThinGas_NRPyLeakage.o: $(TESTS_DIR)/optically_thin/OpticallyThinGas
 	$(CC) $(CFLAGS) -c $< -o $@
 
 obj/OpticallyThinGas_harm_leakage.o: $(TESTS_DIR)/optically_thin/OpticallyThinGas_harm_leakage.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+obj/ConstantDensitySphere_NRPyLeakage.o: $(TESTS_DIR)/constant_density_sphere/ConstantDensitySphere_NRPyLeakage.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+obj/ConstantDensitySphere_harm_leakage.o: $(TESTS_DIR)/constant_density_sphere/ConstantDensitySphere_harm_leakage.c $(INC)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 obj/harm_neutrinos.o: $(HARM_DIR)/harm_neutrinos.c
