@@ -37,10 +37,10 @@ def generate_plot(outfile,harm_data_nue,harm_data_anue,nrpy_data_nue,nrpy_data_a
     # ax[0].plot(harm_data_anue[0],harm_data_anue[1]-5e-3,label=r"\texttt{HARM}, $Y_{\rm e}(0) = 0.005$"+l2,c='green',lw=lw)
     # ax[1].plot(harm_data_nue[0] ,harm_data_nue[3] -1   ,label=r"\texttt{HARM}, $Y_{\rm e}(0) = 0.5$"+l1,c='red',lw=lw)
     # ax[1].plot(harm_data_anue[0],harm_data_anue[3]-1   ,label=r"\texttt{HARM}, $Y_{\rm e}(0) = 0.005$"+l2,c='green',lw=lw)
-    ax[0].plot(harm_data_nue[0] ,harm_data_nue[1] -5e-1,label=r"\texttt{HARM}"+l1,c='red',lw=lw)
-    ax[0].plot(harm_data_anue[0],harm_data_anue[1]-5e-3,label=r"\texttt{HARM}"+l2,c='green',lw=lw)
-    ax[1].plot(harm_data_nue[0] ,harm_data_nue[3] -1   ,label=r"\texttt{HARM}"+l1,c='red',lw=lw)
-    ax[1].plot(harm_data_anue[0],harm_data_anue[3]-1   ,label=r"\texttt{HARM}"+l2,c='green',lw=lw)
+    ax[0].plot(harm_data_nue[0] ,harm_data_nue[1] -5e-1,label=r"\texttt{HARM+NUC}"+l1,c='red',lw=lw)
+    ax[0].plot(harm_data_anue[0],harm_data_anue[1]-5e-3,label=r"\texttt{HARM+NUC}"+l2,c='green',lw=lw)
+    ax[1].plot(harm_data_nue[0] ,harm_data_nue[3] -1   ,label=r"\texttt{HARM+NUC}"+l1,c='red',lw=lw)
+    ax[1].plot(harm_data_anue[0],harm_data_anue[3]-1   ,label=r"\texttt{HARM+NUC}"+l2,c='green',lw=lw)
 
     # Plot NRPy data
     ax[0].plot(nrpy_data_nue[0] ,nrpy_data_nue[1] -5e-1,label=r"\texttt{NRPyLeakage}"+l1,c='blue',lw=lw,ls="--")
