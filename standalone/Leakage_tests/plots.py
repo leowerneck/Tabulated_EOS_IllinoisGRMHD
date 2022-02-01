@@ -79,9 +79,9 @@ nrpy_data_anue = np.loadtxt(os.path.join("optically_thin","results_igm_paper","n
 generate_plot("NRPyLeakage_semi_analytic_results_all.png",harm_data_nue,harm_data_anue,nrpy_data_nue,nrpy_data_anue,
               [0,0.5],[0,0.5],[-5.25e-3,0.25e-3],[-0.10-0.0125,0.10+0.0125],
               [-5e-3,-4e-3,-3e-3,-2e-3,-1e-3,0],
-              [r"$-0.005$",r"$-0.004$",r"$-0.003$",r"-$-0.002$",r"$-0.001$",r"$0.0000$"],
+              [r"$-0.005$",r"$-0.004$",r"$-0.003$",r"$-0.002$",r"$-0.001$",r"$0.000$"],
               [-0.1,-0.05,0,0.05,0.1],
-              [r"$-0.10$",r"$-0.05$",r"$0.00$",r"$0.05$",r"$0.10$"])
+              [r"$-0.10$",r"$-0.05$",r"$0.00$",r"$+0.05$",r"$+0.10$"])
 
 # harm_data_nue  = np.loadtxt("harm_large_Ye.dat").T
 # harm_data_anue = np.loadtxt("harm_small_Ye.dat").T
