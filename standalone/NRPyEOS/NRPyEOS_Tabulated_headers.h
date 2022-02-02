@@ -50,6 +50,12 @@ void NRPyEOS_P_from_rho_Ye_T( const NRPyEOS_params *restrict eos_params,
                               const REAL T,
                               REAL *restrict P );
 
+void NRPyEOS_S_from_rho_Ye_T( const NRPyEOS_params *restrict eos_params,
+                              const REAL rho,
+                              const REAL Ye,
+                              const REAL T,
+                              REAL *restrict S );
+
 void NRPyEOS_eps_from_rho_Ye_T( const NRPyEOS_params *restrict eos_params,
                                 const REAL rho,
                                 const REAL Ye,
@@ -121,6 +127,15 @@ void NRPyEOS_P_eps_mue_mup_mun_and_muhat_from_rho_Ye_T( const NRPyEOS_params *re
                                                         REAL *restrict mu_n,
                                                         REAL *restrict muhat );
 
+void NRPyEOS_mue_mup_mun_and_muhat_from_rho_Ye_T( const NRPyEOS_params *restrict eos_params,
+                                                  const REAL rho,
+                                                  const REAL Ye,
+                                                  const REAL T,
+                                                  REAL *restrict mu_e,
+                                                  REAL *restrict mu_p,
+                                                  REAL *restrict mu_n,
+                                                  REAL *restrict muhat );
+
 // ------------------------------------------------------
 // ---- Functions where the temperature is not known ----
 // ------------------------------------------------------
@@ -154,6 +169,16 @@ void NRPyEOS_P_eps_and_T_from_rho_Ye_S( const NRPyEOS_params *restrict eos_param
                                         REAL *restrict P,
                                         REAL *restrict eps,
                                         REAL *restrict T );
+
+void NRPyEOS_Xa_Xh_Xn_Xp_and_T_from_rho_Ye_eps( const NRPyEOS_params *restrict eos_params,
+                                                const REAL rho,
+                                                const REAL Ye,
+                                                const REAL eps,
+                                                REAL *restrict X_a,
+                                                REAL *restrict X_h,
+                                                REAL *restrict X_n,
+                                                REAL *restrict X_p,
+                                                REAL *restrict T );
 
 // ----------------------------------------
 

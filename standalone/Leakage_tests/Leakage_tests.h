@@ -25,4 +25,6 @@ void ConstantDensitySphere_NRPyLeakage();
 void ConstantDensitySphere_harm_leakage();
 //******************************************************************************
 
+void NRPyEOS_benchmark(const NRPyEOS_params *restrict eos_params);
+
 #endif // LEAKAGE_TESTS_HH_

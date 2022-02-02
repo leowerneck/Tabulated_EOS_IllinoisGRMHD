@@ -28,12 +28,42 @@ void NRPyEOS_P_from_rho_Ye_T( const NRPyEOS_params *restrict eos_params,
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_from_rho_Ye_T. Error message: %s (key = %d)",report.message,report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_from_rho_Ye_T. Error message: %s (key = %d)\n",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
   // Then update P
   *P = outvars[0];
+}
+
+// -------------------------------------
+// -----------  S(rho,Ye,T)  -----------
+// -------------------------------------
+void NRPyEOS_S_from_rho_Ye_T( const NRPyEOS_params *restrict eos_params,
+                              const REAL rho,
+                              const REAL Ye,
+                              const REAL T,
+                              REAL *restrict S ) {
+  // Number of interpolated quantities: 1 (P)
+  const int n = 1;
+  // Table variables keys
+  const int keys[1] = {NRPyEOS_entropy_key};
+  // Declare error variable
+  NRPyEOS_error_report report;
+  // Set output variable array
+  REAL outvars[n];
+
+  // Get P and eps
+  NRPyEOS_from_rho_Ye_T_interpolate_n_quantities( eos_params, n,rho,Ye,T, keys,outvars, &report );
+
+  // Error handling
+  if( report.error ) {
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_from_rho_Ye_T. Error message: %s (key = %d)\n",report.message,report.error_key);
+    // May want to terminate depending on the error. We'll just warn for now.
+  }
+
+  // Then update P
+  *S = outvars[0];
 }
 
 // -------------------------------------
@@ -58,7 +88,7 @@ void NRPyEOS_eps_from_rho_Ye_T( const NRPyEOS_params *restrict eos_params,
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_eps_from_rho_Ye_T. Error message: %s (key = %d)",report.message,report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_eps_from_rho_Ye_T. Error message: %s (key = %d)\n",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -90,7 +120,7 @@ void NRPyEOS_P_and_eps_from_rho_Ye_T( const NRPyEOS_params *restrict eos_params,
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_and_eps_from_rho_Ye_T. Error message: %s (key = %d)",report.message,report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_and_eps_from_rho_Ye_T. Error message: %s (key = %d)\n",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -125,7 +155,7 @@ void NRPyEOS_P_eps_and_S_from_rho_Ye_T( const NRPyEOS_params *restrict eos_param
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_eps_and_S_from_rho_Ye_T. Error message: %s (key = %d)",report.message,report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_eps_and_S_from_rho_Ye_T. Error message: %s (key = %d)\n",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -163,7 +193,7 @@ void NRPyEOS_P_eps_S_and_cs2_from_rho_Ye_T( const NRPyEOS_params *restrict eos_p
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_eps_and_S_from_rho_Ye_T. Error message: %s (key = %d)",report.message,report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_eps_and_S_from_rho_Ye_T. Error message: %s (key = %d)\n",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -202,7 +232,7 @@ void NRPyEOS_P_eps_and_depsdT_from_rho_Ye_T( const NRPyEOS_params *restrict eos_
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_eps_and_S_from_rho_Ye_T. Error message: %s (key = %d)",report.message,report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_eps_and_S_from_rho_Ye_T. Error message: %s (key = %d)\n",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -259,7 +289,7 @@ void NRPyEOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T( const NRPyEOS_
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_eps_and_S_from_rho_Ye_T. Error message: %s (key = %d)",report.message,report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_eps_and_S_from_rho_Ye_T. Error message: %s (key = %d)\n",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -275,6 +305,45 @@ void NRPyEOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T( const NRPyEOS_
   *dPdT     = outvars[4]*(*depsdT);
   // and deps/drho
   *depsdrho = (*dPdrho)/outvars[4];
+}
+
+// -------------------------------------
+// ----------  mu_e(rho,Ye,T) ----------
+// ----------  mu_p(rho,Ye,T) ----------
+// ----------  mu_n(rho,Ye,T) ----------
+// ---------- muhat(rho,Ye,T) ----------
+// -------------------------------------
+void NRPyEOS_mue_mup_mun_and_muhat_from_rho_Ye_T( const NRPyEOS_params *restrict eos_params,
+                                                  const REAL rho,
+                                                  const REAL Ye,
+                                                  const REAL T,
+                                                  REAL *restrict mu_e,
+                                                  REAL *restrict mu_p,
+                                                  REAL *restrict mu_n,
+                                                  REAL *restrict muhat ) {
+  // Number of interpolated quantities: 4 (mu_e, mu_p, mu_n, and mu_hat)
+  const int n = 4;
+  // Table variables keys
+  const int keys[4] = {NRPyEOS_muhat_key, NRPyEOS_mu_e_key, NRPyEOS_mu_p_key, NRPyEOS_mu_n_key};
+  // Declare error variable
+  NRPyEOS_error_report report;
+  // Set output variable array
+  REAL outvars[n];
+
+  // Get P and eps
+  NRPyEOS_from_rho_Ye_T_interpolate_n_quantities( eos_params, n,rho,Ye,T, keys,outvars, &report );
+
+  // Error handling
+  if( report.error ) {
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_mue_mup_mun_and_muhat_from_rho_Ye_T. Error message: %s (key = %d)\n",report.message,report.error_key);
+    // May want to terminate depending on the error. We'll just warn for now.
+  }
+
+  // Then update mu_e, mu_p, mu_n, mu_hat, X_p, and X_n
+  *muhat = outvars[0];
+  *mu_e  = outvars[1];
+  *mu_p  = outvars[2];
+  *mu_n  = outvars[3];
 }
 
 // -------------------------------------
@@ -309,7 +378,7 @@ void NRPyEOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T( const NRPyEOS_params *re
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T. Error message: %s (key = %d)",report.message,report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T. Error message: %s (key = %d)\n",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -354,7 +423,7 @@ void NRPyEOS_P_eps_mue_mup_mun_and_muhat_from_rho_Ye_T( const NRPyEOS_params *re
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_eps_mue_mup_mun_and_muhat_from_rho_Ye_T. Error message: %s (key = %d)",report.message,report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_eps_mue_mup_mun_and_muhat_from_rho_Ye_T. Error message: %s (key = %d)\n",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 

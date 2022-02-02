@@ -1,0 +1,4 @@
+SCHEDULE EOS_Omni_benchmark AT CCTK_BASEGRID AFTER EOS_OMNI_get_energy_shift
+{
+  LANG: C
+} "Benchmark most used tabulated EOS routines of EOS_Omni"

@@ -21,7 +21,7 @@ void NRPyEOS_from_rho_Ye_T_interpolate_n_quantities( const NRPyEOS_params *restr
   // This function will interpolate n table quantities from
   // (rho,Ye,T). It replaces EOS_Omni calls with keytemp = 1
   if( n > NRPyEOS_ntablekeys ) {
-    fprintf(stderr,"(NRPyEOS) from_rho_Ye_T_interpolate_n_quantities: number of quantities exceed maximum allowed: %d > %d. ABORTING.",
+    fprintf(stderr,"(NRPyEOS) from_rho_Ye_T_interpolate_n_quantities: number of quantities exceed maximum allowed: %d > %d. ABORTING.\n",
             n,NRPyEOS_ntablekeys);
   }
 
@@ -82,7 +82,7 @@ void NRPyEOS_from_rho_Ye_aux_find_T_and_interpolate_n_quantities( const NRPyEOS_
   // This function will interpolate n table quantities from
   // (rho,Ye,aux). It replaces EOS_Omni calls with keytemp != 1
   if( n > NRPyEOS_ntablekeys ) {
-    fprintf(stderr,"(NRPyEOS) NRPyEOS_from_rho_Ye_aux_find_T_and_interpolate_n_quantities: number of quantities exceed maximum allowed: %d > %d. ABORTING.",
+    fprintf(stderr,"(NRPyEOS) NRPyEOS_from_rho_Ye_aux_find_T_and_interpolate_n_quantities: number of quantities exceed maximum allowed: %d > %d. ABORTING.\n",
             n,NRPyEOS_ntablekeys);
   }
 
@@ -112,7 +112,7 @@ void NRPyEOS_from_rho_Ye_aux_find_T_and_interpolate_n_quantities( const NRPyEOS_
     aux += eos_params->energy_shift;
     // At this point, aux *must* be positive. If not, error out.
     if( aux < 0.0 ) {
-      fprintf(stderr,"(NRPyEOS) NRPyEOS_from_rho_Ye_aux_find_T_and_interpolate_n_quantities: found eps+energy_shift < 0.0 (%e). ABORTING.",
+      fprintf(stderr,"(NRPyEOS) NRPyEOS_from_rho_Ye_aux_find_T_and_interpolate_n_quantities: found eps+energy_shift < 0.0 (%e). ABORTING.\n",
               aux);
     }
     // Compute log(eps+eps0)

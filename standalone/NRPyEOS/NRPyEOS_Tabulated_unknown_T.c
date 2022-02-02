@@ -37,7 +37,7 @@ void NRPyEOS_P_and_T_from_rho_Ye_eps( const NRPyEOS_params *restrict eos_params,
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_and_T_from_rho_Ye_eps. Error message: %s (key = %d)",report.message,report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_and_T_from_rho_Ye_eps. Error message: %s (key = %d)\n",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -77,7 +77,7 @@ void NRPyEOS_P_S_and_T_from_rho_Ye_eps( const NRPyEOS_params *restrict eos_param
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_S_and_T_from_rho_Ye_eps. Error message: %s (key = %d)",report.message,report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_S_and_T_from_rho_Ye_eps. Error message: %s (key = %d)\n",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -120,7 +120,7 @@ void NRPyEOS_P_S_T_and_depsdT_from_rho_Ye_eps( const NRPyEOS_params *restrict eo
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_S_T_and_depsdT_from_rho_Ye_eps. Error message: %s (key = %d)",report.message,report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_S_T_and_depsdT_from_rho_Ye_eps. Error message: %s (key = %d)\n",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -162,7 +162,7 @@ void NRPyEOS_eps_S_and_T_from_rho_Ye_P( const NRPyEOS_params *restrict eos_param
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_eps_S_and_T_from_rho_Ye_P. Error message: %s (key = %d)",report.message,report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_eps_S_and_T_from_rho_Ye_P. Error message: %s (key = %d)\n",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -203,11 +203,58 @@ void NRPyEOS_P_eps_and_T_from_rho_Ye_S( const NRPyEOS_params *restrict eos_param
 
   // Error handling
   if( report.error ) {
-    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_eps_S_and_T_from_rho_Ye_P. Error message: %s (key = %d)",report.message,report.error_key);
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_eps_S_and_T_from_rho_Ye_P. Error message: %s (key = %d)\n",report.message,report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
   // T has already been updated, so update P and eps
   *P   = outvars[0];
   *eps = outvars[1];
+}
+
+// -----------------------------------
+// ---------- T(rho,Ye,eps) ----------
+// ---------- X_a(rho,Ye,T) ----------
+// ---------- X_h(rho,Ye,T) ----------
+// ---------- X_n(rho,Ye,T) ----------
+// ---------- X_p(rho,Ye,T) ----------
+// -----------------------------------
+void NRPyEOS_Xa_Xh_Xn_Xp_and_T_from_rho_Ye_eps( const NRPyEOS_params *restrict eos_params,
+                                                const REAL rho,
+                                                const REAL Ye,
+                                                const REAL eps,
+                                                REAL *restrict X_a,
+                                                REAL *restrict X_h,
+                                                REAL *restrict X_n,
+                                                REAL *restrict X_p,
+                                                REAL *restrict T ) {
+  // Number of interpolated quantities: 4 (X_a, X_h, X_n, and X_p)
+  const int n = 4;
+  // Set the key to the auxiliary variable (eps)
+  const int auxkey = NRPyEOS_eps_key;
+  const REAL aux   = eps;
+  // Table variables keys
+  const int keys[4] = {NRPyEOS_Xa_key,NRPyEOS_Xh_key,NRPyEOS_Xn_key,NRPyEOS_Xp_key};
+  // Declare error variable
+  NRPyEOS_error_report report;
+  // Set output variable array
+  REAL outvars[n];
+  // Set root-finding precision
+  REAL root_finding_precision = 1e-10;
+
+  // Get T, then P and S
+  NRPyEOS_from_rho_Ye_aux_find_T_and_interpolate_n_quantities( eos_params, n,root_finding_precision,
+                                                               rho,Ye,aux,auxkey, keys,outvars,T, &report );
+
+  // Error handling
+  if( report.error ) {
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_Xa_Xh_Xn_Xp_and_T_from_rho_Ye_eps. Error message: %s (key = %d)\n",report.message,report.error_key);
+    // May want to terminate depending on the error. We'll just warn for now.
+  }
+
+  // T has already been updated, so update X_a, X_h, X_n, and X_p
+  *X_a = outvars[0];
+  *X_h = outvars[1];
+  *X_n = outvars[2];
+  *X_p = outvars[3];
 }
