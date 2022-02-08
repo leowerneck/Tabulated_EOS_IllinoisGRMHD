@@ -1,7 +1,22 @@
 #ifndef NRPYLEAKAGE_H_
 #define NRPYLEAKAGE_H_
 
-#include "NRPyEOS.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+#define REAL double
+
+#ifdef MIN
+#undef MIN
+#endif
+
+#ifdef MAX
+#undef MAX
+#endif
+
+#define MAX(a,b) ( (a) > (b) ? (a) : (b) )
+#define MIN(a,b) ( (a) < (b) ? (a) : (b) )
 
 // "Primary" parameters
 #define NRPyLeakage_enable_beta_nue (1)
@@ -51,8 +66,7 @@
 #define NRPyLeakage_harm_units_cgs_to_geom_D (1.61887093132742e-18)
 #define NRPyLeakage_harm_units_cgs_to_geom_R (7.97315453692e-24)
 #define NRPyLeakage_harm_units_cgs_to_geom_Q (1.42134688491e-50)
-#define NRPyLeakage_harm_units_cgs_to_geom_L (6.77269222552442e-06)
-#define NRPyLeakage_harm_units_geom_to_cgs_L (147651.770773)
+#define NRPyLeakage_harm_units_geom_to_cgs_L (1.476625038050125e+05)
 #define NRPyLeakage_ZL_Q_npmass (1.293333)
 #define NRPyLeakage_ZL_alpha (1.23)
 #define NRPyLeakage_ZL_N_A (6.0221367e+23)
