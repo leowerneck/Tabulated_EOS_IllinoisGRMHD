@@ -1,0 +1,35 @@
+# Interface definition for thorn NRPyLeakageET
+
+implements: NRPyLeakageET
+inherits:
+
+includes header: NRPyLeakage.h in NRPyLeakage.h
+USES INCLUDE HEADER: WVU_EOS_Tabulated_headers.h
+
+# ------------------------------------------------------
+void FUNCTION NRPyLeakage_compute_GRMHD_source_terms_and_opacities(CCTK_INT IN which_constants_to_use, \
+                                                                   CCTK_REAL IN rho_b,                 \
+                                                                   CCTK_REAL IN Y_e,                   \
+                                                                   CCTK_REAL IN T,                     \
+                                                                   CCTK_REAL IN ARRAY tau_nue,         \
+                                                                   CCTK_REAL IN ARRAY tau_anue,        \
+                                                                   CCTK_REAL IN ARRAY tau_nux,         \
+                                                                   CCTK_REAL OUT R_source,             \
+                                                                   CCTK_REAL OUT Q_source,             \
+                                                                   CCTK_REAL OUT kappa_nue,            \
+                                                                   CCTK_REAL OUT kappa_anue,           \
+                                                                   CCTK_REAL OUT kappa_nux)
+
+PROVIDES FUNCTION NRPyLeakage_compute_GRMHD_source_terms_and_opacities WITH NRPyLeakage_compute_GRMHD_source_terms_and_opacities_impl LANGUAGE C
+# ------------------------------------------------------
+void FUNCTION WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T( CCTK_REAL IN rho,    \
+                                                                 CCTK_REAL IN Ye,     \
+                                                                 CCTK_REAL IN T,      \
+                                                                 CCTK_REAL OUT mu_e,  \
+                                                                 CCTK_REAL OUT mu_p,  \
+                                                                 CCTK_REAL OUT mu_n,  \
+                                                                 CCTK_REAL OUT muhat, \
+                                                                 CCTK_REAL OUT X_n,   \
+                                                                 CCTK_REAL OUT X_p )
+USES FUNCTION WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T
+# ------------------------------------------------------
