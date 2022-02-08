@@ -4,6 +4,7 @@
 implements: WVU_EOS
 inherits:
 
+includes header: WVU_EOS_Tabulated_headers.h in WVU_EOS_Tabulated_headers.h
 includes header: WVU_EOS_Tabulated_headers.hh in WVU_EOS_Tabulated_headers.hh
 
 # ------------------------------------------------------
@@ -107,6 +108,16 @@ void FUNCTION WVU_EOS_P_eps_and_T_from_rho_Ye_S( CCTK_REAL IN rho,  \
 
 PROVIDES FUNCTION WVU_EOS_P_eps_and_T_from_rho_Ye_S WITH WVU_EOS_P_eps_and_T_from_rho_Ye_S_impl LANGUAGE C
 # ------------------------------------------------------
+void FUNCTION WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T( CCTK_REAL IN rho,    \
+                                                                 CCTK_REAL IN Ye,     \
+                                                                 CCTK_REAL IN T,      \
+                                                                 CCTK_REAL OUT mu_e,  \
+                                                                 CCTK_REAL OUT mu_p,  \
+                                                                 CCTK_REAL OUT mu_n,  \
+                                                                 CCTK_REAL OUT muhat, \
+                                                                 CCTK_REAL OUT X_n,   \
+                                                                 CCTK_REAL OUT X_p )
+PROVIDES FUNCTION WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T WITH WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T_impl LANGUAGE C
 
 # ------------------------------------------------------
 # --- EOS_Omni functions. Used only by the unit test ---
