@@ -217,3 +217,48 @@ void WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T_impl( const CCT
   // and deps/drho
   *depsdrho = (*dPdrho)/outvars[4];
 }
+
+// -------------------------------------
+// ----------  mu_e(rho,Ye,T) ----------
+// ----------  mu_p(rho,Ye,T) ----------
+// ----------  mu_n(rho,Ye,T) ----------
+// ---------- muhat(rho,Ye,T) ----------
+// ----------   X_p(rho,Ye,T) ----------
+// ----------   X_n(rho,Ye,T) ----------
+// -------------------------------------
+extern "C"
+void WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T_impl( const CCTK_REAL rho,
+                                                             const CCTK_REAL Ye,
+                                                             const CCTK_REAL T,
+                                                             CCTK_REAL *restrict mu_e,
+                                                             CCTK_REAL *restrict mu_p,
+                                                             CCTK_REAL *restrict mu_n,
+                                                             CCTK_REAL *restrict muhat,
+                                                             CCTK_REAL *restrict X_n,
+                                                             CCTK_REAL *restrict X_p) {
+  // Number of interpolated quantities: 6 (mu_e, mu_p, mu_n, mu_hat, X_p, and X_n)
+  const CCTK_INT n = 6;
+  // Table variables keys
+  const CCTK_INT keys[n] = {WVU_EOS::muhat_key, WVU_EOS::mu_e_key, WVU_EOS::mu_p_key, WVU_EOS::mu_n_key, WVU_EOS::Xn_key, WVU_EOS::Xp_key};
+  // Declare error variable
+  WVU_EOS::eos_error_report report;
+  // Set output variable array
+  CCTK_REAL outvars[n];
+
+  // Get P and eps
+  WVU_EOS_from_rho_Ye_T_interpolate_n_quantities( n,rho,Ye,T, keys,outvars, &report );
+
+  // Error handling
+  if( report.error ) {
+    CCTK_VInfo(CCTK_THORNSTRING,"Inside WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
+    // May want to terminate depending on the error. We'll just warn for now.
+  }
+
+  // Then update mu_e, mu_p, mu_n, mu_hat, X_p, and X_n
+  *muhat = outvars[0];
+  *mu_e  = outvars[1];
+  *mu_p  = outvars[2];
+  *mu_n  = outvars[3];
+  *X_n   = outvars[4];
+  *X_p   = outvars[5];
+}
