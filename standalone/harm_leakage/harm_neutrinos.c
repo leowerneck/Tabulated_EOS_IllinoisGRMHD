@@ -53,7 +53,7 @@ void neutrino_source_func(const NRPyEOS_params *restrict eos_params,
   dU[ YE ]  += R_function;
 
   //fprintf(stderr, "Q_function %e\n", Q_function);
-  //fprintf(stderr, "R_fucntion %e\n", R_fucntion);
+  //fprintf(stderr, "R_function %e\n", R_function);
 
 #endif
 
@@ -228,14 +228,14 @@ void neutrino_absorption_heating_rate(const NRPyEOS_params *restrict eos_params,
   R_tot=(-R_tot_nu_e + R_tot_anti_nu_e)*C_amu; // Ruffert eq. 14 and 15 considering that we are evolving Ye*rho this is assuming we are using SRO tables that have the density in terms of the mass of the neutron
   *R_code_units=R_tot*R_CONV;
 
-  // printf("(harm) ***************************************************\n");
-  // printf("(harm) Before unit changes (i.e., everything in cgs):\n");
-  // printf("(harm) rho      : %.15e\n",rho);
-  // printf("(harm) R_tot    : %.15e\n",R_tot);
-  // printf("(harm) Q_tot    : %.15e\n",Q_tot);
-  // printf("(harm) R_tot/rho: %.15e\n",R_tot/rho);
-  // printf("(harm) Q_tot/rho: %.15e\n",Q_tot/rho);
-  // printf("(harm) ***************************************************\n");
+  // printf("(HARM+NUC) ***************************************************\n");
+  // printf("(HARM+NUC) Before unit changes (i.e., everything in cgs):\n");
+  // printf("(HARM+NUC) rho      : %.15e\n",rho);
+  // printf("(HARM+NUC) R_tot    : %.15e\n",R_tot);
+  // printf("(HARM+NUC) Q_tot    : %.15e\n",Q_tot);
+  // printf("(HARM+NUC) R_tot/rho: %.15e\n",R_tot/rho);
+  // printf("(HARM+NUC) Q_tot/rho: %.15e\n",Q_tot/rho);
+  // printf("(HARM+NUC) ***************************************************\n");
   return;
 
 #endif
@@ -1028,16 +1028,16 @@ void get_degeneracy_all(const NRPyEOS_params *restrict eos_params,
   *eta__nu_tau = 0.0; //[1] A2 ari+
   *eta__nu_tau_bar = 0.0;
 
-  // fprintf(stderr,"(harm) mu_e                = %.15e\n",xmu_e);
-  // fprintf(stderr,"(harm) mu_p                = %.15e\n",xmu_p);
-  // fprintf(stderr,"(harm) mu_n                = %.15e\n",xmu_n);
-  // fprintf(stderr,"(harm) muhat               = %.15e\n",xmu_hat);
-  // fprintf(stderr,"(harm) eta_e               = %.15e\n",*eta_e);
-  // fprintf(stderr,"(harm) eta_p               = %.15e\n",*eta_p);
-  // fprintf(stderr,"(harm) eta_n               = %.15e\n",*eta_n);
-  // fprintf(stderr,"(harm) etahat              = %.15e\n",*eta_muhat);
-  // fprintf(stderr,"(harm) eta_nue             = %.15e\n",*eta__nu_e);
-  // fprintf(stderr,"(harm) eta_anue            = %.15e\n",*eta__nu_e_bar);
+  // fprintf(stderr,"(HARM+NUC) mu_e                = %.15e\n",xmu_e);
+  // fprintf(stderr,"(HARM+NUC) mu_p                = %.15e\n",xmu_p);
+  // fprintf(stderr,"(HARM+NUC) mu_n                = %.15e\n",xmu_n);
+  // fprintf(stderr,"(HARM+NUC) muhat               = %.15e\n",xmu_hat);
+  // fprintf(stderr,"(HARM+NUC) eta_e               = %.15e\n",*eta_e);
+  // fprintf(stderr,"(HARM+NUC) eta_p               = %.15e\n",*eta_p);
+  // fprintf(stderr,"(HARM+NUC) eta_n               = %.15e\n",*eta_n);
+  // fprintf(stderr,"(HARM+NUC) etahat              = %.15e\n",*eta_muhat);
+  // fprintf(stderr,"(HARM+NUC) eta_nue             = %.15e\n",*eta__nu_e);
+  // fprintf(stderr,"(HARM+NUC) eta_anue            = %.15e\n",*eta__nu_e_bar);
   
   return;
 
@@ -1403,12 +1403,12 @@ double get_phase_space_blocking_value(int interaction, int particle_type, double
     case NEUTRINO:
       fermi_int_order_5 = get_Fermi_integral(5, electron_degeneracy);    /* [1](B3)  ??? Should this not use electron_degeneracy (ari: yes, it should, fixed it) */
       fermi_int_order_4 = get_Fermi_integral(4, electron_degeneracy);    /* [1](B3)  ??? Should this not use electron_degeneracy */
-      // fprintf(stderr,"(harm) eta_e               = %.15e\n",electron_degeneracy);
-      // fprintf(stderr,"(harm) eta_nue             = %.15e\n",neutrino_degeneracy);
-      // fprintf(stderr,"(harm) FD_5_nue            = %.15e\n",fermi_int_order_5);
-      // fprintf(stderr,"(harm) FD_4_nue            = %.15e\n",fermi_int_order_4);
-      // fprintf(stderr,"(harm) Ratio               = %.15e\n",fermi_int_order_5/fermi_int_order_4);
-      // fprintf(stderr,"(harm) arg of exp          = %.15e\n",-((fermi_int_order_5 / fermi_int_order_4) - electron_degeneracy));
+      // fprintf(stderr,"(HARM+NUC) eta_e               = %.15e\n",electron_degeneracy);
+      // fprintf(stderr,"(HARM+NUC) eta_nue             = %.15e\n",neutrino_degeneracy);
+      // fprintf(stderr,"(HARM+NUC) FD_5_nue            = %.15e\n",fermi_int_order_5);
+      // fprintf(stderr,"(HARM+NUC) FD_4_nue            = %.15e\n",fermi_int_order_4);
+      // fprintf(stderr,"(HARM+NUC) Ratio               = %.15e\n",fermi_int_order_5/fermi_int_order_4);
+      // fprintf(stderr,"(HARM+NUC) arg of exp          = %.15e\n",-((fermi_int_order_5 / fermi_int_order_4) - electron_degeneracy));
       return 1.0 / (1.0 + exp(-((fermi_int_order_5 / fermi_int_order_4) - neutrino_degeneracy)));  /* [1](B3)  */
       break;
 	
@@ -1744,10 +1744,10 @@ double get_total_transport_opacity(const NRPyEOS_params *restrict eos_params,
       kappa_s_p=SMALL_kappa;
     }
 
-    fprintf(stderr,"(harm) kappa_s_n_%d_nue  = %.15e\n",type_of_transport,kappa_s_n);
-    fprintf(stderr,"(harm) kappa_s_p_%d_nue  = %.15e\n",type_of_transport,kappa_s_p);
-    fprintf(stderr,"(harm) kappa_a_%d_nue    = %.15e\n",type_of_transport,kappa_a_n);
-    fprintf(stderr,"(harm) kappa_%d_nue      = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p + kappa_a_n);
+    // fprintf(stderr,"(HARM+NUC) kappa_s_n_%d_nue  = %.15e\n",type_of_transport,kappa_s_n);
+    // fprintf(stderr,"(HARM+NUC) kappa_s_p_%d_nue  = %.15e\n",type_of_transport,kappa_s_p);
+    // fprintf(stderr,"(HARM+NUC) kappa_a_%d_nue    = %.15e\n",type_of_transport,kappa_a_n);
+    // fprintf(stderr,"(HARM+NUC) kappa_%d_nue      = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p + kappa_a_n);
     
     return kappa_s_n + kappa_s_p + kappa_a_n;  /* [1](A17) + */
 
@@ -1790,10 +1790,10 @@ double get_total_transport_opacity(const NRPyEOS_params *restrict eos_params,
       kappa_s_p=SMALL_kappa;
     }
 
-    fprintf(stderr,"(harm) kappa_s_n_%d_anue = %.15e\n",type_of_transport,kappa_s_n);
-    fprintf(stderr,"(harm) kappa_s_p_%d_anue = %.15e\n",type_of_transport,kappa_s_p);
-    fprintf(stderr,"(harm) kappa_a_%d_anue   = %.15e\n",type_of_transport,kappa_a_p);
-    fprintf(stderr,"(harm) kappa_%d_anue     = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p + kappa_a_p);
+    // fprintf(stderr,"(HARM+NUC) kappa_s_n_%d_anue = %.15e\n",type_of_transport,kappa_s_n);
+    // fprintf(stderr,"(HARM+NUC) kappa_s_p_%d_anue = %.15e\n",type_of_transport,kappa_s_p);
+    // fprintf(stderr,"(HARM+NUC) kappa_a_%d_anue   = %.15e\n",type_of_transport,kappa_a_p);
+    // fprintf(stderr,"(HARM+NUC) kappa_%d_anue     = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p + kappa_a_p);
 
     return kappa_s_n + kappa_s_p + kappa_a_p;  /* [1](A18) + */
 
@@ -1815,9 +1815,9 @@ double get_total_transport_opacity(const NRPyEOS_params *restrict eos_params,
       kappa_s_p=SMALL_kappa;
     }
 
-    fprintf(stderr,"(harm) kappa_s_n_%d_nux  = %.15e\n",type_of_transport,kappa_s_n);
-    fprintf(stderr,"(harm) kappa_s_p_%d_nux  = %.15e\n",type_of_transport,kappa_s_p);
-    fprintf(stderr,"(harm) kappa_%d_nux      = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p);
+    // fprintf(stderr,"(HARM+NUC) kappa_s_n_%d_nux  = %.15e\n",type_of_transport,kappa_s_n);
+    // fprintf(stderr,"(HARM+NUC) kappa_s_p_%d_nux  = %.15e\n",type_of_transport,kappa_s_p);
+    // fprintf(stderr,"(HARM+NUC) kappa_%d_nux      = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p);
     
     return kappa_s_n + kappa_s_p;  /* [1](A19) + */
 
@@ -1873,15 +1873,15 @@ double beta_process_emission_rate__neutrino_number(int neutrino_flavor, double r
       Y_pn=get_particle_fraction(PROTON, electron_fraction);
     }/* [1](A14) + */
 
-    // printf("(harm) ***************** R_beta_nue *****************\n");
+    // printf("(HARM+NUC) ***************** R_beta_nue *****************\n");
     energy_moment = get_energy_moment(ELECTRON, TILDE, temperature, electron_degeneracy);
     blocking_factor = get_phase_space_blocking_value(BETA_PROCESS, NEUTRINO, electron_degeneracy, neutrino_degeneracy); /* [1](B3) + */
     const double R_beta = ((1.0 + 3.0 * C_alpha_neutrino_sq) / 8.0) * (C_A_sigma_0 / (C_me2_c3_ev)) * rho * Y_pn * energy_moment * blocking_factor;
-    // fprintf(stderr,"(harm) blocking_factor     = %.15e\n",blocking_factor);
-    // fprintf(stderr,"(harm) energy_moment_star  = %.15e\n",energy_moment_star);
-    // fprintf(stderr,"(harm) energy_moment_tilde = %.15e\n",energy_moment_tilde);
-    // fprintf(stderr,"(harm) R_beta_nue          = %.15e\n",R_beta);
-    // fprintf(stderr,"(harm) **********************************************\n");
+    // fprintf(stderr,"(HARM+NUC) blocking_factor     = %.15e\n",blocking_factor);
+    // fprintf(stderr,"(HARM+NUC) energy_moment_star  = %.15e\n",energy_moment_star);
+    // fprintf(stderr,"(HARM+NUC) energy_moment_tilde = %.15e\n",energy_moment_tilde);
+    // fprintf(stderr,"(HARM+NUC) R_beta_nue          = %.15e\n",R_beta);
+    // fprintf(stderr,"(HARM+NUC) **********************************************\n");
     
     return R_beta;  /* [1](B1) + */
 
@@ -1972,7 +1972,7 @@ double beta_process_emission_rate__neutrino_energy(int neutrino_flavor, double r
     /* !! why don't we just call beta_process_emission_rate__neutrino_number() because it's the same function modulo the energy_moment   ari: done*/
     //return ((1.0 + 3.0 * C_alpha_neutrino_sq) / 8.0) * (C_A_sigma_0 / (C_me2_c3)) * rho * Y_np * energy_moment * blocking_factor;  /* [1](B15) +  */
 
-    // printf("(harm) Q_beta_anue = %.15e\n",R_beta*energy_moment_star/energy_moment_tilde);
+    // printf("(HARM+NUC) Q_beta_anue = %.15e\n",R_beta*energy_moment_star/energy_moment_tilde);
     
     return R_beta*energy_moment_star/energy_moment_tilde; /* [1](B15)  */
 
@@ -2379,24 +2379,24 @@ double get_inverse_emission_timescale(int neutrino_flavor, int type_of_transport
     //fprintf(stderr, "R_plasmon %e\n", R_plasmon);
     //fprintf(stderr, "number_density %e\n", number_density);
 
-    // if( neutrino_flavor == nu__e ) {
-    //   fprintf(stderr,"(harm) Electron neutrino:\n");
-    //   fprintf(stderr,"(harm) R_beta_nue         = %.15e\n",R_Beta);
-    //   fprintf(stderr,"(harm) R_pair_nue_anue    = %.15e\n",R_ee);
-    //   fprintf(stderr,"(harm) R_plasmon_nue_anue = %.15e\n",R_plasmon);
-    // }
-    // else if( neutrino_flavor == nu__e_bar ) {
-    //   fprintf(stderr,"(harm) Electron antineutrino:\n");
-    //   fprintf(stderr,"(harm) R_beta_anue        = %.15e\n",R_Beta);
-    //   fprintf(stderr,"(harm) R_pair_nue_anue    = %.15e\n",R_ee);
-    //   fprintf(stderr,"(harm) R_plasmon_nue_anue = %.15e\n",R_plasmon);
-    // }
-    // else {
-    //   fprintf(stderr,"(harm) Heavy lepton neutrinos:\n");
-    //   fprintf(stderr,"(harm) R_beta_nux_anux    = %.15e\n",R_Beta);
-    //   fprintf(stderr,"(harm) R_pair_nux_anux    = %.15e\n",R_ee);
-    //   fprintf(stderr,"(harm) R_plasmon_nux_anux = %.15e\n",R_plasmon);
-    // }
+    if( neutrino_flavor == nu__e ) {
+      fprintf(stderr,"(HARM+NUC) Electron neutrino:\n");
+      fprintf(stderr,"(HARM+NUC) R_beta_nue         = %.15e\n",R_Beta);
+      fprintf(stderr,"(HARM+NUC) R_pair_nue_anue    = %.15e\n",R_ee);
+      fprintf(stderr,"(HARM+NUC) R_plasmon_nue_anue = %.15e\n",R_plasmon);
+    }
+    else if( neutrino_flavor == nu__e_bar ) {
+      fprintf(stderr,"(HARM+NUC) Electron antineutrino:\n");
+      fprintf(stderr,"(HARM+NUC) R_beta_anue        = %.15e\n",R_Beta);
+      fprintf(stderr,"(HARM+NUC) R_pair_nue_anue    = %.15e\n",R_ee);
+      fprintf(stderr,"(HARM+NUC) R_plasmon_nue_anue = %.15e\n",R_plasmon);
+    }
+    else {
+      fprintf(stderr,"(HARM+NUC) Heavy lepton neutrinos:\n");
+      fprintf(stderr,"(HARM+NUC) R_beta_nux_anux    = %.15e\n",R_Beta);
+      fprintf(stderr,"(HARM+NUC) R_pair_nux_anux    = %.15e\n",R_ee);
+      fprintf(stderr,"(HARM+NUC) R_plasmon_nux_anux = %.15e\n",R_plasmon);
+    }
 
     return (R_Beta + R_ee + R_plasmon) / number_density; /* [1](B20) + */
 
@@ -2427,24 +2427,24 @@ double get_inverse_emission_timescale(int neutrino_flavor, int type_of_transport
       energy_density=1e-20;
     }
 
-    // if( neutrino_flavor == nu__e ) {
-    //   fprintf(stderr,"(harm) Electron neutrino:\n");
-    //   fprintf(stderr,"(harm) Q_beta_nue         = %.15e\n",Q_Beta);
-    //   fprintf(stderr,"(harm) Q_pair_nue_anue    = %.15e\n",Q_ee);
-    //   fprintf(stderr,"(harm) Q_plasmon_nue_anue = %.15e\n",Q_plasmon);
-    // }
-    // else if( neutrino_flavor == nu__e_bar ) {
-    //   fprintf(stderr,"(harm) Electron antineutrino:\n");
-    //   fprintf(stderr,"(harm) Q_beta_anue        = %.15e\n",Q_Beta);
-    //   fprintf(stderr,"(harm) Q_pair_nue_anue    = %.15e\n",Q_ee);
-    //   fprintf(stderr,"(harm) Q_plasmon_nue_anue = %.15e\n",Q_plasmon);
-    // }
-    // else {
-    //   fprintf(stderr,"(harm) Heavy lepton neutrinos:\n");
-    //   fprintf(stderr,"(harm) Q_beta_nux_anux    = %.15e\n",Q_Beta);
-    //   fprintf(stderr,"(harm) Q_pair_nux_anux    = %.15e\n",Q_ee);
-    //   fprintf(stderr,"(harm) Q_plasmon_nux_anux = %.15e\n",Q_plasmon);
-    // }
+    if( neutrino_flavor == nu__e ) {
+      fprintf(stderr,"(HARM+NUC) Electron neutrino:\n");
+      fprintf(stderr,"(HARM+NUC) Q_beta_nue         = %.15e\n",Q_Beta);
+      fprintf(stderr,"(HARM+NUC) Q_pair_nue_anue    = %.15e\n",Q_ee);
+      fprintf(stderr,"(HARM+NUC) Q_plasmon_nue_anue = %.15e\n",Q_plasmon);
+    }
+    else if( neutrino_flavor == nu__e_bar ) {
+      fprintf(stderr,"(HARM+NUC) Electron antineutrino:\n");
+      fprintf(stderr,"(HARM+NUC) Q_beta_anue        = %.15e\n",Q_Beta);
+      fprintf(stderr,"(HARM+NUC) Q_pair_nue_anue    = %.15e\n",Q_ee);
+      fprintf(stderr,"(HARM+NUC) Q_plasmon_nue_anue = %.15e\n",Q_plasmon);
+    }
+    else {
+      fprintf(stderr,"(HARM+NUC) Heavy lepton neutrinos:\n");
+      fprintf(stderr,"(HARM+NUC) Q_beta_nux_anux    = %.15e\n",Q_Beta);
+      fprintf(stderr,"(HARM+NUC) Q_pair_nux_anux    = %.15e\n",Q_ee);
+      fprintf(stderr,"(HARM+NUC) Q_plasmon_nux_anux = %.15e\n",Q_plasmon);
+    }
 
     return (Q_Beta + Q_ee + Q_plasmon) / energy_density;  /* [1](B21) + */
 
