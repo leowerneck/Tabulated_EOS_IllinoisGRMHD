@@ -37,7 +37,9 @@ void NRPyLeakage_compute_optical_depths(const int Nt0,
                                         REAL *tau_1_nux) {
 
   printf("Inside NRPyLeakage_compute_optical_depths\n");
-  printf("%e %e %e\n",gammaDD00[0],gammaDD11[0],gammaDD22[0]);
+  printf("%d %d %d %d %d %d\n",Nt0,Nt1,Nt2,Ng0,Ng1,Ng2);
+  printf("%e %e %e\n",dxx0,dxx1,dxx2);
+  // printf("%e %e %e\n",gammaDD00[0],gammaDD11[0],gammaDD22[0]);
   getchar();
 
   // Step 0: Loop over the grid computing the optical depth

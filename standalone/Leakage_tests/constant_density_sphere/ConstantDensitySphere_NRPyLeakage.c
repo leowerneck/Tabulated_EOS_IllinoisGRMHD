@@ -195,21 +195,25 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
   const REAL ymin  = xmin;
   const REAL zmax  = xmax;
   const REAL zmin  = xmin;
-  const REAL dx    = (xmax-xmin)/N0;
-  const REAL dy    = (xmax-xmin)/N1;
-  const REAL dz    = (xmax-xmin)/N2;
+  const REAL dx    = (xmax-xmin)/((REAL)N0);
+  const REAL dy    = (xmax-xmin)/((REAL)N1);
+  const REAL dz    = (xmax-xmin)/((REAL)N2);
   const REAL rSph  = 1;
 
   // Step 2: Allocate memory for the metric, opacities, and optical depths
-  REAL *xx[3];
-  xx[0]           = (REAL *)malloc(sizeof(REAL)*Nt0);
-  xx[1]           = (REAL *)malloc(sizeof(REAL)*Nt1);
-  xx[2]           = (REAL *)malloc(sizeof(REAL)*Nt2);
-  REAL *gammaDD00 = (REAL *)malloc(sizeof(REAL)*Ntotal);
-  REAL *gammaDD11 = (REAL *)malloc(sizeof(REAL)*Ntotal);
-  REAL *gammaDD22 = (REAL *)malloc(sizeof(REAL)*Ntotal);
-  REAL *kappa_nue[2], *kappa_anue[2], *kappa_nux[2];
-  REAL *tau_nue[2], *tau_anue[2], *tau_nux[2];
+  REAL **xx         = (REAL **)malloc(sizeof(REAL *)*3);
+  xx[0]             = (REAL *)malloc(sizeof(REAL)*Nt0);
+  xx[1]             = (REAL *)malloc(sizeof(REAL)*Nt1);
+  xx[2]             = (REAL *)malloc(sizeof(REAL)*Nt2);
+  REAL *gammaDD00   = (REAL *)malloc(sizeof(REAL)*Ntotal);
+  REAL *gammaDD11   = (REAL *)malloc(sizeof(REAL)*Ntotal);
+  REAL *gammaDD22   = (REAL *)malloc(sizeof(REAL)*Ntotal);
+  REAL **kappa_nue  = (REAL **)malloc(sizeof(REAL *)*2);
+  REAL **kappa_anue = (REAL **)malloc(sizeof(REAL *)*2);
+  REAL **kappa_nux  = (REAL **)malloc(sizeof(REAL *)*2);
+  REAL **tau_nue    = (REAL **)malloc(sizeof(REAL *)*2);
+  REAL **tau_anue   = (REAL **)malloc(sizeof(REAL *)*2);
+  REAL **tau_nux    = (REAL **)malloc(sizeof(REAL *)*2);
   for(int i=0;i<2;i++) {
    kappa_nue [i] = (REAL *)malloc(sizeof(REAL)*Ntotal);
    kappa_anue[i] = (REAL *)malloc(sizeof(REAL)*Ntotal);
@@ -263,6 +267,9 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
   fprintf(stderr,"(ConstantDensitySphere)         - Nx            = (%d) + 2x(%d)\n",N0,Ng0);
   fprintf(stderr,"(ConstantDensitySphere)         - Ny            = (%d) + 2x(%d)\n",N1,Ng1);
   fprintf(stderr,"(ConstantDensitySphere)         - Nz            = (%d) + 2x(%d)\n",N2,Ng2);
+  fprintf(stderr,"(ConstantDensitySphere)         - dx            = %22.15e\n",dx);
+  fprintf(stderr,"(ConstantDensitySphere)         - dy            = %22.15e\n",dy);
+  fprintf(stderr,"(ConstantDensitySphere)         - dz            = %22.15e\n",dz);
   fprintf(stderr,"(ConstantDensitySphere)     Hydro quantities at sphere interior:\n");
   fprintf(stderr,"(ConstantDensitySphere)         - rho           = %22.15e\n",rho_interior);
   fprintf(stderr,"(ConstantDensitySphere)         - Y_e           = %22.15e\n",Y_e_interior);
@@ -343,7 +350,8 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
 
   // Step 5: Now update the optical depth
   fprintf(stderr,"(ConstantDensitySphere) Starting computation of optical depths\n");
-  NRPyLeakage_compute_optical_depths(Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,dx,dy,dz,
+  NRPyLeakage_compute_optical_depths(Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,
+                                     dx,dy,dz,
                                      gammaDD00,gammaDD11,gammaDD22,
                                      kappa_nue [0],kappa_nue [1],
                                      kappa_anue[0],kappa_anue[1],
@@ -358,6 +366,7 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
 
   // Step 7: Free memory
   for(int i=0;i<3;i++) free(xx[i]);
+  free(xx);
   free(gammaDD00);
   free(gammaDD11);
   free(gammaDD22);
@@ -369,4 +378,10 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
     free(tau_anue  [i]);
     free(tau_nux   [i]);
   }
+  free(kappa_nue);
+  free(kappa_anue);
+  free(kappa_nux);
+  free(tau_nue);
+  free(tau_anue);
+  free(tau_nux);
 }
