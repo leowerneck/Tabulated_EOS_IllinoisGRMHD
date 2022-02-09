@@ -300,7 +300,12 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
         // Step 3.a: Set local index
         const int index = IDX3D(i0,i1,i2);
 
-        // Step 3.b: Set local opacities
+        // Step 3.b: Initialize metric to flat space
+        gammaDD00[index] = 1.0;
+        gammaDD11[index] = 1.0;
+        gammaDD22[index] = 1.0;
+
+        // Step 3.c: Set local opacities
         const REAL r = sqrt( x*x + y*y + z*z );
         if( r > rSph ) {
           // Exterior
@@ -321,7 +326,7 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
           kappa_nux [1][index] = kappa_nux_interior [1];
         }
 
-        // Step 3.c: Initialize optical depths to zero
+        // Step 3.d: Initialize optical depths to zero
         tau_nue [0][index] = 0.0;
         tau_nue [1][index] = 0.0;
         tau_anue[0][index] = 0.0;
@@ -332,11 +337,26 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
     }
   }
 
-  // Step 4: Data dumps
+  // Step 4: Initial data dumps
   dump_1d_data("initial",Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
   dump_2d_data("initial",Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
-  
 
+  // Step 5: Now update the optical depth
+  fprintf(stderr,"(ConstantDensitySphere) Starting computation of optical depths\n");
+  NRPyLeakage_compute_optical_depths(Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,dx,dy,dz,
+                                     gammaDD00,gammaDD11,gammaDD22,
+                                     kappa_nue [0],kappa_nue [1],
+                                     kappa_anue[0],kappa_anue[1],
+                                     kappa_nux [0],kappa_nux [1],
+                                     tau_nue   [0],tau_nue   [1],
+                                     tau_anue  [0],tau_anue  [1],
+                                     tau_nux   [0],tau_nux   [1]);
+
+  // Step 6: Final data dumps
+  dump_1d_data("final",Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
+  dump_2d_data("final",Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
+
+  // Step 7: Free memory
   for(int i=0;i<3;i++) free(xx[i]);
   free(gammaDD00);
   free(gammaDD11);
