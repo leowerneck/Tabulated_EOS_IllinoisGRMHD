@@ -7,17 +7,17 @@
  * Compute GRMHD source terms following Ruffert et al. (1996)
  * https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
  */
-void NRPyLeakage_compute_GRMHD_source_terms_and_opacities_harm_constants_impl(const REAL rho_b,
-                                                                              const REAL Y_e,
-                                                                              const REAL T,
-                                                                              const REAL *restrict tau_nue,
-                                                                              const REAL *restrict tau_anue,
-                                                                              const REAL *restrict tau_nux,
-                                                                              REAL *restrict R_source,
-                                                                              REAL *restrict Q_source,
-                                                                              REAL *restrict kappa_nue,
-                                                                              REAL *restrict kappa_anue,
-                                                                              REAL *restrict kappa_nux) {
+void NRPyLeakage_compute_GRMHD_source_terms_and_opacities_harm_constants(const REAL rho_b,
+                                                                         const REAL Y_e,
+                                                                         const REAL T,
+                                                                         const REAL *restrict tau_nue,
+                                                                         const REAL *restrict tau_anue,
+                                                                         const REAL *restrict tau_nux,
+                                                                         REAL *restrict R_source,
+                                                                         REAL *restrict Q_source,
+                                                                         REAL *restrict kappa_nue,
+                                                                         REAL *restrict kappa_anue,
+                                                                         REAL *restrict kappa_nux) {
 
 
   // Step 1: Get chemical potentials and mass

@@ -1,26 +1,57 @@
 # Interface definition for thorn NRPyLeakageET
 
 implements: NRPyLeakageET
-inherits:
+inherits: ADMBase, Boundary, SpaceMask, HydroBase, grid
 
 includes header: NRPyLeakage.h in NRPyLeakage.h
 USES INCLUDE HEADER: WVU_EOS_Tabulated_headers.h
 
 # ------------------------------------------------------
-void FUNCTION NRPyLeakage_compute_GRMHD_source_terms_and_opacities(CCTK_INT IN which_constants_to_use, \
-                                                                   CCTK_REAL IN rho_b,                 \
-                                                                   CCTK_REAL IN Y_e,                   \
-                                                                   CCTK_REAL IN T,                     \
-                                                                   CCTK_REAL IN ARRAY tau_nue,         \
-                                                                   CCTK_REAL IN ARRAY tau_anue,        \
-                                                                   CCTK_REAL IN ARRAY tau_nux,         \
-                                                                   CCTK_REAL OUT R_source,             \
-                                                                   CCTK_REAL OUT Q_source,             \
-                                                                   CCTK_REAL OUT kappa_nue,            \
-                                                                   CCTK_REAL OUT kappa_anue,           \
-                                                                   CCTK_REAL OUT kappa_nux)
+# Gridfunctions
+# ------------------------------------------------------
+public:
+CCTK_REAL NRPyLeakageET_opacities type = GF Timelevels=3 TAGS='prolongation="ENO"'
+{
+  kappa_0_nue, kappa_0_anue, kappa_0_nux,
+  kappa_1_nue, kappa_1_anue, kappa_1_nux
+} "Opacity gridfunctions for electron neutrino, antineutrino, and heavy lepton neutrinos/antineutrinos"
 
-PROVIDES FUNCTION NRPyLeakage_compute_GRMHD_source_terms_and_opacities WITH NRPyLeakage_compute_GRMHD_source_terms_and_opacities_impl LANGUAGE C
+CCTK_REAL NRPyLeakageET_optical_depths type = GF Timelevels=3 TAGS='prolongation="ENO"'
+{
+  tau_0_nue, tau_0_anue, tau_0_nux,
+  tau_1_nue, tau_1_anue, tau_1_nux
+} "Optical depth gridfunctions for electron neutrino, antineutrino, and heavy lepton neutrinos/antineutrinos"
+# ------------------------------------------------------
+
+# ----------------------------
+void FUNCTION NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss( CCTK_POINTER_TO_CONST IN cctkGH,
+                                                                              CCTK_INT IN ARRAY cctk_lsh,
+                                                                              CCTK_INT IN ARRAY cctk_nghostzones,
+                                                                              CCTK_REAL IN W_max,
+                                                                              CCTK_REAL IN ARRAY alp,
+                                                                              CCTK_REAL IN ARRAY betax,
+                                                                              CCTK_REAL IN ARRAY betay,
+                                                                              CCTK_REAL IN ARRAY betaz,
+                                                                              CCTK_REAL IN ARRAY gxx,
+                                                                              CCTK_REAL IN ARRAY gxy,
+                                                                              CCTK_REAL IN ARRAY gxz,
+                                                                              CCTK_REAL IN ARRAY gyy,
+                                                                              CCTK_REAL IN ARRAY gyz,
+                                                                              CCTK_REAL IN ARRAY gzz,
+                                                                              CCTK_REAL IN ARRAY rho,
+                                                                              CCTK_REAL IN ARRAY Y_e,
+                                                                              CCTK_REAL IN ARRAY temperature,
+                                                                              CCTK_REAL IN ARRAY vel,
+                                                                              CCTK_REAL OUT ARRAY Ye_star_rhs,
+                                                                              CCTK_REAL OUT ARRAY tau_rhs,
+                                                                              CCTK_REAL OUT ARRAY st_x_rhs,
+                                                                              CCTK_REAL OUT ARRAY st_y_rhs,
+                                                                              CCTK_REAL OUT ARRAY st_z_rhs )
+PROVIDES FUNCTION NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss WITH NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss_impl LANGUAGE C
+#
+
+# ------------------------------------------------------
+# Aliased functions
 # ------------------------------------------------------
 void FUNCTION WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T( CCTK_REAL IN rho,    \
                                                                  CCTK_REAL IN Ye,     \
