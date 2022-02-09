@@ -1720,11 +1720,11 @@ double get_total_transport_opacity(const NRPyEOS_params *restrict eos_params,
     kappa_a_n = get_spectrally_averaged_absorption_opacity(neutrino_flavor, NEUTRON, type_of_transport, rho, temperature,
                                                            electron_fraction, muhat_degeneracy, electron_degeneracy, neutrino_degeneracy);  /* [1](A11) */
     if(!isfinite(kappa_s_n)){
-      //fprintf(stderr, "kappa_s_n electron %e\n", kappa_s_n);
-      //fprintf(stderr, "electron_fraction %e\n", electron_fraction);
-      //fprintf(stderr, "muhat_degeneracy %e\n", muhat_degeneracy);
-      //fprintf(stderr, "rho %e\n", rho);
-      //fprintf(stderr, "temperature %e\n", temperature);
+      // fprintf(stderr, "kappa_s_n electron %e\n", kappa_s_n);
+      // fprintf(stderr, "electron_fraction %e\n", electron_fraction);
+      // fprintf(stderr, "muhat_degeneracy %e\n", muhat_degeneracy);
+      // fprintf(stderr, "rho %e\n", rho);
+      // fprintf(stderr, "temperature %e\n", temperature);
       kappa_s_n=SMALL_kappa;
     }
     if(!isfinite(kappa_a_n)){
@@ -1744,10 +1744,10 @@ double get_total_transport_opacity(const NRPyEOS_params *restrict eos_params,
       kappa_s_p=SMALL_kappa;
     }
 
-    // fprintf(stderr,"(HARM+NUC) kappa_s_n_%d_nue  = %.15e\n",type_of_transport,kappa_s_n);
-    // fprintf(stderr,"(HARM+NUC) kappa_s_p_%d_nue  = %.15e\n",type_of_transport,kappa_s_p);
-    // fprintf(stderr,"(HARM+NUC) kappa_a_%d_nue    = %.15e\n",type_of_transport,kappa_a_n);
-    // fprintf(stderr,"(HARM+NUC) kappa_%d_nue      = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p + kappa_a_n);
+    fprintf(stderr,"(HARM+NUC) kappa_s_n_%d_nue  = %.15e\n",type_of_transport,kappa_s_n);
+    fprintf(stderr,"(HARM+NUC) kappa_s_p_%d_nue  = %.15e\n",type_of_transport,kappa_s_p);
+    fprintf(stderr,"(HARM+NUC) kappa_a_%d_nue    = %.15e\n",type_of_transport,kappa_a_n);
+    fprintf(stderr,"(HARM+NUC) kappa_%d_nue      = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p + kappa_a_n);
     
     return kappa_s_n + kappa_s_p + kappa_a_n;  /* [1](A17) + */
 
@@ -1790,10 +1790,10 @@ double get_total_transport_opacity(const NRPyEOS_params *restrict eos_params,
       kappa_s_p=SMALL_kappa;
     }
 
-    // fprintf(stderr,"(HARM+NUC) kappa_s_n_%d_anue = %.15e\n",type_of_transport,kappa_s_n);
-    // fprintf(stderr,"(HARM+NUC) kappa_s_p_%d_anue = %.15e\n",type_of_transport,kappa_s_p);
-    // fprintf(stderr,"(HARM+NUC) kappa_a_%d_anue   = %.15e\n",type_of_transport,kappa_a_p);
-    // fprintf(stderr,"(HARM+NUC) kappa_%d_anue     = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p + kappa_a_p);
+    fprintf(stderr,"(HARM+NUC) kappa_s_n_%d_anue = %.15e\n",type_of_transport,kappa_s_n);
+    fprintf(stderr,"(HARM+NUC) kappa_s_p_%d_anue = %.15e\n",type_of_transport,kappa_s_p);
+    fprintf(stderr,"(HARM+NUC) kappa_a_%d_anue   = %.15e\n",type_of_transport,kappa_a_p);
+    fprintf(stderr,"(HARM+NUC) kappa_%d_anue     = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p + kappa_a_p);
 
     return kappa_s_n + kappa_s_p + kappa_a_p;  /* [1](A18) + */
 
@@ -1815,9 +1815,9 @@ double get_total_transport_opacity(const NRPyEOS_params *restrict eos_params,
       kappa_s_p=SMALL_kappa;
     }
 
-    // fprintf(stderr,"(HARM+NUC) kappa_s_n_%d_nux  = %.15e\n",type_of_transport,kappa_s_n);
-    // fprintf(stderr,"(HARM+NUC) kappa_s_p_%d_nux  = %.15e\n",type_of_transport,kappa_s_p);
-    // fprintf(stderr,"(HARM+NUC) kappa_%d_nux      = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p);
+    fprintf(stderr,"(HARM+NUC) kappa_s_n_%d_nux  = %.15e\n",type_of_transport,kappa_s_n);
+    fprintf(stderr,"(HARM+NUC) kappa_s_p_%d_nux  = %.15e\n",type_of_transport,kappa_s_p);
+    fprintf(stderr,"(HARM+NUC) kappa_%d_nux      = %.15e\n",type_of_transport,kappa_s_n + kappa_s_p);
     
     return kappa_s_n + kappa_s_p;  /* [1](A19) + */
 

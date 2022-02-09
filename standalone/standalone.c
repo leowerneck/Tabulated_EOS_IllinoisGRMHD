@@ -17,18 +17,20 @@ int main(int argc, char **argv) {
   NRPyEOS_params eos_params;
   NRPyEOS_readtable_set_EOS_params(argv[1],&eos_params);
 
-  NRPyEOS_benchmark(&eos_params);
+  // NRPyEOS_benchmark(&eos_params);
+
+  ConstantDensitySphere_NRPyLeakage(&eos_params);
 
   // // Test Leakage
-  // const REAL rho_b       = strtod(argv[2],NULL);
-  // const REAL Y_e         = strtod(argv[3],NULL);
-  // const REAL T           = strtod(argv[4],NULL);
+  const REAL rho_b       = 6.0e7*NRPyLeakage_units_cgs_to_geom_D;//strtod(argv[2],NULL);
+  const REAL Y_e         = 0.5;//strtod(argv[3],NULL);
+  const REAL T           = 0.01;//strtod(argv[4],NULL);
   // const REAL tau_nue[2]  = {0.0,0.0};
   // const REAL tau_anue[2] = {0.0,0.0};
   // const REAL tau_nux[2]  = {0.0,0.0};
 
-  // REAL P,eps;
-  // NRPyEOS_P_and_eps_from_rho_Ye_T(&eos_params,rho_b,Y_e,T,&P,&eps);
+  REAL P,eps;
+  NRPyEOS_P_and_eps_from_rho_Ye_T(&eos_params,rho_b,Y_e,T,&P,&eps);
 
   // const int which_constants = USE_HARM_CONSTANTS;
 
@@ -57,18 +59,18 @@ int main(int argc, char **argv) {
   // printf("(NRPyLeakage) rhs_Y_e      = %.15e\n",R_source/rho_b);
   // printf("(NRPyLeakage) rhs_eps      = %.15e\n",Q_source/rho_b);
 
-  // double prims[NUMPRIMS];
-  // prims[RHO ] = rho_b;
-  // prims[YE  ] = Y_e;
-  // prims[TEMP] = T;
-  // prims[UU  ] = eps*prims[RHO];
-  // for(int i=0;i<3;i++) {
-  //   prims[U1+i] = 0.0;
-  //   prims[B1+i] = 0.0;
-  // }
+  double prims[NUMPRIMS];
+  prims[RHO ] = rho_b;
+  prims[YE  ] = Y_e;
+  prims[TEMP] = T;
+  prims[UU  ] = eps*prims[RHO];
+  for(int i=0;i<3;i++) {
+    prims[U1+i] = 0.0;
+    prims[B1+i] = 0.0;
+  }
 
-  // double optical_depth[N_OPTICAL_DEPTHS];
-  // for(int i=0;i<N_OPTICAL_DEPTHS;i++) optical_depth[i] = 0.0;
+  double optical_depth[N_OPTICAL_DEPTHS];
+  for(int i=0;i<N_OPTICAL_DEPTHS;i++) optical_depth[i] = 0.0;
 
   // double R_function, Q_function;
   // neutrino_absorption_heating_rate(&eos_params, prims, optical_depth, &R_function, &Q_function);

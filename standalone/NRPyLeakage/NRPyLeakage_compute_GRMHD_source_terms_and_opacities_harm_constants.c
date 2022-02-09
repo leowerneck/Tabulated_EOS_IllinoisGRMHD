@@ -147,4 +147,13 @@ tmp_41 = Y_e*((5.0/24.0)*tmp_3 + tmp_40)/((2.0/3.0)*MAX(mu_p*tmp_0, 0) + 1);
   kappa_anue[1] = NRPyLeakage_harm_units_geom_to_cgs_L*tmp_80;
   kappa_nux[0] = NRPyLeakage_harm_units_geom_to_cgs_L*(tmp_34*tmp_35*tmp_81 + tmp_42*tmp_81);
   kappa_nux[1] = NRPyLeakage_harm_units_geom_to_cgs_L*tmp_66;
+
+  // Step 5: Make sure results are finite; if not reset to small value
+  if( !isfinite(*R_source) ) *R_source = 1e-15;
+  if( !isfinite(*Q_source) ) *Q_source = 1e-15;
+  for(int i=0;i<2;i++) {
+    if( !isfinite(kappa_nue [i]) ) kappa_nue [i] = 1e-15;
+    if( !isfinite(kappa_anue[i]) ) kappa_anue[i] = 1e-15;
+    if( !isfinite(kappa_nux [i]) ) kappa_nux [i] = 1e-15;
+  }
 }
