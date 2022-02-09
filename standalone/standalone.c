@@ -69,8 +69,8 @@ int main(int argc, char **argv) {
     prims[B1+i] = 0.0;
   }
 
-  double optical_depth[N_OPTICAL_DEPTHS];
-  for(int i=0;i<N_OPTICAL_DEPTHS;i++) optical_depth[i] = 0.0;
+  // double optical_depth[N_OPTICAL_DEPTHS];
+  // for(int i=0;i<N_OPTICAL_DEPTHS;i++) optical_depth[i] = 0.0;
 
   // double R_function, Q_function;
   // neutrino_absorption_heating_rate(&eos_params, prims, optical_depth, &R_function, &Q_function);

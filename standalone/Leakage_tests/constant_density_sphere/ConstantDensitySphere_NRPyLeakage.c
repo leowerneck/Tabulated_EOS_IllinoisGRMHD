@@ -2,6 +2,180 @@
 #include "NRPyEOS.h"
 #include "NRPyLeakage.h"
 
+#ifdef IDX3D
+#undef IDX3D
+#endif
+#define IDX3D(i0,i1,i2) ( (i0) + Nt0*( (i1) + Nt1*(i2) ) )
+
+void dump_1d_data( const char *filename_prefix,
+                   const int Nt0, const int Nt1, const int Nt2,
+                   const int Ng0, const int Ng1, const int Ng2,
+                   REAL **xx,
+                   REAL **kappa_nue,
+                   REAL **kappa_anue,
+                   REAL **kappa_nux,
+                   REAL **tau_nue,
+                   REAL **tau_anue,
+                   REAL **tau_nux ) {
+  fprintf(stderr,"(ConstantDensitySphere) Dumping 1D data with prefix \"%s\"... ",filename_prefix);
+
+  int midpoint[2];
+  REAL x_midpoint[2];
+  char filename[256];
+  FILE *fp;
+  // x-axis
+  sprintf(filename,"%s_dump_x.asc",filename_prefix);
+  fp = fopen(filename,"w");
+  midpoint  [0] = Nt1/2;
+  midpoint  [1] = Nt2/2;
+  x_midpoint[0] = xx[1][midpoint[0]];
+  x_midpoint[1] = xx[2][midpoint[1]];
+  for(int i0=Ng0;i0<Nt0-Ng0;i0++) {
+    const REAL x0 = xx[0][i0];
+    const int index = IDX3D(i0,midpoint[0],midpoint[1]);
+    fprintf(fp,"%.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e\n",
+            x0,x_midpoint[0],x_midpoint[1],
+            kappa_nue [0][index],kappa_nue [1][index],
+            kappa_anue[0][index],kappa_anue[1][index],
+            kappa_nux [0][index],kappa_nux [1][index],
+            tau_nue   [0][index],tau_nue   [1][index],
+            tau_anue  [0][index],tau_anue  [1][index],
+            tau_nux   [0][index],tau_nux   [1][index]);
+  }
+  fclose(fp);
+
+  // y-axis
+  sprintf(filename,"%s_dump_y.asc",filename_prefix);
+  fp = fopen(filename,"w");
+  midpoint  [0] = Nt0/2;
+  midpoint  [1] = Nt2/2;
+  x_midpoint[0] = xx[0][midpoint[0]];
+  x_midpoint[1] = xx[2][midpoint[1]];
+  for(int i1=Ng1;i1<Nt1-Ng1;i1++) {
+    const REAL x1 = xx[1][i1];
+    const int index = IDX3D(midpoint[0],i1,midpoint[1]);
+    fprintf(fp,"%.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e\n",
+            x_midpoint[0],x1,x_midpoint[1],
+            kappa_nue [0][index],kappa_nue [1][index],
+            kappa_anue[0][index],kappa_anue[1][index],
+            kappa_nux [0][index],kappa_nux [1][index],
+            tau_nue   [0][index],tau_nue   [1][index],
+            tau_anue  [0][index],tau_anue  [1][index],
+            tau_nux   [0][index],tau_nux   [1][index]);
+  }
+  fclose(fp);
+
+  // z-axis
+  sprintf(filename,"%s_dump_z.asc",filename_prefix);
+  fp = fopen(filename,"w");
+  midpoint  [0] = Nt0/2;
+  midpoint  [1] = Nt1/2;
+  x_midpoint[0] = xx[0][midpoint[0]];
+  x_midpoint[1] = xx[1][midpoint[1]];
+  for(int i2=Ng2;i2<Nt2-Ng2;i2++) {
+    const REAL x2 = xx[2][i2];
+    const int index = IDX3D(midpoint[0],midpoint[1],i2);
+    fprintf(fp,"%.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e\n",
+            x_midpoint[0],x_midpoint[1],x2,
+            kappa_nue [0][index],kappa_nue [1][index],
+            kappa_anue[0][index],kappa_anue[1][index],
+            kappa_nux [0][index],kappa_nux [1][index],
+            tau_nue   [0][index],tau_nue   [1][index],
+            tau_anue  [0][index],tau_anue  [1][index],
+            tau_nux   [0][index],tau_nux   [1][index]);
+  }
+  fclose(fp);
+  fprintf(stderr,"done!\n");
+}
+
+void dump_2d_data( const char *filename_prefix,
+                   const int Nt0, const int Nt1, const int Nt2,
+                   const int Ng0, const int Ng1, const int Ng2,
+                   REAL **xx,
+                   REAL **kappa_nue,
+                   REAL **kappa_anue,
+                   REAL **kappa_nux,
+                   REAL **tau_nue,
+                   REAL **tau_anue,
+                   REAL **tau_nux ) {
+
+  fprintf(stderr,"(ConstantDensitySphere) Dumping 2D data with prefix \"%s\"... ",filename_prefix);
+
+  int midpoint;
+  REAL x_midpoint;
+  char filename[256];
+  FILE *fp;
+  // xy-plane
+  sprintf(filename,"%s_dump_xy.asc",filename_prefix);
+  fp = fopen(filename,"w");
+  midpoint = Nt2/2;
+  x_midpoint = xx[2][midpoint];
+  for(int i1=Ng1;i1<Nt1-Ng1;i1++) {
+    const REAL x1 = xx[1][i1];
+    for(int i0=Ng0;i0<Nt0-Ng0;i0++) {
+      const REAL x0 = xx[0][i0];
+      const int index = IDX3D(i0,i1,midpoint);
+      fprintf(fp,"%.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e\n",
+              x0,x1,x_midpoint,
+              kappa_nue [0][index],kappa_nue [1][index],
+              kappa_anue[0][index],kappa_anue[1][index],
+              kappa_nux [0][index],kappa_nux [1][index],
+              tau_nue   [0][index],tau_nue   [1][index],
+              tau_anue  [0][index],tau_anue  [1][index],
+              tau_nux   [0][index],tau_nux   [1][index]);
+    }
+    fprintf(fp,"\n");
+  }
+  fclose(fp);
+
+  // xz-plane
+  sprintf(filename,"%s_dump_xz.asc",filename_prefix);
+  fp = fopen(filename,"w");
+  midpoint = Nt1/2;
+  x_midpoint = xx[1][midpoint];
+  for(int i2=Ng2;i2<Nt2-Ng2;i2++) {
+    const REAL x2 = xx[2][i2];
+    for(int i0=Ng0;i0<Nt0-Ng0;i0++) {
+      const REAL x0 = xx[0][i0];
+      const int index = IDX3D(i0,midpoint,i2);
+      fprintf(fp,"%.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e\n",
+              x0,x_midpoint,x2,
+              kappa_nue [0][index],kappa_nue [1][index],
+              kappa_anue[0][index],kappa_anue[1][index],
+              kappa_nux [0][index],kappa_nux [1][index],
+              tau_nue   [0][index],tau_nue   [1][index],
+              tau_anue  [0][index],tau_anue  [1][index],
+              tau_nux   [0][index],tau_nux   [1][index]);
+    }
+    fprintf(fp,"\n");
+  }
+  fclose(fp);
+
+  // yz-plane
+  sprintf(filename,"%s_dump_yz.asc",filename_prefix);
+  fp = fopen(filename,"w");
+  midpoint = Nt0/2;
+  x_midpoint = xx[0][midpoint];
+  for(int i2=Ng2;i2<Nt2-Ng2;i2++) {
+    const REAL x2 = xx[2][i2];
+    for(int i1=Ng1;i1<Nt1-Ng1;i1++) {
+      const REAL x1 = xx[1][i1];
+      const int index = IDX3D(midpoint,i1,i2);
+      fprintf(fp,"%.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e %.15e\n",
+              x_midpoint,x1,x2,
+              kappa_nue [0][index],kappa_nue [1][index],
+              kappa_anue[0][index],kappa_anue[1][index],
+              kappa_nux [0][index],kappa_nux [1][index],
+              tau_nue   [0][index],tau_nue   [1][index],
+              tau_anue  [0][index],tau_anue  [1][index],
+              tau_nux   [0][index],tau_nux   [1][index]);
+    }
+    fprintf(fp,"\n");
+  }
+  fclose(fp);
+  fprintf(stderr,"done!\n");
+}
+
 void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params) {
 
   // Step 1: Set basic parameters
@@ -27,6 +201,10 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
   const REAL rSph  = 1;
 
   // Step 2: Allocate memory for the metric, opacities, and optical depths
+  REAL *xx[3];
+  xx[0]           = (REAL *)malloc(sizeof(REAL)*Nt0);
+  xx[1]           = (REAL *)malloc(sizeof(REAL)*Nt1);
+  xx[2]           = (REAL *)malloc(sizeof(REAL)*Nt2);
   REAL *gammaDD00 = (REAL *)malloc(sizeof(REAL)*Ntotal);
   REAL *gammaDD11 = (REAL *)malloc(sizeof(REAL)*Ntotal);
   REAL *gammaDD22 = (REAL *)malloc(sizeof(REAL)*Ntotal);
@@ -106,17 +284,60 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
   fprintf(stderr,"(ConstantDensitySphere)         - kappa_0_nux   = %22.15e\n",kappa_nux_exterior[0]);
   fprintf(stderr,"(ConstantDensitySphere)         - kappa_1_nux   = %22.15e\n",kappa_nux_exterior[1]);
 
-  // Step 3: Loop over the grid and compute the opacities
-// #pragma omp parallel for
-//   for(int k=0;k<Nt2;k++) {
-//     for(int j=0;j<Nt1;j++) {
-//       for(int i=0;i<Nt0;i++) {
-        
-//       }
-//     }
-//   }
+  // Step 3: Loop over the grid, set opacities
+  //         and initialize optical depth to zero
+#pragma omp parallel for
+  for(int i2=0;i2<Nt2;i2++) {
+    const REAL z = zmin + (i2-Ng2+0.5)*dz;
+    xx[2][i2] = z;
+    for(int i1=0;i1<Nt1;i1++) {
+      const REAL y = ymin + (i1-Ng1+0.5)*dy;
+      xx[1][i1] = y;
+      for(int i0=0;i0<Nt0;i0++) {
+        const REAL x = xmin + (i0-Ng0+0.5)*dx;
+        xx[0][i0] = x;
+
+        // Step 3.a: Set local index
+        const int index = IDX3D(i0,i1,i2);
+
+        // Step 3.b: Set local opacities
+        const REAL r = sqrt( x*x + y*y + z*z );
+        if( r > rSph ) {
+          // Exterior
+          kappa_nue [0][index] = kappa_nue_exterior [0];
+          kappa_nue [1][index] = kappa_nue_exterior [1];
+          kappa_anue[0][index] = kappa_anue_exterior[0];
+          kappa_anue[1][index] = kappa_anue_exterior[1];
+          kappa_nux [0][index] = kappa_nux_exterior [0];
+          kappa_nux [1][index] = kappa_nux_exterior [1];
+        }
+        else {
+          // Interior
+          kappa_nue [0][index] = kappa_nue_interior [0];
+          kappa_nue [1][index] = kappa_nue_interior [1];
+          kappa_anue[0][index] = kappa_anue_interior[0];
+          kappa_anue[1][index] = kappa_anue_interior[1];
+          kappa_nux [0][index] = kappa_nux_interior [0];
+          kappa_nux [1][index] = kappa_nux_interior [1];
+        }
+
+        // Step 3.c: Initialize optical depths to zero
+        tau_nue [0][index] = 0.0;
+        tau_nue [1][index] = 0.0;
+        tau_anue[0][index] = 0.0;
+        tau_anue[1][index] = 0.0;
+        tau_nux [0][index] = 0.0;
+        tau_nux [1][index] = 0.0;
+      }
+    }
+  }
+
+  // Step 4: Data dumps
+  dump_1d_data("initial",Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
+  dump_2d_data("initial",Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
   
 
+  for(int i=0;i<3;i++) free(xx[i]);
   free(gammaDD00);
   free(gammaDD11);
   free(gammaDD22);
