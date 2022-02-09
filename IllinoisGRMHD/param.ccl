@@ -292,3 +292,8 @@ int IGM_stencil "Width of the stencil"
 {
   0: :: "Must be positive"
 } 2
+
+restricted:
+CCTK_BOOLEAN enable_leakage "Whether or not to enable leakage scheme"
+{
+} "no"
