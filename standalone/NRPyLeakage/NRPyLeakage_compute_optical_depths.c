@@ -20,26 +20,26 @@ void NRPyLeakage_compute_optical_depths(const int Nt0,
                                         const REAL dxx0,
                                         const REAL dxx1,
                                         const REAL dxx2,
-                                        REAL *gammaDD00,
-                                        REAL *gammaDD11,
-                                        REAL *gammaDD22,
-                                        REAL *kappa_0_nue,
-                                        REAL *kappa_1_nue,
-                                        REAL *kappa_0_anue,
-                                        REAL *kappa_1_anue,
-                                        REAL *kappa_0_nux,
-                                        REAL *kappa_1_nux,
-                                        REAL *tau_0_nue,
-                                        REAL *tau_1_nue,
-                                        REAL *tau_0_anue,
-                                        REAL *tau_1_anue,
-                                        REAL *tau_0_nux,
-                                        REAL *tau_1_nux) {
+                                        const REAL *restrict gammaDD00,
+                                        const REAL *restrict gammaDD11,
+                                        const REAL *restrict gammaDD22,
+                                        const REAL *restrict kappa_0_nue,
+                                        const REAL *restrict kappa_1_nue,
+                                        const REAL *restrict kappa_0_anue,
+                                        const REAL *restrict kappa_1_anue,
+                                        const REAL *restrict kappa_0_nux,
+                                        const REAL *restrict kappa_1_nux,
+                                        REAL *restrict tau_0_nue,
+                                        REAL *restrict tau_1_nue,
+                                        REAL *restrict tau_0_anue,
+                                        REAL *restrict tau_1_anue,
+                                        REAL *restrict tau_0_nux,
+                                        REAL *restrict tau_1_nux) {
 
   printf("Inside NRPyLeakage_compute_optical_depths\n");
   printf("%d %d %d %d %d %d\n",Nt0,Nt1,Nt2,Ng0,Ng1,Ng2);
   printf("%e %e %e\n",dxx0,dxx1,dxx2);
-  // printf("%e %e %e\n",gammaDD00[0],gammaDD11[0],gammaDD22[0]);
+  printf("%e %e %e\n",gammaDD00[0],gammaDD11[0],gammaDD22[0]);
   getchar();
 
   // Step 0: Loop over the grid computing the optical depth
