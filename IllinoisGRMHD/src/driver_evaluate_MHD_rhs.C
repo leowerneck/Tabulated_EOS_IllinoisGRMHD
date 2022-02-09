@@ -46,7 +46,6 @@
 #include "driver_evaluate_MHD_rhs.h" /* Function prototypes for this file only */
 #include "inlined_functions.C"
 
-
 extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
@@ -555,6 +554,14 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   Lorenz_psi6phi_rhs__add_gauge_terms_to_A_i_rhs(cctkGH,cctk_lsh,cctk_nghostzones,dX,interp_vars,psi6phi,
                                                  vxr,vyr,vzr,vxl,vyl,vzl,Pr,Pl,
                                                  psi6phi_rhs,Ax_rhs,Ay_rhs,Az_rhs);
+
+  // Leo says: NRPyLeakage interface
+  if( enable_leakage ) {
+    NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss(cctkGH,cctk_lsh,cctk_nghostzones,GAMMA_SPEED_LIMIT,
+                                                                   alp,betax,betay,betaz,gxx,gxy,gxz,gyy,gyz,gzz,
+                                                                   rho,Y_e,temperature,vel,
+                                                                   Ye_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs);
+  }
 
   return;
   /*
