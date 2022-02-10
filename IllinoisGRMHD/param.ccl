@@ -294,6 +294,6 @@ int IGM_stencil "Width of the stencil"
 } 2
 
 restricted:
-CCTK_BOOLEAN enable_leakage "Whether or not to enable leakage scheme"
+CCTK_BOOLEAN enable_NRPyLeakageET_interface "Whether or not to enable NRPyLeakageET interface. Enabling this ensures efficient conversion to HydroBase variables."
 {
 } "no"
