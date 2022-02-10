@@ -46,7 +46,7 @@
 #define NRPyLeakage_N_A (6.022140760000000e+23)
 #define NRPyLeakage_alpha_fs (7.297352569300000e-03)
 #define NRPyLeakage_amu (1.660539066600000e-24)
-#define NRPyLeakage_hc3 (7.838450084421221e-48)
+#define NRPyLeakage_hc3 (1.905895198207216e-30)
 #define NRPyLeakage_m_e_c2 (5.109989499961642e-01)
 #define NRPyLeakage_units_geom_to_cgs_D (6.175828479261933e+17)
 #define NRPyLeakage_units_cgs_to_geom_D (1.619215953548485e-18)
@@ -123,54 +123,5 @@ void NRPyLeakage_compute_GRMHD_source_terms_and_opacities(const int which_consta
                                                           REAL *restrict kappa_nue,
                                                           REAL *restrict kappa_anue,
                                                           REAL *restrict kappa_nux);
-
-void NRPyLeakage_compute_optical_depths(const int N0,
-                                        const int N1,
-                                        const int N2,
-                                        const int Ng0,
-                                        const int Ng1,
-                                        const int Ng2,
-                                        const int dxx0,
-                                        const int dxx1,
-                                        const int dxx2,
-                                        const REAL *restrict gammaDD00,
-                                        const REAL *restrict gammaDD11,
-                                        const REAL *restrict gammaDD22,
-                                        const REAL *restrict kappa_0_nue,
-                                        const REAL *restrict kappa_1_nue,
-                                        const REAL *restrict kappa_0_anue,
-                                        const REAL *restrict kappa_1_anue,
-                                        const REAL *restrict kappa_0_nux,
-                                        const REAL *restrict kappa_1_nux,
-                                        REAL *restrict tau_0_nue,
-                                        REAL *restrict tau_1_nue,
-                                        REAL *restrict tau_0_anue,
-                                        REAL *restrict tau_1_anue,
-                                        REAL *restrict tau_0_nux,
-                                        REAL *restrict tau_1_nux);
-
-void NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss_impl( const CCTK_POINTER_TO_CONST cctkGH,
-                                                                          const int *restrict cctk_lsh,
-                                                                          const int *restrict cctk_nghostzones,
-                                                                          const CCTK_REAL W_max,
-                                                                          const CCTK_REAL *restrict alp,
-                                                                          const CCTK_REAL *restrict betax,
-                                                                          const CCTK_REAL *restrict betay,
-                                                                          const CCTK_REAL *restrict betaz,
-                                                                          const CCTK_REAL *restrict gxx,
-                                                                          const CCTK_REAL *restrict gxy,
-                                                                          const CCTK_REAL *restrict gxz,
-                                                                          const CCTK_REAL *restrict gyy,
-                                                                          const CCTK_REAL *restrict gyz,
-                                                                          const CCTK_REAL *restrict gzz,
-                                                                          const CCTK_REAL *restrict rho,
-                                                                          const CCTK_REAL *restrict Y_e,
-                                                                          const CCTK_REAL *restrict temperature,
-                                                                          const CCTK_REAL *restrict vel,
-                                                                          CCTK_REAL *restrict Ye_star_rhs,
-                                                                          CCTK_REAL *restrict tau_rhs,
-                                                                          CCTK_REAL *restrict st_x_rhs,
-                                                                          CCTK_REAL *restrict st_y_rhs,
-                                                                          CCTK_REAL *restrict st_z_rhs );
 
 #endif // NRPYLEAKAGE_H_
