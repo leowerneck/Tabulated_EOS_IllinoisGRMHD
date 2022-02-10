@@ -16,8 +16,8 @@ void NRPyLeakage_compute_optical_depths(CCTK_ARGUMENTS) {
   DECLARE_CCTK_PARAMETERS;
 
   const CCTK_REAL dx = CCTK_DELTA_SPACE(0);
-  const CCTK_REAL dy = CCTK_DELTA_SPACE(0);
-  const CCTK_REAL dz = CCTK_DELTA_SPACE(0);
+  const CCTK_REAL dy = CCTK_DELTA_SPACE(1);
+  const CCTK_REAL dz = CCTK_DELTA_SPACE(2);
 
   // Step 0: Loop over the grid computing the optical depth
 #pragma omp parallel for
