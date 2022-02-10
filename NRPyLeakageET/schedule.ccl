@@ -4,22 +4,26 @@ STORAGE: NRPyLeakageET_opacities[3], NRPyLeakageET_optical_depths[3]
 schedule NRPyLeakage_initialize_optical_depths_to_zero IN HydroBase_Initial
 {
   LANG: C
-  WRITES: NRPyLeakageET::tau_0_nue     (Everywhere)
-  WRITES: NRPyLeakageET::tau_1_nue     (Everywhere)
-  WRITES: NRPyLeakageET::tau_0_anue    (Everywhere)
-  WRITES: NRPyLeakageET::tau_1_anue    (Everywhere)
-  WRITES: NRPyLeakageET::tau_0_nux     (Everywhere)
-  WRITES: NRPyLeakageET::tau_1_nux     (Everywhere)
-  WRITES: NRPyLeakageET::tau_0_nue_p   (Everywhere)
-  WRITES: NRPyLeakageET::tau_1_nue_p   (Everywhere)
-  WRITES: NRPyLeakageET::tau_0_anue_p  (Everywhere)
-  WRITES: NRPyLeakageET::tau_1_anue_p  (Everywhere)
-  WRITES: NRPyLeakageET::tau_0_nux_p   (Everywhere)
-  WRITES: NRPyLeakageET::tau_1_nux_p   (Everywhere)
-  WRITES: NRPyLeakageET::tau_0_nue_p_p (Everywhere)
-  WRITES: NRPyLeakageET::tau_1_nue_p_p (Everywhere)
-  WRITES: NRPyLeakageET::tau_0_anue_p_p(Everywhere)
-  WRITES: NRPyLeakageET::tau_1_anue_p_p(Everywhere)
-  WRITES: NRPyLeakageET::tau_0_nux_p_p (Everywhere)
-  WRITES: NRPyLeakageET::tau_1_nux_p_p (Everywhere)
+  WRITES: NRPyLeakageET::tau_0_nue (Everywhere), tau_0_nue_p , tau_0_nue_p_p
+  WRITES: NRPyLeakageET::tau_1_nue (Everywhere), tau_1_nue_p , tau_1_nue_p_p
+  WRITES: NRPyLeakageET::tau_0_anue(Everywhere), tau_0_anue_p, tau_0_anue_p_p
+  WRITES: NRPyLeakageET::tau_1_anue(Everywhere), tau_1_anue_p, tau_1_anue_p_p
+  WRITES: NRPyLeakageET::tau_0_nux (Everywhere), tau_0_nux_p , tau_0_nux_p_p
+  WRITES: NRPyLeakageET::tau_1_nux (Everywhere), tau_1_nux_p , tau_1_nux_p_p
 } "NRPyLeakageET: Initialize all optical depth gridfunctions to zero."
+
+schedule NRPyLeakage_InitSym AT BASEGRID AFTER Lapse_InitSymBound
+{
+  LANG: C
+} "Schedule symmetries"
+
+schedule NRPyLeakage_InitSym IN HydroBase_Boundaries AFTER IllinoisGRMHD_InitSymBound
+{
+  SYNC: NRPyLeakageET_opacities, NRPyLeakageET_optical_depths
+  LANG: C
+} "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
+
+schedule NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss AS NRPyLeakage_RHS IN MoL_CalcRHS AFTER IllinoisGRMHD_RHS_eval
+{
+  LANG: C
+} "NRPyLeakageET: Compute opacities and add source terms to GRMHD right-hand sides."
