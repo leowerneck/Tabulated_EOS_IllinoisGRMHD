@@ -4,4 +4,6 @@ SRCS = NRPyLeakage_Fermi_Dirac_integrals.c \
        NRPyLeakage_compute_GRMHD_source_terms_and_opacities.c \
        NRPyLeakage_compute_optical_depths.c \
        NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss.c \
-       NRPyLeakage_initialize_optical_depths_to_zero.c
+       NRPyLeakage_initialize_optical_depths_to_zero.c \
+       NRPyLeakage_InitSym.c \
+       test.c
