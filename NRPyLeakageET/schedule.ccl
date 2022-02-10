@@ -1,7 +1,7 @@
 # Schedule definitions for thorn NRPyLeakageET
-STORAGE: NRPyLeakageET_opacities[3], NRPyLeakageET_optical_depths[3]
+STORAGE: NRPyLeakageET_opacities[3], NRPyLeakageET_optical_depths[3], NRPyLeakageET_IterationCounterVar
 
-schedule NRPyLeakageET_optical_depths_initialize_to_zero IN HydroBase_Initial
+SCHEDULE NRPyLeakageET_optical_depths_initialize_to_zero IN HydroBase_Initial BEFORE NRPyLeakageET_InitGroup
 {
   LANG: C
   WRITES: NRPyLeakageET::tau_0_nue (Everywhere), tau_0_nue_p , tau_0_nue_p_p
@@ -10,32 +10,105 @@ schedule NRPyLeakageET_optical_depths_initialize_to_zero IN HydroBase_Initial
   WRITES: NRPyLeakageET::tau_1_anue(Everywhere), tau_1_anue_p, tau_1_anue_p_p
   WRITES: NRPyLeakageET::tau_0_nux (Everywhere), tau_0_nux_p , tau_0_nux_p_p
   WRITES: NRPyLeakageET::tau_1_nux (Everywhere), tau_1_nux_p , tau_1_nux_p_p
+} "Initialize optical depths to zero"
+
+SCHEDULE NRPyLeakageET_InitializeIterationCounter IN HydroBase_Initial BEFORE NRPyLeakageET_InitGroup
+{
+  LANG: C
+} "Initialize counter; this specifies how many times the function NRPyLeakageET_initialization_driver will be called"
+
+# .----------------------------------------------.
+# | Optical depth/opacities initialization group |
+# .----------------------------------------------.
+SCHEDULE GROUP NRPyLeakageET_InitGroup IN HydroBase_Initial WHILE NRPyLeakageET::NRPyLeakageET_IterationCounter
+{
+} "Initialize optical depth and opacities"
+
+SCHEDULE NRPyLeakageET_initialization_driver IN NRPyLeakageET_InitGroup
+{
+  LANG: C
+  OPTIONS: GLOBAL, LOOP-LOCAL
+  READS:  ADMBase::gxx               (Everywhere)
+  READS:  ADMBase::gyy               (Everywhere)
+  READS:  ADMBase::gzz               (Everywhere)
+  READS:  HydroBase::rho             (Everywhere)
+  READS:  HydroBase::Y_e             (Everywhere)
+  READS:  HydroBase::temperature     (Everywhere)
+  WRITES: NRPyLeakageET::kappa_0_nue (Everywhere), kappa_0_nue_p
+  WRITES: NRPyLeakageET::kappa_1_nue (Everywhere), kappa_1_nue_p
+  WRITES: NRPyLeakageET::kappa_0_anue(Everywhere), kappa_0_anue_p
+  WRITES: NRPyLeakageET::kappa_1_anue(Everywhere), kappa_1_anue_p
+  WRITES: NRPyLeakageET::kappa_0_nux (Everywhere), kappa_0_nux_p
+  WRITES: NRPyLeakageET::kappa_1_nux (Everywhere), kappa_1_nux_p
+  WRITES: NRPyLeakageET::tau_0_nue   (Everywhere), tau_0_nue_p
+  WRITES: NRPyLeakageET::tau_1_nue   (Everywhere), tau_1_nue_p
+  WRITES: NRPyLeakageET::tau_0_anue  (Everywhere), tau_0_anue_p
+  WRITES: NRPyLeakageET::tau_1_anue  (Everywhere), tau_1_anue_p
+  WRITES: NRPyLeakageET::tau_0_nux   (Everywhere), tau_0_nux_p
+  WRITES: NRPyLeakageET::tau_1_nux   (Everywhere), tau_1_nux_p
 } "Initialize all optical depth gridfunctions to zero."
 
-schedule NRPyLeakageET_InitSym AT BASEGRID AFTER Lapse_InitSymBound
+SCHEDULE NRPyLeakageET_DecrementIterationCounter IN NRPyLeakageET_InitGroup AFTER NRPyLeakageET_initialization_driver
+{
+  LANG: C
+} "Decrement counter; this specifies how many times the function NRPyLeakageET_initialization_driver will be called"
+# ----------------------------------------------
+# ----------------------------------------------
+# ----------------------------------------------
+
+SCHEDULE NRPyLeakageET_copy_opacities_and_optical_depths_to_previous_time_levels IN HydroBase_Initial AFTER NRPyLeakageET_InitGroup
+{
+  LANG: C
+  READS: NRPyLeakageET::kappa_0_nue (Everywhere)
+  READS: NRPyLeakageET::kappa_1_nue (Everywhere)
+  READS: NRPyLeakageET::kappa_0_anue(Everywhere)
+  READS: NRPyLeakageET::kappa_1_anue(Everywhere)
+  READS: NRPyLeakageET::kappa_0_nux (Everywhere)
+  READS: NRPyLeakageET::kappa_1_nux (Everywhere)
+  READS: NRPyLeakageET::tau_0_nue   (Everywhere)
+  READS: NRPyLeakageET::tau_1_nue   (Everywhere)
+  READS: NRPyLeakageET::tau_0_anue  (Everywhere)
+  READS: NRPyLeakageET::tau_1_anue  (Everywhere)
+  READS: NRPyLeakageET::tau_0_nux   (Everywhere)
+  READS: NRPyLeakageET::tau_1_nux   (Everywhere)
+  WRITES: kappa_0_nue_p , kappa_0_nue_p_p
+  WRITES: kappa_1_nue_p , kappa_1_nue_p_p
+  WRITES: kappa_0_anue_p, kappa_0_anue_p_p
+  WRITES: kappa_1_anue_p, kappa_1_anue_p_p
+  WRITES: kappa_0_nux_p , kappa_0_nux_p_p
+  WRITES: kappa_1_nux_p , kappa_1_nux_p_p
+  WRITES: tau_0_nue_p   , tau_0_nue_p_p
+  WRITES: tau_1_nue_p   , tau_1_nue_p_p
+  WRITES: tau_0_anue_p  , tau_0_anue_p_p
+  WRITES: tau_1_anue_p  , tau_1_anue_p_p
+  WRITES: tau_0_nux_p   , tau_0_nux_p_p
+  WRITES: tau_1_nux_p   , tau_1_nux_p_p
+} "Copy opacities and optical depths to previous time levels"
+
+SCHEDULE NRPyLeakageET_InitSym AT BASEGRID AFTER Lapse_InitSymBound
 {
   LANG: C
 } "Schedule symmetries"
 
-schedule NRPyLeakageET_InitSym IN HydroBase_Boundaries AFTER IllinoisGRMHD_InitSymBound
+SCHEDULE NRPyLeakageET_InitSym IN HydroBase_Boundaries AFTER IllinoisGRMHD_InitSymBound
 {
   SYNC: NRPyLeakageET_opacities, NRPyLeakageET_optical_depths
   LANG: C
 } "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
 
-schedule NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss AS NRPyLeakageET_RHS IN MoL_CalcRHS AFTER IllinoisGRMHD_RHS_eval
+SCHEDULE NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss AS NRPyLeakageET_RHS IN MoL_CalcRHS AFTER IllinoisGRMHD_RHS_eval
 {
   LANG: C
 } "Compute opacities and add source terms to GRMHD right-hand sides."
 
 if( CCTK_Equals(NRPyLeakageET_optical_depth_evolution_type,"static") ) {
-  schedule NRPyLeakageET_optical_depths_copy_from_previous_time_level AS NRPyLeakageET_optical_depth_step IN MoL_CalcRHS AFTER NRPyLeakageET_RHS
+  SCHEDULE NRPyLeakageET_copy_optical_depths_from_previous_time_level AS NRPyLeakageET_optical_depth_step IN MoL_CalcRHS AFTER NRPyLeakageET_RHS
   {
     LANG: C
   } "Static evolution: update optical depths by simply copying data from the previous time level."
 }
 else if( CCTK_Equals(NRPyLeakageET_optical_depth_evolution_type,"PathOfLeastResistance") ) {
-  schedule NRPyLeakageET_optical_depths_PathOfLeastResistance AS NRPyLeakageET_optical_depth_step IN MoL_CalcRHS AFTER NRPyLeakageET_RHS
+  SCHEDULE NRPyLeakageET_optical_depths_PathOfLeastResistance AS NRPyLeakageET_optical_depth_step IN MoL_CalcRHS AFTER NRPyLeakageET_RHS
   {
     LANG: C
   } "PathOfLeastResistance evolution: update optical depths following Nielsen et al. (2014) (1403.3680)."

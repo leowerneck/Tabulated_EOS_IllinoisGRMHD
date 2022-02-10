@@ -2,9 +2,12 @@ SRCS = NRPyLeakageET_Fermi_Dirac_integrals.c \
        NRPyLeakageET_compute_GRMHD_source_terms_and_opacities_nrpy_constants.c \
        NRPyLeakageET_compute_GRMHD_source_terms_and_opacities_harm_constants.c \
        NRPyLeakageET_compute_GRMHD_source_terms_and_opacities.c \
+       NRPyLeakageET_compute_opacities_nrpy_constants.c \
+       NRPyLeakageET_compute_opacities_harm_constants.c \
+       NRPyLeakageET_compute_opacities.c \
        NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss.c \
-       NRPyLeakageET_optical_depths_initialize_to_zero.c \
-       NRPyLeakageET_optical_depths_copy_from_previous_time_level.c \
+       NRPyLeakageET_optical_depths_initialization_routines.c \
        NRPyLeakageET_optical_depths_PathOfLeastResistance.c \
        NRPyLeakageET_InitSym.c \
+       NRPyLeakageET_Initialize_Decrement_Counter.c \
        test.c

@@ -21,6 +21,12 @@ CCTK_STRING NRPyLeakageET_optical_depth_evolution_type "Type of optical depth ev
 } "PathOfLeastResistance"
 
 restricted:
+CCTK_INT NRPyLeakageET_IterationFactor "Multiplied by max(Nx,Ny,Nz) = number of iterations to compute optical depths initially"
+{
+  1:* :: "Should be greater than one"
+} 10
+
+restricted:
 CCTK_STRING GFstring_Ye_star_rhs "Gridfunction for the conserved electron fraction right-hand side" STEERABLE = RECOVER
 {
   "IllinoisGRMHD::Ye_star_rhs" :: "IllinoisGRMHD's gridfunction"

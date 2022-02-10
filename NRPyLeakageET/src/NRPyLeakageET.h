@@ -122,4 +122,35 @@ void NRPyLeakageET_compute_GRMHD_source_terms_and_opacities(const int which_cons
                                                             CCTK_REAL *restrict kappa_anue,
                                                             CCTK_REAL *restrict kappa_nux);
 
+void NRPyLeakageET_compute_opacities_nrpy_constants(const CCTK_REAL rho_b,
+                                                    const CCTK_REAL Y_e,
+                                                    const CCTK_REAL T,
+                                                    const CCTK_REAL *restrict tau_nue,
+                                                    const CCTK_REAL *restrict tau_anue,
+                                                    const CCTK_REAL *restrict tau_nux,
+                                                    CCTK_REAL *restrict kappa_nue,
+                                                    CCTK_REAL *restrict kappa_anue,
+                                                    CCTK_REAL *restrict kappa_nux);
+
+void NRPyLeakageET_compute_opacities_harm_constants(const CCTK_REAL rho_b,
+                                                    const CCTK_REAL Y_e,
+                                                    const CCTK_REAL T,
+                                                    const CCTK_REAL *restrict tau_nue,
+                                                    const CCTK_REAL *restrict tau_anue,
+                                                    const CCTK_REAL *restrict tau_nux,
+                                                    CCTK_REAL *restrict kappa_nue,
+                                                    CCTK_REAL *restrict kappa_anue,
+                                                    CCTK_REAL *restrict kappa_nux);
+
+void NRPyLeakageET_compute_opacities(const int which_constants_to_use,
+                                     const CCTK_REAL rho_b,
+                                     const CCTK_REAL Y_e,
+                                     const CCTK_REAL T,
+                                     const CCTK_REAL *restrict tau_nue,
+                                     const CCTK_REAL *restrict tau_anue,
+                                     const CCTK_REAL *restrict tau_nux,
+                                     CCTK_REAL *restrict kappa_nue,
+                                     CCTK_REAL *restrict kappa_anue,
+                                     CCTK_REAL *restrict kappa_nux);
+
 #endif // NRPYLEAKAGE_H_
