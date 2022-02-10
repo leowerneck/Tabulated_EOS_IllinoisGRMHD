@@ -1,6 +1,5 @@
 #include "cctk.h"
 #include "NRPyLeakage.h"
-#include "WVU_EOS_Tabulated_headers.h"
 
 /*
  * (c) Leo Werneck
