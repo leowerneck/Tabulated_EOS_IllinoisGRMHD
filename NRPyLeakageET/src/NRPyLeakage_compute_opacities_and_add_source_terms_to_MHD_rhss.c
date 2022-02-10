@@ -6,61 +6,29 @@
 #define vely (&vel[1*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 #define velz (&vel[2*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 
-void NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss_impl( const CCTK_POINTER_TO_CONST cctkGH,
-                                                                          const int *restrict cctk_lsh,
-                                                                          const int *restrict cctk_nghostzones,
-                                                                          const CCTK_REAL W_max,
-                                                                          const CCTK_REAL *restrict alp,
-                                                                          const CCTK_REAL *restrict betax,
-                                                                          const CCTK_REAL *restrict betay,
-                                                                          const CCTK_REAL *restrict betaz,
-                                                                          const CCTK_REAL *restrict gxx,
-                                                                          const CCTK_REAL *restrict gxy,
-                                                                          const CCTK_REAL *restrict gxz,
-                                                                          const CCTK_REAL *restrict gyy,
-                                                                          const CCTK_REAL *restrict gyz,
-                                                                          const CCTK_REAL *restrict gzz,
-                                                                          const CCTK_REAL *restrict rho,
-                                                                          const CCTK_REAL *restrict Y_e,
-                                                                          const CCTK_REAL *restrict temperature,
-                                                                          const CCTK_REAL *restrict vel,
-                                                                          CCTK_REAL *restrict Ye_star_rhs,
-                                                                          CCTK_REAL *restrict tau_rhs,
-                                                                          CCTK_REAL *restrict st_x_rhs,
-                                                                          CCTK_REAL *restrict st_y_rhs,
-                                                                          CCTK_REAL *restrict st_z_rhs ) {
+#define CHECK_POINTER(pointer,name) \
+  if( !pointer ) CCTK_VError(__LINE__,__FILE__,CCTK_THORNSTRING,"Failed to get pointer for gridfunction '%s'",name);
 
+void NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUMENTS) {
+
+  DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
   const int timelevel = 0;
 
   // Step 1: Get pointers to opacity and optical depth gridfunctions
-  CCTK_REAL *kappa_0_nue  = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::kappa_0_nue" ));
-  CCTK_REAL *kappa_1_nue  = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::kappa_1_nue" ));
-  CCTK_REAL *kappa_0_anue = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::kappa_0_anue"));
-  CCTK_REAL *kappa_1_anue = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::kappa_1_anue"));
-  CCTK_REAL *kappa_0_nux  = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::kappa_0_nux" ));
-  CCTK_REAL *kappa_1_nux  = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::kappa_1_nux" ));
-  CCTK_REAL *tau_0_nue    = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::tau_0_nue"   ));
-  CCTK_REAL *tau_1_nue    = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::tau_1_nue"   ));
-  CCTK_REAL *tau_0_anue   = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::tau_0_anue"  ));
-  CCTK_REAL *tau_1_anue   = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::tau_1_anue"  ));
-  CCTK_REAL *tau_0_nux    = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::tau_0_nux"   ));
-  CCTK_REAL *tau_1_nux    = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::tau_1_nux"   ));
+  CCTK_REAL *Ye_star_rhs = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,GFstring_Ye_star_rhs));
+  CCTK_REAL *tau_rhs     = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,GFstring_tau_rhs));
+  CCTK_REAL *st_x_rhs    = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,GFstring_st_x_rhs));
+  CCTK_REAL *st_y_rhs    = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,GFstring_st_y_rhs));
+  CCTK_REAL *st_z_rhs    = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,GFstring_st_z_rhs));
 
   // Step 2: Check pointers are ok
-  if( !kappa_0_nue  ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::kappa_0_nue'" );
-  if( !kappa_1_nue  ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::kappa_1_nue'" );
-  if( !kappa_0_anue ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::kappa_0_anue'");
-  if( !kappa_1_anue ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::kappa_1_anue'");
-  if( !kappa_0_nux  ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::kappa_0_nux'" );
-  if( !kappa_1_nux  ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::kappa_1_nux'" );
-  if( !tau_0_nue    ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::tau_0_nue'"   );
-  if( !tau_1_nue    ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::tau_1_nue'"   );
-  if( !tau_0_anue   ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::tau_0_anue'"  );
-  if( !tau_1_anue   ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::tau_1_anue'"  );
-  if( !tau_0_nux    ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::tau_0_nux'"   );
-  if( !tau_1_nux    ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::tau_1_nux'"   );
+  CHECK_POINTER(Ye_star_rhs,GFstring_Ye_star_rhs);
+  CHECK_POINTER(tau_rhs    ,GFstring_tau_rhs    );
+  CHECK_POINTER(st_x_rhs   ,GFstring_st_x_rhs   );
+  CHECK_POINTER(st_y_rhs   ,GFstring_st_y_rhs   );
+  CHECK_POINTER(st_z_rhs   ,GFstring_st_z_rhs   );
 
   // Step 3: Compute opacities and leakage source terms
 #pragma omp parallel for
@@ -70,6 +38,23 @@ void NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss_impl( const 
 
         // Step 3.a: Set the index of the current gridpoint
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+
+        //*************************************
+        //*************** FIXME ***************
+        //*************** FIXME ***************
+        //*************** FIXME ***************
+        //*************************************
+        tau_0_nue [index] = tau_0_nue_p [index];
+        tau_1_nue [index] = tau_1_nue_p [index];
+        tau_0_anue[index] = tau_0_anue_p[index];
+        tau_1_anue[index] = tau_1_anue_p[index];
+        tau_0_nux [index] = tau_0_nux_p [index];
+        tau_1_nux [index] = tau_1_nux_p [index];
+        //*************************************
+        //*************** FIXME ***************
+        //*************** FIXME ***************
+        //*************** FIXME ***************
+        //*************************************
 
         // Step 3.b: Read from main memory
         const CCTK_REAL alpL         = alp[index];
@@ -92,9 +77,6 @@ void NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss_impl( const 
         const CCTK_REAL tau_nueL [2] = {tau_0_nue [index],tau_1_nue [index]};
         const CCTK_REAL tau_anueL[2] = {tau_0_anue[index],tau_1_anue[index]};
         const CCTK_REAL tau_nuxL [2] = {tau_0_nux [index],tau_1_nux [index]};
-
-        printf("%e %e %e %e %e %e\n",tau_0_nue[index],tau_1_nue[index],tau_0_anue[index],tau_1_anue[index],tau_0_nux[index],tau_1_nux[index]);
-        printf("%e %e %e %e %e %e\n",tau_nueL[0],tau_nueL[1],tau_anueL[0],tau_anueL[1],tau_nuxL[0],tau_nuxL[1]);
 
         // Step 3.c: Compute BSSN quantities; enforce det(gammabar_{ij}) = 1
         // Step 3.c.i: Compute the determinant of the physical metric
@@ -175,12 +157,6 @@ void NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss_impl( const 
         const CCTK_REAL st_x_rhsL    = sqrtmgL * Q_sourceL * uxL;
         const CCTK_REAL st_y_rhsL    = sqrtmgL * Q_sourceL * uyL;
         const CCTK_REAL st_z_rhsL    = sqrtmgL * Q_sourceL * uzL;
-
-        printf("%e %e\n",R_sourceL,Q_sourceL);
-        printf("%e %e %e %e %e %e\n",kappa_nueL[0],kappa_nueL[1],kappa_anueL[0],kappa_anueL[1],kappa_nuxL[0],kappa_nuxL[1]);
-        printf("%e %e %e %e\n",u0L,uxL,uyL,uzL);
-        printf("%e %e %e %e %e\n",Ye_star_rhsL,tau_rhsL,st_x_rhsL,st_y_rhsL,st_z_rhsL);
-        getchar();
 
         // Step 3.i: Write to main memory
         kappa_0_nue [index]  = kappa_nueL [0];
