@@ -1,7 +1,7 @@
 # Schedule definitions for thorn NRPyLeakageET
 STORAGE: NRPyLeakageET_opacities[3], NRPyLeakageET_optical_depths[3]
 
-schedule NRPyLeakageET_initialize_optical_depths_to_zero IN HydroBase_Initial
+schedule NRPyLeakageET_optical_depths_initialize_to_zero IN HydroBase_Initial
 {
   LANG: C
   WRITES: NRPyLeakageET::tau_0_nue (Everywhere), tau_0_nue_p , tau_0_nue_p_p
@@ -10,7 +10,7 @@ schedule NRPyLeakageET_initialize_optical_depths_to_zero IN HydroBase_Initial
   WRITES: NRPyLeakageET::tau_1_anue(Everywhere), tau_1_anue_p, tau_1_anue_p_p
   WRITES: NRPyLeakageET::tau_0_nux (Everywhere), tau_0_nux_p , tau_0_nux_p_p
   WRITES: NRPyLeakageET::tau_1_nux (Everywhere), tau_1_nux_p , tau_1_nux_p_p
-} "NRPyLeakageET: Initialize all optical depth gridfunctions to zero."
+} "Initialize all optical depth gridfunctions to zero."
 
 schedule NRPyLeakageET_InitSym AT BASEGRID AFTER Lapse_InitSymBound
 {
@@ -26,4 +26,17 @@ schedule NRPyLeakageET_InitSym IN HydroBase_Boundaries AFTER IllinoisGRMHD_InitS
 schedule NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss AS NRPyLeakageET_RHS IN MoL_CalcRHS AFTER IllinoisGRMHD_RHS_eval
 {
   LANG: C
-} "NRPyLeakageET: Compute opacities and add source terms to GRMHD right-hand sides."
+} "Compute opacities and add source terms to GRMHD right-hand sides."
+
+if( CCTK_Equals(NRPyLeakageET_optical_depth_evolution_type,"static") ) {
+  schedule NRPyLeakageET_optical_depths_copy_from_previous_time_level AS NRPyLeakageET_optical_depth_step IN MoL_CalcRHS AFTER NRPyLeakageET_RHS
+  {
+    LANG: C
+  } "Static evolution: update optical depths by simply copying data from the previous time level."
+}
+else if( CCTK_Equals(NRPyLeakageET_optical_depth_evolution_type,"PathOfLeastResistance") ) {
+  schedule NRPyLeakageET_optical_depths_PathOfLeastResistance AS NRPyLeakageET_optical_depth_step IN MoL_CalcRHS AFTER NRPyLeakageET_RHS
+  {
+    LANG: C
+  } "PathOfLeastResistance evolution: update optical depths following Nielsen et al. (2014) (1403.3680)."
+}

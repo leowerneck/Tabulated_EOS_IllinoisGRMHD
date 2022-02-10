@@ -10,7 +10,7 @@
  * Compute GRMHD source terms following Ruffert et al. (1996)
  * https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
  */
-void NRPyLeakageET_compute_optical_depths(CCTK_ARGUMENTS) {
+void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
 
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
@@ -162,47 +162,47 @@ void NRPyLeakageET_compute_optical_depths(CCTK_ARGUMENTS) {
 
 
         // Step 7: Compute optical depth at neighboring points
-        const CCTK_REAL tau_0_nue_ip1_j_k = tau_0_nue[ip1_j_k] + ds_iphalf_j_k*kappa_0_nue_iphalf_j_k;
-        const CCTK_REAL tau_0_nue_im1_j_k = tau_0_nue[im1_j_k] + ds_imhalf_j_k*kappa_0_nue_imhalf_j_k;
-        const CCTK_REAL tau_0_nue_i_jp1_k = tau_0_nue[i_jp1_k] + ds_i_jphalf_k*kappa_0_nue_i_jphalf_k;
-        const CCTK_REAL tau_0_nue_i_jm1_k = tau_0_nue[i_jm1_k] + ds_i_jmhalf_k*kappa_0_nue_i_jmhalf_k;
-        const CCTK_REAL tau_0_nue_i_j_kp1 = tau_0_nue[i_j_kp1] + ds_i_j_kphalf*kappa_0_nue_i_j_kphalf;
-        const CCTK_REAL tau_0_nue_i_j_km1 = tau_0_nue[i_j_km1] + ds_i_j_kmhalf*kappa_0_nue_i_j_kmhalf;
+        const CCTK_REAL tau_0_nue_ip1_j_k = tau_0_nue_p[ip1_j_k] + ds_iphalf_j_k*kappa_0_nue_iphalf_j_k;
+        const CCTK_REAL tau_0_nue_im1_j_k = tau_0_nue_p[im1_j_k] + ds_imhalf_j_k*kappa_0_nue_imhalf_j_k;
+        const CCTK_REAL tau_0_nue_i_jp1_k = tau_0_nue_p[i_jp1_k] + ds_i_jphalf_k*kappa_0_nue_i_jphalf_k;
+        const CCTK_REAL tau_0_nue_i_jm1_k = tau_0_nue_p[i_jm1_k] + ds_i_jmhalf_k*kappa_0_nue_i_jmhalf_k;
+        const CCTK_REAL tau_0_nue_i_j_kp1 = tau_0_nue_p[i_j_kp1] + ds_i_j_kphalf*kappa_0_nue_i_j_kphalf;
+        const CCTK_REAL tau_0_nue_i_j_km1 = tau_0_nue_p[i_j_km1] + ds_i_j_kmhalf*kappa_0_nue_i_j_kmhalf;
 
-        const CCTK_REAL tau_1_nue_ip1_j_k = tau_1_nue[ip1_j_k] + ds_iphalf_j_k*kappa_1_nue_iphalf_j_k;
-        const CCTK_REAL tau_1_nue_im1_j_k = tau_1_nue[im1_j_k] + ds_imhalf_j_k*kappa_1_nue_imhalf_j_k;
-        const CCTK_REAL tau_1_nue_i_jp1_k = tau_1_nue[i_jp1_k] + ds_i_jphalf_k*kappa_1_nue_i_jphalf_k;
-        const CCTK_REAL tau_1_nue_i_jm1_k = tau_1_nue[i_jm1_k] + ds_i_jmhalf_k*kappa_1_nue_i_jmhalf_k;
-        const CCTK_REAL tau_1_nue_i_j_kp1 = tau_1_nue[i_j_kp1] + ds_i_j_kphalf*kappa_1_nue_i_j_kphalf;
-        const CCTK_REAL tau_1_nue_i_j_km1 = tau_1_nue[i_j_km1] + ds_i_j_kmhalf*kappa_1_nue_i_j_kmhalf;
+        const CCTK_REAL tau_1_nue_ip1_j_k = tau_1_nue_p[ip1_j_k] + ds_iphalf_j_k*kappa_1_nue_iphalf_j_k;
+        const CCTK_REAL tau_1_nue_im1_j_k = tau_1_nue_p[im1_j_k] + ds_imhalf_j_k*kappa_1_nue_imhalf_j_k;
+        const CCTK_REAL tau_1_nue_i_jp1_k = tau_1_nue_p[i_jp1_k] + ds_i_jphalf_k*kappa_1_nue_i_jphalf_k;
+        const CCTK_REAL tau_1_nue_i_jm1_k = tau_1_nue_p[i_jm1_k] + ds_i_jmhalf_k*kappa_1_nue_i_jmhalf_k;
+        const CCTK_REAL tau_1_nue_i_j_kp1 = tau_1_nue_p[i_j_kp1] + ds_i_j_kphalf*kappa_1_nue_i_j_kphalf;
+        const CCTK_REAL tau_1_nue_i_j_km1 = tau_1_nue_p[i_j_km1] + ds_i_j_kmhalf*kappa_1_nue_i_j_kmhalf;
 
-        const CCTK_REAL tau_0_anue_ip1_j_k = tau_0_anue[ip1_j_k] + ds_iphalf_j_k*kappa_0_anue_iphalf_j_k;
-        const CCTK_REAL tau_0_anue_im1_j_k = tau_0_anue[im1_j_k] + ds_imhalf_j_k*kappa_0_anue_imhalf_j_k;
-        const CCTK_REAL tau_0_anue_i_jp1_k = tau_0_anue[i_jp1_k] + ds_i_jphalf_k*kappa_0_anue_i_jphalf_k;
-        const CCTK_REAL tau_0_anue_i_jm1_k = tau_0_anue[i_jm1_k] + ds_i_jmhalf_k*kappa_0_anue_i_jmhalf_k;
-        const CCTK_REAL tau_0_anue_i_j_kp1 = tau_0_anue[i_j_kp1] + ds_i_j_kphalf*kappa_0_anue_i_j_kphalf;
-        const CCTK_REAL tau_0_anue_i_j_km1 = tau_0_anue[i_j_km1] + ds_i_j_kmhalf*kappa_0_anue_i_j_kmhalf;
+        const CCTK_REAL tau_0_anue_ip1_j_k = tau_0_anue_p[ip1_j_k] + ds_iphalf_j_k*kappa_0_anue_iphalf_j_k;
+        const CCTK_REAL tau_0_anue_im1_j_k = tau_0_anue_p[im1_j_k] + ds_imhalf_j_k*kappa_0_anue_imhalf_j_k;
+        const CCTK_REAL tau_0_anue_i_jp1_k = tau_0_anue_p[i_jp1_k] + ds_i_jphalf_k*kappa_0_anue_i_jphalf_k;
+        const CCTK_REAL tau_0_anue_i_jm1_k = tau_0_anue_p[i_jm1_k] + ds_i_jmhalf_k*kappa_0_anue_i_jmhalf_k;
+        const CCTK_REAL tau_0_anue_i_j_kp1 = tau_0_anue_p[i_j_kp1] + ds_i_j_kphalf*kappa_0_anue_i_j_kphalf;
+        const CCTK_REAL tau_0_anue_i_j_km1 = tau_0_anue_p[i_j_km1] + ds_i_j_kmhalf*kappa_0_anue_i_j_kmhalf;
 
-        const CCTK_REAL tau_1_anue_ip1_j_k = tau_1_anue[ip1_j_k] + ds_iphalf_j_k*kappa_1_anue_iphalf_j_k;
-        const CCTK_REAL tau_1_anue_im1_j_k = tau_1_anue[im1_j_k] + ds_imhalf_j_k*kappa_1_anue_imhalf_j_k;
-        const CCTK_REAL tau_1_anue_i_jp1_k = tau_1_anue[i_jp1_k] + ds_i_jphalf_k*kappa_1_anue_i_jphalf_k;
-        const CCTK_REAL tau_1_anue_i_jm1_k = tau_1_anue[i_jm1_k] + ds_i_jmhalf_k*kappa_1_anue_i_jmhalf_k;
-        const CCTK_REAL tau_1_anue_i_j_kp1 = tau_1_anue[i_j_kp1] + ds_i_j_kphalf*kappa_1_anue_i_j_kphalf;
-        const CCTK_REAL tau_1_anue_i_j_km1 = tau_1_anue[i_j_km1] + ds_i_j_kmhalf*kappa_1_anue_i_j_kmhalf;
+        const CCTK_REAL tau_1_anue_ip1_j_k = tau_1_anue_p[ip1_j_k] + ds_iphalf_j_k*kappa_1_anue_iphalf_j_k;
+        const CCTK_REAL tau_1_anue_im1_j_k = tau_1_anue_p[im1_j_k] + ds_imhalf_j_k*kappa_1_anue_imhalf_j_k;
+        const CCTK_REAL tau_1_anue_i_jp1_k = tau_1_anue_p[i_jp1_k] + ds_i_jphalf_k*kappa_1_anue_i_jphalf_k;
+        const CCTK_REAL tau_1_anue_i_jm1_k = tau_1_anue_p[i_jm1_k] + ds_i_jmhalf_k*kappa_1_anue_i_jmhalf_k;
+        const CCTK_REAL tau_1_anue_i_j_kp1 = tau_1_anue_p[i_j_kp1] + ds_i_j_kphalf*kappa_1_anue_i_j_kphalf;
+        const CCTK_REAL tau_1_anue_i_j_km1 = tau_1_anue_p[i_j_km1] + ds_i_j_kmhalf*kappa_1_anue_i_j_kmhalf;
 
-        const CCTK_REAL tau_0_nux_ip1_j_k = tau_0_nux[ip1_j_k] + ds_iphalf_j_k*kappa_0_nux_iphalf_j_k;
-        const CCTK_REAL tau_0_nux_im1_j_k = tau_0_nux[im1_j_k] + ds_imhalf_j_k*kappa_0_nux_imhalf_j_k;
-        const CCTK_REAL tau_0_nux_i_jp1_k = tau_0_nux[i_jp1_k] + ds_i_jphalf_k*kappa_0_nux_i_jphalf_k;
-        const CCTK_REAL tau_0_nux_i_jm1_k = tau_0_nux[i_jm1_k] + ds_i_jmhalf_k*kappa_0_nux_i_jmhalf_k;
-        const CCTK_REAL tau_0_nux_i_j_kp1 = tau_0_nux[i_j_kp1] + ds_i_j_kphalf*kappa_0_nux_i_j_kphalf;
-        const CCTK_REAL tau_0_nux_i_j_km1 = tau_0_nux[i_j_km1] + ds_i_j_kmhalf*kappa_0_nux_i_j_kmhalf;
+        const CCTK_REAL tau_0_nux_ip1_j_k = tau_0_nux_p[ip1_j_k] + ds_iphalf_j_k*kappa_0_nux_iphalf_j_k;
+        const CCTK_REAL tau_0_nux_im1_j_k = tau_0_nux_p[im1_j_k] + ds_imhalf_j_k*kappa_0_nux_imhalf_j_k;
+        const CCTK_REAL tau_0_nux_i_jp1_k = tau_0_nux_p[i_jp1_k] + ds_i_jphalf_k*kappa_0_nux_i_jphalf_k;
+        const CCTK_REAL tau_0_nux_i_jm1_k = tau_0_nux_p[i_jm1_k] + ds_i_jmhalf_k*kappa_0_nux_i_jmhalf_k;
+        const CCTK_REAL tau_0_nux_i_j_kp1 = tau_0_nux_p[i_j_kp1] + ds_i_j_kphalf*kappa_0_nux_i_j_kphalf;
+        const CCTK_REAL tau_0_nux_i_j_km1 = tau_0_nux_p[i_j_km1] + ds_i_j_kmhalf*kappa_0_nux_i_j_kmhalf;
 
-        const CCTK_REAL tau_1_nux_ip1_j_k = tau_1_nux[ip1_j_k] + ds_iphalf_j_k*kappa_1_nux_iphalf_j_k;
-        const CCTK_REAL tau_1_nux_im1_j_k = tau_1_nux[im1_j_k] + ds_imhalf_j_k*kappa_1_nux_imhalf_j_k;
-        const CCTK_REAL tau_1_nux_i_jp1_k = tau_1_nux[i_jp1_k] + ds_i_jphalf_k*kappa_1_nux_i_jphalf_k;
-        const CCTK_REAL tau_1_nux_i_jm1_k = tau_1_nux[i_jm1_k] + ds_i_jmhalf_k*kappa_1_nux_i_jmhalf_k;
-        const CCTK_REAL tau_1_nux_i_j_kp1 = tau_1_nux[i_j_kp1] + ds_i_j_kphalf*kappa_1_nux_i_j_kphalf;
-        const CCTK_REAL tau_1_nux_i_j_km1 = tau_1_nux[i_j_km1] + ds_i_j_kmhalf*kappa_1_nux_i_j_kmhalf;
+        const CCTK_REAL tau_1_nux_ip1_j_k = tau_1_nux_p[ip1_j_k] + ds_iphalf_j_k*kappa_1_nux_iphalf_j_k;
+        const CCTK_REAL tau_1_nux_im1_j_k = tau_1_nux_p[im1_j_k] + ds_imhalf_j_k*kappa_1_nux_imhalf_j_k;
+        const CCTK_REAL tau_1_nux_i_jp1_k = tau_1_nux_p[i_jp1_k] + ds_i_jphalf_k*kappa_1_nux_i_jphalf_k;
+        const CCTK_REAL tau_1_nux_i_jm1_k = tau_1_nux_p[i_jm1_k] + ds_i_jmhalf_k*kappa_1_nux_i_jmhalf_k;
+        const CCTK_REAL tau_1_nux_i_j_kp1 = tau_1_nux_p[i_j_kp1] + ds_i_j_kphalf*kappa_1_nux_i_j_kphalf;
+        const CCTK_REAL tau_1_nux_i_j_km1 = tau_1_nux_p[i_j_km1] + ds_i_j_kmhalf*kappa_1_nux_i_j_kmhalf;
 
 
         // Step 8: Select path of least resistance

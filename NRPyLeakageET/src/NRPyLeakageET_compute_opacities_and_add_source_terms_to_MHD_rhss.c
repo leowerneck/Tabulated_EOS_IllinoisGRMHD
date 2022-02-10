@@ -39,23 +39,6 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
         // Step 3.a: Set the index of the current gridpoint
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-        //*************************************
-        //*************** FIXME ***************
-        //*************** FIXME ***************
-        //*************** FIXME ***************
-        //*************************************
-        tau_0_nue [index] = tau_0_nue_p [index];
-        tau_1_nue [index] = tau_1_nue_p [index];
-        tau_0_anue[index] = tau_0_anue_p[index];
-        tau_1_anue[index] = tau_1_anue_p[index];
-        tau_0_nux [index] = tau_0_nux_p [index];
-        tau_1_nux [index] = tau_1_nux_p [index];
-        //*************************************
-        //*************** FIXME ***************
-        //*************** FIXME ***************
-        //*************** FIXME ***************
-        //*************************************
-
         // Step 3.b: Read from main memory
         const CCTK_REAL alpL         = alp[index];
         const CCTK_REAL alpinvsqrdL  = 1.0/(alpL*alpL);
@@ -74,9 +57,9 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
         CCTK_REAL vzL                = alpL*velz[index] - betazL;
         const CCTK_REAL Y_eL         = Y_e[index];
         const CCTK_REAL temperatureL = temperature[index];
-        const CCTK_REAL tau_nueL [2] = {tau_0_nue [index],tau_1_nue [index]};
-        const CCTK_REAL tau_anueL[2] = {tau_0_anue[index],tau_1_anue[index]};
-        const CCTK_REAL tau_nuxL [2] = {tau_0_nux [index],tau_1_nux [index]};
+        const CCTK_REAL tau_nueL [2] = {tau_0_nue_p [index],tau_1_nue_p [index]};
+        const CCTK_REAL tau_anueL[2] = {tau_0_anue_p[index],tau_1_anue_p[index]};
+        const CCTK_REAL tau_nuxL [2] = {tau_0_nux_p [index],tau_1_nux_p [index]};
 
         // Step 3.c: Compute BSSN quantities; enforce det(gammabar_{ij}) = 1
         // Step 3.c.i: Compute the determinant of the physical metric

@@ -14,6 +14,13 @@ CCTK_REAL W_max "Maximum Lorentz factor."
 } 10.0
 
 restricted:
+CCTK_STRING NRPyLeakageET_optical_depth_evolution_type "Type of optical depth evolution" STEERABLE = RECOVER
+{
+  "PathOfLeastResistance" :: "Adopts the 'path of least resistance' algorithm of Nielsen et al. (2014) (1403.3680)"
+  "static"                :: "Optical depth is kept fixed at its initial value"
+} "PathOfLeastResistance"
+
+restricted:
 CCTK_STRING GFstring_Ye_star_rhs "Gridfunction for the conserved electron fraction right-hand side" STEERABLE = RECOVER
 {
   "IllinoisGRMHD::Ye_star_rhs" :: "IllinoisGRMHD's gridfunction"
