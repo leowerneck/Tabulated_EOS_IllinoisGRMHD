@@ -120,6 +120,8 @@ inline int check_depsdT_condition( const igm_eos_parameters eos,
   enforce_table_bounds_rho_Ye_eps( eos,&rho,&ye,&eps );
   WVU_EOS_P_S_T_and_depsdT_from_rho_Ye_eps( rho,ye,eps, &press,&ent,&temp,&depsdT );
 
+  // printf("depsdT = %e (%e)\n",depsdT,eos.depsdT_threshold);
+
   int con2prim_key = None;
   if( eos.evolve_entropy && (depsdT < eos.depsdT_threshold) ) {
     con2prim_key = Palenzuela1D_entropy;
@@ -127,6 +129,8 @@ inline int check_depsdT_condition( const igm_eos_parameters eos,
   else {
     con2prim_key = Palenzuela1D;
   }
+
+  // printf("con2prim_key = %d\n",con2prim_key);
 
   return( con2prim_key );
 }
@@ -206,6 +210,7 @@ int con2prim_Palenzuela1D( const igm_eos_parameters eos,
   palenzuela( eos, S_squared,BdotS,B_squared, con, prim, SU, tolerance, stats );
 
   if( (stats.c2p_failed == true) && (stats.which_routine == Palenzuela1D_entropy) ) {
+    printf("Entropy routine failed\n");
     // If the entropy con2prim failed, then try again
     // using the standard Palenzuela1D con2prim
     stats.which_routine = Palenzuela1D;
