@@ -559,13 +559,13 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
                                                  vxr,vyr,vzr,vxl,vyl,vzl,Pr,Pl,
                                                  psi6phi_rhs,Ax_rhs,Ay_rhs,Az_rhs);
 
-  // Leo says: NRPyLeakage interface
-  if( enable_leakage ) {
-    // Convert to HydroBase
+  if( enable_NRPyLeakageET_interface ) {
+    // Convert rho, Y_e, T, and velocities to HydroBase
+    // because they are needed by NRPyLeakage
 #pragma omp parallel for
-    for(int k=0;k<cctk_lsh[2];k++) {
-      for(int j=0;j<cctk_lsh[1];j++) {
-        for(int i=0;i<cctk_lsh[0];i++) {
+    for(int k=cctk_nghostzones[2];k<cctk_lsh[2]-cctk_nghostzones[2];k++) {
+      for(int j=cctk_nghostzones[1];j<cctk_lsh[1]-cctk_nghostzones[1];j++) {
+        for(int i=cctk_nghostzones[0];i<cctk_lsh[0]-cctk_nghostzones[0];i++) {
           const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
           // Read from main memory
@@ -590,13 +590,6 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
         }
       }
     }
-    
-    NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss(cctkGH,cctk_lsh,cctk_nghostzones,GAMMA_SPEED_LIMIT,
-                                                                   alp,betax,betay,betaz,gxx,gxy,gxz,gyy,gyz,gzz,
-                                                                   rho,Y_e,temperature,vel,
-                                                                   Ye_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs);
-    printf("%e %e %e %e %e\n",Ye_star_rhs[10],tau_rhs[10],st_x_rhs[10],st_y_rhs[10],st_z_rhs[10]);
-    getchar();
   }
 
   return;
