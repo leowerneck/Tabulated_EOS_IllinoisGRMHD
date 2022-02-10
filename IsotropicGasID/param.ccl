@@ -41,20 +41,23 @@ EXTENDS KEYWORD initial_temperature
 }
 
 restricted:
-CCTK_REAL IsotropicGasID_Y_e "IsotropicGasID_Y_e"
+CCTK_REAL IsotropicGasID_rho "Gas density in geometrized units"
 {
-  *:* :: "Anything goes"
+  0:* :: "Non-negative values"
+  -1  :: "Forbidden value"
 } -1
 
 restricted:
-CCTK_REAL IsotropicGasID_rho "IsotropicGasID_rho"
+CCTK_REAL IsotropicGasID_Y_e "Gas electron fraction (dimensionless)"
 {
-  *:* :: "Anything goes"
+  0:* :: "Non-negative values"
+  -1  :: "Forbidden value"
 } -1
 
 restricted:
-CCTK_REAL IsotropicGasID_temperature "IsotropicGasID_temperature"
+CCTK_REAL IsotropicGasID_temperature "Gas temperature in MeV"
 {
-  *:* :: "Anything goes"
+  0:* :: "Non-negative values"
+  -1  :: "Forbidden value"
 } -1
 

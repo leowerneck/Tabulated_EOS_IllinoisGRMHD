@@ -7,6 +7,8 @@
 #define vely (&vel[1*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 #define velz (&vel[2*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 
+#define CHECK_PARAMETER(par) if(par==-1) CCTK_VError(__LINE__,__FILE__,CCTK_THORNSTRING,"Please set %s::%s in your parfile",CCTK_THORNSTRING,#par);
+
 /*
  * 
  * (c) 2021 Leo Werneck
@@ -23,9 +25,14 @@ void IsotropicGasID(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
+  // Step 2: Check correct usage
+  CHECK_PARAMETER(IsotropicGasID_rho);
+  CHECK_PARAMETER(IsotropicGasID_Y_e);
+  CHECK_PARAMETER(IsotropicGasID_temperature);
+
   CCTK_INFO("Beginning initial data");
 
-  // Step 2: Compute local pressure and epsilon
+  // Step 3: Compute local pressure and epsilon
   CCTK_REAL IsotropicGasID_press, IsotropicGasID_eps, IsotropicGasID_entropy;
   WVU_EOS_P_eps_and_S_from_rho_Ye_T( IsotropicGasID_rho,
                                      IsotropicGasID_Y_e,
@@ -34,9 +41,7 @@ void IsotropicGasID(CCTK_ARGUMENTS) {
                                     &IsotropicGasID_eps,
                                     &IsotropicGasID_entropy);
 
-  CCTK_VInfo(CCTK_THORNSTRING,"Memory check: %e %e %e %e %e %e",rho[0],Y_e[0],temperature[0],press[0],eps[0],entropy[0]);
-
-  // Step 3: Loop over the grid and set the ID
+  // Step 4: Loop over the grid and set the ID
 #pragma omp parallel for
   for(int k=0;k<cctk_lsh[2];k++) {
     for(int j=0;j<cctk_lsh[1];j++) {
@@ -74,6 +79,5 @@ void IsotropicGasID(CCTK_ARGUMENTS) {
     }
   }
 
-  CCTK_VInfo(CCTK_THORNSTRING,"Memory check: %e %e %e %e %e %e",rho[0],Y_e[0],temperature[0],press[0],eps[0],entropy[0]);
   CCTK_INFO("All done!");
 }
