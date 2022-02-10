@@ -6,10 +6,10 @@
  * in Takahashi, Eid, and Hillebrandt (1978)
  * https://adsabs.harvard.edu/pdf/1978A%26A....67..185T
  */
-REAL NRPyLeakage_Fermi_Dirac_integrals(const int k, const REAL z) {
+CCTK_REAL NRPyLeakage_Fermi_Dirac_integrals(const int k, const CCTK_REAL z) {
 
 
-  REAL Fermi_Dirac_integral = 0.0;
+  CCTK_REAL Fermi_Dirac_integral = 0.0;
   if(z>1e-3) {
     switch(k) {
     case(0):
