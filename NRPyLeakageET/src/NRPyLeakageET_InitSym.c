@@ -1,8 +1,9 @@
 #include "cctk.h"
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
+#include "Symmetry.h"
 
-void NRPyLeakage_InitSym(CCTK_ARGUMENTS) {
+void NRPyLeakageET_InitSym(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 

@@ -2,7 +2,7 @@
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
 
-#include "NRPyLeakage.h"
+#include "NRPyLeakageET.h"
 
 
 /*
@@ -10,7 +10,7 @@
  * Compute GRMHD source terms following Ruffert et al. (1996)
  * https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
  */
-void NRPyLeakage_compute_optical_depths(CCTK_ARGUMENTS) {
+void NRPyLeakageET_compute_optical_depths(CCTK_ARGUMENTS) {
 
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
@@ -213,7 +213,7 @@ void NRPyLeakage_compute_optical_depths(CCTK_ARGUMENTS) {
         const CCTK_REAL new_tau_0_nux_i_j_k = MIN(MIN(MIN(MIN(MIN(tau_0_nux_ip1_j_k,tau_0_nux_im1_j_k),tau_0_nux_i_jp1_k),tau_0_nux_i_jm1_k),tau_0_nux_i_j_kp1),tau_0_nux_i_j_km1);
         const CCTK_REAL new_tau_1_nux_i_j_k = MIN(MIN(MIN(MIN(MIN(tau_1_nux_ip1_j_k,tau_1_nux_im1_j_k),tau_1_nux_i_jp1_k),tau_1_nux_i_jm1_k),tau_1_nux_i_j_kp1),tau_1_nux_i_j_km1);
 
-         // Step 9: Write results to main memory
+        // Step 9: Write results to main memory
         tau_0_nue[i_j_k] = new_tau_0_nue_i_j_k;
         tau_1_nue[i_j_k] = new_tau_1_nue_i_j_k;
         tau_0_anue[i_j_k] = new_tau_0_anue_i_j_k;

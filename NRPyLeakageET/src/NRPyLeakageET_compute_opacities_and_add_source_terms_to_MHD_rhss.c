@@ -1,15 +1,15 @@
 #include "cctk.h"
 #include "cctk_Parameters.h"
-#include "NRPyLeakage.h"
+#include "NRPyLeakageET.h"
 
 #define velx (&vel[0*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 #define vely (&vel[1*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 #define velz (&vel[2*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 
-#define CHECK_POINTER(pointer,name) \
+#define CHECK_POINTER(pointer,name)                                     \
   if( !pointer ) CCTK_VError(__LINE__,__FILE__,CCTK_THORNSTRING,"Failed to get pointer for gridfunction '%s'",name);
 
-void NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUMENTS) {
+void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUMENTS) {
 
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
@@ -81,7 +81,7 @@ void NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUMEN
         // Step 3.c: Compute BSSN quantities; enforce det(gammabar_{ij}) = 1
         // Step 3.c.i: Compute the determinant of the physical metric
         CCTK_REAL gdet = gxxL * gyyL * gzzL + gxyL * gyzL * gxzL + gxzL * gxyL * gyzL
-                       - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL;
+          - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL;
         gdet = fabs(gdet);
         // Step 3.c.ii: Compute BSSN quantities (gb = "gbar" = conformal metric)
         const CCTK_REAL phiL   = (1.0/12.0) * log(gdet);
@@ -98,7 +98,7 @@ void NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUMEN
         CCTK_REAL gbzzL        = gzzL*psim4L;
         // Step 3.c.iii: Compute the determinant of the conformal metric
         CCTK_REAL gbdet = gbxxL * gbyyL * gbzzL + gbxyL * gbyzL * gbxzL + gbxzL * gbxyL * gbyzL
-                        - gbxzL * gbyyL * gbxzL - gbxyL * gbxyL * gbzzL - gbxxL * gbyzL * gbyzL;
+          - gbxzL * gbyyL * gbxzL - gbxyL * gbxyL * gbzzL - gbxxL * gbyzL * gbyzL;
         gbdet = fabs(gbdet);
         // Step 3.c.iv: Enforce det(gammabar) = 1 constraint
         CCTK_REAL gbdet_Fm1o3 = fabs(1.0/cbrt(gbdet));
@@ -119,10 +119,10 @@ void NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUMEN
         // Step 3.d: Compute u^{mu}
         // Step 3.d.i: Compute Lorentz factor W
         const CCTK_REAL one_minus_one_over_Wsqrd = (    gxxL*(vxL + betaxL)*(vxL + betaxL) +
-                                                    2.0*gxyL*(vxL + betaxL)*(vyL + betayL) +
-                                                    2.0*gxzL*(vxL + betaxL)*(vzL + betazL) +
+                                                        2.0*gxyL*(vxL + betaxL)*(vyL + betayL) +
+                                                        2.0*gxzL*(vxL + betaxL)*(vzL + betazL) +
                                                         gyyL*(vyL + betayL)*(vyL + betayL) +
-                                                    2.0*gyzL*(vyL + betayL)*(vzL + betazL) +
+                                                        2.0*gyzL*(vyL + betayL)*(vzL + betazL) +
                                                         gzzL*(vzL + betazL)*(vzL + betazL) )*alpinvsqrdL;
         CCTK_REAL W = 1.0/sqrt( 1 - one_minus_one_over_Wsqrd );
 
@@ -145,10 +145,10 @@ void NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUMEN
 
         // Step 3.f: Compute R, Q, and the neutrino opacities
         CCTK_REAL R_sourceL, Q_sourceL, kappa_nueL[2],kappa_anueL[2],kappa_nuxL[2];
-        NRPyLeakage_compute_GRMHD_source_terms_and_opacities(NRPyLeakage_constants_key,
-                                                             rhoL,Y_eL,temperatureL,
-                                                             tau_nueL,tau_anueL,tau_nuxL,
-                                                             &R_sourceL,&Q_sourceL,kappa_nueL,kappa_anueL,kappa_nuxL);
+        NRPyLeakageET_compute_GRMHD_source_terms_and_opacities(NRPyLeakageET_constants_key,
+                                                               rhoL,Y_eL,temperatureL,
+                                                               tau_nueL,tau_anueL,tau_nuxL,
+                                                               &R_sourceL,&Q_sourceL,kappa_nueL,kappa_anueL,kappa_nuxL);
 
         // Step 3.h: Compute MHD right-hand sides
         const CCTK_REAL sqrtmgL      = alpL * psi6L;

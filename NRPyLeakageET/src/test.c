@@ -3,7 +3,7 @@
 #include "cctk_Parameters.h"
 
 
-void NRPyLeakage_test(CCTK_ARGUMENTS) {
+void NRPyLeakageET_test(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 

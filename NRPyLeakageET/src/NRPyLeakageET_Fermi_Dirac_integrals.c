@@ -1,4 +1,4 @@
-#include "NRPyLeakage.h"
+#include "NRPyLeakageET.h"
 
 /*
  * (c) Leo Werneck
@@ -6,7 +6,7 @@
  * in Takahashi, Eid, and Hillebrandt (1978)
  * https://adsabs.harvard.edu/pdf/1978A%26A....67..185T
  */
-CCTK_REAL NRPyLeakage_Fermi_Dirac_integrals(const int k, const CCTK_REAL z) {
+CCTK_REAL NRPyLeakageET_Fermi_Dirac_integrals(const int k, const CCTK_REAL z) {
 
 
   CCTK_REAL Fermi_Dirac_integral = 0.0;

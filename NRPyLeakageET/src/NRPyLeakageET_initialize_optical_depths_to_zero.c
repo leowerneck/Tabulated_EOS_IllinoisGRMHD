@@ -2,7 +2,7 @@
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
 
-void NRPyLeakage_initialize_optical_depths_to_zero(CCTK_ARGUMENTS) {
+void NRPyLeakageET_initialize_optical_depths_to_zero(CCTK_ARGUMENTS) {
 
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
@@ -37,6 +37,4 @@ void NRPyLeakage_initialize_optical_depths_to_zero(CCTK_ARGUMENTS) {
   }
 
   CCTK_INFO("Initialized all optical depths gridfunctions to zero");
-
-  CCTK_VInfo(CCTK_THORNSTRING,"%e %e %e %e %e %e",tau_0_nue[10],tau_1_nue[10],tau_0_anue[10],tau_1_anue[10],tau_0_nux[10],tau_1_nux[10]);
 }

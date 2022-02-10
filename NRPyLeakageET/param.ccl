@@ -1,7 +1,7 @@
 # Parameter definitions for thorn NRPyLeakageET
 
 restricted:
-CCTK_INT NRPyLeakage_constants_key "Which values of physical constants to use. NRPy (0) is the most up to date."
+CCTK_INT NRPyLeakageET_constants_key "Which values of physical constants to use. NRPy (0) is the most up to date."
 {
   0 :: "NRPy constants"
   1 :: "HARM3D+NUC constants"

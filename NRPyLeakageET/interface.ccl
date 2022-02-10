@@ -3,7 +3,8 @@
 implements: NRPyLeakageET
 inherits: ADMBase, Boundary, SpaceMask, HydroBase, grid
 
-includes header: NRPyLeakage.h in NRPyLeakage.h
+includes header: NRPyLeakageET.h in NRPyLeakageET.h
+USES INCLUDE: Symmetry.h
 # USES INCLUDE HEADER: WVU_EOS_Tabulated_headers.h
 
 # ------------------------------------------------------
