@@ -293,34 +293,6 @@ void FUNCTION WVU_EOS_P_eps_and_T_from_rho_Ye_S( CCTK_REAL IN rho,  \
 USES FUNCTION WVU_EOS_P_eps_and_T_from_rho_Ye_S
 # ------------------------------------------------------
 
-# ------------------------------------------------------
-# NRPyLeakage
-void FUNCTION NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss( CCTK_POINTER_TO_CONST IN cctkGH,
-                                                                              CCTK_INT IN ARRAY cctk_lsh,
-                                                                              CCTK_INT IN ARRAY cctk_nghostzones,
-                                                                              CCTK_REAL IN W_max,
-                                                                              CCTK_REAL IN ARRAY alp,
-                                                                              CCTK_REAL IN ARRAY betax,
-                                                                              CCTK_REAL IN ARRAY betay,
-                                                                              CCTK_REAL IN ARRAY betaz,
-                                                                              CCTK_REAL IN ARRAY gxx,
-                                                                              CCTK_REAL IN ARRAY gxy,
-                                                                              CCTK_REAL IN ARRAY gxz,
-                                                                              CCTK_REAL IN ARRAY gyy,
-                                                                              CCTK_REAL IN ARRAY gyz,
-                                                                              CCTK_REAL IN ARRAY gzz,
-                                                                              CCTK_REAL IN ARRAY rho,
-                                                                              CCTK_REAL IN ARRAY Y_e,
-                                                                              CCTK_REAL IN ARRAY temperature,
-                                                                              CCTK_REAL IN ARRAY vel,
-                                                                              CCTK_REAL OUT ARRAY Ye_star_rhs,
-                                                                              CCTK_REAL OUT ARRAY tau_rhs,
-                                                                              CCTK_REAL OUT ARRAY st_x_rhs,
-                                                                              CCTK_REAL OUT ARRAY st_y_rhs,
-                                                                              CCTK_REAL OUT ARRAY st_z_rhs )
-USES FUNCTION NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss
-# ------------------------------------------------------
-
 public:
 CCTK_INT igm_eos_key TYPE=SCALAR "EOS key - Used to select between hybrid and tabulated EOS"
 
