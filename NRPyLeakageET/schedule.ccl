@@ -1,2 +1,25 @@
 # Schedule definitions for thorn NRPyLeakageET
 STORAGE: NRPyLeakageET_opacities[3], NRPyLeakageET_optical_depths[3]
+
+schedule NRPyLeakage_initialize_optical_depths_to_zero IN HydroBase_Initial
+{
+  LANG: C
+  WRITES: NRPyLeakageET::tau_0_nue     (Everywhere)
+  WRITES: NRPyLeakageET::tau_1_nue     (Everywhere)
+  WRITES: NRPyLeakageET::tau_0_anue    (Everywhere)
+  WRITES: NRPyLeakageET::tau_1_anue    (Everywhere)
+  WRITES: NRPyLeakageET::tau_0_nux     (Everywhere)
+  WRITES: NRPyLeakageET::tau_1_nux     (Everywhere)
+  WRITES: NRPyLeakageET::tau_0_nue_p   (Everywhere)
+  WRITES: NRPyLeakageET::tau_1_nue_p   (Everywhere)
+  WRITES: NRPyLeakageET::tau_0_anue_p  (Everywhere)
+  WRITES: NRPyLeakageET::tau_1_anue_p  (Everywhere)
+  WRITES: NRPyLeakageET::tau_0_nux_p   (Everywhere)
+  WRITES: NRPyLeakageET::tau_1_nux_p   (Everywhere)
+  WRITES: NRPyLeakageET::tau_0_nue_p_p (Everywhere)
+  WRITES: NRPyLeakageET::tau_1_nue_p_p (Everywhere)
+  WRITES: NRPyLeakageET::tau_0_anue_p_p(Everywhere)
+  WRITES: NRPyLeakageET::tau_1_anue_p_p(Everywhere)
+  WRITES: NRPyLeakageET::tau_0_nux_p_p (Everywhere)
+  WRITES: NRPyLeakageET::tau_1_nux_p_p (Everywhere)
+} "NRPyLeakageET: Initialize all optical depth gridfunctions to zero."

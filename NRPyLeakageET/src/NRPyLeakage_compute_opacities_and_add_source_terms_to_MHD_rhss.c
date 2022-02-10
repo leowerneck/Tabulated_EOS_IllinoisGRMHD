@@ -35,32 +35,32 @@ void NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss_impl( const 
   const int timelevel = 0;
 
   // Step 1: Get pointers to opacity and optical depth gridfunctions
-  CCTK_REAL *kappa_0_nue  = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakage::kappa_0_nue" ));
-  CCTK_REAL *kappa_1_nue  = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakage::kappa_1_nue" ));
-  CCTK_REAL *kappa_0_anue = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakage::kappa_0_anue"));
-  CCTK_REAL *kappa_1_anue = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakage::kappa_1_anue"));
-  CCTK_REAL *kappa_0_nux  = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakage::kappa_0_nux" ));
-  CCTK_REAL *kappa_1_nux  = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakage::kappa_1_nux" ));
-  CCTK_REAL *tau_0_nue    = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakage::tau_0_nue"   ));
-  CCTK_REAL *tau_1_nue    = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakage::tau_1_nue"   ));
-  CCTK_REAL *tau_0_anue   = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakage::tau_0_anue"  ));
-  CCTK_REAL *tau_1_anue   = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakage::tau_1_anue"  ));
-  CCTK_REAL *tau_0_nux    = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakage::tau_0_nux"   ));
-  CCTK_REAL *tau_1_nux    = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakage::tau_1_nux"   ));
+  CCTK_REAL *kappa_0_nue  = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::kappa_0_nue" ));
+  CCTK_REAL *kappa_1_nue  = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::kappa_1_nue" ));
+  CCTK_REAL *kappa_0_anue = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::kappa_0_anue"));
+  CCTK_REAL *kappa_1_anue = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::kappa_1_anue"));
+  CCTK_REAL *kappa_0_nux  = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::kappa_0_nux" ));
+  CCTK_REAL *kappa_1_nux  = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::kappa_1_nux" ));
+  CCTK_REAL *tau_0_nue    = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::tau_0_nue"   ));
+  CCTK_REAL *tau_1_nue    = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::tau_1_nue"   ));
+  CCTK_REAL *tau_0_anue   = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::tau_0_anue"  ));
+  CCTK_REAL *tau_1_anue   = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::tau_1_anue"  ));
+  CCTK_REAL *tau_0_nux    = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::tau_0_nux"   ));
+  CCTK_REAL *tau_1_nux    = (CCTK_REAL *)(CCTK_VarDataPtr(cctkGH,timelevel,"NRPyLeakageET::tau_1_nux"   ));
 
   // Step 2: Check pointers are ok
-  if( !kappa_0_nue  ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakage::kappa_0_nue'" );
-  if( !kappa_1_nue  ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakage::kappa_1_nue'" );
-  if( !kappa_0_anue ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakage::kappa_0_anue'");
-  if( !kappa_1_anue ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakage::kappa_1_anue'");
-  if( !kappa_0_nux  ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakage::kappa_0_nux'" );
-  if( !kappa_1_nux  ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakage::kappa_1_nux'" );
-  if( !tau_0_nue    ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakage::tau_0_nue'"   );
-  if( !tau_1_nue    ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakage::tau_1_nue'"   );
-  if( !tau_0_anue   ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakage::tau_0_anue'"  );
-  if( !tau_1_anue   ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakage::tau_1_anue'"  );
-  if( !tau_0_nux    ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakage::tau_0_nux'"   );
-  if( !tau_1_nux    ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakage::tau_1_nux'"   );
+  if( !kappa_0_nue  ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::kappa_0_nue'" );
+  if( !kappa_1_nue  ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::kappa_1_nue'" );
+  if( !kappa_0_anue ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::kappa_0_anue'");
+  if( !kappa_1_anue ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::kappa_1_anue'");
+  if( !kappa_0_nux  ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::kappa_0_nux'" );
+  if( !kappa_1_nux  ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::kappa_1_nux'" );
+  if( !tau_0_nue    ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::tau_0_nue'"   );
+  if( !tau_1_nue    ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::tau_1_nue'"   );
+  if( !tau_0_anue   ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::tau_0_anue'"  );
+  if( !tau_1_anue   ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::tau_1_anue'"  );
+  if( !tau_0_nux    ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::tau_0_nux'"   );
+  if( !tau_1_nux    ) CCTK_ERROR("Failed to get pointer for gridfunction 'NRPyLeakageET::tau_1_nux'"   );
 
   // Step 3: Compute opacities and leakage source terms
 #pragma omp parallel for
@@ -92,6 +92,9 @@ void NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss_impl( const 
         const CCTK_REAL tau_nueL [2] = {tau_0_nue [index],tau_1_nue [index]};
         const CCTK_REAL tau_anueL[2] = {tau_0_anue[index],tau_1_anue[index]};
         const CCTK_REAL tau_nuxL [2] = {tau_0_nux [index],tau_1_nux [index]};
+
+        printf("%e %e %e %e %e %e\n",tau_0_nue[index],tau_1_nue[index],tau_0_anue[index],tau_1_anue[index],tau_0_nux[index],tau_1_nux[index]);
+        printf("%e %e %e %e %e %e\n",tau_nueL[0],tau_nueL[1],tau_anueL[0],tau_anueL[1],tau_nuxL[0],tau_nuxL[1]);
 
         // Step 3.c: Compute BSSN quantities; enforce det(gammabar_{ij}) = 1
         // Step 3.c.i: Compute the determinant of the physical metric
@@ -172,6 +175,12 @@ void NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss_impl( const 
         const CCTK_REAL st_x_rhsL    = sqrtmgL * Q_sourceL * uxL;
         const CCTK_REAL st_y_rhsL    = sqrtmgL * Q_sourceL * uyL;
         const CCTK_REAL st_z_rhsL    = sqrtmgL * Q_sourceL * uzL;
+
+        printf("%e %e\n",R_sourceL,Q_sourceL);
+        printf("%e %e %e %e %e %e\n",kappa_nueL[0],kappa_nueL[1],kappa_anueL[0],kappa_anueL[1],kappa_nuxL[0],kappa_nuxL[1]);
+        printf("%e %e %e %e\n",u0L,uxL,uyL,uzL);
+        printf("%e %e %e %e %e\n",Ye_star_rhsL,tau_rhsL,st_x_rhsL,st_y_rhsL,st_z_rhsL);
+        getchar();
 
         // Step 3.i: Write to main memory
         kappa_0_nue [index]  = kappa_nueL [0];

@@ -46,6 +46,10 @@
 #include "driver_evaluate_MHD_rhs.h" /* Function prototypes for this file only */
 #include "inlined_functions.C"
 
+#define velx (&vel[0*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
+#define vely (&vel[1*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
+#define velz (&vel[2*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
+
 extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
@@ -557,10 +561,42 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 
   // Leo says: NRPyLeakage interface
   if( enable_leakage ) {
+    // Convert to HydroBase
+#pragma omp parallel for
+    for(int k=0;k<cctk_lsh[2];k++) {
+      for(int j=0;j<cctk_lsh[1];j++) {
+        for(int i=0;i<cctk_lsh[0];i++) {
+          const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+
+          // Read from main memory
+          const CCTK_REAL invalpL      = 1.0/alp[index];
+          const CCTK_REAL betaxL       = betax[index];
+          const CCTK_REAL betayL       = betay[index];
+          const CCTK_REAL betazL       = betaz[index];
+          const CCTK_REAL rhoL         = rho_b[index];
+          const CCTK_REAL Y_eL         = igm_Ye[index];
+          const CCTK_REAL temperatureL = igm_temperature[index];
+          const CCTK_REAL vxL          = vx[index];
+          const CCTK_REAL vyL          = vy[index];
+          const CCTK_REAL vzL          = vz[index];
+
+          // Write to main memory, converting to HydroBase
+          rho[index]         = rhoL;
+          Y_e[index]         = Y_eL;
+          temperature[index] = temperatureL;
+          velx[index]        = (vxL + betaxL)*invalpL;
+          vely[index]        = (vyL + betayL)*invalpL;
+          velz[index]        = (vzL + betazL)*invalpL;
+        }
+      }
+    }
+    
     NRPyLeakage_compute_opacities_and_add_source_terms_to_MHD_rhss(cctkGH,cctk_lsh,cctk_nghostzones,GAMMA_SPEED_LIMIT,
                                                                    alp,betax,betay,betaz,gxx,gxy,gxz,gyy,gyz,gzz,
                                                                    rho,Y_e,temperature,vel,
                                                                    Ye_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs);
+    printf("%e %e %e %e %e\n",Ye_star_rhs[10],tau_rhs[10],st_x_rhs[10],st_y_rhs[10],st_z_rhs[10]);
+    getchar();
   }
 
   return;
