@@ -1,0 +1,14 @@
+# IsotropicGasID interface.ccl file
+implements: IsotropicGasID
+inherits: ADMBase grid HydroBase
+######################################
+### Aliased function from WVU_EOS  ###
+######################################
+void FUNCTION WVU_EOS_P_eps_and_S_from_rho_Ye_T( CCTK_REAL IN rho, \
+                                                 CCTK_REAL IN Ye,  \
+                                                 CCTK_REAL IN T,   \
+                                                 CCTK_REAL OUT P,  \
+                                                 CCTK_REAL OUT eps,\
+                                                 CCTK_REAL OUT S )
+
+USES FUNCTION WVU_EOS_P_eps_and_S_from_rho_Ye_T
