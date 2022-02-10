@@ -41,49 +41,49 @@ EXTENDS KEYWORD initial_temperature
 }
 
 restricted:
-CCTK_REAL ConstantDensitySphereID_sphere_radius "ConstantDensitySphereID_sphere_radius"
+CCTK_REAL ConstantDensitySphereID_sphere_radius "Sphere radius in geometrized units"
 {
   0:* :: "Non-negative values"
   -1  :: "Forbidden value"
 } -1
 
 restricted:
-CCTK_REAL ConstantDensitySphereID_Y_e_interior "ConstantDensitySphereID_Y_e_interior"
+CCTK_REAL ConstantDensitySphereID_rho_interior "Interior density in geometrized units"
 {
   0:* :: "Non-negative values"
   -1  :: "Forbidden value"
 } -1
 
 restricted:
-CCTK_REAL ConstantDensitySphereID_rho_interior "ConstantDensitySphereID_rho_interior"
+CCTK_REAL ConstantDensitySphereID_Y_e_interior "Interior electron fraction (dimensionless)"
 {
   0:* :: "Non-negative values"
   -1  :: "Forbidden value"
 } -1
 
 restricted:
-CCTK_REAL ConstantDensitySphereID_temperature_interior "ConstantDensitySphereID_temperature_interior"
+CCTK_REAL ConstantDensitySphereID_temperature_interior "Interior temperature in MeV"
 {
   0:* :: "Non-negative values"
   -1  :: "Forbidden value"
 } -1
 
 restricted:
-CCTK_REAL ConstantDensitySphereID_Y_e_exterior "ConstantDensitySphereID_Y_e_exterior"
+CCTK_REAL ConstantDensitySphereID_rho_exterior "Exterior density in geometrized units"
 {
   0:* :: "Non-negative values"
   -1  :: "Forbidden value"
 } -1
 
 restricted:
-CCTK_REAL ConstantDensitySphereID_rho_exterior "ConstantDensitySphereID_rho_exterior"
+CCTK_REAL ConstantDensitySphereID_Y_e_exterior "Exterior electron fraction (dimensionless)"
 {
   0:* :: "Non-negative values"
   -1  :: "Forbidden value"
 } -1
 
 restricted:
-CCTK_REAL ConstantDensitySphereID_temperature_exterior "ConstantDensitySphereID_temperature_exterior"
+CCTK_REAL ConstantDensitySphereID_temperature_exterior "Exterior temperature in MeV"
 {
   0:* :: "Non-negative values"
   -1  :: "Forbidden value"

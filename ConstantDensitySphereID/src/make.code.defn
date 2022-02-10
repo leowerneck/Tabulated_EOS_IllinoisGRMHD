@@ -1,2 +1,2 @@
-# IsotropicGasID make.code.defn file
-SRCS = IsotropicGasID.c
+# ConstantDensitySphereID make.code.defn file
+SRCS = ConstantDensitySphereID.c
