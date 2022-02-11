@@ -17,45 +17,6 @@ SCHEDULE NRPyLeakageET_InitializeIterationCounter IN HydroBase_Initial BEFORE NR
   LANG: C
 } "Initialize counter; this specifies how many times the function NRPyLeakageET_initialization_driver will be called"
 
-# .----------------------------------------------.
-# | Optical depth/opacities initialization group |
-# .----------------------------------------------.
-SCHEDULE GROUP NRPyLeakageET_InitGroup IN HydroBase_Initial WHILE NRPyLeakageET::NRPyLeakageET_IterationCounter
-{
-} "Initialize optical depth and opacities"
-
-SCHEDULE NRPyLeakageET_initialization_driver IN NRPyLeakageET_InitGroup
-{
-  LANG: C
-  OPTIONS: GLOBAL, LOOP-LOCAL
-  READS:  ADMBase::gxx               (Everywhere)
-  READS:  ADMBase::gyy               (Everywhere)
-  READS:  ADMBase::gzz               (Everywhere)
-  READS:  HydroBase::rho             (Everywhere)
-  READS:  HydroBase::Y_e             (Everywhere)
-  READS:  HydroBase::temperature     (Everywhere)
-  WRITES: NRPyLeakageET::kappa_0_nue (Everywhere), kappa_0_nue_p
-  WRITES: NRPyLeakageET::kappa_1_nue (Everywhere), kappa_1_nue_p
-  WRITES: NRPyLeakageET::kappa_0_anue(Everywhere), kappa_0_anue_p
-  WRITES: NRPyLeakageET::kappa_1_anue(Everywhere), kappa_1_anue_p
-  WRITES: NRPyLeakageET::kappa_0_nux (Everywhere), kappa_0_nux_p
-  WRITES: NRPyLeakageET::kappa_1_nux (Everywhere), kappa_1_nux_p
-  WRITES: NRPyLeakageET::tau_0_nue   (Everywhere), tau_0_nue_p
-  WRITES: NRPyLeakageET::tau_1_nue   (Everywhere), tau_1_nue_p
-  WRITES: NRPyLeakageET::tau_0_anue  (Everywhere), tau_0_anue_p
-  WRITES: NRPyLeakageET::tau_1_anue  (Everywhere), tau_1_anue_p
-  WRITES: NRPyLeakageET::tau_0_nux   (Everywhere), tau_0_nux_p
-  WRITES: NRPyLeakageET::tau_1_nux   (Everywhere), tau_1_nux_p
-} "Initialize all optical depth gridfunctions to zero."
-
-SCHEDULE NRPyLeakageET_DecrementIterationCounter IN NRPyLeakageET_InitGroup AFTER NRPyLeakageET_initialization_driver
-{
-  LANG: C
-} "Decrement counter; this specifies how many times the function NRPyLeakageET_initialization_driver will be called"
-# ----------------------------------------------
-# ----------------------------------------------
-# ----------------------------------------------
-
 SCHEDULE NRPyLeakageET_copy_opacities_and_optical_depths_to_previous_time_levels IN HydroBase_Initial AFTER NRPyLeakageET_InitGroup
 {
   LANG: C
@@ -112,4 +73,48 @@ else if( CCTK_Equals(NRPyLeakageET_optical_depth_evolution_type,"PathOfLeastResi
   {
     LANG: C
   } "PathOfLeastResistance evolution: update optical depths following Nielsen et al. (2014) (1403.3680)."
+
+  # .----------------------------------------------.
+  # | Optical depth/opacities initialization group |
+  # .----------------------------------------------.
+  SCHEDULE GROUP NRPyLeakageET_InitGroup IN HydroBase_Initial WHILE NRPyLeakageET::NRPyLeakageET_IterationCounter
+  {
+  } "Initialize optical depth and opacities"
+
+  SCHEDULE NRPyLeakageET_initialization_driver IN NRPyLeakageET_InitGroup
+  {
+    LANG: C
+    READS:  ADMBase::gxx               (Everywhere)
+    READS:  ADMBase::gyy               (Everywhere)
+    READS:  ADMBase::gzz               (Everywhere)
+    READS:  HydroBase::rho             (Everywhere)
+    READS:  HydroBase::Y_e             (Everywhere)
+    READS:  HydroBase::temperature     (Everywhere)
+    WRITES: NRPyLeakageET::kappa_0_nue (Everywhere), kappa_0_nue_p
+    WRITES: NRPyLeakageET::kappa_1_nue (Everywhere), kappa_1_nue_p
+    WRITES: NRPyLeakageET::kappa_0_anue(Everywhere), kappa_0_anue_p
+    WRITES: NRPyLeakageET::kappa_1_anue(Everywhere), kappa_1_anue_p
+    WRITES: NRPyLeakageET::kappa_0_nux (Everywhere), kappa_0_nux_p
+    WRITES: NRPyLeakageET::kappa_1_nux (Everywhere), kappa_1_nux_p
+    WRITES: NRPyLeakageET::tau_0_nue   (Everywhere), tau_0_nue_p
+    WRITES: NRPyLeakageET::tau_1_nue   (Everywhere), tau_1_nue_p
+    WRITES: NRPyLeakageET::tau_0_anue  (Everywhere), tau_0_anue_p
+    WRITES: NRPyLeakageET::tau_1_anue  (Everywhere), tau_1_anue_p
+    WRITES: NRPyLeakageET::tau_0_nux   (Everywhere), tau_0_nux_p
+    WRITES: NRPyLeakageET::tau_1_nux   (Everywhere), tau_1_nux_p
+  } "Initialize all optical depth gridfunctions to zero."
+
+  SCHEDULE NRPyLeakageET_InitSym IN NRPyLeakageET_InitGroup AFTER NRPyLeakageET_initialization_driver
+  {
+    SYNC: NRPyLeakageET_optical_depths
+    LANG: C
+  } "Placeholder for a processor sync"
+
+  SCHEDULE NRPyLeakageET_DecrementIterationCounter IN NRPyLeakageET_InitGroup AFTER NRPyLeakageET_initialization_driver
+  {
+    LANG: C
+  } "Decrement counter; this specifies how many times the function NRPyLeakageET_initialization_driver will be called"
+  # ----------------------------------------------
+  # ----------------------------------------------
+  # ----------------------------------------------
 }

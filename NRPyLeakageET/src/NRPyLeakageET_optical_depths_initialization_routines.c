@@ -89,6 +89,11 @@ void NRPyLeakageET_initialization_driver(CCTK_ARGUMENTS) {
       }
     }
   }
+
+  // Step 2: Update optical depths
+  NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_PASS_CTOC);
+
+  // All done!
 }
 
 void NRPyLeakageET_copy_opacities_and_optical_depths_to_previous_time_levels(CCTK_ARGUMENTS) {
