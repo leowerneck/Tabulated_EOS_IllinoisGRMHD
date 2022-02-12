@@ -62,7 +62,7 @@ CCTK_REAL ConstantDensitySphereID_Y_e_interior "Interior electron fraction (dime
 } -1
 
 restricted:
-CCTK_REAL ConstantDensitySphereID_temperature_interior "Interior temperature in MeV"
+CCTK_REAL ConstantDensitySphereID_T_interior "Interior temperature in MeV"
 {
   0:* :: "Non-negative values"
   -1  :: "Forbidden value"
@@ -83,7 +83,7 @@ CCTK_REAL ConstantDensitySphereID_Y_e_exterior "Exterior electron fraction (dime
 } -1
 
 restricted:
-CCTK_REAL ConstantDensitySphereID_temperature_exterior "Exterior temperature in MeV"
+CCTK_REAL ConstantDensitySphereID_T_exterior "Exterior temperature in MeV"
 {
   0:* :: "Non-negative values"
   -1  :: "Forbidden value"

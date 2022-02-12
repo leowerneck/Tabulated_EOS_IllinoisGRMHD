@@ -30,10 +30,10 @@ void ConstantDensitySphereID(CCTK_ARGUMENTS) {
   CHECK_PARAMETER(ConstantDensitySphereID_sphere_radius);
   CHECK_PARAMETER(ConstantDensitySphereID_rho_interior);
   CHECK_PARAMETER(ConstantDensitySphereID_Y_e_interior);
-  CHECK_PARAMETER(ConstantDensitySphereID_temperature_interior);
+  CHECK_PARAMETER(ConstantDensitySphereID_T_interior);
   CHECK_PARAMETER(ConstantDensitySphereID_rho_exterior);
   CHECK_PARAMETER(ConstantDensitySphereID_Y_e_exterior);
-  CHECK_PARAMETER(ConstantDensitySphereID_temperature_exterior);
+  CHECK_PARAMETER(ConstantDensitySphereID_T_exterior);
 
   CCTK_INFO("Beginning initial data");
 
@@ -41,7 +41,7 @@ void ConstantDensitySphereID(CCTK_ARGUMENTS) {
   // Step 3.a: Sphere interior
   const CCTK_REAL rho_interior = ConstantDensitySphereID_rho_interior;
   const CCTK_REAL Y_e_interior = ConstantDensitySphereID_Y_e_interior;
-  const CCTK_REAL T_interior   = ConstantDensitySphereID_temperature_interior;
+  const CCTK_REAL T_interior   = ConstantDensitySphereID_T_interior;
   CCTK_REAL P_interior, eps_interior, S_interior;
   WVU_EOS_P_eps_and_S_from_rho_Ye_T( rho_interior,
                                      Y_e_interior,
@@ -53,7 +53,7 @@ void ConstantDensitySphereID(CCTK_ARGUMENTS) {
   // Step 3.b: Sphere exterior
   const CCTK_REAL rho_exterior = ConstantDensitySphereID_rho_exterior;
   const CCTK_REAL Y_e_exterior = ConstantDensitySphereID_Y_e_exterior;
-  const CCTK_REAL T_exterior   = ConstantDensitySphereID_temperature_exterior;
+  const CCTK_REAL T_exterior   = ConstantDensitySphereID_T_exterior;
   CCTK_REAL P_exterior, eps_exterior, S_exterior;
   WVU_EOS_P_eps_and_S_from_rho_Ye_T( rho_exterior,
                                      Y_e_exterior,
