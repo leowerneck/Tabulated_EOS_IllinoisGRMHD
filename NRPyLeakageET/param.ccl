@@ -8,20 +8,25 @@ CCTK_INT NRPyLeakageET_constants_key "Which values of physical constants to use.
 } 0
 
 restricted:
+CCTK_BOOLEAN verbose "Whether to print additional messages"
+{
+} "no"
+
+restricted:
 CCTK_REAL W_max "Maximum Lorentz factor."
 {
   1:* :: "Any number greater than or equal to one"
 } 10.0
 
 restricted:
-CCTK_STRING NRPyLeakageET_optical_depth_evolution_type "Type of optical depth evolution" STEERABLE = RECOVER
+CCTK_STRING optical_depth_evolution_type "Type of optical depth evolution" STEERABLE = RECOVER
 {
   "PathOfLeastResistance" :: "Adopts the 'path of least resistance' algorithm of Nielsen et al. (2014) (1403.3680)"
   "static"                :: "Optical depth is kept fixed at its initial value"
 } "PathOfLeastResistance"
 
 restricted:
-CCTK_INT NRPyLeakageET_IterationFactor "Multiplied by max(Nx,Ny,Nz) = number of iterations to compute optical depths initially"
+CCTK_INT IterationFactor "Multiplied by max(Nx,Ny,Nz) = number of iterations to compute optical depths initially"
 {
   1:* :: "Should be greater than one"
 } 10
