@@ -1,7 +1,32 @@
 #include "cctk.h"
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
+
 #include "NRPyLeakageET.h"
+
+void NRPyLeakageET_InitializeIterationCounter(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_PARAMETERS;
+
+  // Initialize iteration counter
+  *IterationCounter = IterationFactor*MAX(cctk_lsh[0],MAX(cctk_lsh[1],cctk_lsh[2]));
+
+  CCTK_VINFO("Beginning optical depth initialization.");
+
+  if( verbose )
+    CCTK_VInfo(CCTK_THORNSTRING,"The path of least resistance algorithm will perform %d iterations",*IterationCounter);
+}
+
+void NRPyLeakageET_DecrementIterationCounter(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_PARAMETERS;
+
+  // Decrement iteration counter
+  (*IterationCounter)--;
+
+  if( *IterationCounter == 0 )
+    CCTK_VINFO("Finished optical depth initialization");
+}
 
 void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS) {
 
@@ -92,6 +117,9 @@ void NRPyLeakageET_initialization_driver(CCTK_ARGUMENTS) {
 
   // Step 2: Update optical depths
   NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_PASS_CTOC);
+
+  if( verbose )
+    CCTK_VInfo(CCTK_THORNSTRING,"Number of iterations remaining on refinement level %d: %d",GetRefinementLevel(cctkGH),*IterationCounter);
 
   // All done!
 }
