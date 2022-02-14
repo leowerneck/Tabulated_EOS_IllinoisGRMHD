@@ -9,5 +9,4 @@ SRCS = NRPyLeakageET_Fermi_Dirac_integrals.c \
        NRPyLeakageET_optical_depths_initialization_routines.c \
        NRPyLeakageET_optical_depths_PathOfLeastResistance.c \
        NRPyLeakageET_InitSym.c \
-       NRPyLeakageET_Initialize_Decrement_Counter.c \
        test.c
