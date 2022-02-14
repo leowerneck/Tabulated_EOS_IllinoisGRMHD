@@ -100,7 +100,7 @@ Carpet::ghost_size               = 3
 Carpet::output_timers_every      = 512
 Carpet::prolongation_order_space = 5
 Carpet::prolongation_order_time  = 2
-Carpet::max_refinement_levels    = 1 # <- This will set the regrid/output frequency
+Carpet::max_refinement_levels    = 2 # <- This will set the regrid/output frequency
 
 #---------CarpetInterp---------
 CarpetInterp::check_tree_search = "no"
@@ -119,6 +119,10 @@ CarpetRegrid2::movement_threshold_1    = 0.10
 CarpetRegrid2::movement_threshold_2    = 0.10
 CarpetRegrid2::regrid_every            = 1
 
+CarpetRegrid2::num_centres = 1
+CarpetRegrid2::num_levels_1 = 2
+CarpetRegrid2::radius_1[1] = 1
+
 #---------CartGrid3D---------
 CartGrid3D::avoid_origin = "no"
 CartGrid3D::type         = "CoordBase"
@@ -132,15 +136,15 @@ CoordBase::boundary_size_y_upper = 3
 CoordBase::boundary_size_z_upper = 3
 CoordBase::domainsize            = "minmax"
 CoordBase::spacing               = "gridspacing"
-CoordBase::xmax                  = 2.0
+CoordBase::dx                    = 8.0/128
+CoordBase::dy                    = CoordBase::dx
+CoordBase::dz                    = CoordBase::dx
+CoordBase::xmax                  = +3.968750000000000e+00
 CoordBase::ymax                  = +CoordBase::xmax
 CoordBase::zmax                  = +CoordBase::xmax
 CoordBase::xmin                  = -CoordBase::xmax
 CoordBase::ymin                  = -CoordBase::xmax
 CoordBase::zmin                  = -CoordBase::xmax
-CoordBase::dx                    = (CoordBase::xmax-CoordBase::xmin)/64
-CoordBase::dy                    = CoordBase::dx
-CoordBase::dz                    = CoordBase::dx
 
 #---------Convert_to_HydroBase---------
 Convert_to_HydroBase::Convert_to_HydroBase_every = CarpetRegrid2::regrid_every
@@ -161,7 +165,7 @@ HydroBase::initial_Bvec        = "zero"
 HydroBase::timelevels          = 1
 
 #---------ConstantDensitySphereID---------
-ConstantDensitySphereID::ConstantDensitySphereID_sphere_radius = 1.0
+ConstantDensitySphereID::ConstantDensitySphereID_sphere_radius = 3.0
 ConstantDensitySphereID::ConstantDensitySphereID_rho_interior  = 1.586831634477515e-04 # 9.8e13 g/cm3
 ConstantDensitySphereID::ConstantDensitySphereID_Y_e_interior  = 0.1
 ConstantDensitySphereID::ConstantDensitySphereID_T_interior    = 8.0
@@ -190,6 +194,8 @@ IllinoisGRMHD::enable_NRPyLeakageET_interface    = "yes"
 
 #---------NRPyLeakageET---------
 NRPyLeakageET::optical_depth_evolution_type = "PathOfLeastResistance"
+NRPyLeakageET::IterationFactor = 4
+NRPyLeakageET::verbose = "yes"
 
 #---------InitBase---------
 InitBase::initial_data_setup_method = "init_some_levels"
