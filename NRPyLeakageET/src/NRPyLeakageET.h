@@ -82,6 +82,9 @@
 #define NRPyLeakageET_C1pC2_nux_anux (((-NRPyLeakageET_C_A + NRPyLeakageET_C_V)*(-NRPyLeakageET_C_A + NRPyLeakageET_C_V)) + ((NRPyLeakageET_C_A + NRPyLeakageET_C_V - 2)*(NRPyLeakageET_C_A + NRPyLeakageET_C_V - 2)))
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 // Function prototypes
 CCTK_REAL NRPyLeakageET_Fermi_Dirac_integrals(const int k, const CCTK_REAL z);
 
@@ -152,5 +155,12 @@ void NRPyLeakageET_compute_opacities(const int which_constants_to_use,
                                      CCTK_REAL *restrict kappa_nue,
                                      CCTK_REAL *restrict kappa_anue,
                                      CCTK_REAL *restrict kappa_nux);
+
+void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS);
+void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif // NRPYLEAKAGE_H_

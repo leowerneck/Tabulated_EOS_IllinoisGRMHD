@@ -29,7 +29,6 @@ void NRPyLeakageET_DecrementIterationCounter(CCTK_ARGUMENTS) {
 }
 
 void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS) {
-
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
@@ -63,8 +62,6 @@ void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS) {
       }
     }
   }
-
-  CCTK_INFO("Initialized all optical depths gridfunctions to zero");
 }
 
 void NRPyLeakageET_initialization_driver(CCTK_ARGUMENTS) {
