@@ -128,7 +128,7 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
 
         // Step 3.f: Compute R, Q, and the neutrino opacities
         CCTK_REAL R_sourceL, Q_sourceL, kappa_nueL[2],kappa_anueL[2],kappa_nuxL[2];
-        NRPyLeakageET_compute_GRMHD_source_terms_and_opacities(NRPyLeakageET_constants_key,
+        NRPyLeakageET_compute_GRMHD_source_terms_and_opacities(constants_key,
                                                                rhoL,Y_eL,temperatureL,
                                                                tau_nueL,tau_anueL,tau_nuxL,
                                                                &R_sourceL,&Q_sourceL,kappa_nueL,kappa_anueL,kappa_nuxL);
