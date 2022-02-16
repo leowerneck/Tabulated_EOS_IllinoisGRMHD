@@ -22,11 +22,6 @@ CCTK_REAL NRPyLeakageET_optical_depths type = GF Timelevels=3 TAGS='prolongation
   tau_0_nue, tau_0_anue, tau_0_nux,
   tau_1_nue, tau_1_anue, tau_1_nux
 } "Optical depth gridfunctions for electron neutrino, antineutrino, and heavy lepton neutrinos/antineutrinos"
-
-CCTK_INT NRPyLeakageET_IterationVars type = SCALAR tags='checkpoint="no"'
-{
-  IterationCounter
-} "Counter that keeps track of how many times we need to loop over the grid initially to compute the optical depth."
 # ------------------------------------------------------
 
 # ------------------------------------------------------

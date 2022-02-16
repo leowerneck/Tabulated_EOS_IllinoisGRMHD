@@ -11,9 +11,12 @@
  * https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
  */
 void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
-
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
+
+  if(!NRPyLeakageET_ProcessOwnsData()) return;
+
+  if(verbose) CCTK_VInfo(CCTK_THORNSTRING,"Computing optical depths at ref. lvl. %d...",GetRefinementLevel(cctkGH));
 
   const CCTK_REAL dx = CCTK_DELTA_SPACE(0);
   const CCTK_REAL dy = CCTK_DELTA_SPACE(1);
@@ -224,4 +227,6 @@ void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
       } // for(int i=cctk_nghostzones[0];i<cctk_lsh[0]-cctk_nghostzones[0];i++)
     } // for(int j=cctk_nghostzones[1];j<cctk_lsh[1]-cctk_nghostzones[1];j++)
   } // for(int k=cctk_nghostzones[2];k<cctk_lsh[2]-cctk_nghostzones[2];k++)
+
+  if(verbose) CCTK_VInfo(CCTK_THORNSTRING,"Finished computing optical depths at ref. lvl. %d",GetRefinementLevel(cctkGH));
 }

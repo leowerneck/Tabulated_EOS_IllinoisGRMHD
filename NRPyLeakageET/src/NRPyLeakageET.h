@@ -145,19 +145,11 @@ void NRPyLeakageET_compute_opacities_harm_constants(const CCTK_REAL rho_b,
                                                     CCTK_REAL *restrict kappa_anue,
                                                     CCTK_REAL *restrict kappa_nux);
 
-void NRPyLeakageET_compute_opacities(const int which_constants_to_use,
-                                     const CCTK_REAL rho_b,
-                                     const CCTK_REAL Y_e,
-                                     const CCTK_REAL T,
-                                     const CCTK_REAL *restrict tau_nue,
-                                     const CCTK_REAL *restrict tau_anue,
-                                     const CCTK_REAL *restrict tau_nux,
-                                     CCTK_REAL *restrict kappa_nue,
-                                     CCTK_REAL *restrict kappa_anue,
-                                     CCTK_REAL *restrict kappa_nux);
-
+int NRPyLeakageET_ProcessOwnsData();
+void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS);
 void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS);
 void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS);
+void NRPyLeakageET_GetMaxSize(CCTK_ARGUMENTS,int *IterationCounter);
 
 #ifdef __cplusplus
 } // extern "C"

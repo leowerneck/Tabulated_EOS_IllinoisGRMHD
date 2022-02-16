@@ -4,33 +4,47 @@
 
 #include "NRPyLeakageET.h"
 
-void NRPyLeakageET_InitializeIterationCounter(CCTK_ARGUMENTS) {
+void NRPyLeakageET_GetMaxSize(CCTK_ARGUMENTS,int *IterationCounter) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
-
-  // Initialize iteration counter
-  *IterationCounter = IterationFactor*MAX(cctk_lsh[0],MAX(cctk_lsh[1],cctk_lsh[2]));
-
-  CCTK_VINFO("Beginning optical depth initialization.");
-
-  if( verbose )
-    CCTK_VInfo(CCTK_THORNSTRING,"The path of least resistance algorithm will perform %d iterations",*IterationCounter);
+  if(verbose) {
+    CCTK_VInfo(CCTK_THORNSTRING,"Inside NRPyLeakageET_GetMaxSize");
+    CCTK_VInfo(CCTK_THORNSTRING,"Input counter : %d",*IterationCounter);
+    CCTK_VInfo(CCTK_THORNSTRING,"Local shape   : %d %d %d",cctk_lsh[0],cctk_lsh[1],cctk_lsh[2]);
+  }
+  *IterationCounter = MAX(*IterationCounter,MAX(cctk_lsh[0],MAX(cctk_lsh[1],cctk_lsh[2])));
+  if(verbose) CCTK_VInfo(CCTK_THORNSTRING,"Output counter: %d",*IterationCounter);
 }
 
-void NRPyLeakageET_DecrementIterationCounter(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
-  DECLARE_CCTK_PARAMETERS;
+// void NRPyLeakageET_InitializeIterationCounter(CCTK_ARGUMENTS) {
+//   DECLARE_CCTK_ARGUMENTS;
+//   DECLARE_CCTK_PARAMETERS;
 
-  // Decrement iteration counter
-  (*IterationCounter)--;
+//   // Initialize iteration counter
+//   *IterationCounter = IterationFactor*MAX(cctk_lsh[0],MAX(cctk_lsh[1],cctk_lsh[2]));
 
-  if( *IterationCounter == 0 )
-    CCTK_VINFO("Finished optical depth initialization");
-}
+//   CCTK_VINFO("Beginning optical depth initialization.");
+
+//   if( verbose )
+//     CCTK_VInfo(CCTK_THORNSTRING,"The path of least resistance algorithm will perform %d iterations",*IterationCounter);
+// }
+
+// void NRPyLeakageET_DecrementIterationCounter(CCTK_ARGUMENTS) {
+//   DECLARE_CCTK_ARGUMENTS;
+//   DECLARE_CCTK_PARAMETERS;
+
+//   // Decrement iteration counter
+//   (*IterationCounter)--;
+
+//   if( *IterationCounter == 0 )
+//     CCTK_VINFO("Finished optical depth initialization");
+// }
 
 void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
+
+  if(!NRPyLeakageET_ProcessOwnsData()) return;
 
   // Step 1: Initialize all time levels of the optical
   //         depth gridfunctions to zero.
@@ -59,67 +73,64 @@ void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS) {
         tau_1_anue_p_p[index] = 0.0;
         tau_0_nux_p_p [index] = 0.0;
         tau_1_nux_p_p [index] = 0.0;
-      }
-    }
-  }
+      } // for(int i=0;i<cctk_lsh[0];i++)
+    } // for(int j=0;j<cctk_lsh[1];j++)
+  } // for(int k=0;k<cctk_lsh[2];k++)
 }
 
-void NRPyLeakageET_initialization_driver(CCTK_ARGUMENTS) {
+// void NRPyLeakageET_initialization_driver(CCTK_ARGUMENTS) {
 
-  DECLARE_CCTK_ARGUMENTS;
-  DECLARE_CCTK_PARAMETERS;
+//   DECLARE_CCTK_ARGUMENTS;
+//   DECLARE_CCTK_PARAMETERS;
 
-  // Step 1: Compute opacities and store results of previous
-  //         iteration on previous time level
-#pragma omp parallel for
-  for(int k=0;k<cctk_lsh[2];k++) {
-    for(int j=0;j<cctk_lsh[1];j++) {
-      for(int i=0;i<cctk_lsh[0];i++) {
-        // Step 1.a: Set gridpoint index
-        const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+//   // Step 1: Compute opacities and store results of previous
+//   //         iteration on previous time level
+// #pragma omp parallel for
+//   for(int k=0;k<cctk_lsh[2];k++) {
+//     for(int j=0;j<cctk_lsh[1];j++) {
+//       for(int i=0;i<cctk_lsh[0];i++) {
+//         // Step 1.a: Set gridpoint index
+//         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-        // Step 1.b: Read from main memory
-        const CCTK_REAL rhoL         = rho[index];
-        const CCTK_REAL Y_eL         = Y_e[index];
-        const CCTK_REAL temperatureL = temperature[index];
-        const CCTK_REAL tau_nueL [2] = {tau_0_nue [index],tau_1_nue [index]};
-        const CCTK_REAL tau_anueL[2] = {tau_0_anue[index],tau_1_anue[index]};
-        const CCTK_REAL tau_nuxL [2] = {tau_0_nux [index],tau_1_nux [index]};
+//         // Step 1.b: Read from main memory
+//         const CCTK_REAL rhoL         = rho[index];
+//         const CCTK_REAL Y_eL         = Y_e[index];
+//         const CCTK_REAL temperatureL = temperature[index];
+//         const CCTK_REAL tau_nueL [2] = {tau_0_nue [index],tau_1_nue [index]};
+//         const CCTK_REAL tau_anueL[2] = {tau_0_anue[index],tau_1_anue[index]};
+//         const CCTK_REAL tau_nuxL [2] = {tau_0_nux [index],tau_1_nux [index]};
 
-        // Step 1.c: Compute opacities
-        CCTK_REAL kappa_nueL[2], kappa_anueL[2], kappa_nuxL[2];
-        NRPyLeakageET_compute_opacities(NRPyLeakageET_constants_key,
-                                        rhoL,Y_eL,temperatureL,
-                                        tau_nueL,tau_anueL,tau_nuxL,
-                                        kappa_nueL,kappa_anueL,kappa_nuxL);
+//         // Step 1.c: Compute opacities
+//         CCTK_REAL kappa_nueL[2], kappa_anueL[2], kappa_nuxL[2];
+//         NRPyLeakageET_compute_opacities(NRPyLeakageET_constants_key,
+//                                         rhoL,Y_eL,temperatureL,
+//                                         tau_nueL,tau_anueL,tau_nuxL,
+//                                         kappa_nueL,kappa_anueL,kappa_nuxL);
 
-        // Step 1.d: Write opacities to main memory
-        kappa_0_nue [index] = kappa_nueL [0];
-        kappa_1_nue [index] = kappa_nueL [1];
-        kappa_0_anue[index] = kappa_anueL[0];
-        kappa_1_anue[index] = kappa_anueL[1];
-        kappa_0_nux [index] = kappa_nuxL [0];
-        kappa_1_nux [index] = kappa_nuxL [1];
+//         // Step 1.d: Write opacities to main memory
+//         kappa_0_nue [index] = kappa_nueL [0];
+//         kappa_1_nue [index] = kappa_nueL [1];
+//         kappa_0_anue[index] = kappa_anueL[0];
+//         kappa_1_anue[index] = kappa_anueL[1];
+//         kappa_0_nux [index] = kappa_nuxL [0];
+//         kappa_1_nux [index] = kappa_nuxL [1];
 
-        // Step 1.e: Copy optical depth to previous time level
-        tau_0_nue_p [index] = tau_nueL [0];
-        tau_1_nue_p [index] = tau_nueL [1];
-        tau_0_anue_p[index] = tau_anueL[0];
-        tau_1_anue_p[index] = tau_anueL[1];
-        tau_0_nux_p [index] = tau_nuxL [0];
-        tau_1_nux_p [index] = tau_nuxL [1];
-      }
-    }
-  }
+//         // Step 1.e: Copy optical depth to previous time level
+//         tau_0_nue_p [index] = tau_nueL [0];
+//         tau_1_nue_p [index] = tau_nueL [1];
+//         tau_0_anue_p[index] = tau_anueL[0];
+//         tau_1_anue_p[index] = tau_anueL[1];
+//         tau_0_nux_p [index] = tau_nuxL [0];
+//         tau_1_nux_p [index] = tau_nuxL [1];
+//       }
+//     }
+//   }
 
-  // Step 2: Update optical depths
-  NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_PASS_CTOC);
+//   // Step 2: Update optical depths
+//   NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_PASS_CTOC);
 
-  if( verbose )
-    CCTK_VInfo(CCTK_THORNSTRING,"Number of iterations remaining on refinement level %d: %d",GetRefinementLevel(cctkGH),*IterationCounter);
-
-  // All done!
-}
+//   // All done!
+// }
 
 void NRPyLeakageET_copy_opacities_and_optical_depths_to_previous_time_levels(CCTK_ARGUMENTS) {
 
