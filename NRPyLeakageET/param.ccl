@@ -1,10 +1,16 @@
 # Parameter definitions for thorn NRPyLeakageET
 
 restricted:
-CCTK_INT NRPyLeakageET_constants_key "Which values of physical constants to use. NRPy (0) is the most up to date."
+CCTK_INT constants_key "Which values of physical constants to use. NRPy (0) is the most up to date."
 {
   0 :: "NRPy constants"
   1 :: "HARM3D+NUC constants"
+} 0
+
+restricted:
+CCTK_INT minInitRefLevel "Minimum refinement level used for initialization. The optical depth on all levels smaller than this will be initialized using restrict operations or to zero."
+{
+  0:* :: "Minimum refinement level for optical depth initialization."
 } 0
 
 restricted:

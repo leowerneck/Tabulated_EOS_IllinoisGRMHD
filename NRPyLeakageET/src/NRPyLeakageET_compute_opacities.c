@@ -17,7 +17,7 @@ void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS) {
 
   if(verbose) CCTK_VInfo(CCTK_THORNSTRING,"Computing opacities at ref. lvl. %d...",GetRefinementLevel(cctkGH));
 
-  switch (NRPyLeakageET_constants_key) {
+  switch (constants_key) {
   case USE_NRPY_CONSTANTS:
 #pragma omp parallel
     for(int k=0;k<cctk_lsh[2];k++) {
@@ -88,7 +88,7 @@ void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS) {
     }
     break;
   default:
-    fprintf(stderr,"(NRPyLeakageET) ERROR: Unknown constant type (%d) in NRPyLeakage_compute_GRMHD_source_terms().\n",NRPyLeakageET_constants_key);
+    fprintf(stderr,"(NRPyLeakageET) ERROR: Unknown constant type (%d) in NRPyLeakage_compute_GRMHD_source_terms().\n",constants_key);
     fprintf(stderr,"(NRPyLeakageET) Options are: USE_NRPY_CONSTANTS (%d) and USE_HARM_CONSTANTS (%d)\n",USE_NRPY_CONSTANTS,USE_HARM_CONSTANTS);
     fprintf(stderr,"(NRPyLeakageET) Aborting!\n");
     exit(1);
