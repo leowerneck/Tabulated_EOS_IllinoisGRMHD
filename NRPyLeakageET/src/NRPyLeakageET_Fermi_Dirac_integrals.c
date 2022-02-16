@@ -60,6 +60,6 @@ CCTK_REAL NRPyLeakageET_Fermi_Dirac_integrals(const int k, const CCTK_REAL z) {
       exit(1);
     }
   }
-  
+
   return Fermi_Dirac_integral;
 }

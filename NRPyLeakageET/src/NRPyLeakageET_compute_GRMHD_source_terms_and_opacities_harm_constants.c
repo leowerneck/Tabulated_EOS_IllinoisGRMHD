@@ -42,7 +42,7 @@ void NRPyLeakageET_compute_GRMHD_source_terms_and_opacities_harm_constants(const
   }
   // Step 3.a.ii: Make sure Y_{pn} is nonzero
   Y_pn = MAX(Y_pn,0.0);
-  
+
   // Step 3.b: Compute Y_{np} (Eq. A13 in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R)
   const CCTK_REAL Y_np = exp(muhat/T) * Y_pn;
   */
