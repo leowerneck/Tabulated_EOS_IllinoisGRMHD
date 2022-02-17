@@ -274,7 +274,7 @@ void NRPyEOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T( const NRPyEOS_
   // .----------------------------.-------------------------.
   // | deps/drho = (deps/dP)(dP/drho) = (dP/drho)/(dP/deps) |
   // .------------------------------------------------------.
-  
+
   // Number of interpolated quantities: 5 (P, eps, dPdrho, depsdrho, and depsdT)
   const int n = 5;
   // Table variables keys (we use the table order here)
@@ -363,7 +363,7 @@ void NRPyEOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T( const NRPyEOS_params *re
                                                         REAL *restrict mu_n,
                                                         REAL *restrict muhat,
                                                         REAL *restrict X_p,
-                                                        REAL *restrict X_n) {
+                                                        REAL *restrict X_n ) {
   // Number of interpolated quantities: 6 (mu_e, mu_p, mu_n, mu_hat, X_p, and X_n)
   const int n = 6;
   // Table variables keys
@@ -434,4 +434,84 @@ void NRPyEOS_P_eps_mue_mup_mun_and_muhat_from_rho_Ye_T( const NRPyEOS_params *re
   *mu_e  = outvars[3];
   *mu_p  = outvars[4];
   *mu_n  = outvars[5];
+}
+
+// -------------------------------------
+// ----------  mu_e(rho,Ye,T) ----------
+// ----------  mu_p(rho,Ye,T) ----------
+// ----------  mu_n(rho,Ye,T) ----------
+// ---------- muhat(rho,Ye,T) ----------
+// ----------   X_p(rho,Ye,T) ----------
+// ----------   X_n(rho,Ye,T) ----------
+// -------------------------------------
+void NRPyEOS_mue_mup_mun_muhat_Xn_Xp_and_Xh_from_rho_Ye_T( const NRPyEOS_params *restrict eos_params,
+                                                           const REAL rho,
+                                                           const REAL Ye,
+                                                           const REAL T,
+                                                           REAL *restrict mu_e,
+                                                           REAL *restrict mu_p,
+                                                           REAL *restrict mu_n,
+                                                           REAL *restrict muhat,
+                                                           REAL *restrict X_p,
+                                                           REAL *restrict X_n,
+                                                           REAL *restrict X_h ) {
+  // Number of interpolated quantities: 6 (mu_e, mu_p, mu_n, mu_hat, X_p, and X_n)
+  const int n = 7;
+  // Table variables keys
+  const int keys[7] = {NRPyEOS_muhat_key, NRPyEOS_mu_e_key, NRPyEOS_mu_p_key, NRPyEOS_mu_n_key, NRPyEOS_Xn_key, NRPyEOS_Xn_key, NRPyEOS_Xp_key};
+  // Declare error variable
+  NRPyEOS_error_report report;
+  // Set output variable array
+  REAL outvars[n];
+
+  // Get P and eps
+  NRPyEOS_from_rho_Ye_T_interpolate_n_quantities( eos_params, n,rho,Ye,T, keys,outvars, &report );
+
+  // Error handling
+  if( report.error ) {
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T. Error message: %s (key = %d)\n",report.message,report.error_key);
+    // May want to terminate depending on the error. We'll just warn for now.
+  }
+
+  // Then update mu_e, mu_p, mu_n, mu_hat, X_p, and X_n
+  *muhat = outvars[0];
+  *mu_e  = outvars[1];
+  *mu_p  = outvars[2];
+  *mu_n  = outvars[3];
+  *X_h   = outvars[4];
+  *X_n   = outvars[5];
+  *X_p   = outvars[6];
+}
+
+// -------------------------------------
+// -----------   P(rho,Ye,T) -----------
+// ----------- eps(rho,Ye,T) -----------
+// -------------------------------------
+void nrpyeos_p_and_eps_from_rho_ye_t_fortran( NRPyEOS_params *eos_params,
+                                              REAL *rho,
+                                              REAL *Ye,
+                                              REAL *T,
+                                              REAL *P,
+                                              REAL *eps ) {
+  // Number of interpolated quantities: 2 (P and eps)
+  const int n = 2;
+  // Table variables keys
+  const int keys[2] = {NRPyEOS_press_key,NRPyEOS_eps_key};
+  // Declare error variable
+  NRPyEOS_error_report report;
+  // Set output variable array
+  REAL outvars[n];
+
+  // Get P and eps
+  NRPyEOS_from_rho_Ye_T_interpolate_n_quantities( eos_params, n,*rho,*Ye,*T, keys,outvars, &report );
+
+  // Error handling
+  if( report.error ) {
+    fprintf(stderr,"(NRPyEOS) Inside NRPyEOS_P_and_eps_from_rho_Ye_T. Error message: %s (key = %d)\n",report.message,report.error_key);
+    // May want to terminate depending on the error. We'll just warn for now.
+  }
+
+  // Then update P and eps
+  *P   = outvars[0];
+  *eps = outvars[1];
 }

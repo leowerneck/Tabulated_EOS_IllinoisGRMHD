@@ -4,16 +4,19 @@ LEAKAGE_DIR = $(BASEDIR)/NRPyLeakage
 TESTS_DIR   = $(BASEDIR)/Leakage_tests
 HARM_DIR    = $(BASEDIR)/harm_leakage
 
-HDF5_DIR = /usr/local/opt/hdf5
-# HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
+# HDF5_DIR = /usr/local/opt/hdf5
+HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
 
 CC       = gcc
 CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(HARM_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
 
+FC       = gfortran
+FCFLAGS  = -Wall -O2 -fopenmp -march=native -J./obj
+
 CXX      = g++
 CXXFLAGS = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(HARM_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
 
-LD_FLAGS = -lm -L$(HDF5_DIR)/lib -lhdf5
+LD_FLAGS = -lm -L$(HDF5_DIR)/lib -lhdf5 -lgfortran
 
 SRC  = standalone.c
 EXE  = $(SRC:.c=)
@@ -35,6 +38,8 @@ LEAKAGE_SRC = NRPyLeakage_Fermi_Dirac_integrals.c \
 
 LEAKAGE_INC = $(LEAKAGE_DIR)/NRPyLeakage.h
 
+ZELMANI_SRC = NRPyEOS_module.F90 NRPyEOS_interface.F90 #ZelmaniLeak_calc_taus.F90
+
 TESTS_SRC   = OpticallyThinGas_NRPyLeakage.c \
               OpticallyThinGas_harm_leakage.c \
               ConstantDensitySphere_NRPyLeakage.c \
@@ -44,13 +49,14 @@ TESTS_SRC   = OpticallyThinGas_NRPyLeakage.c \
 TESTS_INC   = $(TESTS_DIR)/Leakage_tests.h
 
 HARM_SRC    = harm_neutrinos.c #harm_optical_depth.c
-HARM_INC    = $(HARM_DIR)/harm_neutrinos.h $(HARM_DIR)/harm_units.h 
+HARM_INC    = $(HARM_DIR)/harm_neutrinos.h $(HARM_DIR)/harm_units.h
 
 OBJ = $(addprefix obj/,$(SRC:.c=.o)) \
       $(addprefix obj/,$(NRPyEOS_SRC:.c=.o)) \
       $(addprefix obj/,$(LEAKAGE_SRC:.c=.o)) \
       $(addprefix obj/,$(TESTS_SRC:.c=.o)) \
-      $(addprefix obj/,$(HARM_SRC:.c=.o))
+      $(addprefix obj/,$(HARM_SRC:.c=.o)) \
+      $(addprefix obj/,$(ZELMANI_SRC:.F90=.o))
 
 INC = Basic_defines.h $(NRPyEOS_INC) $(LEAKAGE_INC) $(TESTS_INC) $(HARM_INC)
 
@@ -115,6 +121,15 @@ obj/harm_optical_depth.o: $(HARM_DIR)/harm_optical_depth.c
 
 obj/NRPyEOS_benchmark.o: Leakage_tests/eos_benchmarks/NRPyEOS_benchmark.c $(INC)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+obj/ZelmaniLeak_calc_taus.o: ZelmaniLeak/ZelmaniLeak_calc_taus.F90
+	$(FC) $(FCFLAGS) -c $< -o $@
+
+obj/NRPyEOS_interface.o: ZelmaniLeak/NRPyEOS_interface.F90
+	$(FC) $(FCFLAGS) -c $< -o $@
+
+obj/NRPyEOS_module.o: ZelmaniLeak/NRPyEOS_module.F90
+	$(FC) $(FCFLAGS) -c $< -o $@
 
 clean:
 	rm -rf $(EXE) $(OBJ) $(COBJ) obj

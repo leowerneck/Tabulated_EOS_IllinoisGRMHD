@@ -44,7 +44,7 @@
 #define NRPyLeakage_N_A (6.022140760000000e+23)
 #define NRPyLeakage_alpha_fs (7.297352569300000e-03)
 #define NRPyLeakage_amu (1.660539066600000e-24)
-#define NRPyLeakage_hc3 (7.838450084421221e-48)
+#define NRPyLeakage_hc3 (1.905895198207216e-30)
 #define NRPyLeakage_m_e_c2 (5.109989499961642e-01)
 #define NRPyLeakage_units_geom_to_cgs_D (6.175828479261933e+17)
 #define NRPyLeakage_units_cgs_to_geom_D (1.619215953548485e-18)
@@ -125,15 +125,15 @@ void NRPyLeakage_compute_GRMHD_source_terms_and_opacities(const int which_consta
                                                           REAL *restrict kappa_anue,
                                                           REAL *restrict kappa_nux);
 
-void NRPyLeakage_compute_optical_depths(const int Nt0,
-                                        const int Nt1,
-                                        const int Nt2,
+void NRPyLeakage_compute_optical_depths(const int N0,
+                                        const int N1,
+                                        const int N2,
                                         const int Ng0,
                                         const int Ng1,
                                         const int Ng2,
-                                        const REAL dxx0,
-                                        const REAL dxx1,
-                                        const REAL dxx2,
+                                        const int dxx0,
+                                        const int dxx1,
+                                        const int dxx2,
                                         const REAL *restrict gammaDD00,
                                         const REAL *restrict gammaDD11,
                                         const REAL *restrict gammaDD22,

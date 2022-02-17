@@ -116,6 +116,18 @@ void NRPyEOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T( const NRPyEOS_params *re
                                                         REAL *restrict X_p,
                                                         REAL *restrict X_n );
 
+void NRPyEOS_mue_mup_mun_muhat_Xn_Xp_and_Xh_from_rho_Ye_T( const NRPyEOS_params *restrict eos_params,
+                                                           const REAL rho,
+                                                           const REAL Ye,
+                                                           const REAL T,
+                                                           REAL *restrict mu_e,
+                                                           REAL *restrict mu_p,
+                                                           REAL *restrict mu_n,
+                                                           REAL *restrict muhat,
+                                                           REAL *restrict X_p,
+                                                           REAL *restrict X_n,
+                                                           REAL *restrict X_h );
+
 void NRPyEOS_P_eps_mue_mup_mun_and_muhat_from_rho_Ye_T( const NRPyEOS_params *restrict eos_params,
                                                         const REAL rho,
                                                         const REAL Ye,
