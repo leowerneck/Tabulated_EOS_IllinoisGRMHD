@@ -1,8 +1,10 @@
-subroutine calc_taus(eos_params, eos_tempmin,&
-     grhydro_hot_atmo_temp, grhydro_y_e_max, grhydro_y_e_min, rho_gf, &
+subroutine calc_taus(eos_params, eos_tempmin, grhydro_hot_atmo_temp, &
+     grhydro_y_e_max, grhydro_y_e_min, rho_gf, kappa_gf, &
      rho,temp,ye,oldtauruff,tauruff,chiross, &
      heatflux,heaterms,heateave,nzones,rad,ds,compos,xentropy)
 
+  !-----------------------------------
+  ! ADDED FOR STANDALONE COMPILATION
   use NRPyEOS
   implicit none
 
@@ -22,14 +24,13 @@ subroutine calc_taus(eos_params, eos_tempmin,&
      end subroutine nrpyeos_full
   end interface
 
-  !-----------------------------------
-  ! ADDED FOR STANDALONE COMPILATION
   type(NRPyEOS_params), intent(in) :: eos_params
   real*8, intent(in) :: eos_tempmin
   real*8, intent(in) :: grhydro_hot_atmo_temp
   real*8, intent(in) :: grhydro_y_e_max
   real*8, intent(in) :: grhydro_y_e_min
   real*8, intent(in) :: rho_gf
+  real*8, intent(in) :: kappa_gf
   !-----------------------------------
 
   real*8, intent(inout) :: rho(nzones) ! density in g/cm^3
@@ -56,7 +57,7 @@ subroutine calc_taus(eos_params, eos_tempmin,&
 
   !EOS & local variables
   integer keytemp, keyerr
-  real*8 :: precision = 1.0d-10
+  ! real*8 :: precision = 1.0d-10
   real*8 :: matter_rho,matter_temperature,matter_ye
   real*8 :: matter_enr,matter_prs,matter_ent
   real*8 :: matter_cs2,matter_dedt,matter_dpdrhoe
@@ -118,7 +119,7 @@ subroutine calc_taus(eos_params, eos_tempmin,&
   integer :: icount
   integer, parameter :: icount_max = 200
   integer, parameter :: eoskey = 4
-  integer :: anyerr
+  ! integer :: anyerr
   integer, parameter :: npoints = 1
 
   !function declarations
@@ -193,6 +194,22 @@ subroutine calc_taus(eos_params, eos_tempmin,&
           matter_enr,matter_ent,matter_cs2,matter_dedt,matter_dpderho,matter_dpdrhoe, &
           matter_xa,matter_xh,matter_xn,matter_xp,matter_abar,matter_zbar,&
           matter_mue,matter_mun,matter_mup,matter_muhat)
+
+     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) rho = ", matter_rho*rho_gf
+     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) Y_e = ", matter_ye
+     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak)  T  = ", matter_temperature
+     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak)  P  = ", matter_prs
+     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) eps = ", matter_enr
+     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak)  S  = ", matter_ent
+     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) mue = ", matter_mue
+     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) mup = ", matter_mup
+     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) mun = ", matter_mun
+     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) muh = ", matter_muhat
+     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) X_a = ", matter_xa
+     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) X_h = ", matter_xh
+     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) X_n = ", matter_xn
+     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) X_p = ", matter_xp
+     
 
      if (keyerr.ne.0) then
         !$OMP CRITICAL
@@ -393,6 +410,16 @@ subroutine calc_taus(eos_params, eos_tempmin,&
   eta_nua(:) = local_eta_nua(:)
   eta_nux(:) = local_eta_nux(:)
 
+  write(*,*) "kappa_n_nue  = ",kappa_scat_n(1,1)
+  write(*,*) "kappa_p_nue  = ",kappa_scat_p(1,1)
+  write(*,*) "kappa_a_nue  = ",kappa_abs_p(1)
+
+  write(*,*) "kappa_n_anue = ",kappa_scat_n(1,2)
+  write(*,*) "kappa_p_anue = ",kappa_scat_p(1,2)
+  write(*,*) "kappa_a_anue = ",kappa_abs_n(1)
+
+  write(*,*) "kappa_n_nux  = ",kappa_scat_n(1,3)
+  write(*,*) "kappa_p_nux  = ",kappa_scat_p(1,3)
 
 !#######################################
 
