@@ -179,7 +179,7 @@ void dump_2d_data( const char *filename_prefix,
 void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params) {
 
   // Step 1: Set basic parameters
-  const int N0     = 32;
+  const int N0     = 64;
   const int N1     = N0;
   const int N2     = N0;
   const int Ng0    =  2;
@@ -349,16 +349,17 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
   dump_2d_data("initial",Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
 
   // Step 5: Now update the optical depth
-  fprintf(stderr,"(ConstantDensitySphere) Starting computation of optical depths\n");
-  NRPyLeakage_compute_optical_depths(Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,
-                                     dx,dy,dz,
-                                     gammaDD00,gammaDD11,gammaDD22,
-                                     kappa_nue [0],kappa_nue [1],
-                                     kappa_anue[0],kappa_anue[1],
-                                     kappa_nux [0],kappa_nux [1],
-                                     tau_nue   [0],tau_nue   [1],
-                                     tau_anue  [0],tau_anue  [1],
-                                     tau_nux   [0],tau_nux   [1]);
+  for(int n=0;n<20*N0;n++) {
+    NRPyLeakage_compute_optical_depths(Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,
+                                       dx,dy,dz,
+                                       gammaDD00,gammaDD11,gammaDD22,
+                                       kappa_nue [0],kappa_nue [1],
+                                       kappa_anue[0],kappa_anue[1],
+                                       kappa_nux [0],kappa_nux [1],
+                                       tau_nue   [0],tau_nue   [1],
+                                       tau_anue  [0],tau_anue  [1],
+                                       tau_nux   [0],tau_nux   [1]);
+  }
 
   // Step 6: Final data dumps
   dump_1d_data("final",Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);

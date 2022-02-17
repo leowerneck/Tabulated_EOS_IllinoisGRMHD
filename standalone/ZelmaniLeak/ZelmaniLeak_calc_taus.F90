@@ -1,12 +1,30 @@
-subroutine calc_taus(eos_tempmin,&
+subroutine calc_taus(eos_params, eos_tempmin,&
      grhydro_hot_atmo_temp, grhydro_y_e_max, grhydro_y_e_min, rho_gf, &
      rho,temp,ye,oldtauruff,tauruff,chiross, &
      heatflux,heaterms,heateave,nzones,rad,ds,compos,xentropy)
 
+  use NRPyEOS
   implicit none
+
+  interface
+     subroutine nrpyeos_full(eos_params,rho,ye,temperature,P,eps, &
+          S,cs2,depsdT,dPdeps,dPdrho,X_a,X_h,X_n,X_p,Abar,Zbar, &
+          mu_e,mu_n,mu_p,muhat) bind(C)
+       use, intrinsic :: iso_c_binding, only: c_double
+       use NRPyEOS
+       implicit none
+       type(NRPyEOS_params), intent(in) :: eos_params
+       real(kind=c_double),  intent(in) :: rho,ye,temperature
+       real(kind=c_double), intent(out) :: P, eps, S, cs2
+       real(kind=c_double), intent(out) :: depsdT, dPdeps, dPdrho
+       real(kind=c_double), intent(out) :: X_a, X_h, X_n, X_p, Abar, Zbar
+       real(kind=c_double), intent(out) :: mu_e, mu_n, mu_p, muhat
+     end subroutine nrpyeos_full
+  end interface
 
   !-----------------------------------
   ! ADDED FOR STANDALONE COMPILATION
+  type(NRPyEOS_params), intent(in) :: eos_params
   real*8, intent(in) :: eos_tempmin
   real*8, intent(in) :: grhydro_hot_atmo_temp
   real*8, intent(in) :: grhydro_y_e_max
@@ -164,12 +182,17 @@ subroutine calc_taus(eos_tempmin,&
      matter_temperature = max(temp(i),GRHydro_hot_atmo_temp)
      matter_ye = max(GRHydro_Y_e_min,min(GRHydro_Y_e_max,ye(i))) ! ye(i)
 
-     call EOS_Omni_full(eoskey,keytemp,precision,npoints,&
-          matter_rho*rho_gf,matter_enr,matter_temperature,matter_ye, &
-          matter_prs,matter_ent,matter_cs2,matter_dedt,matter_dpderho, &
-          matter_dpdrhoe,matter_xa,matter_xh,matter_xn,matter_xp,matter_abar, &
-          matter_zbar,matter_mue,matter_mun,matter_mup,matter_muhat, &
-          keyerr,anyerr)
+     ! call eos_omni_full(eoskey,keytemp,precision,npoints,&
+     !      matter_rho*rho_gf,matter_enr,matter_temperature,matter_ye, &
+     !      matter_prs,matter_ent,matter_cs2,matter_dedt,matter_dpderho, &
+     !      matter_dpdrhoe,matter_xa,matter_xh,matter_xn,matter_xp,matter_abar, &
+     !      matter_zbar,matter_mue,matter_mun,matter_mup,matter_muhat, &
+     !      keyerr,anyerr)
+     call nrpyeos_full(eos_params,&
+          matter_rho*rho_gf,matter_ye,matter_temperature,matter_prs, &
+          matter_enr,matter_ent,matter_cs2,matter_dedt,matter_dpderho,matter_dpdrhoe, &
+          matter_xa,matter_xh,matter_xn,matter_xp,matter_abar,matter_zbar,&
+          matter_mue,matter_mun,matter_mup,matter_muhat)
 
      if (keyerr.ne.0) then
         !$OMP CRITICAL
