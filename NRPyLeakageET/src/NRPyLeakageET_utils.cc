@@ -73,16 +73,11 @@ void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
   DECLARE_CCTK_PARAMETERS;
 
   // Step 1: Initialize all optical depth gridfunctions to zero
-  const int startRefLev = MIN(minInitRefLevel,Carpet::reflevels-1);
-  const int endRefLev   = maxInitRefLevel == 0 ? Carpet::reflevels-1 : maxInitRefLevel;
-  int RemainingIterations = 0;
   if(verbosity_level>0) CCTK_INFO("Initializing optical depths gridfunctions to zero...");
   BEGIN_REFLEVEL_LOOP(cctkGH) {
     BEGIN_MAP_LOOP(cctkGH,CCTK_GF) {
       BEGIN_COMPONENT_LOOP(cctkGH, CCTK_GF) {
         NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_PASS_CTOC);
-        if(GetRefinementLevel(cctkGH)>=startRefLev && GetRefinementLevel(cctkGH)<=endRefLev)
-          NRPyLeakageET_GetMaxSize(CCTK_PASS_CTOC,&RemainingIterations);
       } END_COMPONENT_LOOP;
     } END_MAP_LOOP;
   } END_REFLEVEL_LOOP;
@@ -90,18 +85,21 @@ void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
 
   if( CCTK_EQUALS(optical_depth_evolution_type,"PathOfLeastResistance") ) {
 
-    RemainingIterations *= IterationFactor;
+    const int startRefLev = MIN(MAX(minInitRefLevel,0),Carpet::reflevels-1);
+    const int endRefLev   = MIN(MAX(maxInitRefLevel,0),Carpet::reflevels-1);
 
     if(verbosity_level>0) {
       CCTK_VInfo(CCTK_THORNSTRING,"Optical depths will be initialized on levels %d through %d with the path of least resistance algorithm",startRefLev,endRefLev);
-      CCTK_VInfo(CCTK_THORNSTRING,"Number of iterations to be performed on each refinement level: %d",RemainingIterations);
+      CCTK_VInfo(CCTK_THORNSTRING,"Number of iterations to be performed on each refinement level: %d",numberOfIterations);
     }
 
     // Step 2: Now perform iterations of the path of least resistance algorithm
     int counter = 0;
-    while( RemainingIterations ) {
+    int RemainingIterations = numberOfIterations;
+
+    for(int i=1;i<=numberOfIterations;i++) {
       // Step 2.a: First perform the iteration on refinement level startRefLev
-      if( verbosity_level>1 ) CCTK_VInfo(CCTK_THORNSTRING,"Starting iteration %d...",counter+1);
+      if( verbosity_level>1 ) CCTK_VInfo(CCTK_THORNSTRING,"Beginning iteration %d...",counter+1);
       ENTER_LEVEL_MODE(cctkGH,startRefLev) {
         BEGIN_MAP_LOOP(cctkGH,CCTK_GF) {
           BEGIN_COMPONENT_LOOP(cctkGH, CCTK_GF) {
