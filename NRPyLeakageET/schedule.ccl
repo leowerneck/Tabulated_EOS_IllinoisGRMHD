@@ -19,12 +19,6 @@ SCHEDULE NRPyLeakageET_Initialize AT CCTK_INITIAL AFTER (HydroBase_Initial,Conve
   WRITES: NRPyLeakageET::tau_1_nux (Everywhere), tau_1_nux_p , tau_1_nux_p_p
 } "Initialize optical depths and opacities"
 
-# SCHEDULE NRPyLeakageET_InitSym AS NRPyLeakageET_BoundarySync IN MoL_CalcRHS BEFORE NRPyLeakageET_RHS
-# {
-#   SYNC: ADMBase::metric, ADMBase::lapse, ADMBase::shift, HydroBase::rho, HydroBase::Y_e, HydroBase::temperature, NRPyLeakageET_optical_depths
-#   LANG: C
-# } "Synchronize: ADMBase: metric, lapse, shift; HydroBase: rho, Y_e, temperature; NRPyLeakageET: optical depths."
-
 SCHEDULE NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss AS NRPyLeakageET_RHS IN MoL_CalcRHS AFTER IllinoisGRMHD_RHS_eval
 {
   SYNC: ADMBase::metric, NRPyLeakageET_optical_depths, NRPyLeakageET_opacities
