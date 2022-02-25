@@ -275,5 +275,3 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
     CONSERVS[YESTAR ] = CONSERVS[RHOSTAR] * PRIMS[YEPRIM];
   }
 }
-
-

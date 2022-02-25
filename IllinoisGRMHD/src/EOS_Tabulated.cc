@@ -32,7 +32,7 @@ CCTK_REAL get_EOS_table_max( const int which_var ) {
     if( var_aux > var_max_value ) var_max_value = var_aux;
   }
   return var_max_value;
-  
+
 }
 
 // EOS_Omni does not provide functions to obtain the
@@ -54,7 +54,7 @@ CCTK_REAL get_EOS_table_min( const int which_var ) {
     if( var_aux < var_min_value ) var_min_value = var_aux;
   }
   return var_min_value;
-  
+
 }
 
 void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,igm_eos_parameters& eos ) {
@@ -115,7 +115,7 @@ void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,i
                                      &eos.P_atm,&eos.eps_atm );
   }
   // Atmospheric tau
-  eos.tau_atm = 1.1*tau_atm;
+  eos.tau_atm = eos.rho_atm * eos.eps_atm;
   // --------------------------------------
 
   // -------------- Ceilings --------------
@@ -123,7 +123,7 @@ void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,i
   // array actually constains ln(press), so we must adjust
   // appropriately.
   const CCTK_REAL eos_prsmax = exp(get_EOS_table_max( table_key_pressure ));
-  // Then get the maximum value of eps. Remember that the 
+  // Then get the maximum value of eps. Remember that the
   // alltables array actually contains ln(eps + energy_shift),
   // so we must adjust appropriately.
   const CCTK_REAL eos_epsmax = exp(get_EOS_table_max( table_key_epsilon )) - energy_shift;
@@ -143,7 +143,7 @@ void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,i
   // array actually constains ln(press), so we must adjust
   // appropriately.
   const CCTK_REAL eos_prsmin = exp(get_EOS_table_min( table_key_pressure ));
-  // Then get the minimum value of eps. Remember that the 
+  // Then get the minimum value of eps. Remember that the
   // alltables array actually contains ln(eps + energy_shift),
   // so we must adjust appropriately.
   const CCTK_REAL eos_epsmin = exp(get_EOS_table_min( table_key_epsilon )) - energy_shift;
@@ -176,7 +176,7 @@ void compute_remaining_prims_on_right_and_left_face( const igm_eos_parameters eo
 #pragma omp parallel for
   for(int k=0;k<cctk_lsh[2];k++) {
     for(int j=0;j<cctk_lsh[1];j++) {
-      for(int i=0;i<cctk_lsh[0];i++) {        
+      for(int i=0;i<cctk_lsh[0];i++) {
         CCTK_INT index  = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
         //---------- Left face ----------

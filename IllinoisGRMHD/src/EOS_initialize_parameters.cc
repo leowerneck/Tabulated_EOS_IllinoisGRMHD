@@ -16,7 +16,7 @@
 void initialize_igm_eos_parameters_from_input( const CCTK_INT* igm_eos_key,const CCTK_REAL cctk_time,igm_eos_parameters &eos ) {
 
   DECLARE_CCTK_PARAMETERS;
-  
+
   // Set the EOS key
   eos.key           = *igm_eos_key;
 
@@ -50,5 +50,5 @@ void initialize_igm_eos_parameters_from_input( const CCTK_INT* igm_eos_key,const
   else {
     CCTK_VError(VERR_DEF_PARAMS,"Unknown EOS key: %d. ABORTING!",eos.key);
   }
-  
+
 }

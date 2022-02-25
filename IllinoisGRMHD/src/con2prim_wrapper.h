@@ -210,7 +210,7 @@ int con2prim( const igm_eos_parameters eos,
       PRIMS[VZ]       = utz_new/u0L - METRIC[SHIFTZ];
 
       return 0;
-      
+
     } else {
       //If we didn't find a root, then try again with a different guess.
     }
@@ -220,4 +220,3 @@ int con2prim( const igm_eos_parameters eos,
 
 #include "eigen.C"
 #include "font_fix_hybrid_EOS.C"
-

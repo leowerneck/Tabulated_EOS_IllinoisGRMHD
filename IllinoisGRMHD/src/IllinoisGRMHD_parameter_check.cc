@@ -95,7 +95,7 @@ void IllinoisGRMHD_parameter_check(CCTK_ARGUMENTS) {
         CCTK_VError(VERR_DEF_PARAMS,"neos was set to %d, but Gamma_ppoly_tab_in[%d] was not set. You must specify %d values of Gamma_ppoly_tab_in. ABORTING.",neos,i,neos);
       }
     }
-    
+
     // Print Hybrid EOS information
     CCTK_VInfo(CCTK_THORNSTRING,"EOS type: Hybrid");
     print_EOS_Hybrid(eos);
@@ -111,7 +111,7 @@ void IllinoisGRMHD_parameter_check(CCTK_ARGUMENTS) {
       CCTK_VInfo(CCTK_THORNSTRING,"Temperature evolution is DISABLED!");
 
     CCTK_VInfo(CCTK_THORNSTRING,"EOS type: Tabulated");
-    
+
   }
 
   // Entropy evolution info

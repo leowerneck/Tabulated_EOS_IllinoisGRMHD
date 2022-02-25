@@ -44,7 +44,7 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   // Now let us begin the conversion.
 
   // First compute alpha*sqrt(gamma) = alpha*psi^(6)
-  
+
   // Finally compute the remaining quantities (which are routine specific)
 
   // Note that in the c2p routine we used to
@@ -135,7 +135,7 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
     if(which_guess==1) {
       //Use a different initial guess:
       rho_b_oldL = CONSERVS[RHOSTAR]/METRIC_LAP_PSI4[PSI6];
-      
+
       /**********************************
        * Piecewise Polytropic EOS Patch *
        *  Finding Gamma_ppoly_tab and K_ppoly_tab *
@@ -202,7 +202,7 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
     prim[WLORENTZ] = METRIC_LAP_PSI4[LAPSE] * u0L;
 
   }
-  
+
   if( eos.is_Tabulated ) {
     // This one is very simple! The only guess required is the temperature
     if( which_guess == 1 ) {
@@ -213,5 +213,5 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
     }
     prim[YE      ] = CONSERVS[YESTAR]/CONSERVS[RHOSTAR];
   }
-  
+
 }

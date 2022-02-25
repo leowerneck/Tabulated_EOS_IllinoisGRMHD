@@ -192,12 +192,12 @@ int con2prim_Palenzuela1D( const igm_eos_parameters eos,
     // Check if the fix was successful
     if( simple_rel_err(S_squared,0.9999*S_squared_max) > 1e-12 ) CCTK_VError(VERR_DEF_PARAMS,"Incompatible values of S_squared after rescaling: %.15e %.15e\n",S_squared,0.9999*S_squared_max);
   }
- 
+
   // Need to calculate for (21) and (22) in Cerda-Duran 2008
   // B * S = B^i * S_i
   CCTK_REAL BdotS = 0.0;
   for(int i=0;i<3;i++) BdotS += BU[i] * SD[i];
-  
+
   // B^2 = B^i * B_i
   CCTK_REAL B_squared = 0.0;
   for(int i=0;i<3;i++) B_squared += BU[i] * BD[i];
@@ -254,7 +254,7 @@ void palenzuela( const igm_eos_parameters eos,
   // x := hW^{2} + B^{2} - P - 0.5*( (B.v)^{2} + (B/W)^{2} )
   //
   //
-  
+
   // bracket for x
   double xlow = 1.0+param[par_q]-param[par_s];
   double xup  = 2.0+2.0*param[par_q]-param[par_s];
@@ -265,7 +265,7 @@ void palenzuela( const igm_eos_parameters eos,
     // Now check if we will need the entropy equation
     const int xlow_entropy_key = check_depsdT_condition(eos,param,temp_guess,xlow);
     const int xup_entropy_key  = check_depsdT_condition(eos,param,temp_guess,xup);
-    
+
     if( (xlow_entropy_key == Palenzuela1D_entropy) ||
         (xup_entropy_key  == Palenzuela1D_entropy) ) {
       // If any of the two needs the entropy, use it.
@@ -276,7 +276,7 @@ void palenzuela( const igm_eos_parameters eos,
       stats.which_routine = Palenzuela1D;
     }
   }
-      
+
   // find x, this is the recovery process
   double x = zbrent(*func_root, eos, param, &temp_guess, xlow, xup, tol_x, stats);
 
@@ -296,7 +296,7 @@ void calc_prim( const igm_eos_parameters eos,
                 const double B_squared,
                 const double *restrict SU,
                 output_stats& stats ) {
-  
+
   // Recover the primitive variables prim from x, q, r, s, t, con
 
   const double q = param[par_q];
@@ -425,7 +425,7 @@ double zbrent( double (*func)(const igm_eos_parameters, double, double *, double
 
   // Implementation of Brent’s method to find the root of a function func to accuracy tol_x. The root
   // must be bracketed by x1 and x2.
-  // Based on W. H. Press et al. 2007, Numerical Recipes in C: The Art of Scientific Computing, 3rd edition, 
+  // Based on W. H. Press et al. 2007, Numerical Recipes in C: The Art of Scientific Computing, 3rd edition,
   // Cambridge University Press, ISBN 978-0-521-88068-8
 
   int iter = 0;
@@ -462,7 +462,7 @@ double zbrent( double (*func)(const igm_eos_parameters, double, double *, double
   double maxerror = 0.0;
 
   while (keep_iterating) {
- 
+
     if ((fb > 0.0 && fc > 0.0) || (fb < 0.0 && fc < 0.0)) {
       // reset c, adjust bracket interval d
       c=a;
@@ -493,8 +493,8 @@ double zbrent( double (*func)(const igm_eos_parameters, double, double *, double
     }
     else if (fabs(e) >= tol1 && fabs(fa) > fabs(fb)) {
       // inverse quadratic interpolation
-      s=fb/fa;   
-    
+      s=fb/fa;
+
       if (a == c) {
         // fake quad interpolation
         p=2.0*maxerror*s;
@@ -511,7 +511,7 @@ double zbrent( double (*func)(const igm_eos_parameters, double, double *, double
       p=fabs(p);
       min1=3.0*maxerror*q-fabs(tol1*q);
       min2=fabs(e*q);
-      
+
       if (2.0*p < (min1 < min2 ? min1 : min2)) {
         // interpolation successful
         e=d;
@@ -533,7 +533,7 @@ double zbrent( double (*func)(const igm_eos_parameters, double, double *, double
       fb=(*func)(eos, b, param, &temp_guess_b, stats);
 
 
-    } else {  
+    } else {
 
       // Bounds decreasing too slowly, use bisection
 
@@ -560,7 +560,7 @@ double zbrent( double (*func)(const igm_eos_parameters, double, double *, double
 
     if( doing_extra == 1 ) i_extra++ ;
 
-    if( ((fabs(maxerror) <= tol1)&&(doing_extra == 0)) 
+    if( ((fabs(maxerror) <= tol1)&&(doing_extra == 0))
         || (i_extra > EXTRA_NEWT_ITER) || (iter >= (ITMAX)) ) {
       keep_iterating = 0;
     }

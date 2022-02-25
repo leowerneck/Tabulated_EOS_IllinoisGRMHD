@@ -239,7 +239,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 		// Set the weights
 		CCTK_REAL C_weight           = 0.25*c2p_fail_flag;
 		CCTK_REAL one_minus_C_weight = 1.0 - C_weight;
-		
+
 		// Then update the conservs
 		for(int which_con=0;which_con<NUM_CONSERVS;which_con++)
 		  CONSERVS[which_con] = CONSERVS[which_con]*one_minus_C_weight + CONSERVS_avg_neighbors[which_con] * C_weight;
@@ -550,7 +550,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
     myfile.write((char*)&igm_eos_root_finding_precision,      1*sizeof(CCTK_REAL));
     myfile.write((char*)&igm_evolve_temperature,              1*sizeof(bool));
     myfile.write((char*)&igm_evolve_entropy,                  1*sizeof(bool));
-    
+
     // Failure checker gridfunction
     myfile.write((char*)failure_checker,             (fullsize)*sizeof(CCTK_REAL));
 
@@ -601,7 +601,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
     myfile.write((char*)st_z_flux,                   (fullsize)*sizeof(CCTK_REAL));
     myfile.write((char*)Ye_star_flux,                (fullsize)*sizeof(CCTK_REAL));
     myfile.write((char*)S_star_flux,                 (fullsize)*sizeof(CCTK_REAL));
-    
+
     // Magnetic fields
     myfile.write((char*)Bx,                          (fullsize)*sizeof(CCTK_REAL));
     myfile.write((char*)By,                          (fullsize)*sizeof(CCTK_REAL));
@@ -617,7 +617,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
     myfile.write((char*)igm_temperature,             (fullsize)*sizeof(CCTK_REAL));
     myfile.write((char*)igm_eps,                     (fullsize)*sizeof(CCTK_REAL));
     myfile.write((char*)igm_entropy,                 (fullsize)*sizeof(CCTK_REAL));
-    
+
     // Checker value
     myfile.write((char*)&checker,                             1*sizeof(int));
 
@@ -634,4 +634,3 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
 #include "harm_u2p_util.h"
 #include "con2prim_wrapper.h"
-

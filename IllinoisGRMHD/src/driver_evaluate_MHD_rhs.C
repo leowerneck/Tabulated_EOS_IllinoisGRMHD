@@ -559,13 +559,13 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
                                                  vxr,vyr,vzr,vxl,vyl,vzl,Pr,Pl,
                                                  psi6phi_rhs,Ax_rhs,Ay_rhs,Az_rhs);
 
-  if( enable_NRPyLeakageET_interface ) {
+  if( CCTK_IsThornActive("NRPyLeakageET") ) {
     // Convert rho, Y_e, T, and velocities to HydroBase
     // because they are needed by NRPyLeakage
 #pragma omp parallel for
-    for(int k=cctk_nghostzones[2];k<cctk_lsh[2]-cctk_nghostzones[2];k++) {
-      for(int j=cctk_nghostzones[1];j<cctk_lsh[1]-cctk_nghostzones[1];j++) {
-        for(int i=cctk_nghostzones[0];i<cctk_lsh[0]-cctk_nghostzones[0];i++) {
+    for(int k=0;k<cctk_lsh[2];k++) {
+      for(int j=0;j<cctk_lsh[1];j++) {
+        for(int i=0;i<cctk_lsh[0];i++) {
           const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
           // Read from main memory
@@ -622,4 +622,3 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 #include "mhdflux.C"
 #include "A_i_rhs_no_gauge_terms.C"
 #include "Lorenz_psi6phi_rhs__add_gauge_terms_to_A_i_rhs.C"
-
