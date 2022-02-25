@@ -1,16 +1,16 @@
 # Schedule definitions for thorn NRPyLeakageET
 STORAGE: NRPyLeakageET_opacities[3], NRPyLeakageET_optical_depths[3]
 
-SCHEDULE NRPyLeakageET_Initialize AT CCTK_INITIAL AFTER HydroBase_Initial
+SCHEDULE NRPyLeakageET_Initialize AT CCTK_INITIAL AFTER (HydroBase_Initial,Convert_to_HydroBase)
 {
   LANG: C
   OPTIONS: GLOBAL-LATE
-  READS:  ADMBase::gxx               (Everywhere)
-  READS:  ADMBase::gyy               (Everywhere)
-  READS:  ADMBase::gzz               (Everywhere)
-  READS:  HydroBase::rho             (Everywhere)
-  READS:  HydroBase::Y_e             (Everywhere)
-  READS:  HydroBase::temperature     (Everywhere)
+  READS:  ADMBase::gxx             (Everywhere)
+  READS:  ADMBase::gyy             (Everywhere)
+  READS:  ADMBase::gzz             (Everywhere)
+  READS:  HydroBase::rho           (Everywhere)
+  READS:  HydroBase::Y_e           (Everywhere)
+  READS:  HydroBase::temperature   (Everywhere)
   WRITES: NRPyLeakageET::tau_0_nue (Everywhere), tau_0_nue_p , tau_0_nue_p_p
   WRITES: NRPyLeakageET::tau_1_nue (Everywhere), tau_1_nue_p , tau_1_nue_p_p
   WRITES: NRPyLeakageET::tau_0_anue(Everywhere), tau_0_anue_p, tau_0_anue_p_p
@@ -19,39 +19,17 @@ SCHEDULE NRPyLeakageET_Initialize AT CCTK_INITIAL AFTER HydroBase_Initial
   WRITES: NRPyLeakageET::tau_1_nux (Everywhere), tau_1_nux_p , tau_1_nux_p_p
 } "Initialize optical depths and opacities"
 
-SCHEDULE NRPyLeakageET_copy_opacities_and_optical_depths_to_previous_time_levels AT CCTK_POSTPOSTINITIAL AFTER NRPyLeakageET_InitGroup
-{
-  LANG: C
-  READS: NRPyLeakageET::kappa_0_nue (Everywhere)
-  READS: NRPyLeakageET::kappa_1_nue (Everywhere)
-  READS: NRPyLeakageET::kappa_0_anue(Everywhere)
-  READS: NRPyLeakageET::kappa_1_anue(Everywhere)
-  READS: NRPyLeakageET::kappa_0_nux (Everywhere)
-  READS: NRPyLeakageET::kappa_1_nux (Everywhere)
-  READS: NRPyLeakageET::tau_0_nue   (Everywhere)
-  READS: NRPyLeakageET::tau_1_nue   (Everywhere)
-  READS: NRPyLeakageET::tau_0_anue  (Everywhere)
-  READS: NRPyLeakageET::tau_1_anue  (Everywhere)
-  READS: NRPyLeakageET::tau_0_nux   (Everywhere)
-  READS: NRPyLeakageET::tau_1_nux   (Everywhere)
-  WRITES: kappa_0_nue_p , kappa_0_nue_p_p
-  WRITES: kappa_1_nue_p , kappa_1_nue_p_p
-  WRITES: kappa_0_anue_p, kappa_0_anue_p_p
-  WRITES: kappa_1_anue_p, kappa_1_anue_p_p
-  WRITES: kappa_0_nux_p , kappa_0_nux_p_p
-  WRITES: kappa_1_nux_p , kappa_1_nux_p_p
-  WRITES: tau_0_nue_p   , tau_0_nue_p_p
-  WRITES: tau_1_nue_p   , tau_1_nue_p_p
-  WRITES: tau_0_anue_p  , tau_0_anue_p_p
-  WRITES: tau_1_anue_p  , tau_1_anue_p_p
-  WRITES: tau_0_nux_p   , tau_0_nux_p_p
-  WRITES: tau_1_nux_p   , tau_1_nux_p_p
-} "Copy opacities and optical depths to previous time levels"
+# SCHEDULE NRPyLeakageET_InitSym AS NRPyLeakageET_BoundarySync IN MoL_CalcRHS BEFORE NRPyLeakageET_RHS
+# {
+#   SYNC: ADMBase::metric, ADMBase::lapse, ADMBase::shift, HydroBase::rho, HydroBase::Y_e, HydroBase::temperature, NRPyLeakageET_optical_depths
+#   LANG: C
+# } "Synchronize: ADMBase: metric, lapse, shift; HydroBase: rho, Y_e, temperature; NRPyLeakageET: optical depths."
 
 SCHEDULE NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss AS NRPyLeakageET_RHS IN MoL_CalcRHS AFTER IllinoisGRMHD_RHS_eval
 {
+  SYNC: ADMBase::metric, NRPyLeakageET_optical_depths, NRPyLeakageET_opacities
   LANG: C
-} "Compute opacities and add source terms to GRMHD right-hand sides."
+} "Compute opacities and add source terms to GRMHD right-hand sides; Synchronize optical depths, opacities and ADMBase metric."
 
 if( CCTK_Equals(optical_depth_evolution_type,"static") ) {
   SCHEDULE NRPyLeakageET_copy_optical_depths_from_previous_time_level AS NRPyLeakageET_optical_depth_step IN MoL_CalcRHS AFTER NRPyLeakageET_RHS
@@ -62,6 +40,19 @@ if( CCTK_Equals(optical_depth_evolution_type,"static") ) {
 else if( CCTK_Equals(optical_depth_evolution_type,"PathOfLeastResistance") ) {
   SCHEDULE NRPyLeakageET_optical_depths_PathOfLeastResistance AS NRPyLeakageET_optical_depth_step IN MoL_CalcRHS AFTER NRPyLeakageET_RHS
   {
+    SYNC: NRPyLeakageET_optical_depths
     LANG: C
   } "PathOfLeastResistance evolution: update optical depths following Nielsen et al. (2014) (1403.3680)."
 }
+
+SCHEDULE NRPyLeakageET_InitSym AS NRPyLeakageET_BoundarySync IN HydroBase_Boundaries BEFORE NRPyLeakageET_BoundaryConditions
+{
+  SYNC: ADMBase::metric, ADMBase::lapse, ADMBase::shift, HydroBase::rho, HydroBase::Y_e, HydroBase::temperature, NRPyLeakageET_optical_depths
+  LANG: C
+} "Synchronize: ADMBase: metric, lapse, shift; HydroBase: rho, Y_e, temperature; NRPyLeakageET: optical depths"
+
+SCHEDULE NRPyLeakageET_BoundaryConditions IN HydroBase_Boundaries
+{
+  SYNC: NRPyLeakageET_optical_depths
+  LANG: C
+} "Apply boundary conditions to optical depth"

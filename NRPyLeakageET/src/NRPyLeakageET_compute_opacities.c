@@ -15,7 +15,7 @@ void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS) {
 
   if(!NRPyLeakageET_ProcessOwnsData()) return;
 
-  if(verbose) CCTK_VInfo(CCTK_THORNSTRING,"Computing opacities at ref. lvl. %d...",GetRefinementLevel(cctkGH));
+  if(verbosity_level>1) CCTK_VInfo(CCTK_THORNSTRING,"Computing opacities at ref. lvl. %d...",GetRefinementLevel(cctkGH));
 
   switch (constants_key) {
   case USE_NRPY_CONSTANTS:
@@ -88,11 +88,11 @@ void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS) {
     }
     break;
   default:
-    fprintf(stderr,"(NRPyLeakageET) ERROR: Unknown constant type (%d) in NRPyLeakage_compute_GRMHD_source_terms().\n",constants_key);
+    fprintf(stderr,"(NRPyLeakageET) ERROR: Unknown constant type (%d) in NRPyLeakageET_compute_GRMHD_source_terms().\n",constants_key);
     fprintf(stderr,"(NRPyLeakageET) Options are: USE_NRPY_CONSTANTS (%d) and USE_HARM_CONSTANTS (%d)\n",USE_NRPY_CONSTANTS,USE_HARM_CONSTANTS);
     fprintf(stderr,"(NRPyLeakageET) Aborting!\n");
     exit(1);
   }
 
-  if(verbose) CCTK_VInfo(CCTK_THORNSTRING,"Finished computing opacities at ref. lvl. %d",GetRefinementLevel(cctkGH));
+  if(verbosity_level>1) CCTK_VInfo(CCTK_THORNSTRING,"Finished computing opacities at ref. lvl. %d",GetRefinementLevel(cctkGH));
 }

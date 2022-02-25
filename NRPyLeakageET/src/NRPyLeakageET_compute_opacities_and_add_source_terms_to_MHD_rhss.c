@@ -14,6 +14,8 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
+  if(verbosity_level>1) CCTK_VINFO("Inside NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss");
+
   const int timelevel = 0;
 
   // Step 1: Get pointers to opacity and optical depth gridfunctions
@@ -30,11 +32,21 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
   CHECK_POINTER(st_y_rhs   ,GFstring_st_y_rhs   );
   CHECK_POINTER(st_z_rhs   ,GFstring_st_z_rhs   );
 
+  // Step 3: Ghostzones begin and end index
+  const int igzb = cctk_nghostzones[0];
+  const int igze = cctk_lsh[0] - cctk_nghostzones[0];
+  const int jgzb = cctk_nghostzones[1];
+  const int jgze = cctk_lsh[1] - cctk_nghostzones[1];
+  const int kgzb = cctk_nghostzones[2];
+  const int kgze = cctk_lsh[2] - cctk_nghostzones[2];
+
+
   // Step 3: Compute opacities and leakage source terms
-#pragma omp parallel for
-  for(int k=cctk_nghostzones[2];k<cctk_lsh[2]-cctk_nghostzones[2];k++) {
-    for(int j=cctk_nghostzones[1];j<cctk_lsh[1]-cctk_nghostzones[1];j++) {
-      for(int i=cctk_nghostzones[0];i<cctk_lsh[0]-cctk_nghostzones[0];i++) {
+  CCTK_REAL R_avg=0,Q_avg=0;
+#pragma omp parallel for reduction(+:R_avg,Q_avg)
+  for(int k=0;k<cctk_lsh[2];k++) {
+    for(int j=0;j<cctk_lsh[1];j++) {
+      for(int i=0;i<cctk_lsh[0];i++) {
 
         // Step 3.a: Set the index of the current gridpoint
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
@@ -102,10 +114,10 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
         // Step 3.d: Compute u^{mu}
         // Step 3.d.i: Compute Lorentz factor W
         const CCTK_REAL one_minus_one_over_Wsqrd = (    gxxL*(vxL + betaxL)*(vxL + betaxL) +
-                                                        2.0*gxyL*(vxL + betaxL)*(vyL + betayL) +
-                                                        2.0*gxzL*(vxL + betaxL)*(vzL + betazL) +
+                                                    2.0*gxyL*(vxL + betaxL)*(vyL + betayL) +
+                                                    2.0*gxzL*(vxL + betaxL)*(vzL + betazL) +
                                                         gyyL*(vyL + betayL)*(vyL + betayL) +
-                                                        2.0*gyzL*(vyL + betayL)*(vzL + betazL) +
+                                                    2.0*gyzL*(vyL + betayL)*(vzL + betazL) +
                                                         gzzL*(vzL + betazL)*(vzL + betazL) )*alpinvsqrdL;
         CCTK_REAL W = 1.0/sqrt( 1 - one_minus_one_over_Wsqrd );
 
@@ -148,12 +160,23 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
         kappa_1_anue[index]  = kappa_anueL[1];
         kappa_0_nux [index]  = kappa_nuxL [0];
         kappa_1_nux [index]  = kappa_nuxL [1];
-        Ye_star_rhs [index] += Ye_star_rhsL;
-        tau_rhs     [index] += tau_rhsL;
-        st_x_rhs    [index] += st_x_rhsL;
-        st_y_rhs    [index] += st_y_rhsL;
-        st_z_rhs    [index] += st_z_rhsL;
+
+        // Step 3.j: Update right-hand sides only in the grid interior
+        if( (i>igzb && i<igze) && (j>jgzb && j<jgze) && (k>kgzb && k<kgze) ) {
+          Ye_star_rhs [index] += Ye_star_rhsL;
+          tau_rhs     [index] += tau_rhsL;
+          st_x_rhs    [index] += st_x_rhsL;
+          st_y_rhs    [index] += st_y_rhsL;
+          st_z_rhs    [index] += st_z_rhsL;
+        }
+
+        R_avg += R_sourceL/rhoL;
+        Q_avg += Q_sourceL/rhoL;
       }
     }
+  }
+  if(verbosity_level>0) {
+    CCTK_VInfo(CCTK_THORNSTRING,"***** Iter. # %d, Lev: %d, Averages -- R/rho: %e | Q/rho: %e *****",cctk_iteration,GetRefinementLevel(cctkGH),R_avg,Q_avg);
+    if(verbosity_level>1) CCTK_VINFO("Finished NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss");
   }
 }

@@ -33,7 +33,7 @@ void NRPyLeakageET_compute_GRMHD_source_terms_and_opacities(const int which_cons
                                                                           kappa_nue,kappa_anue,kappa_nux);
       break;
     default:
-      fprintf(stderr,"(NRPyLeakageET) ERROR: Unknown constant type (%d) in NRPyLeakage_compute_GRMHD_source_terms().\n",which_constants_to_use);
+      fprintf(stderr,"(NRPyLeakageET) ERROR: Unknown constant type (%d) in NRPyLeakageET_compute_GRMHD_source_terms().\n",which_constants_to_use);
       fprintf(stderr,"(NRPyLeakageET) Options are: USE_NRPY_CONSTANTS (%d) and USE_HARM_CONSTANTS (%d)\n",USE_NRPY_CONSTANTS,USE_HARM_CONSTANTS);
       fprintf(stderr,"(NRPyLeakageET) Aborting!\n");
       exit(1);

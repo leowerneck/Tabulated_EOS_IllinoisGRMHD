@@ -14,9 +14,18 @@ CCTK_INT minInitRefLevel "Minimum refinement level used for initialization. The 
 } 0
 
 restricted:
-CCTK_BOOLEAN verbose "Whether to print additional messages"
+CCTK_INT maxInitRefLevel "Maximum refinement level used for initialization."
 {
-} "no"
+  0:* :: "Maximum refinement level for optical depth initialization."
+} 0
+
+restricted:
+CCTK_INT verbosity_level "Whether to print information to the user or not"
+{
+  0 :: "The thorn will print no information at all"
+  1 :: "Useful information will be printed at key stages of the algorithms used by the thorn"
+  2 :: "Prints a lot of information; should only be used for debugging"
+} 1
 
 restricted:
 CCTK_REAL W_max "Maximum Lorentz factor."

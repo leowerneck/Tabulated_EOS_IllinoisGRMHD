@@ -10,13 +10,16 @@ void NRPyLeakageET_GetMaxSize(CCTK_ARGUMENTS,int *IterationCounter) {
 
   if(!NRPyLeakageET_ProcessOwnsData()) return;
 
-  if(verbose) {
+  const int IterationCounter_in = *IterationCounter;
+
+  *IterationCounter = MAX(IterationCounter_in,MAX(cctk_lsh[0],MAX(cctk_lsh[1],cctk_lsh[2])));
+
+  if(verbosity_level>1) {
     CCTK_VInfo(CCTK_THORNSTRING,"Inside NRPyLeakageET_GetMaxSize");
     CCTK_VInfo(CCTK_THORNSTRING,"Input counter : %d",*IterationCounter);
     CCTK_VInfo(CCTK_THORNSTRING,"Local shape   : %d %d %d",cctk_lsh[0],cctk_lsh[1],cctk_lsh[2]);
+    CCTK_VInfo(CCTK_THORNSTRING,"Output counter: %d",*IterationCounter);
   }
-  *IterationCounter = MAX(*IterationCounter,MAX(cctk_lsh[0],MAX(cctk_lsh[1],cctk_lsh[2])));
-  if(verbose) CCTK_VInfo(CCTK_THORNSTRING,"Output counter: %d",*IterationCounter);
 }
 
 void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS) {
