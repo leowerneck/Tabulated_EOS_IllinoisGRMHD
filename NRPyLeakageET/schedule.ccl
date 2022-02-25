@@ -39,12 +39,6 @@ else if( CCTK_Equals(optical_depth_evolution_type,"PathOfLeastResistance") ) {
   } "PathOfLeastResistance evolution: update optical depths following Nielsen et al. (2014) (1403.3680)."
 }
 
-SCHEDULE NRPyLeakageET_InitSym AS NRPyLeakageET_BoundarySync IN HydroBase_Boundaries BEFORE NRPyLeakageET_BoundaryConditions
-{
-  SYNC: ADMBase::metric, ADMBase::lapse, ADMBase::shift, HydroBase::rho, HydroBase::Y_e, HydroBase::temperature, NRPyLeakageET_optical_depths
-  LANG: C
-} "Synchronize: ADMBase: metric, lapse, shift; HydroBase: rho, Y_e, temperature; NRPyLeakageET: optical depths"
-
 SCHEDULE NRPyLeakageET_BoundaryConditions IN HydroBase_Boundaries
 {
   SYNC: NRPyLeakageET_optical_depths
