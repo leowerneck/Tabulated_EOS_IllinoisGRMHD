@@ -4,8 +4,8 @@ LEAKAGE_DIR = $(BASEDIR)/NRPyLeakage
 TESTS_DIR   = $(BASEDIR)/Leakage_tests
 HARM_DIR    = $(BASEDIR)/harm_leakage
 
-HDF5_DIR = /usr/local/opt/hdf5
-# HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
+# HDF5_DIR = /usr/local/opt/hdf5
+HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
 
 CC       = gcc
 CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(HARM_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
@@ -36,11 +36,14 @@ LEAKAGE_SRC = NRPyLeakage_Fermi_Dirac_integrals.c \
               NRPyLeakage_compute_GRMHD_source_terms_and_opacities_nrpy_constants.c \
               NRPyLeakage_compute_GRMHD_source_terms_and_opacities_harm_constants.c \
               NRPyLeakage_compute_GRMHD_source_terms_and_opacities.c \
-              NRPyLeakage_compute_optical_depths.c
+              NRPyLeakage_compute_optical_depths.c \
+              NRPyLeakage_compute_opacities_nrpy_constants.c \
+              NRPyLeakage_compute_opacities_harm_constants.c \
+              NRPyLeakage_compute_opacities.c
 
 LEAKAGE_INC = $(LEAKAGE_DIR)/NRPyLeakage.h
 
-ZELMANI_SRC = ZelmaniLeak_calc_taus.F90
+ZELMANI_SRC = ZelmaniLeak_calc_taus.F90 ZelmaniLeak_calc_leak.F90
 
 TESTS_SRC   = OpticallyThinGas_NRPyLeakage.c \
               OpticallyThinGas_harm_leakage.c \
@@ -106,6 +109,15 @@ obj/NRPyLeakage_compute_GRMHD_source_terms_and_opacities_harm_constants.o: $(LEA
 obj/NRPyLeakage_compute_GRMHD_source_terms_and_opacities.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_GRMHD_source_terms_and_opacities.c $(INC)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+obj/NRPyLeakage_compute_opacities_nrpy_constants.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_opacities_nrpy_constants.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+obj/NRPyLeakage_compute_opacities_harm_constants.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_opacities_harm_constants.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+obj/NRPyLeakage_compute_opacities.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_opacities.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
+
 obj/NRPyLeakage_compute_optical_depths.o: $(LEAKAGE_DIR)/NRPyLeakage_compute_optical_depths.c $(INC)
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -131,6 +143,9 @@ obj/NRPyEOS_benchmark.o: Leakage_tests/eos_benchmarks/NRPyEOS_benchmark.c $(INC)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 obj/ZelmaniLeak_calc_taus.o: ZelmaniLeak/ZelmaniLeak_calc_taus.F90
+	$(FC) $(FCFLAGS) -c $< -o $@
+
+obj/ZelmaniLeak_calc_leak.o: ZelmaniLeak/ZelmaniLeak_calc_leak.F90
 	$(FC) $(FCFLAGS) -c $< -o $@
 
 clean:

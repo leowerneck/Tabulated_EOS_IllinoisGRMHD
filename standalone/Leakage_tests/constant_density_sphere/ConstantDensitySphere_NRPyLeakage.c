@@ -214,6 +214,9 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
   REAL **tau_nue    = (REAL **)malloc(sizeof(REAL *)*2);
   REAL **tau_anue   = (REAL **)malloc(sizeof(REAL *)*2);
   REAL **tau_nux    = (REAL **)malloc(sizeof(REAL *)*2);
+  REAL **tau_nue_p  = (REAL **)malloc(sizeof(REAL *)*2);
+  REAL **tau_anue_p = (REAL **)malloc(sizeof(REAL *)*2);
+  REAL **tau_nux_p  = (REAL **)malloc(sizeof(REAL *)*2);
   for(int i=0;i<2;i++) {
    kappa_nue [i] = (REAL *)malloc(sizeof(REAL)*Ntotal);
    kappa_anue[i] = (REAL *)malloc(sizeof(REAL)*Ntotal);
@@ -221,6 +224,9 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
    tau_nue   [i] = (REAL *)malloc(sizeof(REAL)*Ntotal);
    tau_anue  [i] = (REAL *)malloc(sizeof(REAL)*Ntotal);
    tau_nux   [i] = (REAL *)malloc(sizeof(REAL)*Ntotal);
+   tau_nue_p [i] = (REAL *)malloc(sizeof(REAL)*Ntotal);
+   tau_anue_p[i] = (REAL *)malloc(sizeof(REAL)*Ntotal);
+   tau_nux_p [i] = (REAL *)malloc(sizeof(REAL)*Ntotal);
   }
 
   // Step 3: Define hydro quantities at the sphere interior and exterior
@@ -334,12 +340,12 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
         }
 
         // Step 3.d: Initialize optical depths to zero
-        tau_nue [0][index] = 0.0;
-        tau_nue [1][index] = 0.0;
-        tau_anue[0][index] = 0.0;
-        tau_anue[1][index] = 0.0;
-        tau_nux [0][index] = 0.0;
-        tau_nux [1][index] = 0.0;
+        tau_nue   [0][index] = 0.0;
+        tau_nue   [1][index] = 0.0;
+        tau_anue  [0][index] = 0.0;
+        tau_anue  [1][index] = 0.0;
+        tau_nux   [0][index] = 0.0;
+        tau_nux   [1][index] = 0.0;
       }
     }
   }
@@ -350,12 +356,33 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
 
   // Step 5: Now update the optical depth
   for(int n=0;n<20*N0;n++) {
+
+    // Step 5.a: Copy optical depth to previous level
+#pragma omp parallel for
+    for(int i2=0;i2<Nt2;i2++) {
+      for(int i1=0;i1<Nt1;i1++) {
+        for(int i0=0;i0<Nt0;i0++) {
+          const int index = IDX3D(i0,i1,i2);
+          tau_nue_p [0][index] = tau_nue [0][index];
+          tau_nue_p [1][index] = tau_nue [1][index];
+          tau_anue_p[0][index] = tau_anue[0][index];
+          tau_anue_p[1][index] = tau_anue[1][index];
+          tau_nux_p [0][index] = tau_nux [0][index];
+          tau_nux_p [1][index] = tau_nux [1][index];
+        }
+      }
+    }
+
+    // Step 5.b: Update optical depth
     NRPyLeakage_compute_optical_depths(Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,
                                        dx,dy,dz,
                                        gammaDD00,gammaDD11,gammaDD22,
                                        kappa_nue [0],kappa_nue [1],
                                        kappa_anue[0],kappa_anue[1],
                                        kappa_nux [0],kappa_nux [1],
+                                       tau_nue_p [0],tau_nue_p [1],
+                                       tau_anue_p[0],tau_anue_p[1],
+                                       tau_nux_p [0],tau_nux_p [1],
                                        tau_nue   [0],tau_nue   [1],
                                        tau_anue  [0],tau_anue  [1],
                                        tau_nux   [0],tau_nux   [1]);
@@ -378,6 +405,9 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
     free(tau_nue   [i]);
     free(tau_anue  [i]);
     free(tau_nux   [i]);
+    free(tau_nue_p [i]);
+    free(tau_anue_p[i]);
+    free(tau_nux_p [i]);
   }
   free(kappa_nue);
   free(kappa_anue);
@@ -385,4 +415,7 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
   free(tau_nue);
   free(tau_anue);
   free(tau_nux);
+  free(tau_nue_p);
+  free(tau_anue_p);
+  free(tau_nux_p);
 }

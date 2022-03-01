@@ -2,14 +2,6 @@
 #include "NRPyEOS.h"
 #include "NRPyLeakage.h"
 
-
-static REAL EnsureFinite(const REAL x) {
-  if(isfinite(x))
-    return x;
-  else
-    return 1e-15;
-}
-
 /*
  * (c) Leo Werneck
  * Compute GRMHD source terms following Ruffert et al. (1996)

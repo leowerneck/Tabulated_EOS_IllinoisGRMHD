@@ -6,13 +6,6 @@
 #include "harm_neutrinos.h"
 #include "harm_units.h"
 
-void nrpyeos_fortran_interface_(const NRPyEOS_params *eos_params,
-                                const REAL *rho,
-                                const REAL *Y_e,
-                                const REAL *T,
-                                REAL *P,
-                                REAL *eps);
-
 void calc_taus_(const NRPyEOS_params *eos_params,
                 const REAL *eos_tempmin,
                 const REAL *atm_temp,
@@ -35,10 +28,58 @@ void calc_taus_(const NRPyEOS_params *eos_params,
                 REAL compos[4][1],
                 REAL *xentropy);
 
+void opacities_dependence_on_density_and_electron_fraction(const NRPyEOS_params *eos_params, const REAL T) {
+
+  // Step 1: Set limits
+  const REAL lrmin = log(eos_params->eos_rhomin);
+  const REAL yemin = eos_params->eos_yemin;
+
+  // Step 2: Set optical depths
+  const REAL tau_nue [2] = {0.0,0.0};
+  const REAL tau_anue[2] = {0.0,0.0};
+  const REAL tau_nux [2] = {0.0,0.0};
+
+  // Step 3: Loop over the grid rho-Y_e, computing opacities
+  FILE *fp = fopen("opacities_rho_ye.asc","w");
+  for(int j=0;j<eos_params->nye;j++) {
+    const REAL Y_e = yemin + eos_params->dye*j;
+    for(int i=0;i<eos_params->nrho;i++) {
+      const REAL rho = exp(lrmin + eos_params->drho*i);
+      REAL kappa_nue[2], kappa_anue[2], kappa_nux[2];
+      NRPyLeakage_compute_opacities(USE_HARM_CONSTANTS,eos_params,rho,Y_e,T,tau_nue,tau_anue,tau_nux,
+                                    kappa_nue,kappa_anue,kappa_nux);
+      fprintf(fp,"%e %e %e %e %e %e %e %e\n",rho,Y_e,kappa_nue[0],kappa_nue[1],kappa_anue[0],kappa_anue[1],kappa_nux[0],kappa_nux[1]);
+    }
+    fprintf(fp,"\n");
+  }
+  fclose(fp);
+}
+
 int main(int argc, char **argv) {
 
-  if( argc != 5 ) {
-    fprintf(stderr,"(Leakage) Correct usage is ./Leakage_standalone eos_file_path rho Ye T\n");
+  if( argc < 3 ) {
+    fprintf(stderr,"(NRPyLeakage) Correct usage is ./Leakage_standalone eos_file_path test_type [parameters]\n");
+    fprintf(stderr,"(NRPyLeakage) Test types are:\n");
+    fprintf(stderr,"(NRPyLeakage)     0: Optically thin gas (tests number/cooling rates)\n");
+    fprintf(stderr,"(NRPyLeakage)     1: Constant density sphere (tests optical depth)\n");
+    fprintf(stderr,"(NRPyLeakage)     2: 2D data for opacities as a function of (rho,Y_e) for given temperature in MeV\n");
+    fprintf(stderr,"(NRPyLeakage)     3: Equation of state table interpolation benchmark\n");
+    exit(1);
+  }
+
+  const int test_type = atoi(argv[2]);
+
+  if( test_type == 0 && argc != 6 ) {
+    fprintf(stderr,"(NRPyLeakage) For the optically thin gas test one must also provide 3 additional arguments:\n");
+    fprintf(stderr,"(NRPyLeakage)     The gas density in code units\n");
+    fprintf(stderr,"(NRPyLeakage)     The gas electron fraction\n");
+    fprintf(stderr,"(NRPyLeakage)     The gas temperature in MeV\n");
+    exit(1);
+  }
+
+  if( test_type == 2 && argc != 4 ) {
+    fprintf(stderr,"(NRPyLeakage) For the 2D data for opacities test one must also provide 1 additional argument:\n");
+    fprintf(stderr,"(NRPyLeakage)     The temperature in MeV\n");
     exit(1);
   }
 
@@ -46,125 +87,28 @@ int main(int argc, char **argv) {
   NRPyEOS_params eos_params;
   NRPyEOS_readtable_set_EOS_params(argv[1],&eos_params);
 
-  // NRPyEOS_benchmark(&eos_params);
-
-  // ConstantDensitySphere_NRPyLeakage(&eos_params);
-
-  // Test Leakage
-  const REAL rho_b = strtod(argv[2],NULL); // 0.00141722994401086;//6.0e7*NRPyLeakage_units_cgs_to_geom_D;//
-  const REAL Y_e   = strtod(argv[3],NULL); // 0.057773852636472;//0.5;//
-  const REAL T     = strtod(argv[4],NULL); // 0.01;//
-  REAL tau_nue[2]  = {0.0,0.0};
-  REAL tau_anue[2] = {0.0,0.0};
-  REAL tau_nux[2]  = {0.0,0.0};
-
-  REAL P,eps;
-  NRPyEOS_P_and_eps_from_rho_Ye_T(&eos_params,rho_b,Y_e,T,&P,&eps);
-
-  const int which_constants = USE_HARM_CONSTANTS;
-
-  // Print info
-  printf("(NRPyLeakage) ******************************************\n");
-  printf("(NRPyLeakage) Basic information:\n");
-  printf("(NRPyLeakage) Density           = %.15e\n",rho_b);
-  printf("(NRPyLeakage) Electron fraction = %.15e\n",Y_e);
-  printf("(NRPyLeakage) Temperature       = %.15e\n",T);
-  printf("(NRPyLeakage) Pressure          = %.15e\n",P);
-  printf("(NRPyLeakage) Energy            = %.15e\n",eps);
-
-  P = 0.0/0.0;
-  eps = 0.0/0.0;
-  nrpyeos_fortran_interface_(&eos_params,&rho_b,&Y_e,&T,&P,&eps);
-  // simplest_fortran_interface_(&rho_b,&Y_e,&T,&P,&eps);
-  printf("(NRPyLeakage) ******************************************\n");
-  printf("(NRPyLeakage) Basic information (FORTRAN interface):\n");
-  printf("(NRPyLeakage) Density           = %.15e\n",rho_b);
-  printf("(NRPyLeakage) Electron fraction = %.15e\n",Y_e);
-  printf("(NRPyLeakage) Temperature       = %.15e\n",T);
-  printf("(NRPyLeakage) Pressure          = %.15e\n",P);
-  printf("(NRPyLeakage) Energy            = %.15e\n",eps);
-
-  printf("(NRPyLeakage) ******************************************\n");
-  printf("(NRPyLeakage) Values obtained using ZelmaniLeak:\n");
-  const int nzones       = 1;
-  const REAL eos_tempmin = eos_params.eos_tempmin;
-  const REAL atm_temp    = eos_params.eos_tempmin;
-  const REAL eos_yemin   = eos_params.eos_yemin;
-  const REAL eos_yemax   = eos_params.eos_yemax;
-  const REAL rho_gf      = NRPyLeakage_units_geom_to_cgs_D;
-  const REAL kappa_gf    = NRPyLeakage_units_geom_to_cgs_L;
-  REAL rho               = rho_b * NRPyLeakage_units_cgs_to_geom_D;
-  REAL temp              = T;
-  REAL ye                = Y_e;
-  REAL r                 = 1;
-  REAL ds                = 1;
-  REAL oldtauruff[3][nzones], tauruff[3][nzones], chiross[3][nzones], heatflux[3][nzones], compos[4][nzones];;
-  for(int i=0;i<nzones;i++) {
-    for(int n=0;n<3;n++) {
-      oldtauruff[n][i] = 0;
-      tauruff   [n][i] = 0;
-      chiross   [n][i] = 0;
-      heatflux  [n][i] = 0;
-      compos    [n][i] = 0;
-    }
-    compos[3][i] = 0;
+  if( test_type == 0 ) {
+    // Optically thin gas test
+    const REAL rho_b = strtod(argv[3],NULL);
+    const REAL Y_e   = strtod(argv[4],NULL);
+    const REAL T     = strtod(argv[5],NULL);
+    OpticallyThinGas_NRPyLeakage(USE_HARM_CONSTANTS,&eos_params,rho_b,Y_e,T);
+    OpticallyThinGas_harm_leakage(USE_HARM_CONSTANTS,&eos_params,rho_b,Y_e,T);
   }
-  REAL heaterms[3]={0,0,0}, heateave[3]={0,0,0};
-  REAL S=0;
-  calc_taus_(&eos_params,&eos_tempmin,&atm_temp,&eos_yemax,&eos_yemin,&rho_gf,&kappa_gf,
-             &rho,&temp,&ye,oldtauruff,tauruff,chiross,heatflux,heaterms,heateave,
-             &nzones,
-             &r,&ds,compos,&S);
-
-  // printf("compos: %e %e %e %e\n",compos[0][0],compos[1][0],compos[2][0],compos[3][0]);
-
-  REAL R_source,Q_source,kappa_nue[2],kappa_anue[2],kappa_nux[2];
-  NRPyLeakage_compute_GRMHD_source_terms_and_opacities(which_constants,&eos_params,rho_b,Y_e,T,tau_nue,tau_anue,tau_nux,
-                                                       &R_source,&Q_source,kappa_nue,kappa_anue,kappa_nux);
-  printf("(NRPyLeakage) ******************************************\n");
-  printf("(NRPyLeakage) Values obtained using NRPyLeakage:\n");
-  printf("(NRPyLeakage) R_source     = %.15e\n",R_source);
-  printf("(NRPyLeakage) Q_source     = %.15e\n",Q_source);
-  printf("(NRPyLeakage) kappa_0_nue  = %.15e\n",kappa_nue[0]);
-  printf("(NRPyLeakage) kappa_1_nue  = %.15e\n",kappa_nue[1]);
-  printf("(NRPyLeakage) kappa_0_anue = %.15e\n",kappa_anue[0]);
-  printf("(NRPyLeakage) kappa_1_anue = %.15e\n",kappa_anue[1]);
-  printf("(NRPyLeakage) kappa_0_nux  = %.15e\n",kappa_nux[0]);
-  printf("(NRPyLeakage) kappa_1_nux  = %.15e\n",kappa_nux[1]);
-  printf("(NRPyLeakage) rhs_Y_e      = %.15e\n",R_source/rho_b);
-  printf("(NRPyLeakage) rhs_eps      = %.15e\n",Q_source/rho_b);
-
-  // double prims[NUMPRIMS];
-  // prims[RHO ] = rho_b;
-  // prims[YE  ] = Y_e;
-  // prims[TEMP] = T;
-  // prims[UU  ] = eps*prims[RHO];
-  // for(int i=0;i<3;i++) {
-  //   prims[U1+i] = 0.0;
-  //   prims[B1+i] = 0.0;
-  // }
-
-  // double optical_depth[N_OPTICAL_DEPTHS];
-  // for(int i=0;i<N_OPTICAL_DEPTHS;i++) optical_depth[i] = 0.0;
-
-  // double R_function, Q_function;
-  // neutrino_absorption_heating_rate(&eos_params, prims, optical_depth, &R_function, &Q_function);
-  // printf("(NRPyLeakage) ******************************************\n");
-  // printf("(NRPyLeakage) Values obtained using HARM:\n");
-  // printf("(NRPyLeakage) R_source = %.15e\n",R_function);
-  // printf("(NRPyLeakage) Q_source = %.15e\n",Q_function);
-  // printf("(NRPyLeakage) rhs_Y_e  = %.15e\n",R_function/rho_b);
-  // printf("(NRPyLeakage) rhs_eps  = %.15e\n",Q_function/rho_b);
-  // printf("(NRPyLeakage) ******************************************\n");
-  // printf("(NRPyLeakage) Relative errors:\n");
-  // printf("(NRPyLeakage) R_source: %e\n",fabs(1.0-R_source/R_function));
-  // printf("(NRPyLeakage) Q_source: %e\n",fabs(1.0-Q_source/Q_function));
-  // printf("(NRPyLeakage) ******************************************\n");
-
-
-  // Now compute optically thin
-  // OpticallyThinGas_NRPyLeakage(which_constants,&eos_params,rho_b,Y_e,T);
-  // OpticallyThinGas_harm_leakage(which_constants,&eos_params,rho_b,Y_e,T);
+  else if( test_type == 1 ) {
+    ConstantDensitySphere_NRPyLeakage(&eos_params);
+  }
+  else if( test_type == 2 ) {
+    const REAL T = strtod(argv[3],NULL);
+    opacities_dependence_on_density_and_electron_fraction(&eos_params,T);
+  }
+  else if( test_type == 3 ) {
+    NRPyEOS_benchmark(&eos_params);
+  }
+  else{
+    fprintf(stderr,"(NRPyLeakage) Unknown test type %d\n",test_type);
+    exit(1);
+  }
 
   // Free memory allocated for EOS table
   NRPyEOS_free_memory(&eos_params);

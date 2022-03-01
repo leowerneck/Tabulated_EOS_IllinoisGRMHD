@@ -131,9 +131,9 @@ void NRPyLeakage_compute_optical_depths(const int N0,
                                         const int Ng0,
                                         const int Ng1,
                                         const int Ng2,
-                                        const int dxx0,
-                                        const int dxx1,
-                                        const int dxx2,
+                                        const REAL dxx0,
+                                        const REAL dxx1,
+                                        const REAL dxx2,
                                         const REAL *restrict gammaDD00,
                                         const REAL *restrict gammaDD11,
                                         const REAL *restrict gammaDD22,
@@ -143,11 +143,56 @@ void NRPyLeakage_compute_optical_depths(const int N0,
                                         const REAL *restrict kappa_1_anue,
                                         const REAL *restrict kappa_0_nux,
                                         const REAL *restrict kappa_1_nux,
+                                        const REAL *restrict tau_0_nue_p,
+                                        const REAL *restrict tau_1_nue_p,
+                                        const REAL *restrict tau_0_anue_p,
+                                        const REAL *restrict tau_1_anue_p,
+                                        const REAL *restrict tau_0_nux_p,
+                                        const REAL *restrict tau_1_nux_p,
                                         REAL *restrict tau_0_nue,
                                         REAL *restrict tau_1_nue,
                                         REAL *restrict tau_0_anue,
                                         REAL *restrict tau_1_anue,
                                         REAL *restrict tau_0_nux,
                                         REAL *restrict tau_1_nux);
+
+void NRPyLeakage_compute_opacities_harm_constants(const NRPyEOS_params *restrict eos_params,
+                                                  const REAL rho_b,
+                                                  const REAL Y_e,
+                                                  const REAL T,
+                                                  const REAL *restrict tau_nue,
+                                                  const REAL *restrict tau_anue,
+                                                  const REAL *restrict tau_nux,
+                                                  REAL *restrict kappa_nue,
+                                                  REAL *restrict kappa_anue,
+                                                  REAL *restrict kappa_nux);
+
+void NRPyLeakage_compute_opacities_nrpy_constants(const NRPyEOS_params *restrict eos_params,
+                                                  const REAL rho_b,
+                                                  const REAL Y_e,
+                                                  const REAL T,
+                                                  const REAL *restrict tau_nue,
+                                                  const REAL *restrict tau_anue,
+                                                  const REAL *restrict tau_nux,
+                                                  REAL *restrict kappa_nue,
+                                                  REAL *restrict kappa_anue,
+                                                  REAL *restrict kappa_nux);
+
+void NRPyLeakage_compute_opacities(const int which_constants_to_use,
+                                   const NRPyEOS_params *restrict eos_params,
+                                   const REAL rho_b,
+                                   const REAL Y_e,
+                                   const REAL T,
+                                   const REAL *restrict tau_nue,
+                                   const REAL *restrict tau_anue,
+                                   const REAL *restrict tau_nux,
+                                   REAL *restrict kappa_nue,
+                                   REAL *restrict kappa_anue,
+                                   REAL *restrict kappa_nux);
+
+static inline REAL EnsureFinite(const REAL x) {
+  if(isfinite(x)) return x;
+  else            return 1e-15;
+}
 
 #endif // NRPYLEAKAGE_H_

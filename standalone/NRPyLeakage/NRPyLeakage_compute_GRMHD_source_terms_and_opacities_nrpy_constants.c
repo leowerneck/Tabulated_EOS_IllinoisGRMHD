@@ -2,14 +2,6 @@
 #include "NRPyEOS.h"
 #include "NRPyLeakage.h"
 
-
-static REAL EnsureFinite(const REAL x) {
-  if(isfinite(x))
-    return x;
-  else
-    return 1e-15;
-}
-
 /*
  * (c) Leo Werneck
  * Compute GRMHD source terms following Ruffert et al. (1996)
@@ -53,7 +45,7 @@ void NRPyLeakage_compute_GRMHD_source_terms_and_opacities_nrpy_constants(const N
   }
   // Step 3.a.ii: Make sure Y_{pn} is nonzero
   Y_pn = MAX(Y_pn,0.0);
-  
+
   // Step 3.b: Compute Y_{np} (Eq. A13 in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R)
   const REAL Y_np = exp(muhat/T) * Y_pn;
 */

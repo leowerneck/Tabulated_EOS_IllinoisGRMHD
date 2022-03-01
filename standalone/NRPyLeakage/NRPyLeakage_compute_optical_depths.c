@@ -16,9 +16,9 @@ void NRPyLeakage_compute_optical_depths(const int N0,
                                         const int Ng0,
                                         const int Ng1,
                                         const int Ng2,
-                                        const int dxx0,
-                                        const int dxx1,
-                                        const int dxx2,
+                                        const REAL dxx0,
+                                        const REAL dxx1,
+                                        const REAL dxx2,
                                         const REAL *restrict gammaDD00,
                                         const REAL *restrict gammaDD11,
                                         const REAL *restrict gammaDD22,
@@ -28,6 +28,12 @@ void NRPyLeakage_compute_optical_depths(const int N0,
                                         const REAL *restrict kappa_1_anue,
                                         const REAL *restrict kappa_0_nux,
                                         const REAL *restrict kappa_1_nux,
+                                        const REAL *restrict tau_0_nue_p,
+                                        const REAL *restrict tau_1_nue_p,
+                                        const REAL *restrict tau_0_anue_p,
+                                        const REAL *restrict tau_1_anue_p,
+                                        const REAL *restrict tau_0_nux_p,
+                                        const REAL *restrict tau_1_nux_p,
                                         REAL *restrict tau_0_nue,
                                         REAL *restrict tau_1_nue,
                                         REAL *restrict tau_0_anue,
@@ -179,47 +185,47 @@ void NRPyLeakage_compute_optical_depths(const int N0,
 
 
         // Step 7: Compute optical depth at neighboring points
-        const REAL tau_0_nue_i0p1_i1_i2 = tau_0_nue[i0p1_i1_i2] + ds_i0phalf_i1_i2*kappa_0_nue_i0phalf_i1_i2;
-        const REAL tau_0_nue_i0m1_i1_i2 = tau_0_nue[i0m1_i1_i2] + ds_i0mhalf_i1_i2*kappa_0_nue_i0mhalf_i1_i2;
-        const REAL tau_0_nue_i0_i1p1_i2 = tau_0_nue[i0_i1p1_i2] + ds_i0_i1phalf_i2*kappa_0_nue_i0_i1phalf_i2;
-        const REAL tau_0_nue_i0_i1m1_i2 = tau_0_nue[i0_i1m1_i2] + ds_i0_i1mhalf_i2*kappa_0_nue_i0_i1mhalf_i2;
-        const REAL tau_0_nue_i0_i1_i2p1 = tau_0_nue[i0_i1_i2p1] + ds_i0_i1_i2phalf*kappa_0_nue_i0_i1_i2phalf;
-        const REAL tau_0_nue_i0_i1_i2m1 = tau_0_nue[i0_i1_i2m1] + ds_i0_i1_i2mhalf*kappa_0_nue_i0_i1_i2mhalf;
+        const REAL tau_0_nue_i0p1_i1_i2 = tau_0_nue_p[i0p1_i1_i2] + ds_i0phalf_i1_i2*kappa_0_nue_i0phalf_i1_i2;
+        const REAL tau_0_nue_i0m1_i1_i2 = tau_0_nue_p[i0m1_i1_i2] + ds_i0mhalf_i1_i2*kappa_0_nue_i0mhalf_i1_i2;
+        const REAL tau_0_nue_i0_i1p1_i2 = tau_0_nue_p[i0_i1p1_i2] + ds_i0_i1phalf_i2*kappa_0_nue_i0_i1phalf_i2;
+        const REAL tau_0_nue_i0_i1m1_i2 = tau_0_nue_p[i0_i1m1_i2] + ds_i0_i1mhalf_i2*kappa_0_nue_i0_i1mhalf_i2;
+        const REAL tau_0_nue_i0_i1_i2p1 = tau_0_nue_p[i0_i1_i2p1] + ds_i0_i1_i2phalf*kappa_0_nue_i0_i1_i2phalf;
+        const REAL tau_0_nue_i0_i1_i2m1 = tau_0_nue_p[i0_i1_i2m1] + ds_i0_i1_i2mhalf*kappa_0_nue_i0_i1_i2mhalf;
 
-        const REAL tau_1_nue_i0p1_i1_i2 = tau_1_nue[i0p1_i1_i2] + ds_i0phalf_i1_i2*kappa_1_nue_i0phalf_i1_i2;
-        const REAL tau_1_nue_i0m1_i1_i2 = tau_1_nue[i0m1_i1_i2] + ds_i0mhalf_i1_i2*kappa_1_nue_i0mhalf_i1_i2;
-        const REAL tau_1_nue_i0_i1p1_i2 = tau_1_nue[i0_i1p1_i2] + ds_i0_i1phalf_i2*kappa_1_nue_i0_i1phalf_i2;
-        const REAL tau_1_nue_i0_i1m1_i2 = tau_1_nue[i0_i1m1_i2] + ds_i0_i1mhalf_i2*kappa_1_nue_i0_i1mhalf_i2;
-        const REAL tau_1_nue_i0_i1_i2p1 = tau_1_nue[i0_i1_i2p1] + ds_i0_i1_i2phalf*kappa_1_nue_i0_i1_i2phalf;
-        const REAL tau_1_nue_i0_i1_i2m1 = tau_1_nue[i0_i1_i2m1] + ds_i0_i1_i2mhalf*kappa_1_nue_i0_i1_i2mhalf;
+        const REAL tau_1_nue_i0p1_i1_i2 = tau_1_nue_p[i0p1_i1_i2] + ds_i0phalf_i1_i2*kappa_1_nue_i0phalf_i1_i2;
+        const REAL tau_1_nue_i0m1_i1_i2 = tau_1_nue_p[i0m1_i1_i2] + ds_i0mhalf_i1_i2*kappa_1_nue_i0mhalf_i1_i2;
+        const REAL tau_1_nue_i0_i1p1_i2 = tau_1_nue_p[i0_i1p1_i2] + ds_i0_i1phalf_i2*kappa_1_nue_i0_i1phalf_i2;
+        const REAL tau_1_nue_i0_i1m1_i2 = tau_1_nue_p[i0_i1m1_i2] + ds_i0_i1mhalf_i2*kappa_1_nue_i0_i1mhalf_i2;
+        const REAL tau_1_nue_i0_i1_i2p1 = tau_1_nue_p[i0_i1_i2p1] + ds_i0_i1_i2phalf*kappa_1_nue_i0_i1_i2phalf;
+        const REAL tau_1_nue_i0_i1_i2m1 = tau_1_nue_p[i0_i1_i2m1] + ds_i0_i1_i2mhalf*kappa_1_nue_i0_i1_i2mhalf;
 
-        const REAL tau_0_anue_i0p1_i1_i2 = tau_0_anue[i0p1_i1_i2] + ds_i0phalf_i1_i2*kappa_0_anue_i0phalf_i1_i2;
-        const REAL tau_0_anue_i0m1_i1_i2 = tau_0_anue[i0m1_i1_i2] + ds_i0mhalf_i1_i2*kappa_0_anue_i0mhalf_i1_i2;
-        const REAL tau_0_anue_i0_i1p1_i2 = tau_0_anue[i0_i1p1_i2] + ds_i0_i1phalf_i2*kappa_0_anue_i0_i1phalf_i2;
-        const REAL tau_0_anue_i0_i1m1_i2 = tau_0_anue[i0_i1m1_i2] + ds_i0_i1mhalf_i2*kappa_0_anue_i0_i1mhalf_i2;
-        const REAL tau_0_anue_i0_i1_i2p1 = tau_0_anue[i0_i1_i2p1] + ds_i0_i1_i2phalf*kappa_0_anue_i0_i1_i2phalf;
-        const REAL tau_0_anue_i0_i1_i2m1 = tau_0_anue[i0_i1_i2m1] + ds_i0_i1_i2mhalf*kappa_0_anue_i0_i1_i2mhalf;
+        const REAL tau_0_anue_i0p1_i1_i2 = tau_0_anue_p[i0p1_i1_i2] + ds_i0phalf_i1_i2*kappa_0_anue_i0phalf_i1_i2;
+        const REAL tau_0_anue_i0m1_i1_i2 = tau_0_anue_p[i0m1_i1_i2] + ds_i0mhalf_i1_i2*kappa_0_anue_i0mhalf_i1_i2;
+        const REAL tau_0_anue_i0_i1p1_i2 = tau_0_anue_p[i0_i1p1_i2] + ds_i0_i1phalf_i2*kappa_0_anue_i0_i1phalf_i2;
+        const REAL tau_0_anue_i0_i1m1_i2 = tau_0_anue_p[i0_i1m1_i2] + ds_i0_i1mhalf_i2*kappa_0_anue_i0_i1mhalf_i2;
+        const REAL tau_0_anue_i0_i1_i2p1 = tau_0_anue_p[i0_i1_i2p1] + ds_i0_i1_i2phalf*kappa_0_anue_i0_i1_i2phalf;
+        const REAL tau_0_anue_i0_i1_i2m1 = tau_0_anue_p[i0_i1_i2m1] + ds_i0_i1_i2mhalf*kappa_0_anue_i0_i1_i2mhalf;
 
-        const REAL tau_1_anue_i0p1_i1_i2 = tau_1_anue[i0p1_i1_i2] + ds_i0phalf_i1_i2*kappa_1_anue_i0phalf_i1_i2;
-        const REAL tau_1_anue_i0m1_i1_i2 = tau_1_anue[i0m1_i1_i2] + ds_i0mhalf_i1_i2*kappa_1_anue_i0mhalf_i1_i2;
-        const REAL tau_1_anue_i0_i1p1_i2 = tau_1_anue[i0_i1p1_i2] + ds_i0_i1phalf_i2*kappa_1_anue_i0_i1phalf_i2;
-        const REAL tau_1_anue_i0_i1m1_i2 = tau_1_anue[i0_i1m1_i2] + ds_i0_i1mhalf_i2*kappa_1_anue_i0_i1mhalf_i2;
-        const REAL tau_1_anue_i0_i1_i2p1 = tau_1_anue[i0_i1_i2p1] + ds_i0_i1_i2phalf*kappa_1_anue_i0_i1_i2phalf;
-        const REAL tau_1_anue_i0_i1_i2m1 = tau_1_anue[i0_i1_i2m1] + ds_i0_i1_i2mhalf*kappa_1_anue_i0_i1_i2mhalf;
+        const REAL tau_1_anue_i0p1_i1_i2 = tau_1_anue_p[i0p1_i1_i2] + ds_i0phalf_i1_i2*kappa_1_anue_i0phalf_i1_i2;
+        const REAL tau_1_anue_i0m1_i1_i2 = tau_1_anue_p[i0m1_i1_i2] + ds_i0mhalf_i1_i2*kappa_1_anue_i0mhalf_i1_i2;
+        const REAL tau_1_anue_i0_i1p1_i2 = tau_1_anue_p[i0_i1p1_i2] + ds_i0_i1phalf_i2*kappa_1_anue_i0_i1phalf_i2;
+        const REAL tau_1_anue_i0_i1m1_i2 = tau_1_anue_p[i0_i1m1_i2] + ds_i0_i1mhalf_i2*kappa_1_anue_i0_i1mhalf_i2;
+        const REAL tau_1_anue_i0_i1_i2p1 = tau_1_anue_p[i0_i1_i2p1] + ds_i0_i1_i2phalf*kappa_1_anue_i0_i1_i2phalf;
+        const REAL tau_1_anue_i0_i1_i2m1 = tau_1_anue_p[i0_i1_i2m1] + ds_i0_i1_i2mhalf*kappa_1_anue_i0_i1_i2mhalf;
 
-        const REAL tau_0_nux_i0p1_i1_i2 = tau_0_nux[i0p1_i1_i2] + ds_i0phalf_i1_i2*kappa_0_nux_i0phalf_i1_i2;
-        const REAL tau_0_nux_i0m1_i1_i2 = tau_0_nux[i0m1_i1_i2] + ds_i0mhalf_i1_i2*kappa_0_nux_i0mhalf_i1_i2;
-        const REAL tau_0_nux_i0_i1p1_i2 = tau_0_nux[i0_i1p1_i2] + ds_i0_i1phalf_i2*kappa_0_nux_i0_i1phalf_i2;
-        const REAL tau_0_nux_i0_i1m1_i2 = tau_0_nux[i0_i1m1_i2] + ds_i0_i1mhalf_i2*kappa_0_nux_i0_i1mhalf_i2;
-        const REAL tau_0_nux_i0_i1_i2p1 = tau_0_nux[i0_i1_i2p1] + ds_i0_i1_i2phalf*kappa_0_nux_i0_i1_i2phalf;
-        const REAL tau_0_nux_i0_i1_i2m1 = tau_0_nux[i0_i1_i2m1] + ds_i0_i1_i2mhalf*kappa_0_nux_i0_i1_i2mhalf;
+        const REAL tau_0_nux_i0p1_i1_i2 = tau_0_nux_p[i0p1_i1_i2] + ds_i0phalf_i1_i2*kappa_0_nux_i0phalf_i1_i2;
+        const REAL tau_0_nux_i0m1_i1_i2 = tau_0_nux_p[i0m1_i1_i2] + ds_i0mhalf_i1_i2*kappa_0_nux_i0mhalf_i1_i2;
+        const REAL tau_0_nux_i0_i1p1_i2 = tau_0_nux_p[i0_i1p1_i2] + ds_i0_i1phalf_i2*kappa_0_nux_i0_i1phalf_i2;
+        const REAL tau_0_nux_i0_i1m1_i2 = tau_0_nux_p[i0_i1m1_i2] + ds_i0_i1mhalf_i2*kappa_0_nux_i0_i1mhalf_i2;
+        const REAL tau_0_nux_i0_i1_i2p1 = tau_0_nux_p[i0_i1_i2p1] + ds_i0_i1_i2phalf*kappa_0_nux_i0_i1_i2phalf;
+        const REAL tau_0_nux_i0_i1_i2m1 = tau_0_nux_p[i0_i1_i2m1] + ds_i0_i1_i2mhalf*kappa_0_nux_i0_i1_i2mhalf;
 
-        const REAL tau_1_nux_i0p1_i1_i2 = tau_1_nux[i0p1_i1_i2] + ds_i0phalf_i1_i2*kappa_1_nux_i0phalf_i1_i2;
-        const REAL tau_1_nux_i0m1_i1_i2 = tau_1_nux[i0m1_i1_i2] + ds_i0mhalf_i1_i2*kappa_1_nux_i0mhalf_i1_i2;
-        const REAL tau_1_nux_i0_i1p1_i2 = tau_1_nux[i0_i1p1_i2] + ds_i0_i1phalf_i2*kappa_1_nux_i0_i1phalf_i2;
-        const REAL tau_1_nux_i0_i1m1_i2 = tau_1_nux[i0_i1m1_i2] + ds_i0_i1mhalf_i2*kappa_1_nux_i0_i1mhalf_i2;
-        const REAL tau_1_nux_i0_i1_i2p1 = tau_1_nux[i0_i1_i2p1] + ds_i0_i1_i2phalf*kappa_1_nux_i0_i1_i2phalf;
-        const REAL tau_1_nux_i0_i1_i2m1 = tau_1_nux[i0_i1_i2m1] + ds_i0_i1_i2mhalf*kappa_1_nux_i0_i1_i2mhalf;
+        const REAL tau_1_nux_i0p1_i1_i2 = tau_1_nux_p[i0p1_i1_i2] + ds_i0phalf_i1_i2*kappa_1_nux_i0phalf_i1_i2;
+        const REAL tau_1_nux_i0m1_i1_i2 = tau_1_nux_p[i0m1_i1_i2] + ds_i0mhalf_i1_i2*kappa_1_nux_i0mhalf_i1_i2;
+        const REAL tau_1_nux_i0_i1p1_i2 = tau_1_nux_p[i0_i1p1_i2] + ds_i0_i1phalf_i2*kappa_1_nux_i0_i1phalf_i2;
+        const REAL tau_1_nux_i0_i1m1_i2 = tau_1_nux_p[i0_i1m1_i2] + ds_i0_i1mhalf_i2*kappa_1_nux_i0_i1mhalf_i2;
+        const REAL tau_1_nux_i0_i1_i2p1 = tau_1_nux_p[i0_i1_i2p1] + ds_i0_i1_i2phalf*kappa_1_nux_i0_i1_i2phalf;
+        const REAL tau_1_nux_i0_i1_i2m1 = tau_1_nux_p[i0_i1_i2m1] + ds_i0_i1_i2mhalf*kappa_1_nux_i0_i1_i2mhalf;
 
 
         // Step 8: Select path of least resistance
