@@ -96,17 +96,21 @@ void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
     // Step 2: Now perform iterations of the path of least resistance algorithm
     int counter = 0;
     int RemainingIterations = numberOfIterations;
+    CCTK_REAL l2norm[Carpet::reflevels];
 
     for(int i=1;i<=numberOfIterations;i++) {
       // Step 2.a: First perform the iteration on refinement level startRefLev
       if( verbosity_level>1 ) CCTK_VInfo(CCTK_THORNSTRING,"Beginning iteration %d...",counter+1);
       ENTER_LEVEL_MODE(cctkGH,startRefLev) {
+        CCTK_REAL l2normL = 0.0;
         BEGIN_MAP_LOOP(cctkGH,CCTK_GF) {
           BEGIN_COMPONENT_LOOP(cctkGH, CCTK_GF) {
             NRPyLeakageET_compute_opacities(CCTK_PASS_CTOC);
             NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_PASS_CTOC);
+            NRPyLeakageET_compute_optical_depth_change(CCTK_PASS_CTOC,&l2normL);
           } END_COMPONENT_LOOP;
         } END_MAP_LOOP;
+        l2norm[startRefLev] = l2normL;
         CCTK_SyncGroup(cctkGH,"NRPyLeakageET::NRPyLeakageET_optical_depths");
       } LEAVE_LEVEL_MODE;
 
@@ -116,20 +120,37 @@ void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
         ENTER_LEVEL_MODE(cctkGH,rl) {
           // Step 2.b.i: Prolongate results from the previous refinement level
           NRPyLeakageET_Prolongate(CCTK_PASS_CTOC,"NRPyLeakageET::NRPyLeakageET_optical_depths");
+          CCTK_REAL l2normL = 0.0;
           BEGIN_MAP_LOOP(cctkGH,CCTK_GF) {
             BEGIN_COMPONENT_LOOP(cctkGH, CCTK_GF) {
               // Step 2.b.i: Compute opacities
               NRPyLeakageET_compute_opacities(CCTK_PASS_CTOC);
               // Step 2.b.ii: Perform POLR algorithm on every grid component at this level
               NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_PASS_CTOC);
+              NRPyLeakageET_compute_optical_depth_change(CCTK_PASS_CTOC,&l2normL);
             } END_COMPONENT_LOOP;
           } END_MAP_LOOP;
           CCTK_SyncGroup(cctkGH,"NRPyLeakageET::NRPyLeakageET_optical_depths");
+          l2norm[rl] = l2normL;
         } LEAVE_LEVEL_MODE;
       }
-      RemainingIterations--;
+
+      CCTK_REAL l2norm_total = 0.0;
+      for(int rl=endRefLev;rl>startRefLev-1;rl--) {
+        l2norm_total += sqrt(l2norm[rl]);
+        if( verbosity_level > 1 ) CCTK_VInfo(CCTK_THORNSTRING,"Total l2norm for Ref. Lev. %d: %e",rl,sqrt(l2norm[rl]));
+      }
+
       counter++;
-      if( verbosity_level>1 ) CCTK_VInfo(CCTK_THORNSTRING,"Completed iteration %d. Remaining iterations: %4d",counter,RemainingIterations);
+      if( l2norm_total < tauChangeThreshold ) {
+        RemainingIterations = 0;
+        i = numberOfIterations*10;
+        if( verbosity_level>1 ) CCTK_VInfo(CCTK_THORNSTRING,"Algorithm converged! l2norm_tau_change = %e (threshold = %e)",l2norm_total,tauChangeThreshold);
+      }
+      else {
+        RemainingIterations--;
+        if( verbosity_level>1 ) CCTK_VInfo(CCTK_THORNSTRING,"Completed iteration %d. Remaining iterations: %4d",counter,RemainingIterations);
+      }
     }
     // Step 2.c: Now loop over the refinement levels backwards, restricting the result
     for(int rl=endRefLev-1;rl>=0;rl--) {
