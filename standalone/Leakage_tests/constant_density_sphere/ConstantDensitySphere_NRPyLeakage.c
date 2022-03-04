@@ -24,7 +24,7 @@ void dump_1d_data( const char *filename_prefix,
   char filename[256];
   FILE *fp;
   // x-axis
-  sprintf(filename,"%s_dump_x.asc",filename_prefix);
+  sprintf(filename,"dump_x_%s.asc",filename_prefix);
   fp = fopen(filename,"w");
   midpoint  [0] = Nt1/2;
   midpoint  [1] = Nt2/2;
@@ -45,7 +45,7 @@ void dump_1d_data( const char *filename_prefix,
   fclose(fp);
 
   // y-axis
-  sprintf(filename,"%s_dump_y.asc",filename_prefix);
+  sprintf(filename,"dump_y_%s.asc",filename_prefix);
   fp = fopen(filename,"w");
   midpoint  [0] = Nt0/2;
   midpoint  [1] = Nt2/2;
@@ -66,7 +66,7 @@ void dump_1d_data( const char *filename_prefix,
   fclose(fp);
 
   // z-axis
-  sprintf(filename,"%s_dump_z.asc",filename_prefix);
+  sprintf(filename,"dump_z_%s.asc",filename_prefix);
   fp = fopen(filename,"w");
   midpoint  [0] = Nt0/2;
   midpoint  [1] = Nt1/2;
@@ -106,7 +106,7 @@ void dump_2d_data( const char *filename_prefix,
   char filename[256];
   FILE *fp;
   // xy-plane
-  sprintf(filename,"%s_dump_xy.asc",filename_prefix);
+  sprintf(filename,"dump_xy_%s.asc",filename_prefix);
   fp = fopen(filename,"w");
   midpoint = Nt2/2;
   x_midpoint = xx[2][midpoint];
@@ -129,7 +129,7 @@ void dump_2d_data( const char *filename_prefix,
   fclose(fp);
 
   // xz-plane
-  sprintf(filename,"%s_dump_xz.asc",filename_prefix);
+  sprintf(filename,"dump_xz_%s.asc",filename_prefix);
   fp = fopen(filename,"w");
   midpoint = Nt1/2;
   x_midpoint = xx[1][midpoint];
@@ -152,7 +152,7 @@ void dump_2d_data( const char *filename_prefix,
   fclose(fp);
 
   // yz-plane
-  sprintf(filename,"%s_dump_yz.asc",filename_prefix);
+  sprintf(filename,"dump_yz_%s.asc",filename_prefix);
   fp = fopen(filename,"w");
   midpoint = Nt0/2;
   x_midpoint = xx[0][midpoint];
@@ -351,18 +351,50 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
   }
 
   // Step 4: Initial data dumps
-  dump_1d_data("initial",Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
-  dump_2d_data("initial",Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
+  char buffer[32];
+  sprintf(buffer,"%04d",0);
+  dump_1d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
+  dump_2d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
 
   // Step 5: Now update the optical depth
   for(int n=0;n<20*N0;n++) {
 
     // Step 5.a: Copy optical depth to previous level
-#pragma omp parallel for
+    REAL l2norm = 0.0;
+#pragma omp parallel for reduction(+:l2norm)
     for(int i2=0;i2<Nt2;i2++) {
       for(int i1=0;i1<Nt1;i1++) {
         for(int i0=0;i0<Nt0;i0++) {
           const int index = IDX3D(i0,i1,i2);
+          // Read from main memory
+          const REAL tau_0_nue    = tau_nue   [0][index];
+          const REAL tau_1_nue    = tau_nue   [1][index];
+          const REAL tau_0_anue   = tau_anue  [0][index];
+          const REAL tau_1_anue   = tau_anue  [1][index];
+          const REAL tau_0_nux    = tau_nux   [0][index];
+          const REAL tau_1_nux    = tau_nux   [1][index];
+          const REAL tau_0_nue_p  = tau_nue_p [0][index];
+          const REAL tau_1_nue_p  = tau_nue_p [1][index];
+          const REAL tau_0_anue_p = tau_anue_p[0][index];
+          const REAL tau_1_anue_p = tau_anue_p[1][index];
+          const REAL tau_0_nux_p  = tau_nux_p [0][index];
+          const REAL tau_1_nux_p  = tau_nux_p [1][index];
+
+          // Now compute the l2 norm
+          const REAL diff_tau_0_nue  = tau_0_nue -tau_0_nue_p;
+          const REAL diff_tau_1_nue  = tau_1_nue -tau_1_nue_p;
+          const REAL diff_tau_0_anue = tau_0_anue-tau_0_anue_p;
+          const REAL diff_tau_1_anue = tau_1_anue-tau_1_anue_p;
+          const REAL diff_tau_0_nux  = tau_0_nux -tau_0_nux_p;
+          const REAL diff_tau_1_nux  = tau_1_nux -tau_1_nux_p;
+
+          l2norm += diff_tau_0_nue*diff_tau_0_nue;
+          l2norm += diff_tau_1_nue*diff_tau_1_nue;
+          l2norm += diff_tau_0_anue*diff_tau_0_anue;
+          l2norm += diff_tau_1_anue*diff_tau_1_anue;
+          l2norm += diff_tau_0_nux*diff_tau_0_nux;
+          l2norm += diff_tau_1_nux*diff_tau_1_nux;
+
           tau_nue_p [0][index] = tau_nue [0][index];
           tau_nue_p [1][index] = tau_nue [1][index];
           tau_anue_p[0][index] = tau_anue[0][index];
@@ -371,6 +403,13 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
           tau_nux_p [1][index] = tau_nux [1][index];
         }
       }
+    }
+
+    if( n > 0 && sqrt(l2norm) < 1e-8 ) {
+      sprintf(buffer,"%04d",n+1);
+      dump_1d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
+      dump_2d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
+      break;
     }
 
     // Step 5.b: Update optical depth
@@ -386,11 +425,15 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
                                        tau_nue   [0],tau_nue   [1],
                                        tau_anue  [0],tau_anue  [1],
                                        tau_nux   [0],tau_nux   [1]);
+    char buffer[32];
+    sprintf(buffer,"%04d",n+1);
+    dump_1d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
+    dump_2d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
   }
 
   // Step 6: Final data dumps
-  dump_1d_data("final",Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
-  dump_2d_data("final",Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
+  // dump_1d_data("final",Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
+  // dump_2d_data("final",Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
 
   // Step 7: Free memory
   for(int i=0;i<3;i++) free(xx[i]);
