@@ -108,9 +108,11 @@ void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
             NRPyLeakageET_compute_opacities(CCTK_PASS_CTOC);
             NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_PASS_CTOC);
             NRPyLeakageET_compute_optical_depth_change(CCTK_PASS_CTOC,&l2normL);
+            CCTK_VInfo(CCTK_THORNSTRING,"R.L.: %d | l2normL = %e\n",GetRefinementLevel(cctkGH),l2normL);
           } END_COMPONENT_LOOP;
         } END_MAP_LOOP;
         l2norm[startRefLev] = l2normL;
+        CCTK_VInfo(CCTK_THORNSTRING,"R.L.: %d | l2normL = %e\n",GetRefinementLevel(cctkGH),l2norm[startRefLev]);
         CCTK_SyncGroup(cctkGH,"NRPyLeakageET::NRPyLeakageET_optical_depths");
       } LEAVE_LEVEL_MODE;
 
