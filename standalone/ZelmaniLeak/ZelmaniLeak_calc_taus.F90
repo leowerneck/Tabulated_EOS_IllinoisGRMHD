@@ -195,21 +195,20 @@ subroutine calc_taus(eos_params, eos_tempmin, grhydro_hot_atmo_temp, &
           matter_xa,matter_xh,matter_xn,matter_xp,matter_abar,matter_zbar,&
           matter_mue,matter_mun,matter_mup,matter_muhat)
 
-     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) rho = ", matter_rho*rho_gf
-     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) Y_e = ", matter_ye
-     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak)  T  = ", matter_temperature
-     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak)  P  = ", matter_prs
-     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) eps = ", matter_enr
-     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak)  S  = ", matter_ent
-     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) mue = ", matter_mue
-     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) mup = ", matter_mup
-     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) mun = ", matter_mun
-     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) muh = ", matter_muhat
-     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) X_a = ", matter_xa
-     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) X_h = ", matter_xh
-     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) X_n = ", matter_xn
-     write(*,"(A20,1P10e22.15)") "(ZelmaniLeak) X_p = ", matter_xp
-     
+     write(*,"(A,1P10e22.15)") "(ZelmaniLeak) rho            = ", matter_rho
+     write(*,"(A,1P10e22.15)") "(ZelmaniLeak) Y_e            = ", matter_ye
+     write(*,"(A,1P10e22.15)") "(ZelmaniLeak)  T             = ", matter_temperature
+     write(*,"(A,1P10e22.15)") "(ZelmaniLeak)  P             = ", matter_prs
+     write(*,"(A,1P10e22.15)") "(ZelmaniLeak) eps            = ", matter_enr
+     write(*,"(A,1P10e22.15)") "(ZelmaniLeak)  S             = ", matter_ent
+     write(*,"(A,1P10e22.15)") "(ZelmaniLeak) mue            = ", matter_mue
+     write(*,"(A,1P10e22.15)") "(ZelmaniLeak) mup            = ", matter_mup
+     write(*,"(A,1P10e22.15)") "(ZelmaniLeak) mun            = ", matter_mun
+     write(*,"(A,1P10e22.15)") "(ZelmaniLeak) muh            = ", matter_muhat
+     write(*,"(A,1P10e22.15)") "(ZelmaniLeak) X_a            = ", matter_xa
+     write(*,"(A,1P10e22.15)") "(ZelmaniLeak) X_h            = ", matter_xh
+     write(*,"(A,1P10e22.15)") "(ZelmaniLeak) X_n            = ", matter_xn
+     write(*,"(A,1P10e22.15)") "(ZelmaniLeak) X_p            = ", matter_xp
 
      if (keyerr.ne.0) then
         !$OMP CRITICAL
@@ -250,7 +249,7 @@ subroutine calc_taus(eos_params, eos_tempmin, grhydro_hot_atmo_temp, &
      massfracs_abar(i) = matter_abar
      massfracs_zbar(i) = matter_zbar
 
-     eta_hat(i) = eta_n(i)-eta_p(i) - Qnp/matter_temperature
+     eta_hat(i) = matter_muhat/matteR_temperature !eta_n(i)-eta_p(i) - Qnp/matter_temperature
      eta_nue(i) = eta_e(i) - eta_n(i) + eta_p(i) !fully includes effects of rest masses
      eta_nua(i) = -eta_nue(i)
      eta_nux(i) = 0.0d0
@@ -288,6 +287,14 @@ subroutine calc_taus(eos_params, eos_tempmin, grhydro_hot_atmo_temp, &
      ! (A11) constant part
      kappa_const_abs(i) = (1.0d0+3.0d0*alpha**2)/4.0d0 * t1
   enddo
+
+  write(*,"(A,1P10e22.15)") "(ZelmaniLeak) (T/me)^2       = ",(temp(i)/me_mev)**2
+  write(*,"(A,1P10e22.15)") "(ZelmaniLeak) sigma_0        = ",sigma_0
+  write(*,"(A,1P10e22.15)") "(ZelmaniLeak) avo            = ",avo
+  write(*,"(A,1P10e22.15)") "(ZelmaniLeak) rho            = ",rho(1)
+  write(*,"(A,1P10e22.15)") "(ZelmaniLeak) Constants_n    = ",kappa_const_scat_n(1)
+  write(*,"(A,1P10e22.15)") "(ZelmaniLeak) Constants_p    = ",kappa_const_scat_p(1)
+  write(*,"(A,1P10e22.15)") "(ZelmaniLeak) Constants_a    = ",kappa_const_abs(1)
 
   ! Loop to get converged result for tau.
   ! This is discussed in the text between equations (A5) and
@@ -340,16 +347,18 @@ subroutine calc_taus(eos_params, eos_tempmin, grhydro_hot_atmo_temp, &
         xlye = ye(i)
         xyn = (1.0d0-xlye) / (1.0d0 + 2.0d0/3.0d0 * max(eta_n(i),0.0d0)) ! (A8)
         xyp = xlye / (1.0d0 + 2.0d0/3.0d0*max(eta_p(i),0.0d0))
-
-        if(massfracs_xh(i).lt.0.5d0) then
-           t1 = exp(-eta_hat(i))
+        t1 = exp(-eta_hat(i))
+        if(ye(i).lt.0.5d0) then
            xynp = max((2.0d0*xlye-1.0d0)/ (t1-1.0d0),0.0d0) ! (A13)
-           xypn = max(xynp * t1,0.0d0) ! (A14)
         else
-           xypn = massfracs_xp(i)
            xynp = massfracs_xn(i)
         endif
 
+        if(ye(i).gt.0.5d0) then
+           xypn = max(t1 * (2.0d0*xlye-1.0d0)/ (t1-1.0d0),0.0d0) ! (A14)
+        else
+           xypn = massfracs_xp(i)
+        endif
 
         ! electron neutrinos
         t1 = get_fermi_integral_leak(5,local_eta_nue(i)) / &
@@ -377,15 +386,35 @@ subroutine calc_taus(eos_params, eos_tempmin, grhydro_hot_atmo_temp, &
         kappa_scat_n(i,3) = kappa_const_scat_n(i) * xyn * t1 ! (A6)
         kappa_scat_p(i,3) = kappa_const_scat_p(i) * xyp * t1
 
+        write(*,"(A,1P10e22.15)") "(ZelmaniLeak) Y_nn           = ",xyn
+        write(*,"(A,1P10e22.15)") "(ZelmaniLeak) Y_pp           = ",xyp
+        write(*,"(A,1P10e22.15)") "(ZelmaniLeak) Y_pn           = ",xypn
+        write(*,"(A,1P10e22.15)") "(ZelmaniLeak) Y_np           = ",xynp
+
+        write(*,"(A,1P10e22.15)") "(ZelmaniLeak) tau_nue        = ",tauruff(i,1)
+        write(*,"(A,1P10e22.15)") "(ZelmaniLeak) tau_anue       = ",tauruff(i,2)
+        write(*,"(A,1P10e22.15)") "(ZelmaniLeak) tau_nux        = ",tauruff(i,3)
+
+        write(*,"(A,1P10e22.15)") "(ZelmaniLeak) kappa_s_n_nue  = ",max(kappa_scat_n(i,1),1.0d-15)
+        write(*,"(A,1P10e22.15)") "(ZelmaniLeak) kappa_s_p_nue  = ",max(kappa_scat_p(i,1),1.0d-15)
+        write(*,"(A,1P10e22.15)") "(ZelmaniLeak) kappa_a_nue    = ",max(kappa_abs_p(1),1.0d-15)
+
+        write(*,"(A,1P10e22.15)") "(ZelmaniLeak) kappa_s_n_anue = ",max(kappa_scat_n(i,2),1.0d-15)
+        write(*,"(A,1P10e22.15)") "(ZelmaniLeak) kappa_s_p_anue = ",max(kappa_scat_p(i,2),1.0d-15)
+        write(*,"(A,1P10e22.15)") "(ZelmaniLeak) kappa_a_anue   = ",max(kappa_abs_p(2),1.0d-15)
+
+        write(*,"(A,1P10e22.15)") "(ZelmaniLeak) kappa_s_n_nux  = ",max(kappa_scat_n(i,3),1.0d-15)
+        write(*,"(A,1P10e22.15)") "(ZelmaniLeak) kappa_s_p_nux  = ",max(kappa_scat_p(i,3),1.0d-15)
+
      enddo
 
      ! compute relative change xerr
      xerr = 0.0d0
-     do i=1,nzones
-        xerr = max(xerr,abs(kappa_tot(i,1)/kappa_tot_p(i,1)-1.0d0))
-        xerr = max(xerr,abs(kappa_tot(i,2)/kappa_tot_p(i,2)-1.0d0))
-        xerr = max(xerr,abs(kappa_tot(i,3)/kappa_tot_p(i,3)-1.0d0))
-     enddo
+     ! do i=1,nzones
+     !    xerr = max(xerr,abs(kappa_tot(i,1)/kappa_tot_p(i,1)-1.0d0))
+     !    xerr = max(xerr,abs(kappa_tot(i,2)/kappa_tot_p(i,2)-1.0d0))
+     !    xerr = max(xerr,abs(kappa_tot(i,3)/kappa_tot_p(i,3)-1.0d0))
+     ! enddo
 
      icount = icount + 1
 
@@ -409,17 +438,6 @@ subroutine calc_taus(eos_params, eos_tempmin, grhydro_hot_atmo_temp, &
   eta_nue(:) = local_eta_nue(:)
   eta_nua(:) = local_eta_nua(:)
   eta_nux(:) = local_eta_nux(:)
-
-  write(*,*) "kappa_n_nue  = ",kappa_scat_n(1,1)
-  write(*,*) "kappa_p_nue  = ",kappa_scat_p(1,1)
-  write(*,*) "kappa_a_nue  = ",kappa_abs_p(1)
-
-  write(*,*) "kappa_n_anue = ",kappa_scat_n(1,2)
-  write(*,*) "kappa_p_anue = ",kappa_scat_p(1,2)
-  write(*,*) "kappa_a_anue = ",kappa_abs_n(1)
-
-  write(*,*) "kappa_n_nux  = ",kappa_scat_n(1,3)
-  write(*,*) "kappa_p_nux  = ",kappa_scat_p(1,3)
 
 !#######################################
 
