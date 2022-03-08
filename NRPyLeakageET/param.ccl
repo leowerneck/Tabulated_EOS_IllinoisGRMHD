@@ -28,6 +28,12 @@ CCTK_INT verbosity_level "Whether to print information to the user or not"
 } 1
 
 restricted:
+CCTK_REAL tauChangeThreshold "Threshold to stop PathOfLeastResistance algorithm during initialization."
+{
+  *:* :: "Anything goes"
+} 1e-8
+
+restricted:
 CCTK_REAL W_max "Maximum Lorentz factor."
 {
   1:* :: "Any number greater than or equal to one"
