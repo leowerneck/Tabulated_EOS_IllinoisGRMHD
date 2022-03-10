@@ -4,6 +4,28 @@
 
 #include "NRPyLeakageET.h"
 
+void NRPyLeakageET_initialize_optical_depths_changes_to_zero(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_PARAMETERS;
+
+  if(!NRPyLeakageET_ProcessOwnsData()) return;
+
+#pragma omp parallel for
+  for(int k=0;k<cctk_lsh[2];k++) {
+    for(int j=0;j<cctk_lsh[1];j++) {
+      for(int i=0;i<cctk_lsh[0];i++) {
+        const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+        tau_0_nue_aux [index] = 0.0;
+        tau_1_nue_aux [index] = 0.0;
+        tau_0_anue_aux[index] = 0.0;
+        tau_1_anue_aux[index] = 0.0;
+        tau_0_nux_aux [index] = 0.0;
+        tau_1_nux_aux [index] = 0.0;
+      }
+    }
+  }
+}
+
 void NRPyLeakageET_compute_optical_depth_change(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
