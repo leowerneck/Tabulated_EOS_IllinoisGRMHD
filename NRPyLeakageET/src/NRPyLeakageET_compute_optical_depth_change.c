@@ -19,8 +19,15 @@ void NRPyLeakageET_compute_optical_depth_change(CCTK_ARGUMENTS) {
         // Step 1: Set local index
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-        if( rho[index] > 1e-10 ) {
-
+        if( rho[index] < rho_threshold ) {
+          tau_0_nue_aux [index] = 0.0;
+          tau_1_nue_aux [index] = 0.0;
+          tau_0_anue_aux[index] = 0.0;
+          tau_1_anue_aux[index] = 0.0;
+          tau_0_nux_aux [index] = 0.0;
+          tau_1_nux_aux [index] = 0.0;
+        }
+        else {
           // Step 2: Read from main memory
           const CCTK_REAL tau_0_nueL    = tau_0_nue   [index];
           const CCTK_REAL tau_1_nueL    = tau_1_nue   [index];
@@ -50,15 +57,6 @@ void NRPyLeakageET_compute_optical_depth_change(CCTK_ARGUMENTS) {
           tau_1_anue_aux[index] = diff_tau_1_anue*diff_tau_1_anue;
           tau_0_nux_aux [index] = diff_tau_0_nux *diff_tau_0_nux;
           tau_1_nux_aux [index] = diff_tau_1_nux *diff_tau_1_nux;
-
-        }
-        else {
-          tau_0_nue_aux [index] = 0;
-          tau_1_nue_aux [index] = 0;
-          tau_0_anue_aux[index] = 0;
-          tau_1_anue_aux[index] = 0;
-          tau_0_nux_aux [index] = 0;
-          tau_1_nux_aux [index] = 0;
         }
       }
     }
