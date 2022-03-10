@@ -19,9 +19,20 @@ SCHEDULE NRPyLeakageET_Initialize AT CCTK_INITIAL AFTER (HydroBase_Initial,Conve
   WRITES: NRPyLeakageET::tau_1_nux (Everywhere), tau_1_nux_p , tau_1_nux_p_p
 } "Initialize optical depths and opacities"
 
+SCHEDULE NRPyLeakageET_InitSym AT BASEGRID AFTER Lapse_InitSymBound
+{
+  LANG: C
+} "Schedule symmetries"
+
+SCHEDULE NRPyLeakageET_InitSym IN HydroBase_Boundaries AFTER IllinoisGRMHD_InitSymBound
+{
+  SYNC: NRPyLeakageET_opacities, NRPyLeakageET_optical_depths
+  LANG: C
+} "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
+
 SCHEDULE NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss AS NRPyLeakageET_RHS IN MoL_CalcRHS AFTER IllinoisGRMHD_RHS_eval
 {
-  SYNC: ADMBase::metric, NRPyLeakageET_optical_depths, NRPyLeakageET_opacities
+  SYNC: NRPyLeakageET_optical_depths, NRPyLeakageET_opacities
   LANG: C
 } "Compute opacities and add source terms to GRMHD right-hand sides; Synchronize optical depths, opacities and ADMBase metric."
 
