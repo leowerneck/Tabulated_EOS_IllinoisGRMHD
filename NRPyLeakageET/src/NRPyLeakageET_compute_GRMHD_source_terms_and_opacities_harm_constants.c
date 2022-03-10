@@ -34,25 +34,6 @@ void NRPyLeakageET_compute_GRMHD_source_terms_and_opacities_harm_constants(const
   // Step 2: Compute rho_b in cgs units
   const CCTK_REAL rho_b_cgs = rho_b * NRPyLeakageET_harm_units_geom_to_cgs_D;
 
-  // Leo says: this is the way ZelmaniLeak computes Y_pn and Y_np
-  // Step 3: Compute Y_{pn} and Y_{np}
-  // Step 3.a: Compute Y_{pn} (See discussion below Eq. A8 in https://arxiv.org/pdf/1306.4953.pdf)
-  /*
-  CCTK_REAL Y_pn;
-  if( rho_b_cgs > 2e12 ) {
-    // Step 3.a.i: Use Eqs. (A13) and (A14) in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
-    Y_pn = (2*Y_e - 1)/(1-exp(muhat/T));
-  }
-  else {
-    Y_pn = 1-Y_e;
-  }
-  // Step 3.a.ii: Make sure Y_{pn} is nonzero
-  Y_pn = MAX(Y_pn,0.0);
-
-  // Step 3.b: Compute Y_{np} (Eq. A13 in https://adsabs.harvard.edu/pdf/1996A%26A...311..532R)
-  const CCTK_REAL Y_np = exp(muhat/T) * Y_pn;
-  */
-
   // Step 3: Compute Y_{pn} and Y_{np}
   const CCTK_REAL Y_p = Y_e;
   const CCTK_REAL Y_n = 1-Y_e;
