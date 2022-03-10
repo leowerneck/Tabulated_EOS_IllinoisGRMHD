@@ -24,12 +24,6 @@ SCHEDULE NRPyLeakageET_InitSym AT BASEGRID AFTER Lapse_InitSymBound
   LANG: C
 } "Schedule symmetries"
 
-SCHEDULE NRPyLeakageET_InitSym IN HydroBase_Boundaries AFTER IllinoisGRMHD_InitSymBound
-{
-  SYNC: NRPyLeakageET_opacities, NRPyLeakageET_optical_depths
-  LANG: C
-} "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
-
 SCHEDULE NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss AS NRPyLeakageET_RHS IN MoL_CalcRHS AFTER IllinoisGRMHD_RHS_eval
 {
   SYNC: NRPyLeakageET_optical_depths, NRPyLeakageET_opacities
@@ -50,8 +44,14 @@ else if( CCTK_Equals(optical_depth_evolution_type,"PathOfLeastResistance") ) {
   } "PathOfLeastResistance evolution: update optical depths following Nielsen et al. (2014) (1403.3680)."
 }
 
+SCHEDULE NRPyLeakageET_InitSym IN HydroBase_Boundaries AS NRPyLeakageET_Sync BEFORE NRPyLeakageET_BoundaryConditions
+{
+  SYNC: NRPyLeakageET_opacities, NRPyLeakageET_optical_depths
+  LANG: C
+} "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
+
 SCHEDULE NRPyLeakageET_BoundaryConditions IN HydroBase_Boundaries
 {
-  SYNC: NRPyLeakageET_optical_depths
+  SYNC: NRPyLeakageET_optical_depths, NRPyLeakageET_optical_depths # This might be unecessary
   LANG: C
 } "Apply boundary conditions to optical depth"
