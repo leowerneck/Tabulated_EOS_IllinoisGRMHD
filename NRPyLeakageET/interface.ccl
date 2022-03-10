@@ -50,8 +50,8 @@ USES FUNCTION WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T
 #########################################
 ###  Aliased functions from Carpet    ###
 #########################################
-
-CCTK_INT FUNCTION                         \
-    GetRefinementLevel                    \
-        (CCTK_POINTER_TO_CONST IN cctkGH)
+CCTK_INT FUNCTION GetRefinementLevel(CCTK_POINTER_TO_CONST IN cctkGH)
 USES FUNCTION GetRefinementLevel
+
+CCTK_INT FUNCTION EnableProlongating(CCTK_INT IN Status)
+USES FUNCTION EnableProlongating
