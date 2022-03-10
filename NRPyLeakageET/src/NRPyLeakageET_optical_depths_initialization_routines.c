@@ -10,11 +10,6 @@ void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS) {
 
   if(!NRPyLeakageET_ProcessOwnsData()) return;
 
-  const CCTK_REAL dx = CCTK_DELTA_SPACE(0);
-  const CCTK_REAL dy = CCTK_DELTA_SPACE(1);
-  const CCTK_REAL dz = CCTK_DELTA_SPACE(2);
-  const CCTK_REAL dV = dx*dy*dz;
-
   // Step 1: Initialize all time levels of the optical
   //         depth gridfunctions to zero.
 #pragma omp parallel for
@@ -43,7 +38,12 @@ void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS) {
         tau_0_nux_p_p [index] = 0.0;
         tau_1_nux_p_p [index] = 0.0;
 
-        validation[index] = dV;
+        tau_0_nue_aux [index] = 0.0;
+        tau_1_nue_aux [index] = 0.0;
+        tau_0_anue_aux[index] = 0.0;
+        tau_1_anue_aux[index] = 0.0;
+        tau_0_nux_aux [index] = 0.0;
+        tau_1_nux_aux [index] = 0.0;
       } // for(int i=0;i<cctk_lsh[0];i++)
     } // for(int j=0;j<cctk_lsh[1];j++)
   } // for(int k=0;k<cctk_lsh[2];k++)

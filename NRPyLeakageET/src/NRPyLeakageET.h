@@ -150,8 +150,9 @@ void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS);
 void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS);
 void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS);
 void NRPyLeakageET_copy_opacities_and_optical_depths_to_previous_time_levels(CCTK_ARGUMENTS);
-void NRPyLeakageET_compute_optical_depth_change(CCTK_ARGUMENTS);
+void NRPyLeakageET_compute_optical_depth_change(CCTK_ARGUMENTS, const int it);
 void NRPyLeakageET_initialize_optical_depths_changes_to_zero(CCTK_ARGUMENTS);
+void NRPyLeakageET_CopyOpticalDepthsToAux(CCTK_ARGUMENTS);
 
 #ifdef __cplusplus
 } // extern "C"
