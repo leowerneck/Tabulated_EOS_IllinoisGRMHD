@@ -65,12 +65,8 @@ void NRPyLeakageET_compute_opacities_nrpy_constants(const CCTK_REAL rho_b,
   const CCTK_REAL tmp_5 = NRPyLeakageET_N_A*NRPyLeakageET_sigma_0*((T)*(T))*rho_b_cgs/((NRPyLeakageET_m_e_c2)*(NRPyLeakageET_m_e_c2));
   const CCTK_REAL tmp_6 = tmp_4*tmp_5/NRPyLeakageET_Fermi_Dirac_integrals(2, tmp_3);
   const CCTK_REAL tmp_8 = (5.0/24.0)*((NRPyLeakageET_alpha)*(NRPyLeakageET_alpha));
-  const CCTK_REAL // Not supported in C:
-// MAX
-tmp_9 = (1 - Y_e)*(tmp_8 + 1.0/24.0)/((2.0/3.0)*MAX(mu_n*tmp_0, 0) + 1);
-  const CCTK_REAL // Not supported in C:
-// MAX
-tmp_10 = Y_e*(tmp_8 + (1.0/6.0)*((NRPyLeakageET_C_V - 1)*(NRPyLeakageET_C_V - 1)))/((2.0/3.0)*MAX(mu_p*tmp_0, 0) + 1);
+  const CCTK_REAL tmp_9 = (1 - Y_e)*(tmp_8 + 1.0/24.0)/((2.0/3.0)*MAX(mu_n*tmp_0, 0) + 1);
+  const CCTK_REAL tmp_10 = Y_e*(tmp_8 + (1.0/6.0)*((NRPyLeakageET_C_V - 1)*(NRPyLeakageET_C_V - 1)))/((2.0/3.0)*MAX(mu_p*tmp_0, 0) + 1);
   const CCTK_REAL tmp_11 = NRPyLeakageET_Fermi_Dirac_integrals(5, tmp_3);
   const CCTK_REAL tmp_12 = (3.0/4.0)*((NRPyLeakageET_alpha)*(NRPyLeakageET_alpha)) + 1.0/4.0;
   const CCTK_REAL tmp_13 = Y_np*tmp_12/(exp(tmp_1 - tmp_11/tmp_4) + 1);
