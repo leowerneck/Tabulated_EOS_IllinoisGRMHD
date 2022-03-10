@@ -26,7 +26,7 @@ void NRPyLeakageET_Prolongate(CCTK_ARGUMENTS, const char *varname) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
-  if(verbosity_level>1) CCTK_VInfo(CCTK_THORNSTRING, "Prolongating %s from ref. lvl. %d to ref. lvl. %d...", varname, GetRefinementLevel(cctkGH)-1, GetRefinementLevel(cctkGH));
+  if(verbosity_level>1) CCTK_VINFO("Prolongating %s from ref. lvl. %d to ref. lvl. %d...", varname, GetRefinementLevel(cctkGH)-1, GetRefinementLevel(cctkGH));
 
   int ml=Carpet::mglevel;
   int ll=Carpet::reflevel;
@@ -50,7 +50,7 @@ void NRPyLeakageET_Restrict(CCTK_ARGUMENTS, const char *varname) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
-  if(verbosity_level>1) CCTK_VInfo(CCTK_THORNSTRING, "Restricting %s from ref. lvl. %d to ref. lvl. %d...", varname, GetRefinementLevel(cctkGH)+1, GetRefinementLevel(cctkGH));
+  if(verbosity_level>1) CCTK_VINFO("Restricting %s from ref. lvl. %d to ref. lvl. %d...", varname, GetRefinementLevel(cctkGH)+1, GetRefinementLevel(cctkGH));
 
   int ml=Carpet::mglevel;
   int ll=Carpet::reflevel;
@@ -73,135 +73,73 @@ void NRPyLeakageET_SyncAuxiliaryOpticalDepths(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
-  if( verbosity_level > 1 ) CCTK_VInfo(CCTK_THORNSTRING,"Synchronizing auxiliary optical depths at ref. lev. %d",GetRefinementLevel(cctkGH));
+  if( verbosity_level > 1 ) CCTK_VINFO("Synchronizing auxiliary optical depths at ref. lev. %d",GetRefinementLevel(cctkGH));
 
   const int status = CCTK_SyncGroup(cctkGH,"NRPyLeakageET::NRPyLeakageET_auxiliary_optical_depths");
   if( status < 0 ) CCTK_VError(__LINE__,__FILE__,CCTK_THORNSTRING,"Could not synchronize NRPyLeakageET::NRPyLeakageET_auxiliary_optical_depths. ");
 
-  if( verbosity_level > 1 ) CCTK_VInfo(CCTK_THORNSTRING,"Finished synchronizing auxiliary optical depths at ref. lev. %d",GetRefinementLevel(cctkGH));
+  if( verbosity_level > 1 ) CCTK_VINFO("Finished synchronizing auxiliary optical depths at ref. lev. %d",GetRefinementLevel(cctkGH));
 }
 
 extern "C"
-void NRPyLeakageET_set_validation(CCTK_ARGUMENTS) {
+void NRPyLeakageET_getGlobalL2norm(CCTK_ARGUMENTS, const int startRefLev, const int endRefLev, CCTK_REAL *restrict l2norm_global) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
-  if(!NRPyLeakageET_ProcessOwnsData()) return;
-
-  const CCTK_REAL dx = CCTK_DELTA_SPACE(0);
-  const CCTK_REAL dy = CCTK_DELTA_SPACE(1);
-  const CCTK_REAL dz = CCTK_DELTA_SPACE(2);
-  const CCTK_REAL dV = dx*dy*dz;
-
-  const CCTK_INT N0 = cctk_lsh[0]-2*cctk_nghostzones[0];
-  const CCTK_INT N1 = cctk_lsh[1]-2*cctk_nghostzones[1];
-  const CCTK_INT N2 = cctk_lsh[2]-2*cctk_nghostzones[2];
-
-  const int rl = GetRefinementLevel(cctkGH);
-
-  CCTK_VINFO("Expected volume at r.l. %d: %e",rl,dV*N0*N1*N2);
-
-  // Step 1: Copy optical depths to auxiliary gridfunctions
-#pragma omp parallel for
-  for(int k=0;k<cctk_lsh[2];k++) {
-    for(int j=0;j<cctk_lsh[1];j++) {
-      for(int i=0;i<cctk_lsh[0];i++) {
-        validation[CCTK_GFINDEX3D(cctkGH,i,j,k)] = rl+1;
-      }
-    }
-  }
-}
-
-extern "C" void NRPyLeakageET_manual_reduction(CCTK_ARGUMENTS, const char *varName) {
-
-  CCTK_REAL reduction_value = 0.0;
-
+  // Step 1: Initialize changes to zero everywhere
   BEGIN_REFLEVEL_LOOP(cctkGH) {
     BEGIN_MAP_LOOP(cctkGH,CCTK_GF) {
       BEGIN_COMPONENT_LOOP(cctkGH, CCTK_GF) {
-        DECLARE_CCTK_ARGUMENTS;
-        DECLARE_CCTK_PARAMETERS;
-
-        if(NRPyLeakageET_ProcessOwnsData()) {
-          CCTK_REAL *var = (CCTK_REAL *) CCTK_VarDataPtr(cctkGH, 0, varName);
-
-          int xgh = cctk_nghostzones[0];
-          int ygh = cctk_nghostzones[1];
-          int zgh = cctk_nghostzones[2];
-          int imin = xgh;
-          int imax = cctk_lsh[0]-xgh;
-          int jmin = ygh;
-          int jmax = cctk_lsh[1]-ygh;
-          int kmin = zgh;
-          int kmax = cctk_lsh[2]-zgh;
-
-          CCTK_REAL sum = 0.0;
-#pragma omp parallel reduction(+: sum)
-          LC_LOOP3(EL_NRM,
-                   i, j, k, imin, jmin, kmin, imax, jmax, kmax,
-                   cctk_lsh[0], cctk_lsh[1], cctk_lsh[2]) {
-            sum += var[CCTK_GFINDEX3D(cctkGH,i,j,k)];
-          } LC_ENDLOOP3(EL_NRM);
-
-          CCTK_REAL localsum = sum, globalsum;
-          MPI_Reduce(&localsum, &globalsum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-          MPI_Bcast(&globalsum, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-          CCTK_VINFO("Integral at r.l. %d: %e",GetRefinementLevel(cctkGH),globalsum*cctk_delta_space[0]*cctk_delta_space[1]*cctk_delta_space[2]);
-
-          reduction_value += globalsum;
-        }
+        NRPyLeakageET_initialize_optical_depths_changes_to_zero(CCTK_PASS_CTOC);
       } END_COMPONENT_LOOP;
     } END_MAP_LOOP;
-
   } END_REFLEVEL_LOOP;
 
-  CCTK_VINFO("reduction_value = %e",reduction_value);
-}
-
-extern "C"
-void NRPyLeakageET_getGlobalL2norm(CCTK_ARGUMENTS, CCTK_REAL *restrict l2norm_global) {
-  DECLARE_CCTK_ARGUMENTS;
-  DECLARE_CCTK_PARAMETERS;
-
-  // Step 1: Loop over refinement levels, maps, and components, computing the
+  // Step 2: Loop over refinement levels, maps, and components, computing the
   // differences in the optical depths between two consecutive iterations
-  BEGIN_REFLEVEL_LOOP(cctkGH) {
+  ENTER_LEVEL_MODE(cctkGH,startRefLev) {
     BEGIN_MAP_LOOP(cctkGH,CCTK_GF) {
       BEGIN_COMPONENT_LOOP(cctkGH, CCTK_GF) {
         NRPyLeakageET_compute_optical_depth_change(CCTK_PASS_CTOC);
-        NRPyLeakageET_set_validation(CCTK_PASS_CTOC);
       } END_COMPONENT_LOOP;
     } END_MAP_LOOP;
-  } END_REFLEVEL_LOOP;
+  } LEAVE_LEVEL_MODE;
 
-  // Step 2: Get sum operation handle
+  for(int rl=startRefLev+1;rl<=endRefLev;rl++) {
+    ENTER_LEVEL_MODE(cctkGH,rl) {
+      BEGIN_MAP_LOOP(cctkGH,CCTK_GF) {
+        BEGIN_COMPONENT_LOOP(cctkGH, CCTK_GF) {
+          NRPyLeakageET_compute_optical_depth_change(CCTK_PASS_CTOC);
+        } END_COMPONENT_LOOP;
+      } END_MAP_LOOP;
+    } LEAVE_LEVEL_MODE;
+  }
+
+  // Step 3: Get sum operation handle
   const int op_sum = CCTK_ReductionHandle("sum");
 
-  // Step 3: Set variables we want to reduce
-  const char varnames[7][30] = {"NRPyLeakageET::tau_0_nue_aux ",
+  // Step 4: Set variables we want to reduce
+  const char varnames[6][30] = {"NRPyLeakageET::tau_0_nue_aux ",
                                 "NRPyLeakageET::tau_1_nue_aux ",
                                 "NRPyLeakageET::tau_0_anue_aux",
                                 "NRPyLeakageET::tau_1_anue_aux",
                                 "NRPyLeakageET::tau_0_nux_aux ",
-                                "NRPyLeakageET::tau_1_nux_aux ",
-                                "NRPyLeakageET::validation    "};
+                                "NRPyLeakageET::tau_1_nux_aux "};
 
-  // Step 4: Get indices for the variables we want to reduce
-  const int varindices[7] = {CCTK_VarIndex("NRPyLeakageET::tau_0_nue_aux"),
+
+  // Step 5: Get indices for the variables we want to reduce
+  const int varindices[6] = {CCTK_VarIndex("NRPyLeakageET::tau_0_nue_aux"),
                              CCTK_VarIndex("NRPyLeakageET::tau_1_nue_aux"),
                              CCTK_VarIndex("NRPyLeakageET::tau_0_anue_aux"),
                              CCTK_VarIndex("NRPyLeakageET::tau_1_anue_aux"),
                              CCTK_VarIndex("NRPyLeakageET::tau_0_nux_aux"),
-                             CCTK_VarIndex("NRPyLeakageET::tau_1_nux_aux"),
-                             CCTK_VarIndex("NRPyLeakageET::validation")};
+                             CCTK_VarIndex("NRPyLeakageET::tau_1_nux_aux")};
 
-  // Step 5: Compute the global L2-norm:
+  // Step 6: Compute the global L2-norm:
   // l2norm = sqrt(dTau_0_nue + dTau_0_anue + dTau_0_nux
   //             + dTau_1_nue + dTau_1_anue + dTau_1_nux)
   CCTK_REAL l2norm = 0.0;
-  CCTK_VINFO("Refinement level %d | dx,dy,dz = %e,%e,%e",GetRefinementLevel(cctkGH),cctk_delta_space[0],cctk_delta_space[1],cctk_delta_space[2]);
-  for(int i=0;i<7;i++) {
+  for(int i=0;i<6;i++) {
     int varindex = varindices[i];
     assert(varindex>=0);
     CCTK_REAL l2normL = 0.0;
@@ -215,22 +153,11 @@ void NRPyLeakageET_getGlobalL2norm(CCTK_ARGUMENTS, CCTK_REAL *restrict l2norm_gl
                                  varindex);
     if( ierr ) CCTK_VError(__LINE__,__FILE__,CCTK_THORNSTRING,"Error in reduction of L2-norm of %s",varnames[i]);
 
-    if( verbosity_level > 1 ) {
-      if(i<6) {
-        CCTK_VINFO("L2-norm of %s: %e",varnames[i],sqrt(l2normL));
-      }
-      else {
-        const CCTK_REAL dV = cctk_delta_space[0]*cctk_delta_space[1]*cctk_delta_space[2];
-        CCTK_VINFO("dx,dy,dz,dV = %e,%e,%e,%e",cctk_delta_space[0],cctk_delta_space[1],cctk_delta_space[2],dV);
-        CCTK_VINFO("L2-norm of %s: %e",varnames[i],l2normL*dV);
-      }
-    }
+    l2norm += l2normL;
 
-    if(i<6) l2norm += l2normL;
+    if( verbosity_level > 1 ) CCTK_VINFO("L2-norm of %s: %e",varnames[i],sqrt(l2normL));
   }
   *l2norm_global = sqrt(l2norm);
-
-  NRPyLeakageET_manual_reduction(CCTK_PASS_CTOC,"NRPyLeakageET::validation");
 }
 
 extern "C"
@@ -242,6 +169,9 @@ void NRPyLeakageET_CopyOpticalDepthsToAux(CCTK_ARGUMENTS) {
 
   // Step 1: Copy optical depths to auxiliary gridfunctions
 #pragma omp parallel for
+  //for(int k=cctk_nghostzones[2];k<cctk_lsh[2]-cctk_nghostzones[2];k++) {
+  //  for(int j=cctk_nghostzones[1];j<cctk_lsh[1]-cctk_nghostzones[1];j++) {
+  //    for(int i=cctk_nghostzones[0];i<cctk_lsh[0]-cctk_nghostzones[0];i++) {
   for(int k=0;k<cctk_lsh[2];k++) {
     for(int j=0;j<cctk_lsh[1];j++) {
       for(int i=0;i<cctk_lsh[0];i++) {
@@ -309,8 +239,8 @@ void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
     const int endRefLev   = maxInitRefLevel == 0 ? Carpet::reflevels-1 : MIN(maxInitRefLevel,Carpet::reflevels-1);
 
     if(verbosity_level>0) {
-      CCTK_VInfo(CCTK_THORNSTRING,"Optical depths will be initialized on levels %d through %d with the path of least resistance algorithm",startRefLev,endRefLev);
-      CCTK_VInfo(CCTK_THORNSTRING,"Number of iterations to be performed on each refinement level: %d",numberOfIterations);
+      CCTK_VINFO("Optical depths will be initialized on levels %d through %d with the path of least resistance algorithm",startRefLev,endRefLev);
+      CCTK_VINFO("Number of iterations to be performed on each refinement level: %d",numberOfIterations);
     }
 
     // Step 2: Now perform iterations of the path of least resistance algorithm
@@ -319,7 +249,7 @@ void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
 
     for(int i=1;i<=numberOfIterations;i++) {
       // Step 2.a: First perform the iteration on refinement level startRefLev
-      if( verbosity_level>1 ) CCTK_VInfo(CCTK_THORNSTRING,"Beginning iteration %d...",counter+1);
+      if( verbosity_level>1 ) CCTK_VINFO("Beginning iteration %d...",counter+1);
       ENTER_LEVEL_MODE(cctkGH,startRefLev) {
         BEGIN_MAP_LOOP(cctkGH,CCTK_GF) {
           BEGIN_COMPONENT_LOOP(cctkGH, CCTK_GF) {
@@ -370,10 +300,10 @@ void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
 
       // Step 2.c: Perform a reduction of the L2-norm among all processors
       CCTK_REAL l2norm_global;
-      NRPyLeakageET_getGlobalL2norm(CCTK_PASS_CTOC, &l2norm_global);
+      NRPyLeakageET_getGlobalL2norm(CCTK_PASS_CTOC, startRefLev, endRefLev, &l2norm_global);
 
       // Step 2.d: Add up L2-norm on all refinement levels that we have initialized
-      if( verbosity_level > 1 ) CCTK_VInfo(CCTK_THORNSTRING,"Global L2-norm: %e",l2norm_global);
+      if( verbosity_level>1 ) CCTK_VINFO("Global L2-norm: %e",l2norm_global);
 
       // Step 2.e: Increment counter; check convergence
       counter++;
@@ -381,7 +311,7 @@ void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
         // Step 2.e.i: Converged!
         RemainingIterations = 0;
         i = numberOfIterations*10;
-        if( verbosity_level>0 ) CCTK_VInfo(CCTK_THORNSTRING,"Algorithm converged! l2norm_tau_change = %e (threshold = %e)",l2norm_global,tauChangeThreshold);
+        if( verbosity_level>0 ) CCTK_VINFO("Algorithm converged! l2norm_tau_change = %e (threshold = %e)",l2norm_global,tauChangeThreshold);
       }
       else {
         // Step 2.e.ii: Have not converged. Restrict current solution from the
@@ -394,7 +324,7 @@ void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
             } LEAVE_LEVEL_MODE;
           }
           RemainingIterations--;
-          if( verbosity_level>1 ) CCTK_VInfo(CCTK_THORNSTRING,"Completed iteration %d. Remaining iterations: %4d",counter,RemainingIterations);
+          if( verbosity_level>1 ) CCTK_VINFO("Completed iteration %d. Remaining iterations: %4d",counter,RemainingIterations);
         }
         else {
           CCTK_WARN(CCTK_WARN_ALERT,"Maximum iterations reached, but convergence threshold not met.");
