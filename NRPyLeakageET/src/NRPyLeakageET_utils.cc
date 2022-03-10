@@ -135,26 +135,25 @@ extern "C" void NRPyLeakageET_manual_reduction(CCTK_ARGUMENTS, const char *varNa
           int kmin = zgh;
           int kmax = cctk_lsh[2]-zgh;
 
-          int n = 0;
-          CCTK_REAL sum = 0;
-
-#pragma omp parallel reduction(+: sum, n)
+          CCTK_REAL sum = 0.0;
+#pragma omp parallel reduction(+: sum)
           LC_LOOP3(EL_NRM,
                    i, j, k, imin, jmin, kmin, imax, jmax, kmax,
                    cctk_lsh[0], cctk_lsh[1], cctk_lsh[2]) {
             sum += var[CCTK_GFINDEX3D(cctkGH,i,j,k)];
-            n++;
           } LC_ENDLOOP3(EL_NRM);
 
           CCTK_REAL localsum = sum, globalsum;
-
           MPI_Reduce(&localsum, &globalsum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
           MPI_Bcast(&globalsum, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+          CCTK_VINFO("Integral at r.l. %d: %e",GetRefinementLevel(cctkGH),globalsum*cctk_delta_space[0]*cctk_delta_space[1]*cctk_delta_space[2]);
 
           reduction_value += globalsum;
         }
       } END_COMPONENT_LOOP;
     } END_MAP_LOOP;
+
   } END_REFLEVEL_LOOP;
 
   CCTK_VINFO("reduction_value = %e",reduction_value);
