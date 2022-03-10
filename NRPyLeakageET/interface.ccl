@@ -28,8 +28,6 @@ CCTK_REAL NRPyLeakageET_auxiliary_optical_depths type=GF Timelevels=1 TAGS='tens
   tau_0_nue_aux, tau_0_anue_aux, tau_0_nux_aux,
   tau_1_nue_aux, tau_1_anue_aux, tau_1_nux_aux
 } "Optical depth gridfunctions for electron neutrino, antineutrino, and heavy lepton neutrinos/antineutrinos"
-
-CCTK_REAL validation type=GF TimeLevels=1 TAGS='tensortypealias="Scalar" prolongation="none"'
 # ------------------------------------------------------
 
 # ------------------------------------------------------

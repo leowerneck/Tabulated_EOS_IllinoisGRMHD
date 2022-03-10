@@ -1,5 +1,5 @@
 # Schedule definitions for thorn NRPyLeakageET
-STORAGE: NRPyLeakageET_opacities[3], NRPyLeakageET_optical_depths[3], NRPyLeakageET_auxiliary_optical_depths, validation
+STORAGE: NRPyLeakageET_opacities[3], NRPyLeakageET_optical_depths[3], NRPyLeakageET_auxiliary_optical_depths
 
 SCHEDULE NRPyLeakageET_Initialize AT CCTK_INITIAL AFTER (HydroBase_Initial,Convert_to_HydroBase)
 {
