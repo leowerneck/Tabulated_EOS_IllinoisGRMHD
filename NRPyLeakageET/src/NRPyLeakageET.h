@@ -146,7 +146,6 @@ void NRPyLeakageET_compute_opacities_harm_constants(const CCTK_REAL rho_b,
                                                     CCTK_REAL *restrict kappa_nux);
 
 int  NRPyLeakageET_ProcessOwnsData();
-void NRPyLeakageET_GetMaxSize(CCTK_ARGUMENTS,int *IterationCounter);
 void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS);
 void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS);
 void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS);
