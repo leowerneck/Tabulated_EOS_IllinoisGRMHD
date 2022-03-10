@@ -39,7 +39,6 @@ void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS) {
             kappa_nue[1] = kappa_anue[1] = kappa_nux[1] = 0.0;
             tau_nue  [0] = tau_anue  [0] = tau_nux  [0] = 0.0;
             tau_nue  [1] = tau_anue  [1] = tau_nux  [1] = 0.0;
-            CCTK_VINFO("%s BAAAAAAD",__func__);
           }
           else {
             // Step 3.b: Above density threshold, compute opacities
