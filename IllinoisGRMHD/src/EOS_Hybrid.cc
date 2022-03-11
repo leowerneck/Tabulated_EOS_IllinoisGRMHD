@@ -57,7 +57,12 @@ void initialize_Hybrid_EOS_parameters_from_input(igm_eos_parameters &eos) {
   eos.neos     = neos;
   eos.Gamma_th = Gamma_th;
   eos.K_ppoly_tab[0] = K_ppoly_tab0;
-  for(int j=0; j<=neos-2; j++) eos.rho_ppoly_tab[j]   = rho_ppoly_tab_in[j];
+  if( neos==1 ) {
+    eos.rho_ppoly_tab[0] = rho_ppoly_tab_in[0];
+  }
+  else {
+    for(int j=0; j<=neos-2; j++) eos.rho_ppoly_tab[j] = rho_ppoly_tab_in[j];
+  }
   for(int j=0; j<=neos-1; j++) eos.Gamma_ppoly_tab[j] = Gamma_ppoly_tab_in[j];
 
   // Initialize {K_{j}}, j>=1, and {eps_integ_const_{j}}
@@ -71,7 +76,8 @@ void initialize_Hybrid_EOS_parameters_from_input(igm_eos_parameters &eos) {
   eos.rho_atm = rho_b_atm;
   eos.P_atm   = P_atm;
   eos.eps_atm = eps_atm;
-  eos.tau_atm = tau_atm;
+  // eos.tau_atm = tau_atm;
+  eos.tau_atm = eos.rho_atm * eos.eps_atm;
   // --------------------------------------
 
   // -------------- Ceilings --------------
@@ -90,7 +96,7 @@ void initialize_Hybrid_EOS_parameters_from_input(igm_eos_parameters &eos) {
   eos.P_min   = eos.P_atm;
   eos.eps_min = eos.eps_atm;
   // --------------------------------------
-  
+
 }
 
 /* Function    : setup_K_ppoly_tab__and__eps_integ_consts()
