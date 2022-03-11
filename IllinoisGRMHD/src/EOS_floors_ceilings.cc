@@ -41,7 +41,7 @@ void apply_floors_and_ceilings_to_prims__recompute_prims( const igm_eos_paramete
     // Now compute eps
     PRIMS[EPSILON ] = eps_cold + (PRIMS[PRESSURE]-prs_cold)/(eos.Gamma_th-1.0)/PRIMS[RHOB];
     // If needed, recompute the entropy function
-    compute_entropy_function(eos,PRIMS[RHOB],PRIMS[PRESSURE],&PRIMS[ENTROPY]);
+    if( eos.evolve_entropy ) compute_entropy_function(eos,PRIMS[RHOB],PRIMS[PRESSURE],&PRIMS[ENTROPY]);
   }
 
   // Tabulated EOS specific floors and ceilings
@@ -62,6 +62,6 @@ void apply_floors_and_ceilings_to_prims__recompute_prims( const igm_eos_paramete
     PRIMS[PRESSURE   ] = xprs;
     PRIMS[EPSILON    ] = xeps;
     PRIMS[ENTROPY    ] = xent;
-  }  
-  
+  }
+
 }
