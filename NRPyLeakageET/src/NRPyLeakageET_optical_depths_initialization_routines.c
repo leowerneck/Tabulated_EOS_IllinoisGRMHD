@@ -17,26 +17,26 @@ void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS) {
     for(int j=0;j<cctk_lsh[1];j++) {
       for(int i=0;i<cctk_lsh[0];i++) {
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
-        tau_0_nue [index] = 0.0;
-        tau_1_nue [index] = 0.0;
-        tau_0_anue[index] = 0.0;
-        tau_1_anue[index] = 0.0;
-        tau_0_nux [index] = 0.0;
-        tau_1_nux [index] = 0.0;
+        tau_0_nue [index] = kappa_0_nue [index] = 0.0;
+        tau_1_nue [index] = kappa_1_nue [index] = 0.0;
+        tau_0_anue[index] = kappa_0_anue[index] = 0.0;
+        tau_1_anue[index] = kappa_1_anue[index] = 0.0;
+        tau_0_nux [index] = kappa_0_nux [index] = 0.0;
+        tau_1_nux [index] = kappa_1_nux [index] = 0.0;
 
-        tau_0_nue_p [index] = 0.0;
-        tau_1_nue_p [index] = 0.0;
-        tau_0_anue_p[index] = 0.0;
-        tau_1_anue_p[index] = 0.0;
-        tau_0_nux_p [index] = 0.0;
-        tau_1_nux_p [index] = 0.0;
+        tau_0_nue_p [index] = kappa_0_nue_p [index] = 0.0;
+        tau_1_nue_p [index] = kappa_1_nue_p [index] = 0.0;
+        tau_0_anue_p[index] = kappa_0_anue_p[index] = 0.0;
+        tau_1_anue_p[index] = kappa_1_anue_p[index] = 0.0;
+        tau_0_nux_p [index] = kappa_0_nux_p [index] = 0.0;
+        tau_1_nux_p [index] = kappa_1_nux_p [index] = 0.0;
 
-        tau_0_nue_p_p [index] = 0.0;
-        tau_1_nue_p_p [index] = 0.0;
-        tau_0_anue_p_p[index] = 0.0;
-        tau_1_anue_p_p[index] = 0.0;
-        tau_0_nux_p_p [index] = 0.0;
-        tau_1_nux_p_p [index] = 0.0;
+        tau_0_nue_p_p [index] = kappa_0_nue_p_p [index] = 0.0;
+        tau_1_nue_p_p [index] = kappa_1_nue_p_p [index] = 0.0;
+        tau_0_anue_p_p[index] = kappa_0_anue_p_p[index] = 0.0;
+        tau_1_anue_p_p[index] = kappa_1_anue_p_p[index] = 0.0;
+        tau_0_nux_p_p [index] = kappa_0_nux_p_p [index] = 0.0;
+        tau_1_nux_p_p [index] = kappa_1_nux_p_p [index] = 0.0;
 
         tau_0_nue_aux [index] = 0.0;
         tau_1_nue_aux [index] = 0.0;
