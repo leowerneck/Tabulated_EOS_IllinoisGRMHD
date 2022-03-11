@@ -1,9 +1,9 @@
 /********************************
  * CONVERT ET ID TO IllinoisGRMHD
- * 
+ *
  * Written in 2014 by Zachariah B. Etienne
  *
- * Sets metric & MHD variables needed 
+ * Sets metric & MHD variables needed
  * by IllinoisGRMHD, converting from
  * HydroBase and ADMBase.
  ********************************/
@@ -75,19 +75,20 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
             const CCTK_REAL epsL  = pressL/(rhoL*(Gamma-1.0)) + epsC;
 
             // Now update the HydroBase gridfunctions
-            rho  [index] = rhoL;
-            press[index] = pressL;
-            eps  [index] = epsL;
+            rho    [index] = rhoL;
+            press  [index] = pressL;
+            eps    [index] = epsL;
           }
         }
 
-        rho_b[index]             = rho[index];
-        P    [index]             = press[index];
+        rho_b  [index]           = rho[index];
+        P      [index]           = press[index];
+        igm_eps[index]           = eps[index];
         if( eos.is_Tabulated ) {
           igm_Ye[index]          = Y_e[index];
           igm_temperature[index] = temperature[index];
         }
-        if( eos.is_Tabulated ) {
+        if( eos.evolve_entropy ) {
           // In this case we expect another thorn,
           // such as ID_TabEOS_HydroQuantities,
           // to ahve already taken care of the
@@ -104,7 +105,9 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
             // Now compute the entropy function
             const CCTK_REAL entropyL = prsL / pow(rhoL,GammaL-1.0);
             // Update the gridfunctions
-            entropy[index] = igm_entropy[index] = entropyL;
+            if( eos.evolve_entropy ) {
+              entropy[index] = igm_entropy[index] = entropyL;
+            }
         }
 
         if( eos.is_Hybrid ) {
@@ -140,14 +143,14 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         Ay[index] = Avec[CCTK_GFINDEX4D(cctkGH,i,j,k,1)];
         Az[index] = Avec[CCTK_GFINDEX4D(cctkGH,i,j,k,2)];
         psi6phi[index] = Aphi[index];
-	
+
         double ETvx = vel[CCTK_GFINDEX4D(cctkGH,i,j,k,0)];
         double ETvy = vel[CCTK_GFINDEX4D(cctkGH,i,j,k,1)];
         double ETvz = vel[CCTK_GFINDEX4D(cctkGH,i,j,k,2)];
 
         // IllinoisGRMHD defines v^i = u^i/u^0.
-	
-        // Meanwhile, the ET/HydroBase formalism, called the Valencia 
+
+        // Meanwhile, the ET/HydroBase formalism, called the Valencia
         // formalism, splits the 4 velocity into a purely spatial part
         // and a part that is normal to the spatial hypersurface:
         // u^a = G (n^a + U^a), (Eq. 14 of arXiv:1304.5544; G=W, U^a=v^a)
@@ -158,8 +161,8 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         // of course \alpha u^0 = 1/sqrt(1+γ^ij u_i u_j) = \Gamma,
         // the standard Lorentz factor.
 
-        // Note that n^i = - \beta^i / \alpha, so 
-        // u^a = \Gamma (n^a + U^a) 
+        // Note that n^i = - \beta^i / \alpha, so
+        // u^a = \Gamma (n^a + U^a)
         // -> u^i = \Gamma ( U^i - \beta^i / \alpha )
         // which implies
         // v^i = u^i/u^0
@@ -200,7 +203,7 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
 
   double dxi = 1.0/CCTK_DELTA_SPACE(0);
   double dyi = 1.0/CCTK_DELTA_SPACE(1);
-  double dzi = 1.0/CCTK_DELTA_SPACE(2);  
+  double dzi = 1.0/CCTK_DELTA_SPACE(2);
 
 #pragma omp parallel for
   for(int k=0;k<cctk_lsh[2];k++)
@@ -223,7 +226,7 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         double Psi = psi_bssn[actual_index];
         double Psim3 = 1.0/(Psi*Psi*Psi);
 
-        // For the lower boundaries, the following applies a "copy" 
+        // For the lower boundaries, the following applies a "copy"
         //    boundary condition on Bi_stagger where needed.
         //    E.g., Bx_stagger(i,jmin,k) = Bx_stagger(i,jmin+1,k)
         //    We find the copy BC works better than extrapolation.
@@ -303,7 +306,7 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
 
         int actual_index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-        // For the lower boundaries, the following applies a "copy" 
+        // For the lower boundaries, the following applies a "copy"
         //    boundary condition on Bi and Bi_stagger where needed.
         //    E.g., Bx(imin,j,k) = Bx(imin+1,j,k)
         //    We find the copy BC works better than extrapolation.
@@ -355,7 +358,9 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         PRIMS[BY_CENTER    ] = By[index];
         PRIMS[BZ_CENTER    ] = Bz[index];
         PRIMS[EPSILON      ] = igm_eps[index];
-        PRIMS[ENTROPY      ] = igm_entropy[index];
+        if( eos.evolve_entropy ) {
+          PRIMS[ENTROPY      ] = igm_entropy[index];
+        }
         if( eos.is_Tabulated ) {
           PRIMS[YEPRIM     ] = igm_Ye[index];
           PRIMS[TEMPERATURE] = igm_temperature[index];
@@ -384,6 +389,8 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         METRIC[ww] = gtupxz[index];  ww++;
         METRIC[ww] = gtupyz[index];  ww++;
 
+
+
         double CONSERVS[NUM_CONSERVS] = {0,0,0,0,0};
         double g4dn[4][4];
         double g4up[4][4];
@@ -399,7 +406,6 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         vy         [index] = PRIMS[VY          ];
         vz         [index] = PRIMS[VZ          ];
         igm_eps    [index] = PRIMS[EPSILON     ];
-        igm_entropy[index] = PRIMS[ENTROPY     ];
 
         rho_star   [index] = CONSERVS[RHOSTAR  ];
         mhd_st_x   [index] = CONSERVS[STILDEX  ];
@@ -408,9 +414,10 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         tau        [index] = CONSERVS[TAUENERGY];
 
         if( eos.evolve_entropy ) {
-          S_star   [index] = CONSERVS[ENTSTAR  ];
+          igm_entropy[index] = PRIMS[ENTROPY     ];
+          S_star     [index] = CONSERVS[ENTSTAR  ];
         }
-        
+
         // Tabulated EOS
         if( eos.is_Tabulated ) {
           // Primitives
@@ -435,4 +442,3 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         }
       }
 }
-
