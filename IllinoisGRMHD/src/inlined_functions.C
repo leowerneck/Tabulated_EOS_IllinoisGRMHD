@@ -297,7 +297,16 @@ static inline void impose_speed_limit_output_u0(CCTK_REAL *METRIC,CCTK_REAL *U,C
   //CCTK_REAL alpha_u0_minus_one = 1.0/sqrt(1.0-one_minus_one_over_alpha_u0_squared)-1.0;
   //u0_out          = (alpha_u0_minus_one + 1.0)*ONE_OVER_LAPSE;
   CCTK_REAL alpha_u0 = 1.0/sqrt(1.0-one_minus_one_over_alpha_u0_squared);
-  if(std::isnan(alpha_u0*ONE_OVER_LAPSE)) printf("BAD FOUND NAN U0 CALC: %.15e %.15e %.15e | %.15e %.15e\n",alpha_u0,ONE_OVER_LAPSE,one_minus_one_over_alpha_u0_squared,psi4, U[VX]);
+  if(std::isnan(alpha_u0*ONE_OVER_LAPSE)) {
+    CCTK_VINFO("*********************************************");
+    CCTK_VINFO("Problem inside %s",__func__);
+    CCTK_VINFO("*********************************************");
+    CCTK_VINFO("Metric/psi4: %e %e %e %e %e %e / %e",METRIC[GXX],METRIC[GXY],METRIC[GXZ],METRIC[GYY],METRIC[GYZ],METRIC[GZZ],psi4);
+    CCTK_VINFO("Lapse/shift: %e (=1/%e) / %e %e %e",1.0/ONE_OVER_LAPSE,ONE_OVER_LAPSE,METRIC[SHIFTX],METRIC[SHIFTY],METRIC[SHIFTZ]);
+    CCTK_VINFO("Velocities : %e %e %e",U[VX],U[VY],U[VZ]);
+    CCTK_VINFO("*********************************************");
+    CCTK_VERROR("Found nan while computing u^{0} in function %s (file: %s)",__func__,__FILE__);
+  }
   u0_out = alpha_u0*ONE_OVER_LAPSE;
 }
 
@@ -364,4 +373,3 @@ static inline void compute_smallba_b2_and_u_i_over_u0_psi4(CCTK_REAL *METRIC,CCT
              METRIC[GYZ]*(by_plus_shifty_bt)*(bz_plus_shiftz_bt) )  ) * METRIC_LAP_PSI4[PSI4]; // mult by psi4 because METRIC[GIJ] is the conformal metric.
   /***********************************************************/
 }
-
