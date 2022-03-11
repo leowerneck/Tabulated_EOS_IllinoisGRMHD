@@ -222,10 +222,9 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             if( c2p_fail_flag != 0 ) {
 
               // Average the conserved variables using the neighboring values
-              int neighbors = con2prim_average_neighbor_conservatives(cctkGH,i,j,k,index,cctk_lsh,con2prim_failed_flag,
-								      rho_star,mhd_st_x,mhd_st_y,mhd_st_z,tau,Ye_star,S_star,
-								      CONSERVS_avg_neighbors);
-
+              int __attribute__((unused)) neighbors = con2prim_average_neighbor_conservatives(cctkGH,i,j,k,index,cctk_lsh,con2prim_failed_flag,
+                                                                                              rho_star,mhd_st_x,mhd_st_y,mhd_st_z,tau,Ye_star,S_star,
+                                                                                              CONSERVS_avg_neighbors);
 	      //if( neighbors > 1 ) {
 
 		// We will attempt 4 fixes after the first attempt fails. These
