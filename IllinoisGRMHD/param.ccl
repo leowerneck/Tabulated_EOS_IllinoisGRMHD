@@ -90,15 +90,15 @@ REAL K_ppoly_tab0 "Also known as k_tab[0], this is the polytropic constant for t
 
 REAL rho_ppoly_tab_in[10] "Set polytropic rho parameters"
 {
- 0.0:* :: "after this time (inclusively)"
--1.0   :: "forbidden value to make sure it is explicitly set in the parfile"
-} -1.0
+ 0:* :: "after this time (inclusively)"
+-1   :: "forbidden value to make sure it is explicitly set in the parfile"
+} -1
 
 REAL Gamma_ppoly_tab_in[11] "Set polytropic rho parameters"
 {
- 0.0:* :: "after this time (inclusively)"
--1.0   :: "forbidden value to make sure it is explicitly set in the parfile"
-} -1.0
+ 0:* :: "after this time (inclusively)"
+-1   :: "forbidden value to make sure it is explicitly set in the parfile"
+} -1
 
 #########################################################
 
