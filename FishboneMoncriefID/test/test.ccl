@@ -1,0 +1,4 @@
+TEST FishboneMoncrief_IllinoisGRMHD-LLR
+{ 
+  RELTOL 1e-11
+} 

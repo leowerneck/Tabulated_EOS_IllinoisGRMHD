@@ -1,0 +1,34 @@
+STORAGE: ADMBase::metric[metric_timelevels], ADMBase::curv[metric_timelevels], ADMBase::lapse[lapse_timelevels], ADMBase::shift[shift_timelevels]
+
+schedule FishboneMoncrief_ET_GRHD_initial IN HydroBase_Initial 
+{
+  LANG: C
+  READS: grid::x(Everywhere)
+  READS: grid::y(Everywhere)
+  READS: grid::z(Everywhere)
+  WRITES: admbase::alp(Everywhere)
+  WRITES: admbase::betax(Everywhere)
+  WRITES: admbase::betay(Everywhere)
+  WRITES: admbase::betaz(Everywhere)
+  WRITES: admbase::kxx(Everywhere)
+  WRITES: admbase::kxy(Everywhere)
+  WRITES: admbase::kxz(Everywhere)
+  WRITES: admbase::kyy(Everywhere)
+  WRITES: admbase::kyz(Everywhere)
+  WRITES: admbase::kzz(Everywhere)
+  WRITES: admbase::gxx(Everywhere)
+  WRITES: admbase::gxy(Everywhere)
+  WRITES: admbase::gxz(Everywhere)
+  WRITES: admbase::gyy(Everywhere)
+  WRITES: admbase::gyz(Everywhere)
+  WRITES: admbase::gzz(Everywhere)
+  WRITES: hydrobase::vel(Everywhere) # Note that vel is a vector gridfunction.
+  WRITES: hydrobase::rho(Everywhere)
+  WRITES: hydrobase::eps(Everywhere)
+  WRITES: hydrobase::press(Everywhere)
+} "Set up general relativistic hydrodynamic (GRHD) fields for Fishbone-Moncrief disk"
+
+schedule FishboneMoncrief_ET_GRHD_initial__perturb_pressure IN CCTK_INITIAL AFTER Seed_Magnetic_Fields BEFORE IllinoisGRMHD_ID_Converter
+{
+    LANG: C
+} "Add random perturbation to initial pressure, after seed magnetic fields have been set up (in case we'd like the seed magnetic fields to depend on the pristine pressures)"
