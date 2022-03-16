@@ -64,6 +64,7 @@ int main(int argc, char **argv) {
     fprintf(stderr,"(NRPyLeakage)     1: Constant density sphere (tests optical depth)\n");
     fprintf(stderr,"(NRPyLeakage)     2: 2D data for opacities as a function of (rho,Y_e) for given temperature in MeV\n");
     fprintf(stderr,"(NRPyLeakage)     3: Equation of state table interpolation benchmark\n");
+    fprintf(stderr,"(NRPyLeakage)     4: Table slicer - constant Y_e and S\n");
     exit(1);
   }
 
@@ -80,6 +81,13 @@ int main(int argc, char **argv) {
   if( test_type == 2 && argc != 4 ) {
     fprintf(stderr,"(NRPyLeakage) For the 2D data for opacities test one must also provide 1 additional argument:\n");
     fprintf(stderr,"(NRPyLeakage)     The temperature in MeV\n");
+    exit(1);
+  }
+
+  if( test_type == 4 && argc != 5 ) {
+    fprintf(stderr,"(NRPyLeakage) For the table slicer one must also provide 2 additional arguments:\n");
+    fprintf(stderr,"(NRPyLeakage)     The electron fraction\n");
+    fprintf(stderr,"(NRPyLeakage)     The specific entropy in kb/baryon\n");
     exit(1);
   }
 
@@ -104,6 +112,11 @@ int main(int argc, char **argv) {
   }
   else if( test_type == 3 ) {
     NRPyEOS_benchmark(&eos_params);
+  }
+  else if( test_type == 4 ) {
+    const REAL Y_e = strtod(argv[3],NULL);
+    const REAL S   = strtod(argv[4],NULL);
+    NRPyEOS_constant_Ye_and_S_slice(&eos_params,Y_e,S);
   }
   else{
     fprintf(stderr,"(NRPyLeakage) Unknown test type %d\n",test_type);
