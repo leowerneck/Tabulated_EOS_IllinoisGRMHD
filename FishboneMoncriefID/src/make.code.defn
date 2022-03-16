@@ -1,1 +1,6 @@
-SRCS = InitialData.c
+SRCS = FishboneMoncriefID_InitialData.c \
+       FishboneMoncriefID_initial_polytrope_eos.c \
+       FishboneMoncriefID_initial_tabulated_eos.cc \
+       FishboneMoncriefID_KerrSchild.c \
+       FishboneMoncriefID_velocities.c \
+       FishboneMoncriefID_initial__perturb_pressure.c

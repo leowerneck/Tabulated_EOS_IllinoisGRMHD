@@ -1,11 +1,22 @@
-{
-   /* 
+#include "cctk.h"
+#include "cctk_Parameters.h"
+
+void FishboneMoncriefID_KerrSchild(const cGH* restrict const cctkGH,const CCTK_INT *cctk_lsh,
+                                   const CCTK_INT i0,const CCTK_INT i1,const CCTK_INT i2,
+                                   const CCTK_REAL *xcoordGF,const CCTK_REAL *ycoordGF,const CCTK_REAL *zcoordGF,
+                                   CCTK_REAL *alphaGF,CCTK_REAL *betaU0GF,CCTK_REAL *betaU1GF,CCTK_REAL *betaU2GF,
+                                   CCTK_REAL *gammaDD00GF,CCTK_REAL *gammaDD01GF,CCTK_REAL *gammaDD02GF,CCTK_REAL *gammaDD11GF,CCTK_REAL *gammaDD12GF,CCTK_REAL *gammaDD22GF,
+                                   CCTK_REAL     *KDD00GF,CCTK_REAL     *KDD01GF,CCTK_REAL     *KDD02GF,CCTK_REAL     *KDD11GF,CCTK_REAL     *KDD12GF,CCTK_REAL     *KDD22GF) {
+
+  DECLARE_CCTK_PARAMETERS;
+
+   /*
     * NRPy+ Finite Difference Code Generation, Step 1 of 2: Read from main memory and compute finite difference stencils:
     */
    const double xcoord = xcoordGF[CCTK_GFINDEX3D(cctkGH, i0,i1,i2)];
    const double ycoord = ycoordGF[CCTK_GFINDEX3D(cctkGH, i0,i1,i2)];
    const double zcoord = zcoordGF[CCTK_GFINDEX3D(cctkGH, i0,i1,i2)];
-   /* 
+   /*
     * NRPy+ Finite Difference Code Generation, Step 2 of 2: Evaluate SymPy expressions and write to main memory:
     */
    const double FDPart3_0 = ((a)*(a));
@@ -114,5 +125,5 @@
    KDD11GF[CCTK_GFINDEX3D(cctkGH, i0, i1, i2)] = FDPart3_116*FDPart3_79 + FDPart3_116*FDPart3_83 + FDPart3_3*FDPart3_6*FDPart3_94 + FDPart3_69*FDPart3_99 - FDPart3_88 - FDPart3_92;
    KDD12GF[CCTK_GFINDEX3D(cctkGH, i0, i1, i2)] = FDPart3_106*FDPart3_113*zcoord + FDPart3_107*FDPart3_109*FDPart3_113 - FDPart3_107*FDPart3_110*FDPart3_113 - FDPart3_111*FDPart3_113 - 2*FDPart3_112*FDPart3_16 + FDPart3_114*FDPart3_90;
    KDD22GF[CCTK_GFINDEX3D(cctkGH, i0, i1, i2)] = -FDPart3_1*FDPart3_37*FDPart3_61*FDPart3_83 + 4*FDPart3_5*FDPart3_64*FDPart3_77 + FDPart3_7*FDPart3_94;
-}
 
+}

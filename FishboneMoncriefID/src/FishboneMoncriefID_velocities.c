@@ -1,5 +1,16 @@
-{
-   /* 
+#include "cctk.h"
+#include "cctk_Parameters.h"
+
+#include "FishboneMoncriefID.h"
+
+void FishboneMoncriefID_velocities(const cGH* restrict const cctkGH,const CCTK_INT *cctk_lsh,
+                                   const CCTK_INT i0,const CCTK_INT i1,const CCTK_INT i2,
+                                   const CCTK_REAL *xcoordGF,const CCTK_REAL *ycoordGF,const CCTK_REAL *zcoordGF,
+                                   CCTK_REAL *Valencia3velocityU0GF, CCTK_REAL *Valencia3velocityU1GF, CCTK_REAL *Valencia3velocityU2GF) {
+
+  DECLARE_CCTK_PARAMETERS;
+
+   /*
     * NRPy+ Finite Difference Code Generation, Step 1 of 2: Read from main memory and compute finite difference stencils:
     */
    /*
@@ -8,7 +19,7 @@
    const double xcoord = xcoordGF[CCTK_GFINDEX3D(cctkGH, i0,i1,i2)];
    const double ycoord = ycoordGF[CCTK_GFINDEX3D(cctkGH, i0,i1,i2)];
    const double zcoord = zcoordGF[CCTK_GFINDEX3D(cctkGH, i0,i1,i2)];
-   /* 
+   /*
     * NRPy+ Finite Difference Code Generation, Step 2 of 2: Evaluate SymPy expressions and write to main memory:
     */
    /*
@@ -46,4 +57,3 @@
    Valencia3velocityU1GF[CCTK_GFINDEX3D(cctkGH, i0, i1, i2)] = FDPart3_10*FDPart3_12*ycoord + FDPart3_10*FDPart3_31*xcoord;
    Valencia3velocityU2GF[CCTK_GFINDEX3D(cctkGH, i0, i1, i2)] = FDPart3_10*FDPart3_12*zcoord;
 }
-

@@ -28,6 +28,8 @@ EXTENDS KEYWORD initial_dtshift
 }
 
 shares: HydroBase
+USES CCTK_INT timelevels
+
 EXTENDS KEYWORD initial_hydro
 {
   "FishboneMoncriefID" :: "Initial GRHD data from FishboneMoncriefID solution"
@@ -76,8 +78,58 @@ CCTK_REAL gamma "Equation of state: P = kappa * rho^gamma"
  0.0:* :: "Positive values"
 } 1.3333333333333333333333333333
 
+############################################
+# New parameters for tabulated EOS support
+restricted:
+CCTK_STRING eos_type "Type of equation of state"
+{
+  "polytrope" :: "P = kappa * rho^gamma"
+  "tabulated" :: "Uses EOS tables"
+} "polytrope"
+
+restricted:
+CCTK_BOOLEAN initialize_entropy "Whether or not to initialize the entropy (only applies to tabulated EOS)"
+{
+} "yes"
+
+restricted:
+CCTK_REAL disk_entropy "Constant entropy disk"
+{
+ 0.0:* :: "Positive values"
+} 10.0
+
+restricted:
+CCTK_REAL disk_Y_e "Constant electron fraction disk"
+{
+ 0.0:1.0 :: "Positive values"
+} 0.1
+
+restricted:
+CCTK_REAL atmosphere_rho "Constant density atmosphere"
+{
+ 0.0:* :: "Positive values"
+} 1e-12
+
+restricted:
+CCTK_REAL atmosphere_Y_e "Constant electron fraction atmosphere"
+{
+ 0.0:1.0 :: "Values between zero and one"
+} 5e-1
+
+restricted:
+CCTK_REAL atmosphere_temperature "Constant temperature atmosphere"
+{
+ 0.0:* :: "Positive values"
+} 1e-2
+###########################################
+
 ##################################
 # PRESSURE PERTURBATION PARAMETERS
+private:
+CCTK_BOOLEAN perturb_pressure "Whether or not to perturb the pressure"
+{
+} "yes"
+
 private:
 CCTK_REAL random_min "Floor value of random perturbation to initial pressure, where perturbed pressure = pressure*(1.0 + (random_min + (random_max-random_min)*RAND[0,1)))"
 {
@@ -88,5 +140,5 @@ private:
 CCTK_REAL random_max "Ceiling value of random perturbation to initial pressure, where perturbed pressure = pressure*(1.0 + (random_min + (random_max-random_min)*RAND[0,1)))"
 {
   *:*      :: "Any value"
-} 0.02
+} +0.02
 

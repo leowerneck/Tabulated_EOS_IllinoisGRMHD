@@ -1,6 +1,12 @@
 STORAGE: ADMBase::metric[metric_timelevels], ADMBase::curv[metric_timelevels], ADMBase::lapse[lapse_timelevels], ADMBase::shift[shift_timelevels]
 
-schedule FishboneMoncrief_ET_GRHD_initial IN HydroBase_Initial 
+if( CCTK_Equals(eos_type,"tabulated") ) {
+  STORAGE: HydroBase::Y_e[timelevels], HydroBase::temperature[timelevels]
+  if( initialize_entropy ) {
+    STORAGE: HydroBase::entropy[timelevels]
+  }   
+}
+schedule FishboneMoncriefID_InitialData IN HydroBase_Initial 
 {
   LANG: C
   READS: grid::x(Everywhere)
@@ -28,7 +34,9 @@ schedule FishboneMoncrief_ET_GRHD_initial IN HydroBase_Initial
   WRITES: hydrobase::press(Everywhere)
 } "Set up general relativistic hydrodynamic (GRHD) fields for Fishbone-Moncrief disk"
 
-schedule FishboneMoncrief_ET_GRHD_initial__perturb_pressure IN CCTK_INITIAL AFTER Seed_Magnetic_Fields BEFORE IllinoisGRMHD_ID_Converter
-{
+if( perturb_pressure ) {
+  schedule FishboneMoncriefID_initial__perturb_pressure IN CCTK_INITIAL AFTER Seed_Magnetic_Fields BEFORE IllinoisGRMHD_ID_Converter
+  {
     LANG: C
-} "Add random perturbation to initial pressure, after seed magnetic fields have been set up (in case we'd like the seed magnetic fields to depend on the pristine pressures)"
+  } "Add random perturbation to initial pressure, after seed magnetic fields have been set up (in case we'd like the seed magnetic fields to depend on the pristine pressures)"
+}
