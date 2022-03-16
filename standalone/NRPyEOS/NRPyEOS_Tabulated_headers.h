@@ -17,6 +17,11 @@ void NRPyEOS_readtable_set_EOS_params(const char *nuceos_table_name, NRPyEOS_par
 // Free all memory allocated for the table
 void NRPyEOS_free_memory(NRPyEOS_params *restrict eos_params);
 
+// Slice table given Y_e and S
+void NRPyEOS_constant_Ye_and_S_slice( const NRPyEOS_params *restrict eos_params,
+                                      const double Y_e,
+                                      const double S );
+
 // ------------------------------------------------------
 // ------------- New general interpolators --------------
 // ------------------------------------------------------
