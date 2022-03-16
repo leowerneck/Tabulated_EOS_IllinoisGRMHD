@@ -1,5 +1,5 @@
 IMPLEMENTS: ID_tabEOS_HydroQuantities
-INHERITS: Grid HydroBase IllinoisGRMHD
+INHERITS: Grid HydroBase
 
 CCTK_INT FUNCTION EOS_Omni_GetHandle(CCTK_STRING IN name)
 
