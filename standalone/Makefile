@@ -4,8 +4,8 @@ LEAKAGE_DIR = $(BASEDIR)/NRPyLeakage
 TESTS_DIR   = $(BASEDIR)/Leakage_tests
 HARM_DIR    = $(BASEDIR)/harm_leakage
 
-# HDF5_DIR = /usr/local/opt/hdf5
-HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
+HDF5_DIR = /usr/local/opt/hdf5
+# HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
 
 CC       = gcc
 CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(HARM_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
@@ -26,6 +26,7 @@ NRPyEOS_SRC = NRPyEOS_Tabulated_general_interpolators.c \
               NRPyEOS_Tabulated_unknown_T.c \
               NRPyEOS_readtable_set_EOS_params.c \
               NRPyEOS_free_memory.c \
+              NRPyEOS_constant_entropy_slice.c \
 	      NRPyEOS_module.F90 \
               NRPyEOS_fortran_interface.F90
 
@@ -89,6 +90,9 @@ obj/NRPyEOS_readtable_set_EOS_params.o: $(NRPyEOS_DIR)/NRPyEOS_readtable_set_EOS
 	$(CC) $(CFLAGS) -c $< -o $@
 
 obj/NRPyEOS_free_memory.o: $(NRPyEOS_DIR)/NRPyEOS_free_memory.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+obj/NRPyEOS_constant_entropy_slice.o: $(NRPyEOS_DIR)/NRPyEOS_constant_entropy_slice.c $(INC)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 obj/NRPyEOS_module.o: $(NRPyEOS_DIR)/NRPyEOS_module.F90
