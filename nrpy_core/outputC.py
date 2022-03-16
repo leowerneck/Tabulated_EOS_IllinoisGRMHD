@@ -31,6 +31,8 @@ outCparams = namedtuple('outCparams', 'preindent includebraces declareoutputvars
 #    codegen to output our desired fabs().
 nrpyAbs = sp.Function('nrpyAbs')
 nrpyFermiDiracintegrals = sp.Function("nrpyFermiDiracintegrals")
+nrpyEnsureFinite        = sp.Function("nrpyEnsureFinite")
+nrpyMAX                 = sp.Function("nrpyMAX")
 custom_functions_for_SymPy_ccode = {
     "nrpyAbs": "fabs",
     'Pow': [(lambda b, e: e == 0.5, lambda b, e: 'sqrt(%s)'     % (b)),
@@ -47,7 +49,9 @@ custom_functions_for_SymPy_ccode = {
             (lambda b, e: e ==-4, lambda b, e: '(1.0/((%s)*(%s)*(%s)*(%s)))'      % (b,b,b,b)),
             (lambda b, e: e ==-5, lambda b, e: '(1.0/((%s)*(%s)*(%s)*(%s)*(%s)))' % (b,b,b,b,b)),
             (lambda b, e: e !=-5, 'pow')],
-    "nrpyFermiDiracintegrals": "NRPyLeakage_Fermi_Dirac_integrals"
+    "nrpyFermiDiracintegrals": "NRPyLeakage_Fermi_Dirac_integrals",
+    "nrpyEnsureFinite": "EnsureFinite",
+    "nrpyMAX": "MAX"
 ##    (lambda b, e: e != 2, 'pow')]
 }
 
