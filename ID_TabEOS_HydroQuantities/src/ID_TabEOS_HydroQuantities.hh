@@ -16,8 +16,7 @@ namespace nuc_eos_private {
 
 void read_1dfile__set_array(FILE *in1D,
                             CCTK_REAL *f_of_rho_arr,
-                            const int num_header_lines=0)
-{
+                            const int num_header_lines=0) {
   char* line = NULL;
   size_t len = 0;
   ssize_t read;
@@ -97,8 +96,7 @@ void interpolate_1d_quantity_as_function_of_rho(const int interp_stencil_size,
                                                 const CCTK_REAL *restrict rho_arr,
                                                 const CCTK_REAL *restrict f_of_rho_arr,
                                                 const CCTK_REAL rho,
-                                                CCTK_REAL *restrict f_of_rho)
-{
+                                                CCTK_REAL *restrict f_of_rho) {
 
   // First find the central interpolation stencil index:
   int idx = bisection_idx_finder(rho,numlines_in_file,rho_arr);
@@ -115,7 +113,7 @@ void interpolate_1d_quantity_as_function_of_rho(const int interp_stencil_size,
 #define MIN(A, B) ( ((A) < (B)) ? (A) : (B) )
   
   int idxmin = MAX(0,idx-interp_stencil_size/2-1);
-  idxmin     = MIN(idxmin,numlines_in_file - interp_stencil_size + 1);
+  idxmin     = MIN(idxmin,numlines_in_file - interp_stencil_size);
 
   // Now perform the Lagrange polynomial interpolation:
 

@@ -12,7 +12,7 @@ extern "C" void ID_TabEOS_HydroQuantities__initial_Y_e( const CCTK_INT  npoints,
 
   // Open the Y_e file, which should countain Y_e(rho) for the EOS table slice
   FILE *Y_e_file = fopen(Y_e_filename,"r");
-  
+
   // Check if everything is OK with the file
   if( (Y_e_file = fopen(Y_e_filename,"r")) == NULL ) {
     CCTK_VError(__LINE__, __FILE__, CCTK_THORNSTRING,
@@ -34,6 +34,7 @@ extern "C" void ID_TabEOS_HydroQuantities__initial_Y_e( const CCTK_INT  npoints,
 
     // Set interpolation stencil size
     const CCTK_INT interp_stencil_size = 5;
+#pragma omp parallel for
     for(int i=0;i<npoints;i++) {
       if( rho[i] > id_rho_atm ) {
         // Interpolate Y_e(rho_i) at gridpoint i
@@ -68,7 +69,7 @@ extern "C" void ID_TabEOS_HydroQuantities__recompute_HydroBase_variables( const 
                                                                           CCTK_REAL *restrict eps,
                                                                           CCTK_REAL *restrict entropy,
                                                                           CCTK_REAL *restrict vel ) {
-  
+
   DECLARE_CCTK_PARAMETERS;
 
   // Prepare for EOS function calls
@@ -156,11 +157,11 @@ extern "C" void ID_TabEOS_HydroQuantities__recompute_HydroBase_variables( const 
         entropy[    i] = id_ent_atm;
     }
   }
-  
+
 }
 
 extern "C" void ID_TabEOS_HydroQuantities(CCTK_ARGUMENTS) {
-  
+
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
@@ -201,5 +202,5 @@ extern "C" void ID_TabEOS_HydroQuantities(CCTK_ARGUMENTS) {
   }
 
   CCTK_VInfo(CCTK_THORNSTRING,"All done!");
-  
+
 }
