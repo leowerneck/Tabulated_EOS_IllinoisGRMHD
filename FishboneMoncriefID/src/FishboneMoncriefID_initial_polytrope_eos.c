@@ -27,13 +27,13 @@ void FishboneMoncriefID_initial_polytrope_eos(CCTK_ARGUMENTS) {
   //    EOS routines would need to be changed, and generally these appear as
   //    read-only parameters.
   if(fabs(P_max/rho_max - kappa) > 1e-8) {
-    printf("Error: To ensure that P = kappa*rho^Gamma, where rho_max = 1.0,\n");
-    printf("       you must set (in your parfile) the polytropic constant kappa = P_max/rho_max = %.15e\n\n",P_max/rho_max);
-    printf(" Needed values for kappa, for common values of Gamma:\n");
-    printf(" For Gamma =4/3, use kappa=K_initial=K_poly = 4.249572342020724e-03 to ensure rho_max = 1.0\n");
-    printf(" For Gamma =5/3, use kappa=K_initial=K_poly = 6.799315747233158e-03 to ensure rho_max = 1.0\n");
-    printf(" For Gamma = 2,  use kappa=K_initial=K_poly = 8.499144684041449e-03 to ensure rho_max = 1.0\n");
-    exit(1);
+    CCTK_VINFO("Error: To ensure that P = kappa*rho^Gamma, where rho_max = 1.0,\n");
+    CCTK_VINFO("       you must set (in your parfile) the polytropic constant kappa = P_max/rho_max = %.15e\n\n",P_max/rho_max);
+    CCTK_VINFO(" Needed values for kappa, for common values of Gamma:\n");
+    CCTK_VINFO(" For Gamma =4/3, use kappa=K_initial=K_poly = 4.249572342020724e-03 to ensure rho_max = 1.0\n");
+    CCTK_VINFO(" For Gamma =5/3, use kappa=K_initial=K_poly = 6.799315747233158e-03 to ensure rho_max = 1.0\n");
+    CCTK_VINFO(" For Gamma = 2,  use kappa=K_initial=K_poly = 8.499144684041449e-03 to ensure rho_max = 1.0\n");
+    CCTK_ERROR("ABORTING");
   }
 
 #pragma omp parallel for
@@ -90,7 +90,9 @@ void FishboneMoncriefID_initial_polytrope_eos(CCTK_ARGUMENTS) {
       }
 
   CCTK_INT final_idx = CCTK_GFINDEX3D(cctkGH,cctk_lsh[0]-1,cctk_lsh[1]-1,cctk_lsh[2]-1);
-  CCTK_VINFO("=====   OUTPUTS   =====");
-  CCTK_VINFO("betai: %e %e %e \ngij: %e %e %e %e %e %e \nKij: %e %e %e %e %e %e\nalp: %e\n",betax[final_idx],betay[final_idx],betaz[final_idx],gxx[final_idx],gxy[final_idx],gxz[final_idx],gyy[final_idx],gyz[final_idx],gzz[final_idx],kxx[final_idx],kxy[final_idx],kxz[final_idx],kyy[final_idx],kyz[final_idx],kzz[final_idx],alp[final_idx]);
-  CCTK_VINFO("rho: %.15e\nPressure: %.15e\nvx: %.15e\nvy: %.15e\nvz: %.15e",rho[final_idx],press[final_idx],velx[final_idx],vely[final_idx],velz[final_idx]);
+  if( verbosity_level > 0 ) {
+    CCTK_VINFO("=====   OUTPUTS   =====");
+    CCTK_VINFO("betai: %e %e %e \ngij: %e %e %e %e %e %e \nKij: %e %e %e %e %e %e\nalp: %e\n",betax[final_idx],betay[final_idx],betaz[final_idx],gxx[final_idx],gxy[final_idx],gxz[final_idx],gyy[final_idx],gyz[final_idx],gzz[final_idx],kxx[final_idx],kxy[final_idx],kxz[final_idx],kyy[final_idx],kyz[final_idx],kzz[final_idx],alp[final_idx]);
+    CCTK_VINFO("rho: %.15e\nPressure: %.15e\nvx: %.15e\nvy: %.15e\nvz: %.15e",rho[final_idx],press[final_idx],velx[final_idx],vely[final_idx],velz[final_idx]);
+  }
 }
