@@ -199,7 +199,7 @@ void FishboneMoncriefID_initial_tabulated_eos(CCTK_ARGUMENTS) {
     CCTK_VINFO("Maximum enthalpy in disk: %.15e",h_max);
   }
 
-  //#pragma omp parallel for
+#pragma omp parallel for
   for(CCTK_INT k=0;k<cctk_lsh[2];k++) {
     for(CCTK_INT j=0;j<cctk_lsh[1];j++) {
       for(CCTK_INT i=0;i<cctk_lsh[0];i++) {
