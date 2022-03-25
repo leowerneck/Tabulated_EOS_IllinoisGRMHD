@@ -17,18 +17,24 @@ void FishboneMoncriefID_InitialData(CCTK_ARGUMENTS) {
     eos_key = TABULATED_EOS;
   }
   else {
-    CCTK_VERROR("Unknown parameter type for eos_type: %s",eos_type);
+    CCTK_VERROR("Unsupported value for parameter eos_type: %s",eos_type);
   }
 
-  CCTK_VINFO("Fishbone-Moncrief Disk Initial data.");
-  CCTK_VINFO("Using input parameters of\n a = %e,\n M = %e,\n r_in = %e,\n r_at_max_density = %e",a,M,r_in,r_at_max_density);
+  if( verbosity_level > 0 ) {
+    CCTK_VINFO("Fishbone-Moncrief Disk Initial data.");
+    CCTK_VINFO("Input parameters:");
+    CCTK_VINFO("  - a                = %e",a);
+    CCTK_VINFO("  - M                = %e",M);
+    CCTK_VINFO("  - r_in             = %e",r_in);
+    CCTK_VINFO("  - r_at_max_density = %e",r_at_max_density);
+  }
 
   if( eos_key == POLYTROPE_EOS ) {
-    CCTK_VINFO("  - kappa = %e\n  - gamma = %e",kappa,gamma);
+    if( verbosity_level > 0 ) CCTK_VINFO("  - EOS type: polytrope - kappa = %e | gamma = %e",kappa,gamma);
     FishboneMoncriefID_initial_polytrope_eos(CCTK_PASS_CTOC);
   }
   else if( eos_key == TABULATED_EOS ) {
-    CCTK_VINFO("  - Using tabulated equation of state");
+    if( verbosity_level > 0 ) CCTK_VINFO("  - EOS type: tabulated");
     if( !CCTK_IsThornActive("EOS_Omni") ) CCTK_ERROR("Cannot set tabulated EOS initial data without EOS_Omni. Please activate EOS_Omni and set the nuc_eos parameters in your parfile.");
     FishboneMoncriefID_initial_tabulated_eos(CCTK_PASS_CTOC);
   }

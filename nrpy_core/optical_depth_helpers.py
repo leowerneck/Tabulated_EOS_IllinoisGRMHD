@@ -43,9 +43,9 @@ def read_in_metric(indent="  "):
     Returns a string to read in metric gridfunctions
     from main memory according to the necessities of
     this C function.
-    
+
     Expected output of read_in_metric():
-    
+
     const REAL gammaDD00_i0_i1_i2 = gammaDD00[i0_i1_i2];
     const REAL gammaDD00_i0p1_i1_i2 = gammaDD00[i0p1_i1_i2];
     const REAL gammaDD00_i0m1_i1_i2 = gammaDD00[i0m1_i1_i2];
@@ -100,10 +100,10 @@ def average_gf(gf,i,c):
     """
     Returns a string that computes the average of
     a given gridfunction. Example outputs:
-    
+
     average_gf("<gf>",0,"p")
     'const REAL <gf>_i0phalf_i1_i2 = 0.5*(<gf>_i0_i1_i2 + <gf>_i0p1_i1_i2);\n'
-    
+
     average_gf("<gf>",2,"m")
     'const REAL <gf>_i0_i1_i2mhalf = 0.5*(<gf>_i0_i1_i2 + <gf>_i0_i1_i2m1);\n'
     """
@@ -187,19 +187,19 @@ def compute_tau(indent="  "):
     Expected output of compute_tau() is 6 copies of the following
     lines:
 
-    const REAL tau_0_nue_i0p1_i1_i2 = tau_0_nue[i0p1_i1_i2] + ds_i0phalf_i1_i2*kappa_0_nue_i0phalf_i1_i2;
-    const REAL tau_0_nue_i0m1_i1_i2 = tau_0_nue[i0m1_i1_i2] + ds_i0mhalf_i1_i2*kappa_0_nue_i0mhalf_i1_i2;
-    const REAL tau_0_nue_i0_i1p1_i2 = tau_0_nue[i0_i1p1_i2] + ds_i0_i1phalf_i2*kappa_0_nue_i0_i1phalf_i2;
-    const REAL tau_0_nue_i0_i1m1_i2 = tau_0_nue[i0_i1m1_i2] + ds_i0_i1mhalf_i2*kappa_0_nue_i0_i1mhalf_i2;
-    const REAL tau_0_nue_i0_i1_i2p1 = tau_0_nue[i0_i1_i2p1] + ds_i0_i1_i2phalf*kappa_0_nue_i0_i1_i2phalf;
-    const REAL tau_0_nue_i0_i1_i2m1 = tau_0_nue[i0_i1_i2m1] + ds_i0_i1_i2mhalf*kappa_0_nue_i0_i1_i2mhalf;
+    const REAL tau_0_nue_i0p1_i1_i2 = tau_0_nue_p[i0p1_i1_i2] + ds_i0phalf_i1_i2*kappa_0_nue_i0phalf_i1_i2;
+    const REAL tau_0_nue_i0m1_i1_i2 = tau_0_nue_p[i0m1_i1_i2] + ds_i0mhalf_i1_i2*kappa_0_nue_i0mhalf_i1_i2;
+    const REAL tau_0_nue_i0_i1p1_i2 = tau_0_nue_p[i0_i1p1_i2] + ds_i0_i1phalf_i2*kappa_0_nue_i0_i1phalf_i2;
+    const REAL tau_0_nue_i0_i1m1_i2 = tau_0_nue_p[i0_i1m1_i2] + ds_i0_i1mhalf_i2*kappa_0_nue_i0_i1mhalf_i2;
+    const REAL tau_0_nue_i0_i1_i2p1 = tau_0_nue_p[i0_i1_i2p1] + ds_i0_i1_i2phalf*kappa_0_nue_i0_i1_i2phalf;
+    const REAL tau_0_nue_i0_i1_i2m1 = tau_0_nue_p[i0_i1_i2m1] + ds_i0_i1_i2mhalf*kappa_0_nue_i0_i1_i2mhalf;
 
     where we compute the optical depth for number and energy of
     electron neutrinos, antineutrinos, and heavy lepton neutrinos
     and antineutrinos.
     """
     string = ""
-    gfs_tau   = ["tau_0_nue"  ,"tau_1_nue"  ,"tau_0_anue"  ,"tau_1_anue"  ,"tau_0_nux"  ,"tau_1_nux"]
+    gfs_tau   = ["tau_0_nue","tau_1_nue","tau_0_anue","tau_1_anue","tau_0_nux","tau_1_nux"]
     gfs_kappa = ["kappa_0_nue","kappa_1_nue","kappa_0_anue","kappa_1_anue","kappa_0_nux","kappa_1_nux"]
     for k in range(len(gfs_tau)):
         tau   = gfs_tau[k]
@@ -208,7 +208,7 @@ def compute_tau(indent="  "):
             for c in ["p","m"]:
                 index_1 = index_shift(i,c)
                 index_2 = index_shift(i,c,"half")
-                string += indent+"const REAL "+tau+"_"+index_1+" = "+tau+"["+index_1+"] + ds_"+index_2+"*"+kappa+"_"+index_2+";\n"
+                string += indent+"const REAL "+tau+"_"+index_1+" = "+tau+"_p["+index_1+"] + ds_"+index_2+"*"+kappa+"_"+index_2+";\n"
         string += "\n"
     return string
 

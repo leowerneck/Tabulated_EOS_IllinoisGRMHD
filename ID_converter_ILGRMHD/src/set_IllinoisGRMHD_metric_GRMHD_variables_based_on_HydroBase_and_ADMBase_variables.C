@@ -131,10 +131,10 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
             const double Gamma_poly_local = log(P[index]/K_poly) / log(rho_b[index]);
             /* Determine the value of Gamma_poly_local associated with P[index] */
             CCTK_VWarn(CCTK_WARN_ALERT, __LINE__, __FILE__, CCTK_THORNSTRING,
-                       "Expected a PP EOS with local Gamma_poly = %.15e, but found a point such that Gamma_poly_local = %.15e.\n",
+                       "Expected a PP EOS with local Gamma_poly = %.15e, but found a point such that Gamma_poly_local = %.15e.",
                        Gamma_poly, Gamma_poly_local);
             CCTK_VWarn(CCTK_WARN_ALERT, __LINE__, __FILE__, CCTK_THORNSTRING,
-                       "{rho_b; rho_b_atm; P; P_cold; P_rel_Error} = %.10e %e %.10e %.10e %e\n",
+                       "{rho_b; rho_b_atm; P; P_cold; P_rel_Error} = %.10e %e %.10e %.10e %e",
                        rho_b[index], rho_b_atm, P[index],P_cold,P_rel_error);
           }
         }
@@ -388,8 +388,6 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         METRIC[ww] = gtupxy[index];  ww++;
         METRIC[ww] = gtupxz[index];  ww++;
         METRIC[ww] = gtupyz[index];  ww++;
-
-
 
         double CONSERVS[NUM_CONSERVS] = {0,0,0,0,0};
         double g4dn[4][4];

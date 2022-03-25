@@ -1,6 +1,8 @@
 #include "cctk.h"
 #include "cctk_Parameters.h"
 
+#include "FishboneMoncriefID.h"
+
 void FishboneMoncriefID_KerrSchild(const cGH* restrict const cctkGH,const CCTK_INT *cctk_lsh,
                                    const CCTK_INT i0,const CCTK_INT i1,const CCTK_INT i2,
                                    const CCTK_REAL *xcoordGF,const CCTK_REAL *ycoordGF,const CCTK_REAL *zcoordGF,

@@ -39,43 +39,43 @@ EXTENDS KEYWORD initial_hydro
 restricted:
 CCTK_REAL r_in "Fixes the inner edge of the disk"
 {
- 0.0:* :: "Must be positive"
+  0.0:* :: "Must be positive"
 } 6.0
 
 restricted:
 CCTK_REAL r_at_max_density "Radius at maximum disk density. Needs to be > r_in"
 {
- 0.0:* :: "Must be positive"
+  0.0:* :: "Must be positive"
 } 12.0
 
 restricted:
 CCTK_REAL a "The spin parameter of the black hole"
 {
- 0:1.0 :: "Positive values, up to 1. Negative disallowed, as certain roots are chosen in the hydro fields setup. Check those before enabling negative spins!"
+  0:1.0 :: "Positive values, up to 1. Negative disallowed, as certain roots are chosen in the hydro fields setup. Check those before enabling negative spins!"
 } 0.9375
 
 restricted:
 CCTK_REAL M "Kerr-Schild BH mass. Probably should always set M=1."
 {
- 0.0:* :: "Must be positive"
+  0.0:* :: "Must be positive"
 } 1.0
 
 restricted:
 CCTK_REAL A_b "Scaling factor for the vector potential"
 {
- *:* :: ""
+  *:* :: ""
 } 1.0
 
 restricted:
 CCTK_REAL kappa "Equation of state: P = kappa * rho^gamma"
 {
- 0.0:* :: "Positive values"
+  0.0:* :: "Positive values"
 } 1.0e-3
 
 restricted:
 CCTK_REAL gamma "Equation of state: P = kappa * rho^gamma"
 {
- 0.0:* :: "Positive values"
+  0.0:* :: "Positive values"
 } 1.3333333333333333333333333333
 
 ############################################
@@ -95,32 +95,40 @@ CCTK_BOOLEAN initialize_entropy "Whether or not to initialize the entropy (only 
 restricted:
 CCTK_REAL disk_entropy "Constant entropy disk"
 {
- 0.0:* :: "Positive values"
+  0.0:* :: "Positive values"
 } 10.0
 
 restricted:
 CCTK_REAL disk_Y_e "Constant electron fraction disk"
 {
- 0.0:1.0 :: "Positive values"
+  0.0:1.0 :: "Positive values"
 } 0.1
 
 restricted:
 CCTK_REAL atmosphere_rho "Constant density atmosphere"
 {
- 0.0:* :: "Positive values"
+  0.0:* :: "Positive values"
 } 1e-12
 
 restricted:
 CCTK_REAL atmosphere_Y_e "Constant electron fraction atmosphere"
 {
- 0.0:1.0 :: "Values between zero and one"
+  0.0:1.0 :: "Values between zero and one"
 } 5e-1
 
 restricted:
 CCTK_REAL atmosphere_temperature "Constant temperature atmosphere"
 {
- 0.0:* :: "Positive values"
+  0.0:* :: "Positive values"
 } 1e-2
+
+restricted:
+CCTK_INT verbosity_level "How much information should the thorn print"
+{
+  0 :: "No information at all"
+  1 :: "Useful information"
+  2 :: "Lots of information (mostly for debugging)"
+} 1
 ###########################################
 
 ##################################
@@ -133,12 +141,12 @@ CCTK_BOOLEAN perturb_pressure "Whether or not to perturb the pressure"
 private:
 CCTK_REAL random_min "Floor value of random perturbation to initial pressure, where perturbed pressure = pressure*(1.0 + (random_min + (random_max-random_min)*RAND[0,1)))"
 {
-  *:*      :: "Any value"
+  *:* :: "Any value"
 } -0.02
 
 private:
 CCTK_REAL random_max "Ceiling value of random perturbation to initial pressure, where perturbed pressure = pressure*(1.0 + (random_min + (random_max-random_min)*RAND[0,1)))"
 {
-  *:*      :: "Any value"
+  *:* :: "Any value"
 } +0.02
 
