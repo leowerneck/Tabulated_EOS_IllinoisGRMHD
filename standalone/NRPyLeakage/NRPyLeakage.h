@@ -18,6 +18,13 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #define MIN(a,b) ( (a) < (b) ? (a) : (b) )
 
+static inline REAL EnsureFinite(const REAL x) {
+  if(isfinite(x))
+    return x;
+  else
+    return 1e-15;
+}
+
 // "Primary" parameters
 #define NRPyLeakage_enable_beta_nue (1)
 #define NRPyLeakage_enable_beta_anue (1)
@@ -156,7 +163,7 @@ void NRPyLeakage_compute_optical_depths(const int N0,
                                         REAL *restrict tau_0_nux,
                                         REAL *restrict tau_1_nux);
 
-void NRPyLeakage_compute_opacities_harm_constants(const NRPyEOS_params *restrict eos_params,
+void NRPyLeakage_compute_opacities_nrpy_constants(const NRPyEOS_params *restrict eos_params,
                                                   const REAL rho_b,
                                                   const REAL Y_e,
                                                   const REAL T,
@@ -167,7 +174,7 @@ void NRPyLeakage_compute_opacities_harm_constants(const NRPyEOS_params *restrict
                                                   REAL *restrict kappa_anue,
                                                   REAL *restrict kappa_nux);
 
-void NRPyLeakage_compute_opacities_nrpy_constants(const NRPyEOS_params *restrict eos_params,
+void NRPyLeakage_compute_opacities_harm_constants(const NRPyEOS_params *restrict eos_params,
                                                   const REAL rho_b,
                                                   const REAL Y_e,
                                                   const REAL T,
@@ -189,10 +196,5 @@ void NRPyLeakage_compute_opacities(const int which_constants_to_use,
                                    REAL *restrict kappa_nue,
                                    REAL *restrict kappa_anue,
                                    REAL *restrict kappa_nux);
-
-static inline REAL EnsureFinite(const REAL x) {
-  if(isfinite(x)) return x;
-  else            return 1e-15;
-}
 
 #endif // NRPYLEAKAGE_H_
