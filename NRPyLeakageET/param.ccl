@@ -106,4 +106,4 @@ restricted:
 CCTK_STRING luminosities_outfile "Luminosities output file" STEERABLE = ALWAYS
 {
   ".+" :: "Anything goes"
-} "nrpyleakageet_luminosities.asc"
+} "nrpyleakageet_integrated_luminosities.asc"

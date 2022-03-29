@@ -14,5 +14,5 @@ SRCS = NRPyLeakageET_Fermi_Dirac_integrals.c \
        NRPyLeakageET_compute_neutrino_luminosities_nrpy_constants.c \
        NRPyLeakageET_compute_neutrino_luminosities_harm_constants.c \
        NRPyLeakageET_compute_neutrino_luminosities.c \
-       NRPyLeakageET_compute_neutrino_luminosities_global_and_output_to_file.cc \
+       NRPyLeakageET_compute_neutrino_luminosities_global_sum_and_output_to_file.cc \
        NRPyLeakageET_utils.cc

@@ -15,14 +15,14 @@ void NRPyLeakageET_compute_neutrino_luminosities(CCTK_ARGUMENTS) {
 
   if(!NRPyLeakageET_ProcessOwnsData()) return;
 
-  if(verbosity_level>1) CCTK_VINFO("Computing luminosities at ref. lvl. %d...",GetRefinementLevel(cctkGH));
+  if(verbosity_level>1) CCTK_VINFO("Computing neutrino luminosities at ref. lvl. %d...",GetRefinementLevel(cctkGH));
 
   switch (constants_key) {
   case USE_NRPY_CONSTANTS:
 #pragma omp parallel for
-    for(int k=cctk_nghostzones[2];k<cctk_lsh[2]-cctk_nghostzones[2];k++) {
-      for(int j=cctk_nghostzones[1];j<cctk_lsh[1]-cctk_nghostzones[1];j++) {
-        for(int i=cctk_nghostzones[0];i<cctk_lsh[0]-cctk_nghostzones[0];i++) {
+    for(int k=0;k<cctk_lsh[2];k++) {
+      for(int j=0;j<cctk_lsh[1];j++) {
+        for(int i=0;i<cctk_lsh[0];i++) {
           // Step 1: Set gridpoint index
           const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
@@ -64,9 +64,9 @@ void NRPyLeakageET_compute_neutrino_luminosities(CCTK_ARGUMENTS) {
     break;
   case USE_HARM_CONSTANTS:
 #pragma omp parallel for
-    for(int k=cctk_nghostzones[2];k<cctk_lsh[2]-cctk_nghostzones[2];k++) {
-      for(int j=cctk_nghostzones[1];j<cctk_lsh[1]-cctk_nghostzones[1];j++) {
-        for(int i=cctk_nghostzones[0];i<cctk_lsh[0]-cctk_nghostzones[0];i++) {
+    for(int k=0;k<cctk_lsh[2];k++) {
+      for(int j=0;j<cctk_lsh[1];j++) {
+        for(int i=0;i<cctk_lsh[0];i++) {
           // Step 1: Set gridpoint index
           const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
@@ -111,4 +111,6 @@ void NRPyLeakageET_compute_neutrino_luminosities(CCTK_ARGUMENTS) {
       CCTK_VWARN(CCTK_WARN_ALERT,"Options are: USE_NRPY_CONSTANTS (%d) and USE_HARM_CONSTANTS (%d)",USE_NRPY_CONSTANTS,USE_HARM_CONSTANTS);
       CCTK_VWARN(CCTK_WARN_ABORT,"Aborting!");
   }
+
+  if(verbosity_level>1) CCTK_VINFO("Finished computing neutrino luminosities at ref. lvl. %d...",GetRefinementLevel(cctkGH));
 }
