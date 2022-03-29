@@ -145,6 +145,44 @@ void NRPyLeakageET_compute_opacities_harm_constants(const CCTK_REAL rho_b,
                                                     CCTK_REAL *restrict kappa_anue,
                                                     CCTK_REAL *restrict kappa_nux);
 
+void NRPyLeakageET_compute_neutrino_luminosities(CCTK_ARGUMENTS);
+
+void NRPyLeakageET_compute_neutrino_luminosities_nrpy_constants(const CCTK_REAL alpha,
+                                                                const CCTK_REAL gammaxx,
+                                                                const CCTK_REAL gammaxy,
+                                                                const CCTK_REAL gammaxz,
+                                                                const CCTK_REAL gammayy,
+                                                                const CCTK_REAL gammayz,
+                                                                const CCTK_REAL gammazz,
+                                                                const CCTK_REAL rho_b,
+                                                                const CCTK_REAL Y_e,
+                                                                const CCTK_REAL T,
+                                                                const CCTK_REAL W,
+                                                                const CCTK_REAL *restrict tau_nue,
+                                                                const CCTK_REAL *restrict tau_anue,
+                                                                const CCTK_REAL *restrict tau_nux,
+                                                                CCTK_REAL *restrict lum_nue,
+                                                                CCTK_REAL *restrict lum_anue,
+                                                                CCTK_REAL *restrict lum_nux);
+
+void NRPyLeakageET_compute_neutrino_luminosities_harm_constants(const CCTK_REAL alpha,
+                                                                const CCTK_REAL gammaxx,
+                                                                const CCTK_REAL gammaxy,
+                                                                const CCTK_REAL gammaxz,
+                                                                const CCTK_REAL gammayy,
+                                                                const CCTK_REAL gammayz,
+                                                                const CCTK_REAL gammazz,
+                                                                const CCTK_REAL rho_b,
+                                                                const CCTK_REAL Y_e,
+                                                                const CCTK_REAL T,
+                                                                const CCTK_REAL W,
+                                                                const CCTK_REAL *restrict tau_nue,
+                                                                const CCTK_REAL *restrict tau_anue,
+                                                                const CCTK_REAL *restrict tau_nux,
+                                                                CCTK_REAL *restrict lum_nue,
+                                                                CCTK_REAL *restrict lum_anue,
+                                                                CCTK_REAL *restrict lum_nux);
+
 int  NRPyLeakageET_ProcessOwnsData();
 void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS);
 void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS);

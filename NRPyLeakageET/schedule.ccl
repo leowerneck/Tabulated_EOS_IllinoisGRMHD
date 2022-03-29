@@ -55,3 +55,10 @@ SCHEDULE NRPyLeakageET_BoundaryConditions IN HydroBase_Boundaries
   SYNC: NRPyLeakageET_optical_depths, NRPyLeakageET_optical_depths # This might be unecessary
   LANG: C
 } "Apply boundary conditions to optical depth"
+
+if( compute_luminosities_every >= 0 )
+SCHEDULE NRPyLeakageET_compute_neutrino_luminosities_global_and_output_to_file AS NRPyLeakageET_compute_and_output_luminosities AT CCTK_ANALYSIS BEFORE CarpetLib_printtimestats
+{
+  LANG: C
+  OPTIONS: GLOBAL
+} "Compute neutrino luminosities and output to file"

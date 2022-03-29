@@ -233,19 +233,16 @@ void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
       CCTK_REAL l2norm_global;
       NRPyLeakageET_getGlobalL2norm(CCTK_PASS_CTOC, startRefLev, endRefLev, i, &l2norm_global);
 
-      // Step 2.d: Add up L2-norm on all refinement levels that we have initialized
-      if( verbosity_level>1 ) CCTK_VINFO("Global L2-norm: %e",l2norm_global);
-
-      // Step 2.e: Increment counter; check convergence
+      // Step 2.d: Increment counter; check convergence
       counter++;
       if( l2norm_global < tauChangeThreshold ) {
-        // Step 2.e.i: Converged!
+        // Step 2.d.i: Converged!
         RemainingIterations = 0;
         i = numberOfIterations*10;
         if( verbosity_level>0 ) CCTK_VINFO("Algorithm converged! l2norm_tau_change = %e (threshold = %e)",l2norm_global,tauChangeThreshold);
       }
       else {
-        // Step 2.e.ii: Have not converged. Restrict current solution from the
+        // Step 2.d.ii: Have not converged. Restrict current solution from the
         // finest to the coarsest initialized refinement levels; Decrement
         // number of iterations remaining; continue.
         if( RemainingIterations > 1 ) {
@@ -255,7 +252,7 @@ void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
             } LEAVE_LEVEL_MODE;
           }
           RemainingIterations--;
-          if( verbosity_level>1 ) CCTK_VINFO("Completed iteration %d. Remaining iterations: %4d",counter,RemainingIterations);
+          if( verbosity_level>0 ) CCTK_VINFO("Completed iteration %d. Global change: %e. Remaining iterations: %4d",counter,l2norm_global,RemainingIterations);
         }
         else {
           CCTK_WARN(CCTK_WARN_ALERT,"Maximum iterations reached, but convergence threshold not met.");
