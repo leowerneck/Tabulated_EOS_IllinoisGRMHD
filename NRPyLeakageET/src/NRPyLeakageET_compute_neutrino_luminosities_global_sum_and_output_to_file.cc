@@ -63,26 +63,27 @@ void NRPyLeakageET_compute_neutrino_luminosities_global_sum_and_output_to_file(C
     }
 
     // Step 3: Now output the luminosities to file
-    char filename[512];
-    sprintf(filename,"%s/%s",out_dir,luminosities_outfile);
-    if( verbosity_level > 0 ) CCTK_VINFO("Outputting luminosities to file %s at iteration %d",filename,cctk_iteration);
-    FILE *fp = fopen(filename,"a+");
-    if( !fp ) CCTK_VERROR("Could not open file %s",filename);
+    if( CCTK_MyProc(cctkGH) == 0 ) {
+      char filename[512];
+      sprintf(filename,"%s/%s",out_dir,luminosities_outfile);
+      if( verbosity_level > 0 ) CCTK_VINFO("Outputting luminosities to file %s at iteration %d",filename,cctk_iteration);
+      FILE *fp = fopen(filename,"a+");
+      if( !fp ) CCTK_VERROR("Could not open file %s",filename);
 
-    if( cctk_iteration == 0 ) {
-      fprintf(fp,"# NRPyLeakageET output: Neutrino luminosities integrated over entire grid\n");
-      fprintf(fp,"# Luminosities are given in geometrized units. Convert to\n");
-      fprintf(fp,"# cgs units [erg/s] by multiplying by c^5 / G.\n");
-      fprintf(fp,"# Column 1: cctk_iteration\n");
-      fprintf(fp,"# Column 2: cctk_time\n");
-      fprintf(fp,"# Column 3: Electron neutrino luminosity\n");
-      fprintf(fp,"# Column 4: Electron antineutrino luminosity\n");
-      fprintf(fp,"# Column 5: Heavy lepton neutrino (single species) luminosity (mult. by 4 to obtain total)\n");
+      if( cctk_iteration == 0 ) {
+        fprintf(fp,"# NRPyLeakageET output: Neutrino luminosities integrated over entire grid\n");
+        fprintf(fp,"# Luminosities are given in geometrized units. Convert to\n");
+        fprintf(fp,"# cgs units [erg/s] by multiplying by c^5 / G.\n");
+        fprintf(fp,"# Column 1: cctk_iteration\n");
+        fprintf(fp,"# Column 2: cctk_time\n");
+        fprintf(fp,"# Column 3: Electron neutrino luminosity\n");
+        fprintf(fp,"# Column 4: Electron antineutrino luminosity\n");
+        fprintf(fp,"# Column 5: Heavy lepton neutrino (single species) luminosity (mult. by 4 to obtain total)\n");
+      }
+
+      fprintf(fp,"%d %.15e %.15e %.15e %.15e\n",cctk_iteration,cctk_time,global_luminosities[0],global_luminosities[1],global_luminosities[2]);
+      fclose(fp);
+      if( verbosity_level > 1 ) CCTK_INFO("Completed luminosities output");
     }
-
-    fprintf(fp,"%d %.15e %.15e %.15e %.15e\n",cctk_iteration,cctk_time,global_luminosities[0],global_luminosities[1],global_luminosities[2]);
-    fclose(fp);
-    if( verbosity_level > 1 ) CCTK_INFO("Completed luminosities output");
   }
-
 }
