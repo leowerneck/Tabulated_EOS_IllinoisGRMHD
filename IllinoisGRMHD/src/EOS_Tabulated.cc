@@ -132,7 +132,7 @@ void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,i
   // Now set the EOS struct variables
   eos.rho_max = MIN(rho_b_max,eos_rhomax  * igm_eos_table_ceiling_safety_factor);
   eos.Ye_max  = eos_yemax   * igm_eos_table_ceiling_safety_factor;
-  eos.T_max   = eos_tempmax * igm_eos_table_ceiling_safety_factor;
+  eos.T_max   = MIN(igm_T_max,eos_tempmax * igm_eos_table_ceiling_safety_factor);
   eos.P_max   = eos_prsmax  * igm_eos_table_ceiling_safety_factor;
   eos.eps_max = eos_epsmax  * igm_eos_table_ceiling_safety_factor;
   eos.S_max   = eos_entmax  * igm_eos_table_ceiling_safety_factor;
