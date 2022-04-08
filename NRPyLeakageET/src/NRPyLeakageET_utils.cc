@@ -80,7 +80,7 @@ void NRPyLeakageET_SyncOpticalDepths(CCTK_ARGUMENTS) {
 
   DISABLE_PROLONGATIONS;
   const int status = CCTK_SyncGroup(cctkGH,"NRPyLeakageET::NRPyLeakageET_optical_depths");
-  if( status < 0 ) CCTK_VError(__LINE__,__FILE__,CCTK_THORNSTRING,"Could not synchronize NRPyLeakageET::NRPyLeakageET_optical_depths.");
+  if( status < 0 ) CCTK_VERROR("Could not synchronize NRPyLeakageET::NRPyLeakageET_optical_depths.");
   ENABLE_PROLONGATIONS;
 
   if( verbosity_level > 1 ) CCTK_VINFO("Finished synchronizing auxiliary optical depths at ref. lev. %d",GetRefinementLevel(cctkGH));
@@ -139,7 +139,7 @@ void NRPyLeakageET_getGlobalL2norm(CCTK_ARGUMENTS, const int startRefLev, const 
                                  &l2normL,
                                  1,  // Number of inputs
                                  varindex);
-    if( ierr ) CCTK_VError(__LINE__,__FILE__,CCTK_THORNSTRING,"Error in reduction of L2-norm of %s",varnames[i]);
+    if( ierr ) CCTK_VERROR("Error in reduction of L2-norm of %s",varnames[i]);
 
     l2norm += l2normL;
 

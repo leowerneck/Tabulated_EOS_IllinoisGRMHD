@@ -27,43 +27,48 @@ void NRPyLeakageET_compute_neutrino_luminosities(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
           const CCTK_REAL rhoL = rho[index];
-          const CCTK_REAL gxxL = gxx[index];
-          const CCTK_REAL gxyL = gxy[index];
-          const CCTK_REAL gxzL = gxz[index];
-          const CCTK_REAL gyyL = gyy[index];
-          const CCTK_REAL gyzL = gyz[index];
-          const CCTK_REAL gzzL = gzz[index];
-          const CCTK_REAL gdet = fabs(gxxL * gyyL * gzzL + gxyL * gyzL * gxzL + gxzL * gxyL * gyzL
-                                    - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL);
-          const CCTK_REAL phiL  = (1.0/12.0) * log(gdet);
-          const CCTK_REAL psiL  = exp(phiL);
-          const CCTK_REAL psi2L = psiL *psiL;
-          const CCTK_REAL psi4L = psi2L*psi2L;
-          const CCTK_REAL psi6L = psi4L*psi2L;
-          if( rhoL < rho_threshold || psi6L > psi6_threshold ) {
+          if( rhoL < rho_min_threshold || rhoL > rho_max_threshold ) {
             lum_nue[index] = lum_anue[index] = lum_nux[index] = 0.0;
           }
           else {
-            // Step 2: Read from main memory
-            const CCTK_REAL alpL         = alp[index];
-            const CCTK_REAL Y_eL         = Y_e[index];
-            const CCTK_REAL temperatureL = temperature[index];
-            const CCTK_REAL wL           = w_lorentz[index];
-            const CCTK_REAL tau_nueL [2] = {tau_0_nue [index],tau_1_nue [index]};
-            const CCTK_REAL tau_anueL[2] = {tau_0_anue[index],tau_1_anue[index]};
-            const CCTK_REAL tau_nuxL [2] = {tau_0_nux [index],tau_1_nux [index]};
+            const CCTK_REAL gxxL = gxx[index];
+            const CCTK_REAL gxyL = gxy[index];
+            const CCTK_REAL gxzL = gxz[index];
+            const CCTK_REAL gyyL = gyy[index];
+            const CCTK_REAL gyzL = gyz[index];
+            const CCTK_REAL gzzL = gzz[index];
+            const CCTK_REAL gdet = fabs(gxxL * gyyL * gzzL + gxyL * gyzL * gxzL + gxzL * gxyL * gyzL
+                                      - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL);
+            const CCTK_REAL phiL  = (1.0/12.0) * log(gdet);
+            const CCTK_REAL psiL  = exp(phiL);
+            const CCTK_REAL psi2L = psiL *psiL;
+            const CCTK_REAL psi4L = psi2L*psi2L;
+            const CCTK_REAL psi6L = psi4L*psi2L;
+            if( psi6L > psi6_threshold ) {
+              lum_nue[index] = lum_anue[index] = lum_nux[index] = 0.0;
+            }
+            else {
+              // Step 2: Read from main memory
+              const CCTK_REAL alpL         = alp[index];
+              const CCTK_REAL Y_eL         = Y_e[index];
+              const CCTK_REAL temperatureL = temperature[index];
+              const CCTK_REAL wL           = w_lorentz[index];
+              const CCTK_REAL tau_nueL [2] = {tau_0_nue [index],tau_1_nue [index]};
+              const CCTK_REAL tau_anueL[2] = {tau_0_anue[index],tau_1_anue[index]};
+              const CCTK_REAL tau_nuxL [2] = {tau_0_nux [index],tau_1_nux [index]};
 
-            // Step 3: Compute neutrino luminosities
-            CCTK_REAL lum_nueL,lum_anueL,lum_nuxL;
-            NRPyLeakageET_compute_neutrino_luminosities_nrpy_constants(alpL,gxxL,gxyL,gxzL,gyyL,gyzL,gzzL,
-                                                                       rhoL,Y_eL,temperatureL,wL,
-                                                                       tau_nueL,tau_anueL,tau_nuxL,
-                                                                       &lum_nueL,&lum_anueL,&lum_nuxL);
+              // Step 3: Compute neutrino luminosities
+              CCTK_REAL lum_nueL,lum_anueL,lum_nuxL;
+              NRPyLeakageET_compute_neutrino_luminosities_nrpy_constants(alpL,gxxL,gxyL,gxzL,gyyL,gyzL,gzzL,
+                                                                         rhoL,Y_eL,temperatureL,wL,
+                                                                         tau_nueL,tau_anueL,tau_nuxL,
+                                                                         &lum_nueL,&lum_anueL,&lum_nuxL);
 
-            // Step 4: Write to main memory
-            lum_nue [index] = lum_nueL;
-            lum_anue[index] = lum_anueL;
-            lum_nux [index] = lum_nuxL;
+              // Step 4: Write to main memory
+              lum_nue [index] = lum_nueL;
+              lum_anue[index] = lum_anueL;
+              lum_nux [index] = lum_nuxL;
+            }
           }
         }
       }
@@ -78,49 +83,48 @@ void NRPyLeakageET_compute_neutrino_luminosities(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
           const CCTK_REAL rhoL = rho[index];
-          const CCTK_REAL gxxL = gxx[index];
-          const CCTK_REAL gxyL = gxy[index];
-          const CCTK_REAL gxzL = gxz[index];
-          const CCTK_REAL gyyL = gyy[index];
-          const CCTK_REAL gyzL = gyz[index];
-          const CCTK_REAL gzzL = gzz[index];
-          const CCTK_REAL gdet = fabs(gxxL * gyyL * gzzL + gxyL * gyzL * gxzL + gxzL * gxyL * gyzL
-                                    - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL);
-          const CCTK_REAL phiL  = (1.0/12.0) * log(gdet);
-          const CCTK_REAL psiL  = exp(phiL);
-          const CCTK_REAL psi2L = psiL *psiL;
-          const CCTK_REAL psi4L = psi2L*psi2L;
-          const CCTK_REAL psi6L = psi4L*psi2L;
-          if( rhoL < rho_threshold || psi6L > psi6_threshold ) {
+          if( rhoL < rho_min_threshold || rhoL > rho_max_threshold ) {
             lum_nue[index] = lum_anue[index] = lum_nux[index] = 0.0;
           }
           else {
-            // Step 2: Read from main memory
-            const CCTK_REAL alpL         = alp[index];
-            const CCTK_REAL gxxL         = gxx[index];
-            const CCTK_REAL gxyL         = gxy[index];
-            const CCTK_REAL gxzL         = gxz[index];
-            const CCTK_REAL gyyL         = gyy[index];
-            const CCTK_REAL gyzL         = gyz[index];
-            const CCTK_REAL gzzL         = gzz[index];
-            const CCTK_REAL Y_eL         = Y_e[index];
-            const CCTK_REAL temperatureL = temperature[index];
-            const CCTK_REAL wL           = w_lorentz[index];
-            const CCTK_REAL tau_nueL [2] = {tau_0_nue [index],tau_1_nue [index]};
-            const CCTK_REAL tau_anueL[2] = {tau_0_anue[index],tau_1_anue[index]};
-            const CCTK_REAL tau_nuxL [2] = {tau_0_nux [index],tau_1_nux [index]};
+            const CCTK_REAL gxxL = gxx[index];
+            const CCTK_REAL gxyL = gxy[index];
+            const CCTK_REAL gxzL = gxz[index];
+            const CCTK_REAL gyyL = gyy[index];
+            const CCTK_REAL gyzL = gyz[index];
+            const CCTK_REAL gzzL = gzz[index];
+            const CCTK_REAL gdet = fabs(gxxL * gyyL * gzzL + gxyL * gyzL * gxzL + gxzL * gxyL * gyzL
+                                      - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL);
+            const CCTK_REAL phiL  = (1.0/12.0) * log(gdet);
+            const CCTK_REAL psiL  = exp(phiL);
+            const CCTK_REAL psi2L = psiL *psiL;
+            const CCTK_REAL psi4L = psi2L*psi2L;
+            const CCTK_REAL psi6L = psi4L*psi2L;
+            if( psi6L > psi6_threshold ) {
+              lum_nue[index] = lum_anue[index] = lum_nux[index] = 0.0;
+            }
+            else {
+              // Step 2: Read from main memory
+              const CCTK_REAL alpL         = alp[index];
+              const CCTK_REAL Y_eL         = Y_e[index];
+              const CCTK_REAL temperatureL = temperature[index];
+              const CCTK_REAL wL           = w_lorentz[index];
+              const CCTK_REAL tau_nueL [2] = {tau_0_nue [index],tau_1_nue [index]};
+              const CCTK_REAL tau_anueL[2] = {tau_0_anue[index],tau_1_anue[index]};
+              const CCTK_REAL tau_nuxL [2] = {tau_0_nux [index],tau_1_nux [index]};
 
-            // Step 3: Compute neutrino luminosities
-            CCTK_REAL lum_nueL,lum_anueL,lum_nuxL;
-            NRPyLeakageET_compute_neutrino_luminosities_harm_constants(alpL,gxxL,gxyL,gxzL,gyyL,gyzL,gzzL,
-                                                                       rhoL,Y_eL,temperatureL,wL,
-                                                                       tau_nueL,tau_anueL,tau_nuxL,
-                                                                       &lum_nueL,&lum_anueL,&lum_nuxL);
+              // Step 3: Compute neutrino luminosities
+              CCTK_REAL lum_nueL,lum_anueL,lum_nuxL;
+              NRPyLeakageET_compute_neutrino_luminosities_harm_constants(alpL,gxxL,gxyL,gxzL,gyyL,gyzL,gzzL,
+                                                                         rhoL,Y_eL,temperatureL,wL,
+                                                                         tau_nueL,tau_anueL,tau_nuxL,
+                                                                         &lum_nueL,&lum_anueL,&lum_nuxL);
 
-            // Step 4: Write to main memory
-            lum_nue [index] = lum_nueL;
-            lum_anue[index] = lum_anueL;
-            lum_nux [index] = lum_nuxL;
+              // Step 4: Write to main memory
+              lum_nue [index] = lum_nueL;
+              lum_anue[index] = lum_anueL;
+              lum_nux [index] = lum_nuxL;
+            }
           }
         }
       }

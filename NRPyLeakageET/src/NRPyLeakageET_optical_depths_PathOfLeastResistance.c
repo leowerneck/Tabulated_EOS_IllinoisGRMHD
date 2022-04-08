@@ -16,7 +16,7 @@ void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
 
   if(!NRPyLeakageET_ProcessOwnsData()) return;
 
-  if(verbosity_level>1) CCTK_VInfo(CCTK_THORNSTRING,"Computing optical depths at ref. lvl. %d...",GetRefinementLevel(cctkGH));
+  if(verbosity_level>1) CCTK_VINFO("Computing optical depths at ref. lvl. %d...",GetRefinementLevel(cctkGH));
 
   const CCTK_REAL dx = CCTK_DELTA_SPACE(0);
   const CCTK_REAL dy = CCTK_DELTA_SPACE(1);
@@ -38,22 +38,8 @@ void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
         const int i_j_km1 = CCTK_GFINDEX3D(cctkGH,i,j  ,k-1);
 
         const CCTK_REAL rhoL = rho[i_j_k];
-        const CCTK_REAL gxxL = gxx[i_j_k];
-        const CCTK_REAL gxyL = gxy[i_j_k];
-        const CCTK_REAL gxzL = gxz[i_j_k];
-        const CCTK_REAL gyyL = gyy[i_j_k];
-        const CCTK_REAL gyzL = gyz[i_j_k];
-        const CCTK_REAL gzzL = gzz[i_j_k];
-        const CCTK_REAL gdet = fabs(gxxL * gyyL * gzzL + gxyL * gyzL * gxzL + gxzL * gxyL * gyzL
-                                    - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL);
-        const CCTK_REAL phiL  = (1.0/12.0) * log(gdet);
-        const CCTK_REAL psiL  = exp(phiL);
-        const CCTK_REAL psi2L = psiL *psiL;
-        const CCTK_REAL psi4L = psi2L*psi2L;
-        const CCTK_REAL psi6L = psi4L*psi2L;
-
         // Only compute optical depths if density is above a threshold
-        if( rhoL < rho_threshold || psi6L > psi6_threshold ) {
+        if( rhoL < rho_min_threshold || rhoL > rho_max_threshold ) {
           tau_0_nue [i_j_k] = 0.0;
           tau_1_nue [i_j_k] = 0.0;
           tau_0_anue[i_j_k] = 0.0;
@@ -62,197 +48,219 @@ void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
           tau_1_nux [i_j_k] = 0.0;
         }
         else {
-          // Step 2: Read in metric gfs from main memory
-          const CCTK_REAL gxx_i_j_k = gxx[i_j_k];
-          const CCTK_REAL gxx_ip1_j_k = gxx[ip1_j_k];
-          const CCTK_REAL gxx_im1_j_k = gxx[im1_j_k];
+          const CCTK_REAL gxxL  = gxx[i_j_k];
+          const CCTK_REAL gxyL  = gxy[i_j_k];
+          const CCTK_REAL gxzL  = gxz[i_j_k];
+          const CCTK_REAL gyyL  = gyy[i_j_k];
+          const CCTK_REAL gyzL  = gyz[i_j_k];
+          const CCTK_REAL gzzL  = gzz[i_j_k];
+          const CCTK_REAL gdet  = fabs(gxxL * gyyL * gzzL + gxyL * gyzL * gxzL + gxzL * gxyL * gyzL
+                                     - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL);
+          const CCTK_REAL phiL  = (1.0/12.0) * log(gdet);
+          const CCTK_REAL psiL  = exp(phiL);
+          const CCTK_REAL psi2L = psiL *psiL;
+          const CCTK_REAL psi4L = psi2L*psi2L;
+          const CCTK_REAL psi6L = psi4L*psi2L;
+          if( psi6L > psi6_threshold ) {
+            tau_0_nue [i_j_k] = 0.0;
+            tau_1_nue [i_j_k] = 0.0;
+            tau_0_anue[i_j_k] = 0.0;
+            tau_1_anue[i_j_k] = 0.0;
+            tau_0_nux [i_j_k] = 0.0;
+            tau_1_nux [i_j_k] = 0.0;
+          }
+          else {
+            // Step 2: Read in metric gfs from main memory
+            const CCTK_REAL gxx_i_j_k = gxx[i_j_k];
+            const CCTK_REAL gxx_ip1_j_k = gxx[ip1_j_k];
+            const CCTK_REAL gxx_im1_j_k = gxx[im1_j_k];
 
-          const CCTK_REAL gyy_i_j_k = gyy[i_j_k];
-          const CCTK_REAL gyy_i_jp1_k = gyy[i_jp1_k];
-          const CCTK_REAL gyy_i_jm1_k = gyy[i_jm1_k];
+            const CCTK_REAL gyy_i_j_k = gyy[i_j_k];
+            const CCTK_REAL gyy_i_jp1_k = gyy[i_jp1_k];
+            const CCTK_REAL gyy_i_jm1_k = gyy[i_jm1_k];
 
-          const CCTK_REAL gzz_i_j_k = gzz[i_j_k];
-          const CCTK_REAL gzz_i_j_kp1 = gzz[i_j_kp1];
-          const CCTK_REAL gzz_i_j_km1 = gzz[i_j_km1];
-
-
-          // Step 3: Read in opacity gfs from main memory
-          const CCTK_REAL kappa_0_nue_i_j_k = kappa_0_nue[i_j_k];
-          const CCTK_REAL kappa_0_nue_ip1_j_k = kappa_0_nue[ip1_j_k];
-          const CCTK_REAL kappa_0_nue_im1_j_k = kappa_0_nue[im1_j_k];
-          const CCTK_REAL kappa_0_nue_i_jp1_k = kappa_0_nue[i_jp1_k];
-          const CCTK_REAL kappa_0_nue_i_jm1_k = kappa_0_nue[i_jm1_k];
-          const CCTK_REAL kappa_0_nue_i_j_kp1 = kappa_0_nue[i_j_kp1];
-          const CCTK_REAL kappa_0_nue_i_j_km1 = kappa_0_nue[i_j_km1];
-
-          const CCTK_REAL kappa_1_nue_i_j_k = kappa_1_nue[i_j_k];
-          const CCTK_REAL kappa_1_nue_ip1_j_k = kappa_1_nue[ip1_j_k];
-          const CCTK_REAL kappa_1_nue_im1_j_k = kappa_1_nue[im1_j_k];
-          const CCTK_REAL kappa_1_nue_i_jp1_k = kappa_1_nue[i_jp1_k];
-          const CCTK_REAL kappa_1_nue_i_jm1_k = kappa_1_nue[i_jm1_k];
-          const CCTK_REAL kappa_1_nue_i_j_kp1 = kappa_1_nue[i_j_kp1];
-          const CCTK_REAL kappa_1_nue_i_j_km1 = kappa_1_nue[i_j_km1];
-
-          const CCTK_REAL kappa_0_anue_i_j_k = kappa_0_anue[i_j_k];
-          const CCTK_REAL kappa_0_anue_ip1_j_k = kappa_0_anue[ip1_j_k];
-          const CCTK_REAL kappa_0_anue_im1_j_k = kappa_0_anue[im1_j_k];
-          const CCTK_REAL kappa_0_anue_i_jp1_k = kappa_0_anue[i_jp1_k];
-          const CCTK_REAL kappa_0_anue_i_jm1_k = kappa_0_anue[i_jm1_k];
-          const CCTK_REAL kappa_0_anue_i_j_kp1 = kappa_0_anue[i_j_kp1];
-          const CCTK_REAL kappa_0_anue_i_j_km1 = kappa_0_anue[i_j_km1];
-
-          const CCTK_REAL kappa_1_anue_i_j_k = kappa_1_anue[i_j_k];
-          const CCTK_REAL kappa_1_anue_ip1_j_k = kappa_1_anue[ip1_j_k];
-          const CCTK_REAL kappa_1_anue_im1_j_k = kappa_1_anue[im1_j_k];
-          const CCTK_REAL kappa_1_anue_i_jp1_k = kappa_1_anue[i_jp1_k];
-          const CCTK_REAL kappa_1_anue_i_jm1_k = kappa_1_anue[i_jm1_k];
-          const CCTK_REAL kappa_1_anue_i_j_kp1 = kappa_1_anue[i_j_kp1];
-          const CCTK_REAL kappa_1_anue_i_j_km1 = kappa_1_anue[i_j_km1];
-
-          const CCTK_REAL kappa_0_nux_i_j_k = kappa_0_nux[i_j_k];
-          const CCTK_REAL kappa_0_nux_ip1_j_k = kappa_0_nux[ip1_j_k];
-          const CCTK_REAL kappa_0_nux_im1_j_k = kappa_0_nux[im1_j_k];
-          const CCTK_REAL kappa_0_nux_i_jp1_k = kappa_0_nux[i_jp1_k];
-          const CCTK_REAL kappa_0_nux_i_jm1_k = kappa_0_nux[i_jm1_k];
-          const CCTK_REAL kappa_0_nux_i_j_kp1 = kappa_0_nux[i_j_kp1];
-          const CCTK_REAL kappa_0_nux_i_j_km1 = kappa_0_nux[i_j_km1];
-
-          const CCTK_REAL kappa_1_nux_i_j_k = kappa_1_nux[i_j_k];
-          const CCTK_REAL kappa_1_nux_ip1_j_k = kappa_1_nux[ip1_j_k];
-          const CCTK_REAL kappa_1_nux_im1_j_k = kappa_1_nux[im1_j_k];
-          const CCTK_REAL kappa_1_nux_i_jp1_k = kappa_1_nux[i_jp1_k];
-          const CCTK_REAL kappa_1_nux_i_jm1_k = kappa_1_nux[i_jm1_k];
-          const CCTK_REAL kappa_1_nux_i_j_kp1 = kappa_1_nux[i_j_kp1];
-          const CCTK_REAL kappa_1_nux_i_j_km1 = kappa_1_nux[i_j_km1];
+            const CCTK_REAL gzz_i_j_k = gzz[i_j_k];
+            const CCTK_REAL gzz_i_j_kp1 = gzz[i_j_kp1];
+            const CCTK_REAL gzz_i_j_km1 = gzz[i_j_km1];
 
 
-          // Step 4: Compute metric at cell faces
-          const CCTK_REAL gxx_iphalf_j_k = 0.5*(gxx_i_j_k + gxx_ip1_j_k);
-          const CCTK_REAL gxx_imhalf_j_k = 0.5*(gxx_i_j_k + gxx_im1_j_k);
+            // Step 3: Read in opacity gfs from main memory
+            const CCTK_REAL kappa_0_nue_i_j_k = kappa_0_nue[i_j_k];
+            const CCTK_REAL kappa_0_nue_ip1_j_k = kappa_0_nue[ip1_j_k];
+            const CCTK_REAL kappa_0_nue_im1_j_k = kappa_0_nue[im1_j_k];
+            const CCTK_REAL kappa_0_nue_i_jp1_k = kappa_0_nue[i_jp1_k];
+            const CCTK_REAL kappa_0_nue_i_jm1_k = kappa_0_nue[i_jm1_k];
+            const CCTK_REAL kappa_0_nue_i_j_kp1 = kappa_0_nue[i_j_kp1];
+            const CCTK_REAL kappa_0_nue_i_j_km1 = kappa_0_nue[i_j_km1];
 
-          const CCTK_REAL gyy_i_jphalf_k = 0.5*(gyy_i_j_k + gyy_i_jp1_k);
-          const CCTK_REAL gyy_i_jmhalf_k = 0.5*(gyy_i_j_k + gyy_i_jm1_k);
+            const CCTK_REAL kappa_1_nue_i_j_k = kappa_1_nue[i_j_k];
+            const CCTK_REAL kappa_1_nue_ip1_j_k = kappa_1_nue[ip1_j_k];
+            const CCTK_REAL kappa_1_nue_im1_j_k = kappa_1_nue[im1_j_k];
+            const CCTK_REAL kappa_1_nue_i_jp1_k = kappa_1_nue[i_jp1_k];
+            const CCTK_REAL kappa_1_nue_i_jm1_k = kappa_1_nue[i_jm1_k];
+            const CCTK_REAL kappa_1_nue_i_j_kp1 = kappa_1_nue[i_j_kp1];
+            const CCTK_REAL kappa_1_nue_i_j_km1 = kappa_1_nue[i_j_km1];
 
-          const CCTK_REAL gzz_i_j_kphalf = 0.5*(gzz_i_j_k + gzz_i_j_kp1);
-          const CCTK_REAL gzz_i_j_kmhalf = 0.5*(gzz_i_j_k + gzz_i_j_km1);
+            const CCTK_REAL kappa_0_anue_i_j_k = kappa_0_anue[i_j_k];
+            const CCTK_REAL kappa_0_anue_ip1_j_k = kappa_0_anue[ip1_j_k];
+            const CCTK_REAL kappa_0_anue_im1_j_k = kappa_0_anue[im1_j_k];
+            const CCTK_REAL kappa_0_anue_i_jp1_k = kappa_0_anue[i_jp1_k];
+            const CCTK_REAL kappa_0_anue_i_jm1_k = kappa_0_anue[i_jm1_k];
+            const CCTK_REAL kappa_0_anue_i_j_kp1 = kappa_0_anue[i_j_kp1];
+            const CCTK_REAL kappa_0_anue_i_j_km1 = kappa_0_anue[i_j_km1];
 
+            const CCTK_REAL kappa_1_anue_i_j_k = kappa_1_anue[i_j_k];
+            const CCTK_REAL kappa_1_anue_ip1_j_k = kappa_1_anue[ip1_j_k];
+            const CCTK_REAL kappa_1_anue_im1_j_k = kappa_1_anue[im1_j_k];
+            const CCTK_REAL kappa_1_anue_i_jp1_k = kappa_1_anue[i_jp1_k];
+            const CCTK_REAL kappa_1_anue_i_jm1_k = kappa_1_anue[i_jm1_k];
+            const CCTK_REAL kappa_1_anue_i_j_kp1 = kappa_1_anue[i_j_kp1];
+            const CCTK_REAL kappa_1_anue_i_j_km1 = kappa_1_anue[i_j_km1];
 
-          // Step 5: Compute ds^{i} = sqrt(gamma_{ii}dx^{i}dx^{i})
-          const CCTK_REAL ds_iphalf_j_k = sqrt(dx*dx*gxx_iphalf_j_k);
-          const CCTK_REAL ds_imhalf_j_k = sqrt(dx*dx*gxx_imhalf_j_k);
-          const CCTK_REAL ds_i_jphalf_k = sqrt(dy*dy*gyy_i_jphalf_k);
-          const CCTK_REAL ds_i_jmhalf_k = sqrt(dy*dy*gyy_i_jmhalf_k);
-          const CCTK_REAL ds_i_j_kphalf = sqrt(dz*dz*gzz_i_j_kphalf);
-          const CCTK_REAL ds_i_j_kmhalf = sqrt(dz*dz*gzz_i_j_kmhalf);
+            const CCTK_REAL kappa_0_nux_i_j_k = kappa_0_nux[i_j_k];
+            const CCTK_REAL kappa_0_nux_ip1_j_k = kappa_0_nux[ip1_j_k];
+            const CCTK_REAL kappa_0_nux_im1_j_k = kappa_0_nux[im1_j_k];
+            const CCTK_REAL kappa_0_nux_i_jp1_k = kappa_0_nux[i_jp1_k];
+            const CCTK_REAL kappa_0_nux_i_jm1_k = kappa_0_nux[i_jm1_k];
+            const CCTK_REAL kappa_0_nux_i_j_kp1 = kappa_0_nux[i_j_kp1];
+            const CCTK_REAL kappa_0_nux_i_j_km1 = kappa_0_nux[i_j_km1];
 
-          // Step 6: Compute opacities at cell faces
-          const CCTK_REAL kappa_0_nue_iphalf_j_k = 0.5*(kappa_0_nue_i_j_k + kappa_0_nue_ip1_j_k);
-          const CCTK_REAL kappa_0_nue_imhalf_j_k = 0.5*(kappa_0_nue_i_j_k + kappa_0_nue_im1_j_k);
-          const CCTK_REAL kappa_0_nue_i_jphalf_k = 0.5*(kappa_0_nue_i_j_k + kappa_0_nue_i_jp1_k);
-          const CCTK_REAL kappa_0_nue_i_jmhalf_k = 0.5*(kappa_0_nue_i_j_k + kappa_0_nue_i_jm1_k);
-          const CCTK_REAL kappa_0_nue_i_j_kphalf = 0.5*(kappa_0_nue_i_j_k + kappa_0_nue_i_j_kp1);
-          const CCTK_REAL kappa_0_nue_i_j_kmhalf = 0.5*(kappa_0_nue_i_j_k + kappa_0_nue_i_j_km1);
-
-          const CCTK_REAL kappa_1_nue_iphalf_j_k = 0.5*(kappa_1_nue_i_j_k + kappa_1_nue_ip1_j_k);
-          const CCTK_REAL kappa_1_nue_imhalf_j_k = 0.5*(kappa_1_nue_i_j_k + kappa_1_nue_im1_j_k);
-          const CCTK_REAL kappa_1_nue_i_jphalf_k = 0.5*(kappa_1_nue_i_j_k + kappa_1_nue_i_jp1_k);
-          const CCTK_REAL kappa_1_nue_i_jmhalf_k = 0.5*(kappa_1_nue_i_j_k + kappa_1_nue_i_jm1_k);
-          const CCTK_REAL kappa_1_nue_i_j_kphalf = 0.5*(kappa_1_nue_i_j_k + kappa_1_nue_i_j_kp1);
-          const CCTK_REAL kappa_1_nue_i_j_kmhalf = 0.5*(kappa_1_nue_i_j_k + kappa_1_nue_i_j_km1);
-
-          const CCTK_REAL kappa_0_anue_iphalf_j_k = 0.5*(kappa_0_anue_i_j_k + kappa_0_anue_ip1_j_k);
-          const CCTK_REAL kappa_0_anue_imhalf_j_k = 0.5*(kappa_0_anue_i_j_k + kappa_0_anue_im1_j_k);
-          const CCTK_REAL kappa_0_anue_i_jphalf_k = 0.5*(kappa_0_anue_i_j_k + kappa_0_anue_i_jp1_k);
-          const CCTK_REAL kappa_0_anue_i_jmhalf_k = 0.5*(kappa_0_anue_i_j_k + kappa_0_anue_i_jm1_k);
-          const CCTK_REAL kappa_0_anue_i_j_kphalf = 0.5*(kappa_0_anue_i_j_k + kappa_0_anue_i_j_kp1);
-          const CCTK_REAL kappa_0_anue_i_j_kmhalf = 0.5*(kappa_0_anue_i_j_k + kappa_0_anue_i_j_km1);
-
-          const CCTK_REAL kappa_1_anue_iphalf_j_k = 0.5*(kappa_1_anue_i_j_k + kappa_1_anue_ip1_j_k);
-          const CCTK_REAL kappa_1_anue_imhalf_j_k = 0.5*(kappa_1_anue_i_j_k + kappa_1_anue_im1_j_k);
-          const CCTK_REAL kappa_1_anue_i_jphalf_k = 0.5*(kappa_1_anue_i_j_k + kappa_1_anue_i_jp1_k);
-          const CCTK_REAL kappa_1_anue_i_jmhalf_k = 0.5*(kappa_1_anue_i_j_k + kappa_1_anue_i_jm1_k);
-          const CCTK_REAL kappa_1_anue_i_j_kphalf = 0.5*(kappa_1_anue_i_j_k + kappa_1_anue_i_j_kp1);
-          const CCTK_REAL kappa_1_anue_i_j_kmhalf = 0.5*(kappa_1_anue_i_j_k + kappa_1_anue_i_j_km1);
-
-          const CCTK_REAL kappa_0_nux_iphalf_j_k = 0.5*(kappa_0_nux_i_j_k + kappa_0_nux_ip1_j_k);
-          const CCTK_REAL kappa_0_nux_imhalf_j_k = 0.5*(kappa_0_nux_i_j_k + kappa_0_nux_im1_j_k);
-          const CCTK_REAL kappa_0_nux_i_jphalf_k = 0.5*(kappa_0_nux_i_j_k + kappa_0_nux_i_jp1_k);
-          const CCTK_REAL kappa_0_nux_i_jmhalf_k = 0.5*(kappa_0_nux_i_j_k + kappa_0_nux_i_jm1_k);
-          const CCTK_REAL kappa_0_nux_i_j_kphalf = 0.5*(kappa_0_nux_i_j_k + kappa_0_nux_i_j_kp1);
-          const CCTK_REAL kappa_0_nux_i_j_kmhalf = 0.5*(kappa_0_nux_i_j_k + kappa_0_nux_i_j_km1);
-
-          const CCTK_REAL kappa_1_nux_iphalf_j_k = 0.5*(kappa_1_nux_i_j_k + kappa_1_nux_ip1_j_k);
-          const CCTK_REAL kappa_1_nux_imhalf_j_k = 0.5*(kappa_1_nux_i_j_k + kappa_1_nux_im1_j_k);
-          const CCTK_REAL kappa_1_nux_i_jphalf_k = 0.5*(kappa_1_nux_i_j_k + kappa_1_nux_i_jp1_k);
-          const CCTK_REAL kappa_1_nux_i_jmhalf_k = 0.5*(kappa_1_nux_i_j_k + kappa_1_nux_i_jm1_k);
-          const CCTK_REAL kappa_1_nux_i_j_kphalf = 0.5*(kappa_1_nux_i_j_k + kappa_1_nux_i_j_kp1);
-          const CCTK_REAL kappa_1_nux_i_j_kmhalf = 0.5*(kappa_1_nux_i_j_k + kappa_1_nux_i_j_km1);
+            const CCTK_REAL kappa_1_nux_i_j_k = kappa_1_nux[i_j_k];
+            const CCTK_REAL kappa_1_nux_ip1_j_k = kappa_1_nux[ip1_j_k];
+            const CCTK_REAL kappa_1_nux_im1_j_k = kappa_1_nux[im1_j_k];
+            const CCTK_REAL kappa_1_nux_i_jp1_k = kappa_1_nux[i_jp1_k];
+            const CCTK_REAL kappa_1_nux_i_jm1_k = kappa_1_nux[i_jm1_k];
+            const CCTK_REAL kappa_1_nux_i_j_kp1 = kappa_1_nux[i_j_kp1];
+            const CCTK_REAL kappa_1_nux_i_j_km1 = kappa_1_nux[i_j_km1];
 
 
-          // Step 7: Compute optical depth at neighboring points
-          const CCTK_REAL tau_0_nue_ip1_j_k = tau_0_nue_p[ip1_j_k] + ds_iphalf_j_k*kappa_0_nue_iphalf_j_k;
-          const CCTK_REAL tau_0_nue_im1_j_k = tau_0_nue_p[im1_j_k] + ds_imhalf_j_k*kappa_0_nue_imhalf_j_k;
-          const CCTK_REAL tau_0_nue_i_jp1_k = tau_0_nue_p[i_jp1_k] + ds_i_jphalf_k*kappa_0_nue_i_jphalf_k;
-          const CCTK_REAL tau_0_nue_i_jm1_k = tau_0_nue_p[i_jm1_k] + ds_i_jmhalf_k*kappa_0_nue_i_jmhalf_k;
-          const CCTK_REAL tau_0_nue_i_j_kp1 = tau_0_nue_p[i_j_kp1] + ds_i_j_kphalf*kappa_0_nue_i_j_kphalf;
-          const CCTK_REAL tau_0_nue_i_j_km1 = tau_0_nue_p[i_j_km1] + ds_i_j_kmhalf*kappa_0_nue_i_j_kmhalf;
+            // Step 4: Compute metric at cell faces
+            const CCTK_REAL gxx_iphalf_j_k = 0.5*(gxx_i_j_k + gxx_ip1_j_k);
+            const CCTK_REAL gxx_imhalf_j_k = 0.5*(gxx_i_j_k + gxx_im1_j_k);
 
-          const CCTK_REAL tau_1_nue_ip1_j_k = tau_1_nue_p[ip1_j_k] + ds_iphalf_j_k*kappa_1_nue_iphalf_j_k;
-          const CCTK_REAL tau_1_nue_im1_j_k = tau_1_nue_p[im1_j_k] + ds_imhalf_j_k*kappa_1_nue_imhalf_j_k;
-          const CCTK_REAL tau_1_nue_i_jp1_k = tau_1_nue_p[i_jp1_k] + ds_i_jphalf_k*kappa_1_nue_i_jphalf_k;
-          const CCTK_REAL tau_1_nue_i_jm1_k = tau_1_nue_p[i_jm1_k] + ds_i_jmhalf_k*kappa_1_nue_i_jmhalf_k;
-          const CCTK_REAL tau_1_nue_i_j_kp1 = tau_1_nue_p[i_j_kp1] + ds_i_j_kphalf*kappa_1_nue_i_j_kphalf;
-          const CCTK_REAL tau_1_nue_i_j_km1 = tau_1_nue_p[i_j_km1] + ds_i_j_kmhalf*kappa_1_nue_i_j_kmhalf;
+            const CCTK_REAL gyy_i_jphalf_k = 0.5*(gyy_i_j_k + gyy_i_jp1_k);
+            const CCTK_REAL gyy_i_jmhalf_k = 0.5*(gyy_i_j_k + gyy_i_jm1_k);
 
-          const CCTK_REAL tau_0_anue_ip1_j_k = tau_0_anue_p[ip1_j_k] + ds_iphalf_j_k*kappa_0_anue_iphalf_j_k;
-          const CCTK_REAL tau_0_anue_im1_j_k = tau_0_anue_p[im1_j_k] + ds_imhalf_j_k*kappa_0_anue_imhalf_j_k;
-          const CCTK_REAL tau_0_anue_i_jp1_k = tau_0_anue_p[i_jp1_k] + ds_i_jphalf_k*kappa_0_anue_i_jphalf_k;
-          const CCTK_REAL tau_0_anue_i_jm1_k = tau_0_anue_p[i_jm1_k] + ds_i_jmhalf_k*kappa_0_anue_i_jmhalf_k;
-          const CCTK_REAL tau_0_anue_i_j_kp1 = tau_0_anue_p[i_j_kp1] + ds_i_j_kphalf*kappa_0_anue_i_j_kphalf;
-          const CCTK_REAL tau_0_anue_i_j_km1 = tau_0_anue_p[i_j_km1] + ds_i_j_kmhalf*kappa_0_anue_i_j_kmhalf;
-
-          const CCTK_REAL tau_1_anue_ip1_j_k = tau_1_anue_p[ip1_j_k] + ds_iphalf_j_k*kappa_1_anue_iphalf_j_k;
-          const CCTK_REAL tau_1_anue_im1_j_k = tau_1_anue_p[im1_j_k] + ds_imhalf_j_k*kappa_1_anue_imhalf_j_k;
-          const CCTK_REAL tau_1_anue_i_jp1_k = tau_1_anue_p[i_jp1_k] + ds_i_jphalf_k*kappa_1_anue_i_jphalf_k;
-          const CCTK_REAL tau_1_anue_i_jm1_k = tau_1_anue_p[i_jm1_k] + ds_i_jmhalf_k*kappa_1_anue_i_jmhalf_k;
-          const CCTK_REAL tau_1_anue_i_j_kp1 = tau_1_anue_p[i_j_kp1] + ds_i_j_kphalf*kappa_1_anue_i_j_kphalf;
-          const CCTK_REAL tau_1_anue_i_j_km1 = tau_1_anue_p[i_j_km1] + ds_i_j_kmhalf*kappa_1_anue_i_j_kmhalf;
-
-          const CCTK_REAL tau_0_nux_ip1_j_k = tau_0_nux_p[ip1_j_k] + ds_iphalf_j_k*kappa_0_nux_iphalf_j_k;
-          const CCTK_REAL tau_0_nux_im1_j_k = tau_0_nux_p[im1_j_k] + ds_imhalf_j_k*kappa_0_nux_imhalf_j_k;
-          const CCTK_REAL tau_0_nux_i_jp1_k = tau_0_nux_p[i_jp1_k] + ds_i_jphalf_k*kappa_0_nux_i_jphalf_k;
-          const CCTK_REAL tau_0_nux_i_jm1_k = tau_0_nux_p[i_jm1_k] + ds_i_jmhalf_k*kappa_0_nux_i_jmhalf_k;
-          const CCTK_REAL tau_0_nux_i_j_kp1 = tau_0_nux_p[i_j_kp1] + ds_i_j_kphalf*kappa_0_nux_i_j_kphalf;
-          const CCTK_REAL tau_0_nux_i_j_km1 = tau_0_nux_p[i_j_km1] + ds_i_j_kmhalf*kappa_0_nux_i_j_kmhalf;
-
-          const CCTK_REAL tau_1_nux_ip1_j_k = tau_1_nux_p[ip1_j_k] + ds_iphalf_j_k*kappa_1_nux_iphalf_j_k;
-          const CCTK_REAL tau_1_nux_im1_j_k = tau_1_nux_p[im1_j_k] + ds_imhalf_j_k*kappa_1_nux_imhalf_j_k;
-          const CCTK_REAL tau_1_nux_i_jp1_k = tau_1_nux_p[i_jp1_k] + ds_i_jphalf_k*kappa_1_nux_i_jphalf_k;
-          const CCTK_REAL tau_1_nux_i_jm1_k = tau_1_nux_p[i_jm1_k] + ds_i_jmhalf_k*kappa_1_nux_i_jmhalf_k;
-          const CCTK_REAL tau_1_nux_i_j_kp1 = tau_1_nux_p[i_j_kp1] + ds_i_j_kphalf*kappa_1_nux_i_j_kphalf;
-          const CCTK_REAL tau_1_nux_i_j_km1 = tau_1_nux_p[i_j_km1] + ds_i_j_kmhalf*kappa_1_nux_i_j_kmhalf;
+            const CCTK_REAL gzz_i_j_kphalf = 0.5*(gzz_i_j_k + gzz_i_j_kp1);
+            const CCTK_REAL gzz_i_j_kmhalf = 0.5*(gzz_i_j_k + gzz_i_j_km1);
 
 
-          // Step 8: Select path of least resistance
-          const CCTK_REAL new_tau_0_nue_i_j_k = MIN(MIN(MIN(MIN(MIN(tau_0_nue_ip1_j_k,tau_0_nue_im1_j_k),tau_0_nue_i_jp1_k),tau_0_nue_i_jm1_k),tau_0_nue_i_j_kp1),tau_0_nue_i_j_km1);
-          const CCTK_REAL new_tau_1_nue_i_j_k = MIN(MIN(MIN(MIN(MIN(tau_1_nue_ip1_j_k,tau_1_nue_im1_j_k),tau_1_nue_i_jp1_k),tau_1_nue_i_jm1_k),tau_1_nue_i_j_kp1),tau_1_nue_i_j_km1);
-          const CCTK_REAL new_tau_0_anue_i_j_k = MIN(MIN(MIN(MIN(MIN(tau_0_anue_ip1_j_k,tau_0_anue_im1_j_k),tau_0_anue_i_jp1_k),tau_0_anue_i_jm1_k),tau_0_anue_i_j_kp1),tau_0_anue_i_j_km1);
-          const CCTK_REAL new_tau_1_anue_i_j_k = MIN(MIN(MIN(MIN(MIN(tau_1_anue_ip1_j_k,tau_1_anue_im1_j_k),tau_1_anue_i_jp1_k),tau_1_anue_i_jm1_k),tau_1_anue_i_j_kp1),tau_1_anue_i_j_km1);
-          const CCTK_REAL new_tau_0_nux_i_j_k = MIN(MIN(MIN(MIN(MIN(tau_0_nux_ip1_j_k,tau_0_nux_im1_j_k),tau_0_nux_i_jp1_k),tau_0_nux_i_jm1_k),tau_0_nux_i_j_kp1),tau_0_nux_i_j_km1);
-          const CCTK_REAL new_tau_1_nux_i_j_k = MIN(MIN(MIN(MIN(MIN(tau_1_nux_ip1_j_k,tau_1_nux_im1_j_k),tau_1_nux_i_jp1_k),tau_1_nux_i_jm1_k),tau_1_nux_i_j_kp1),tau_1_nux_i_j_km1);
+            // Step 5: Compute ds^{i} = sqrt(gamma_{ii}dx^{i}dx^{i})
+            const CCTK_REAL ds_iphalf_j_k = sqrt(dx*dx*gxx_iphalf_j_k);
+            const CCTK_REAL ds_imhalf_j_k = sqrt(dx*dx*gxx_imhalf_j_k);
+            const CCTK_REAL ds_i_jphalf_k = sqrt(dy*dy*gyy_i_jphalf_k);
+            const CCTK_REAL ds_i_jmhalf_k = sqrt(dy*dy*gyy_i_jmhalf_k);
+            const CCTK_REAL ds_i_j_kphalf = sqrt(dz*dz*gzz_i_j_kphalf);
+            const CCTK_REAL ds_i_j_kmhalf = sqrt(dz*dz*gzz_i_j_kmhalf);
 
-          // Step 9: Write results to main memory
-          tau_0_nue[i_j_k] = new_tau_0_nue_i_j_k;
-          tau_1_nue[i_j_k] = new_tau_1_nue_i_j_k;
-          tau_0_anue[i_j_k] = new_tau_0_anue_i_j_k;
-          tau_1_anue[i_j_k] = new_tau_1_anue_i_j_k;
-          tau_0_nux[i_j_k] = new_tau_0_nux_i_j_k;
-          tau_1_nux[i_j_k] = new_tau_1_nux_i_j_k;
+            // Step 6: Compute opacities at cell faces
+            const CCTK_REAL kappa_0_nue_iphalf_j_k = 0.5*(kappa_0_nue_i_j_k + kappa_0_nue_ip1_j_k);
+            const CCTK_REAL kappa_0_nue_imhalf_j_k = 0.5*(kappa_0_nue_i_j_k + kappa_0_nue_im1_j_k);
+            const CCTK_REAL kappa_0_nue_i_jphalf_k = 0.5*(kappa_0_nue_i_j_k + kappa_0_nue_i_jp1_k);
+            const CCTK_REAL kappa_0_nue_i_jmhalf_k = 0.5*(kappa_0_nue_i_j_k + kappa_0_nue_i_jm1_k);
+            const CCTK_REAL kappa_0_nue_i_j_kphalf = 0.5*(kappa_0_nue_i_j_k + kappa_0_nue_i_j_kp1);
+            const CCTK_REAL kappa_0_nue_i_j_kmhalf = 0.5*(kappa_0_nue_i_j_k + kappa_0_nue_i_j_km1);
+
+            const CCTK_REAL kappa_1_nue_iphalf_j_k = 0.5*(kappa_1_nue_i_j_k + kappa_1_nue_ip1_j_k);
+            const CCTK_REAL kappa_1_nue_imhalf_j_k = 0.5*(kappa_1_nue_i_j_k + kappa_1_nue_im1_j_k);
+            const CCTK_REAL kappa_1_nue_i_jphalf_k = 0.5*(kappa_1_nue_i_j_k + kappa_1_nue_i_jp1_k);
+            const CCTK_REAL kappa_1_nue_i_jmhalf_k = 0.5*(kappa_1_nue_i_j_k + kappa_1_nue_i_jm1_k);
+            const CCTK_REAL kappa_1_nue_i_j_kphalf = 0.5*(kappa_1_nue_i_j_k + kappa_1_nue_i_j_kp1);
+            const CCTK_REAL kappa_1_nue_i_j_kmhalf = 0.5*(kappa_1_nue_i_j_k + kappa_1_nue_i_j_km1);
+
+            const CCTK_REAL kappa_0_anue_iphalf_j_k = 0.5*(kappa_0_anue_i_j_k + kappa_0_anue_ip1_j_k);
+            const CCTK_REAL kappa_0_anue_imhalf_j_k = 0.5*(kappa_0_anue_i_j_k + kappa_0_anue_im1_j_k);
+            const CCTK_REAL kappa_0_anue_i_jphalf_k = 0.5*(kappa_0_anue_i_j_k + kappa_0_anue_i_jp1_k);
+            const CCTK_REAL kappa_0_anue_i_jmhalf_k = 0.5*(kappa_0_anue_i_j_k + kappa_0_anue_i_jm1_k);
+            const CCTK_REAL kappa_0_anue_i_j_kphalf = 0.5*(kappa_0_anue_i_j_k + kappa_0_anue_i_j_kp1);
+            const CCTK_REAL kappa_0_anue_i_j_kmhalf = 0.5*(kappa_0_anue_i_j_k + kappa_0_anue_i_j_km1);
+
+            const CCTK_REAL kappa_1_anue_iphalf_j_k = 0.5*(kappa_1_anue_i_j_k + kappa_1_anue_ip1_j_k);
+            const CCTK_REAL kappa_1_anue_imhalf_j_k = 0.5*(kappa_1_anue_i_j_k + kappa_1_anue_im1_j_k);
+            const CCTK_REAL kappa_1_anue_i_jphalf_k = 0.5*(kappa_1_anue_i_j_k + kappa_1_anue_i_jp1_k);
+            const CCTK_REAL kappa_1_anue_i_jmhalf_k = 0.5*(kappa_1_anue_i_j_k + kappa_1_anue_i_jm1_k);
+            const CCTK_REAL kappa_1_anue_i_j_kphalf = 0.5*(kappa_1_anue_i_j_k + kappa_1_anue_i_j_kp1);
+            const CCTK_REAL kappa_1_anue_i_j_kmhalf = 0.5*(kappa_1_anue_i_j_k + kappa_1_anue_i_j_km1);
+
+            const CCTK_REAL kappa_0_nux_iphalf_j_k = 0.5*(kappa_0_nux_i_j_k + kappa_0_nux_ip1_j_k);
+            const CCTK_REAL kappa_0_nux_imhalf_j_k = 0.5*(kappa_0_nux_i_j_k + kappa_0_nux_im1_j_k);
+            const CCTK_REAL kappa_0_nux_i_jphalf_k = 0.5*(kappa_0_nux_i_j_k + kappa_0_nux_i_jp1_k);
+            const CCTK_REAL kappa_0_nux_i_jmhalf_k = 0.5*(kappa_0_nux_i_j_k + kappa_0_nux_i_jm1_k);
+            const CCTK_REAL kappa_0_nux_i_j_kphalf = 0.5*(kappa_0_nux_i_j_k + kappa_0_nux_i_j_kp1);
+            const CCTK_REAL kappa_0_nux_i_j_kmhalf = 0.5*(kappa_0_nux_i_j_k + kappa_0_nux_i_j_km1);
+
+            const CCTK_REAL kappa_1_nux_iphalf_j_k = 0.5*(kappa_1_nux_i_j_k + kappa_1_nux_ip1_j_k);
+            const CCTK_REAL kappa_1_nux_imhalf_j_k = 0.5*(kappa_1_nux_i_j_k + kappa_1_nux_im1_j_k);
+            const CCTK_REAL kappa_1_nux_i_jphalf_k = 0.5*(kappa_1_nux_i_j_k + kappa_1_nux_i_jp1_k);
+            const CCTK_REAL kappa_1_nux_i_jmhalf_k = 0.5*(kappa_1_nux_i_j_k + kappa_1_nux_i_jm1_k);
+            const CCTK_REAL kappa_1_nux_i_j_kphalf = 0.5*(kappa_1_nux_i_j_k + kappa_1_nux_i_j_kp1);
+            const CCTK_REAL kappa_1_nux_i_j_kmhalf = 0.5*(kappa_1_nux_i_j_k + kappa_1_nux_i_j_km1);
+
+
+            // Step 7: Compute optical depth at neighboring points
+            const CCTK_REAL tau_0_nue_ip1_j_k = tau_0_nue_p[ip1_j_k] + ds_iphalf_j_k*kappa_0_nue_iphalf_j_k;
+            const CCTK_REAL tau_0_nue_im1_j_k = tau_0_nue_p[im1_j_k] + ds_imhalf_j_k*kappa_0_nue_imhalf_j_k;
+            const CCTK_REAL tau_0_nue_i_jp1_k = tau_0_nue_p[i_jp1_k] + ds_i_jphalf_k*kappa_0_nue_i_jphalf_k;
+            const CCTK_REAL tau_0_nue_i_jm1_k = tau_0_nue_p[i_jm1_k] + ds_i_jmhalf_k*kappa_0_nue_i_jmhalf_k;
+            const CCTK_REAL tau_0_nue_i_j_kp1 = tau_0_nue_p[i_j_kp1] + ds_i_j_kphalf*kappa_0_nue_i_j_kphalf;
+            const CCTK_REAL tau_0_nue_i_j_km1 = tau_0_nue_p[i_j_km1] + ds_i_j_kmhalf*kappa_0_nue_i_j_kmhalf;
+
+            const CCTK_REAL tau_1_nue_ip1_j_k = tau_1_nue_p[ip1_j_k] + ds_iphalf_j_k*kappa_1_nue_iphalf_j_k;
+            const CCTK_REAL tau_1_nue_im1_j_k = tau_1_nue_p[im1_j_k] + ds_imhalf_j_k*kappa_1_nue_imhalf_j_k;
+            const CCTK_REAL tau_1_nue_i_jp1_k = tau_1_nue_p[i_jp1_k] + ds_i_jphalf_k*kappa_1_nue_i_jphalf_k;
+            const CCTK_REAL tau_1_nue_i_jm1_k = tau_1_nue_p[i_jm1_k] + ds_i_jmhalf_k*kappa_1_nue_i_jmhalf_k;
+            const CCTK_REAL tau_1_nue_i_j_kp1 = tau_1_nue_p[i_j_kp1] + ds_i_j_kphalf*kappa_1_nue_i_j_kphalf;
+            const CCTK_REAL tau_1_nue_i_j_km1 = tau_1_nue_p[i_j_km1] + ds_i_j_kmhalf*kappa_1_nue_i_j_kmhalf;
+
+            const CCTK_REAL tau_0_anue_ip1_j_k = tau_0_anue_p[ip1_j_k] + ds_iphalf_j_k*kappa_0_anue_iphalf_j_k;
+            const CCTK_REAL tau_0_anue_im1_j_k = tau_0_anue_p[im1_j_k] + ds_imhalf_j_k*kappa_0_anue_imhalf_j_k;
+            const CCTK_REAL tau_0_anue_i_jp1_k = tau_0_anue_p[i_jp1_k] + ds_i_jphalf_k*kappa_0_anue_i_jphalf_k;
+            const CCTK_REAL tau_0_anue_i_jm1_k = tau_0_anue_p[i_jm1_k] + ds_i_jmhalf_k*kappa_0_anue_i_jmhalf_k;
+            const CCTK_REAL tau_0_anue_i_j_kp1 = tau_0_anue_p[i_j_kp1] + ds_i_j_kphalf*kappa_0_anue_i_j_kphalf;
+            const CCTK_REAL tau_0_anue_i_j_km1 = tau_0_anue_p[i_j_km1] + ds_i_j_kmhalf*kappa_0_anue_i_j_kmhalf;
+
+            const CCTK_REAL tau_1_anue_ip1_j_k = tau_1_anue_p[ip1_j_k] + ds_iphalf_j_k*kappa_1_anue_iphalf_j_k;
+            const CCTK_REAL tau_1_anue_im1_j_k = tau_1_anue_p[im1_j_k] + ds_imhalf_j_k*kappa_1_anue_imhalf_j_k;
+            const CCTK_REAL tau_1_anue_i_jp1_k = tau_1_anue_p[i_jp1_k] + ds_i_jphalf_k*kappa_1_anue_i_jphalf_k;
+            const CCTK_REAL tau_1_anue_i_jm1_k = tau_1_anue_p[i_jm1_k] + ds_i_jmhalf_k*kappa_1_anue_i_jmhalf_k;
+            const CCTK_REAL tau_1_anue_i_j_kp1 = tau_1_anue_p[i_j_kp1] + ds_i_j_kphalf*kappa_1_anue_i_j_kphalf;
+            const CCTK_REAL tau_1_anue_i_j_km1 = tau_1_anue_p[i_j_km1] + ds_i_j_kmhalf*kappa_1_anue_i_j_kmhalf;
+
+            const CCTK_REAL tau_0_nux_ip1_j_k = tau_0_nux_p[ip1_j_k] + ds_iphalf_j_k*kappa_0_nux_iphalf_j_k;
+            const CCTK_REAL tau_0_nux_im1_j_k = tau_0_nux_p[im1_j_k] + ds_imhalf_j_k*kappa_0_nux_imhalf_j_k;
+            const CCTK_REAL tau_0_nux_i_jp1_k = tau_0_nux_p[i_jp1_k] + ds_i_jphalf_k*kappa_0_nux_i_jphalf_k;
+            const CCTK_REAL tau_0_nux_i_jm1_k = tau_0_nux_p[i_jm1_k] + ds_i_jmhalf_k*kappa_0_nux_i_jmhalf_k;
+            const CCTK_REAL tau_0_nux_i_j_kp1 = tau_0_nux_p[i_j_kp1] + ds_i_j_kphalf*kappa_0_nux_i_j_kphalf;
+            const CCTK_REAL tau_0_nux_i_j_km1 = tau_0_nux_p[i_j_km1] + ds_i_j_kmhalf*kappa_0_nux_i_j_kmhalf;
+
+            const CCTK_REAL tau_1_nux_ip1_j_k = tau_1_nux_p[ip1_j_k] + ds_iphalf_j_k*kappa_1_nux_iphalf_j_k;
+            const CCTK_REAL tau_1_nux_im1_j_k = tau_1_nux_p[im1_j_k] + ds_imhalf_j_k*kappa_1_nux_imhalf_j_k;
+            const CCTK_REAL tau_1_nux_i_jp1_k = tau_1_nux_p[i_jp1_k] + ds_i_jphalf_k*kappa_1_nux_i_jphalf_k;
+            const CCTK_REAL tau_1_nux_i_jm1_k = tau_1_nux_p[i_jm1_k] + ds_i_jmhalf_k*kappa_1_nux_i_jmhalf_k;
+            const CCTK_REAL tau_1_nux_i_j_kp1 = tau_1_nux_p[i_j_kp1] + ds_i_j_kphalf*kappa_1_nux_i_j_kphalf;
+            const CCTK_REAL tau_1_nux_i_j_km1 = tau_1_nux_p[i_j_km1] + ds_i_j_kmhalf*kappa_1_nux_i_j_kmhalf;
+
+
+            // Step 8: Select path of least resistance
+            const CCTK_REAL new_tau_0_nue_i_j_k = MIN(MIN(MIN(MIN(MIN(tau_0_nue_ip1_j_k,tau_0_nue_im1_j_k),tau_0_nue_i_jp1_k),tau_0_nue_i_jm1_k),tau_0_nue_i_j_kp1),tau_0_nue_i_j_km1);
+            const CCTK_REAL new_tau_1_nue_i_j_k = MIN(MIN(MIN(MIN(MIN(tau_1_nue_ip1_j_k,tau_1_nue_im1_j_k),tau_1_nue_i_jp1_k),tau_1_nue_i_jm1_k),tau_1_nue_i_j_kp1),tau_1_nue_i_j_km1);
+            const CCTK_REAL new_tau_0_anue_i_j_k = MIN(MIN(MIN(MIN(MIN(tau_0_anue_ip1_j_k,tau_0_anue_im1_j_k),tau_0_anue_i_jp1_k),tau_0_anue_i_jm1_k),tau_0_anue_i_j_kp1),tau_0_anue_i_j_km1);
+            const CCTK_REAL new_tau_1_anue_i_j_k = MIN(MIN(MIN(MIN(MIN(tau_1_anue_ip1_j_k,tau_1_anue_im1_j_k),tau_1_anue_i_jp1_k),tau_1_anue_i_jm1_k),tau_1_anue_i_j_kp1),tau_1_anue_i_j_km1);
+            const CCTK_REAL new_tau_0_nux_i_j_k = MIN(MIN(MIN(MIN(MIN(tau_0_nux_ip1_j_k,tau_0_nux_im1_j_k),tau_0_nux_i_jp1_k),tau_0_nux_i_jm1_k),tau_0_nux_i_j_kp1),tau_0_nux_i_j_km1);
+            const CCTK_REAL new_tau_1_nux_i_j_k = MIN(MIN(MIN(MIN(MIN(tau_1_nux_ip1_j_k,tau_1_nux_im1_j_k),tau_1_nux_i_jp1_k),tau_1_nux_i_jm1_k),tau_1_nux_i_j_kp1),tau_1_nux_i_j_km1);
+
+            // Step 9: Write results to main memory
+            tau_0_nue[i_j_k] = new_tau_0_nue_i_j_k;
+            tau_1_nue[i_j_k] = new_tau_1_nue_i_j_k;
+            tau_0_anue[i_j_k] = new_tau_0_anue_i_j_k;
+            tau_1_anue[i_j_k] = new_tau_1_anue_i_j_k;
+            tau_0_nux[i_j_k] = new_tau_0_nux_i_j_k;
+            tau_1_nux[i_j_k] = new_tau_1_nux_i_j_k;
+          }
         }
-
       } // for(int i=cctk_nghostzones[0];i<cctk_lsh[0]-cctk_nghostzones[0];i++)
     } // for(int j=cctk_nghostzones[1];j<cctk_lsh[1]-cctk_nghostzones[1];j++)
   } // for(int k=cctk_nghostzones[2];k<cctk_lsh[2]-cctk_nghostzones[2];k++)
 
-  if(verbosity_level>1) CCTK_VInfo(CCTK_THORNSTRING,"Finished computing optical depths at ref. lvl. %d",GetRefinementLevel(cctkGH));
+  if(verbosity_level>1) CCTK_VINFO("Finished computing optical depths at ref. lvl. %d",GetRefinementLevel(cctkGH));
 }
