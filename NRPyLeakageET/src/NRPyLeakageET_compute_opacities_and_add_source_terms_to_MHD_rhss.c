@@ -42,8 +42,9 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
 
 
   // Step 3: Compute opacities and leakage source terms
+  CCTK_INT failures=0;
   CCTK_REAL R_avg=0,Q_avg=0;
-#pragma omp parallel for reduction(+:R_avg,Q_avg)
+#pragma omp parallel for reduction(+:failures,R_avg,Q_avg)
   for(int k=kmin;k<kmax;k++) {
     for(int j=jmin;j<jmax;j++) {
       for(int i=imin;i<imax;i++) {
@@ -53,8 +54,21 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
 
         // Step 3.b: Check if we are within the threshold
         CCTK_REAL rhoL = rho[index];
-
-        if( rhoL < rho_threshold ) {
+	CCTK_REAL gxxL = gxx[index];
+	CCTK_REAL gxyL = gxy[index];
+	CCTK_REAL gxzL = gxz[index];
+	CCTK_REAL gyyL = gyy[index];
+	CCTK_REAL gyzL = gyz[index];
+	CCTK_REAL gzzL = gzz[index];
+	CCTK_REAL gdet = fabs(gxxL * gyyL * gzzL + gxyL * gyzL * gxzL + gxzL * gxyL * gyzL
+   		            - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL);
+	const CCTK_REAL phiL   = (1.0/12.0) * log(gdet);
+	const CCTK_REAL psiL   = exp(phiL);
+	const CCTK_REAL psi2L  = psiL *psiL;
+	const CCTK_REAL psi4L  = psi2L*psi2L;
+	const CCTK_REAL psi6L  = psi4L*psi2L;
+	
+        if( rhoL < rho_threshold || psi6L > psi6_threshold ) {
           // Step 3.b.i: Below density threshold.
           //             Set opacities to zero; don't add anything to the RHSs
           kappa_0_nue [index] = 0.0;
@@ -71,12 +85,6 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
           const CCTK_REAL betaxL       = betax[index];
           const CCTK_REAL betayL       = betay[index];
           const CCTK_REAL betazL       = betaz[index];
-          CCTK_REAL gxxL               = gxx[index];
-          CCTK_REAL gxyL               = gxy[index];
-          CCTK_REAL gxzL               = gxz[index];
-          CCTK_REAL gyyL               = gyy[index];
-          CCTK_REAL gyzL               = gyz[index];
-          CCTK_REAL gzzL               = gzz[index];
           CCTK_REAL vxL                = alpL*velx[index] - betaxL;
           CCTK_REAL vyL                = alpL*vely[index] - betayL;
           CCTK_REAL vzL                = alpL*velz[index] - betazL;
@@ -88,15 +96,8 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
 
           // Step 3.d: Compute BSSN quantities; enforce det(gammabar_{ij}) = 1
           // Step 3.d.i: Compute the determinant of the physical metric
-          CCTK_REAL gdet = gxxL * gyyL * gzzL + gxyL * gyzL * gxzL + gxzL * gxyL * gyzL
-            - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL;
-          gdet = fabs(gdet);
+
           // Step 3.d.ii: Compute BSSN quantities (gb = "gbar" = conformal metric)
-          const CCTK_REAL phiL   = (1.0/12.0) * log(gdet);
-          const CCTK_REAL psiL   = exp(phiL);
-          const CCTK_REAL psi2L  = psiL *psiL;
-          const CCTK_REAL psi4L  = psi2L*psi2L;
-          const CCTK_REAL psi6L  = psi4L*psi2L;
           const CCTK_REAL psim4L = 1.0/(psi4L);
           CCTK_REAL gbxxL        = gxxL*psim4L;
           CCTK_REAL gbxyL        = gxyL*psim4L;
