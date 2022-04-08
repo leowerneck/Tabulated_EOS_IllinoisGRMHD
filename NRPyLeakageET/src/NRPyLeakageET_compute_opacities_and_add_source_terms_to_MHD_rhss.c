@@ -44,7 +44,7 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
   // Step 3: Compute opacities and leakage source terms
   int nan_found=0;
   CCTK_REAL R_avg=0,Q_avg=0;
-#pragma omp parallel for reduction(+:failures,R_avg,Q_avg)
+#pragma omp parallel for reduction(+:nan_found,R_avg,Q_avg)
   for(int k=kmin;k<kmax;k++) {
     for(int j=jmin;j<jmax;j++) {
       for(int i=imin;i<imax;i++) {
