@@ -137,13 +137,14 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   int num_of_conservative_averagings_needed = 1;
   int cons_avgs = 0;
   int loop_count = 0;
+  int nan_found = 0;
 
   while( num_of_conservative_averagings_needed > 0 ) {
 
     // Now set the number of conserved averages to zero
     num_of_conservative_averagings_needed = 0;
 
-#pragma omp parallel for reduction(+:failures,vel_limited_ptcount,font_fixes,pointcount,failures_inhoriz,pointcount_inhoriz,error_int_numer,error_int_denom,rho_star_fix_applied,atm_resets,backup1,backup2,backup3,num_of_conservative_averagings_needed) schedule(static)
+#pragma omp parallel for reduction(+:failures,vel_limited_ptcount,font_fixes,pointcount,failures_inhoriz,pointcount_inhoriz,error_int_numer,error_int_denom,rho_star_fix_applied,atm_resets,backup1,backup2,backup3,num_of_conservative_averagings_needed,nan_found) schedule(static)
     for(int k=kmin;k<kmax;k++) {
       for(int j=jmin;j<jmax;j++) {
         for(int i=imin;i<imax;i++) {
@@ -225,8 +226,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               int __attribute__((unused)) neighbors = con2prim_average_neighbor_conservatives(cctkGH,i,j,k,index,cctk_lsh,con2prim_failed_flag,
                                                                                               rho_star,mhd_st_x,mhd_st_y,mhd_st_z,tau,Ye_star,S_star,
                                                                                               CONSERVS_avg_neighbors);
-	      //if( neighbors > 1 ) {
-
+	      if( neighbors > 0 ) {
 		// We will attempt 4 fixes after the first attempt fails. These
 		// new attempts will use the following conservatives:
 		//
@@ -247,15 +247,15 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 		// decrement the number of points that require the
 		// conservative averaging fix
 		num_of_conservative_averagings_needed--;
-		//}
-	      //else {
+              }
+	      else {
 		// Probably should terminate in this case, but let us reset to ATM for now.
 		// Simplest way is to set rhostar to a negative value.
-		//CONSERVS[RHOSTAR] = -1.0;
-		//num_of_conservative_averagings_needed--;
-		//con2prim_failed_flag[index] = 0;
-		//atm_resets++;
-		//}
+		CONSERVS[RHOSTAR] = -1.0;
+		num_of_conservative_averagings_needed--;
+		con2prim_failed_flag[index] = 0;
+		atm_resets++;
+              }
 
             }
 
@@ -305,6 +305,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                          i,j,k,x[index],y[index],z[index],index,
                          CONSERVS[STILDEX],CONSERVS[STILDEY],CONSERVS[STILDEZ],CONSERVS[RHOSTAR],CONSERVS[TAUENERGY],
                          PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[PSI6]);
+              nan_found++;
             }
 
             // Here we use _flux variables as temp storage for original values of conservative variables.. This is used for debugging purposes only.
@@ -344,6 +345,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             stats.dx[0]          = CCTK_DELTA_SPACE(0);
             stats.dx[1]          = CCTK_DELTA_SPACE(1);
             stats.dx[2]          = CCTK_DELTA_SPACE(2);
+            stats.nan_found      = 0;
             if(CONSERVS[RHOSTAR]>0.0) {
               // Apply the tau floor
               if( eos.is_Hybrid ) {
@@ -464,6 +466,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               if(stats.backup[1]==1) backup2++;
               if(stats.backup[2]==1) backup3++;
               if(stats.font_fixed==1) font_fixes++;
+              if(stats.nan_found==1) nan_found++;
               vel_limited_ptcount+=stats.vel_limited;
               if(check!=0) {
                 failures++;
@@ -501,6 +504,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                failures_inhoriz,pointcount_inhoriz,
                error_int_numer/error_int_denom,error_int_denom);
   }
+  if( nan_found ) CCTK_ERROR("Found NAN during con2prim driver. See error messages above. ABORTING!");
 
   // Very useful con2prim debugger. If the primitives (con2prim) solver fails, this will output all data needed to
   //     debug where and why the solver failed. Strongly suggested for experimenting with new fixes.

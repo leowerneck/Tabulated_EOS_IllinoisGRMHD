@@ -299,13 +299,12 @@ static inline void impose_speed_limit_output_u0(CCTK_REAL *METRIC,CCTK_REAL *U,C
   CCTK_REAL alpha_u0 = 1.0/sqrt(1.0-one_minus_one_over_alpha_u0_squared);
   if(std::isnan(alpha_u0*ONE_OVER_LAPSE)) {
     CCTK_VINFO("*********************************************");
-    CCTK_VINFO("Problem inside %s",__func__);
-    CCTK_VINFO("*********************************************");
     CCTK_VINFO("Metric/psi4: %e %e %e %e %e %e / %e",METRIC[GXX],METRIC[GXY],METRIC[GXZ],METRIC[GYY],METRIC[GYZ],METRIC[GZZ],psi4);
     CCTK_VINFO("Lapse/shift: %e (=1/%e) / %e %e %e",1.0/ONE_OVER_LAPSE,ONE_OVER_LAPSE,METRIC[SHIFTX],METRIC[SHIFTY],METRIC[SHIFTZ]);
     CCTK_VINFO("Velocities : %e %e %e",U[VX],U[VY],U[VZ]);
+    CCTK_VINFO("Found nan while computing u^{0} in function %s (file: %s)",__func__,__FILE__);
     CCTK_VINFO("*********************************************");
-    CCTK_VERROR("Found nan while computing u^{0} in function %s (file: %s)",__func__,__FILE__);
+    stats.nan_found=1;
   }
   u0_out = alpha_u0*ONE_OVER_LAPSE;
 }

@@ -57,7 +57,7 @@ struct gf_and_gz_struct {
 };
 
 struct output_stats {
-  int font_fixed,vel_limited,failure_checker,atm_reset,backup[3],which_routine,c2p_failed;
+  int font_fixed,vel_limited,failure_checker,atm_reset,backup[3],which_routine,c2p_failed,nan_found;
   double dx[3];
 };
 
@@ -85,4 +85,3 @@ void IllinoisGRMHD_set_symmetry_gzs_staggered(const cGH *cctkGH, const int *cctk
                                               CCTK_REAL *gridfunc_syms,int stagger_x,int stagger_y,int stagger_z);
 
 #endif // ILLINOISGRMHD_HEADERS_H
-

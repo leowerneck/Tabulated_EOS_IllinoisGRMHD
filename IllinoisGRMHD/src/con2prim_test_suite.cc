@@ -83,13 +83,13 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
   // Compute the density step size
   const CCTK_REAL lrmin        = log(test_rho_min);
   const CCTK_REAL lrmax        = log(test_rho_max);
-  const CCTK_REAL dlr          = (lrmax - lrmin)/npoints;
+  const CCTK_REAL dlr          = (lrmax - lrmin)/(npoints-1);
 
   // Compute the temperature step size
   const CCTK_REAL ltmin        = log(test_T_min);
   const CCTK_REAL ltmax        = log(test_T_max);
-  const CCTK_REAL dlt          = (ltmax - ltmin)/npoints;
-  
+  const CCTK_REAL dlt          = (ltmax - ltmin)/(npoints-1);
+
   // Fix Y_e
   const CCTK_REAL Ye_test = 0.1;
   // Fix W
@@ -136,7 +136,7 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
   for(int which_routine=0;which_routine<num_routines_tested;which_routine++) {
 
     CCTK_VInfo(CCTK_THORNSTRING,"Beginning test for routine %s",con2prim_test_names[which_routine]);
-    
+
     char filename[100];
     sprintf(filename,"con2prim_out_%s.asc",con2prim_test_names[which_routine]);
     FILE* outfile = fopen(filename,"w");
@@ -144,7 +144,7 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
     int failures = 0;
 
     srand(0);
-    
+
     for(int i=0;i<npoints;i++) {
       for(int j=0;j<npoints;j++) {
 
@@ -176,7 +176,7 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
         CCTK_REAL METRIC[NUMVARS_FOR_METRIC];
         CCTK_REAL METRIC_PHYS[NUMVARS_FOR_METRIC];
         CCTK_REAL METRIC_LAP_PSI4[NUMVARS_METRIC_AUX];
-        
+
         // {
         //   ifstream myfile;
         //   char filename[100];
@@ -309,7 +309,7 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
           CCTK_REAL utx_new = prim[UTCON1];
           CCTK_REAL uty_new = prim[UTCON2];
           CCTK_REAL utz_new = prim[UTCON3];
-          
+
           // //Velocity limiter:
           CCTK_REAL gijuiuj = METRIC_PHYS[GXX]*SQR(utx_new ) +
             2.0*METRIC_PHYS[GXY]*utx_new*uty_new + 2.0*METRIC_PHYS[GXZ]*utx_new*utz_new +
@@ -342,13 +342,13 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
     fclose(outfile);
 
     int ntotal = npoints*npoints;
-    
+
     CCTK_VInfo(CCTK_THORNSTRING,"Completed test for routine %s",con2prim_test_names[which_routine]);
     CCTK_VInfo(CCTK_THORNSTRING,"Final report:");
     CCTK_VInfo(CCTK_THORNSTRING,"    Number of recovery attempts: %d",ntotal);
     CCTK_VInfo(CCTK_THORNSTRING,"    Number of failed recoveries: %d",failures);
     CCTK_VInfo(CCTK_THORNSTRING,"    Recovery failure rate      : %.2lf%%",((CCTK_REAL)failures)/((CCTK_REAL)ntotal)*100.0);
-    
+
   }
 
   CCTK_VInfo(CCTK_THORNSTRING,"All done! Terminating the run.");
