@@ -46,8 +46,22 @@ void NRPyLeakageET_compute_optical_depth_change(CCTK_ARGUMENTS, const int it) {
       for(int i=cctk_nghostzones[0];i<cctk_lsh[0]-cctk_nghostzones[0];i++) {
         // Step 1: Set local index
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+        const CCTK_REAL rhoL = rho[index];
+        const CCTK_REAL gxxL = gxx[index];
+        const CCTK_REAL gxyL = gxy[index];
+        const CCTK_REAL gxzL = gxz[index];
+        const CCTK_REAL gyyL = gyy[index];
+        const CCTK_REAL gyzL = gyz[index];
+        const CCTK_REAL gzzL = gzz[index];
+        const CCTK_REAL gdet = fabs(gxxL * gyyL * gzzL + gxyL * gyzL * gxzL + gxzL * gxyL * gyzL
+                                    - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL);
+        const CCTK_REAL phiL  = (1.0/12.0) * log(gdet);
+        const CCTK_REAL psiL  = exp(phiL);
+        const CCTK_REAL psi2L = psiL *psiL;
+        const CCTK_REAL psi4L = psi2L*psi2L;
+        const CCTK_REAL psi6L = psi4L*psi2L;
 
-        if( rho[index] < rho_threshold ) {
+        if( rhoL < rho_threshold || psi6L > psi6_threshold ) {
           tau_0_nue_aux [index] = 0.0;
           tau_1_nue_aux [index] = 0.0;
           tau_0_anue_aux[index] = 0.0;

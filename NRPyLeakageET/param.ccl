@@ -37,6 +37,12 @@ CCTK_REAL tauChangeThreshold "Threshold to stop PathOfLeastResistance algorithm 
 } 1e-8
 
 restricted:
+CCTK_REAL psi6_threshold "If psi^6 > psi6_threshold we assume to be insidee the horizon and do not leak." STEERABLE = ALWAYS
+{
+  *:* :: "Anything goes"
+} 1e100
+
+restricted:
 CCTK_REAL W_max "Maximum Lorentz factor." STEERABLE = ALWAYS
 {
   1:* :: "Any number greater than or equal to one"

@@ -37,8 +37,23 @@ void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
         const int i_j_kp1 = CCTK_GFINDEX3D(cctkGH,i,j  ,k+1);
         const int i_j_km1 = CCTK_GFINDEX3D(cctkGH,i,j  ,k-1);
 
+        const CCTK_REAL rhoL = rho[i_j_k];
+        const CCTK_REAL gxxL = gxx[i_j_k];
+        const CCTK_REAL gxyL = gxy[i_j_k];
+        const CCTK_REAL gxzL = gxz[i_j_k];
+        const CCTK_REAL gyyL = gyy[i_j_k];
+        const CCTK_REAL gyzL = gyz[i_j_k];
+        const CCTK_REAL gzzL = gzz[i_j_k];
+        const CCTK_REAL gdet = fabs(gxxL * gyyL * gzzL + gxyL * gyzL * gxzL + gxzL * gxyL * gyzL
+                                    - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL);
+        const CCTK_REAL phiL  = (1.0/12.0) * log(gdet);
+        const CCTK_REAL psiL  = exp(phiL);
+        const CCTK_REAL psi2L = psiL *psiL;
+        const CCTK_REAL psi4L = psi2L*psi2L;
+        const CCTK_REAL psi6L = psi4L*psi2L;
+
         // Only compute optical depths if density is above a threshold
-        if( rho[i_j_k] < rho_threshold ) {
+        if( rhoL < rho_threshold || psi6L > psi6_threshold ) {
           tau_0_nue [i_j_k] = 0.0;
           tau_1_nue [i_j_k] = 0.0;
           tau_0_anue[i_j_k] = 0.0;

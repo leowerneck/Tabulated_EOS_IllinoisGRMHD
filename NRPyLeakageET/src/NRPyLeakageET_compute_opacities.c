@@ -26,13 +26,26 @@ void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS) {
           // Step 1: Set local gridfunction index
           const CCTK_INT index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-          // Step 2: Declare variables, read in density
+          // Step 2: Declare variables
           const CCTK_REAL rhoL = rho[index];
+          const CCTK_REAL gxxL = gxx[index];
+          const CCTK_REAL gxyL = gxy[index];
+          const CCTK_REAL gxzL = gxz[index];
+          const CCTK_REAL gyyL = gyy[index];
+          const CCTK_REAL gyzL = gyz[index];
+          const CCTK_REAL gzzL = gzz[index];
+          const CCTK_REAL gdet = fabs(gxxL * gyyL * gzzL + gxyL * gyzL * gxzL + gxzL * gxyL * gyzL
+                                    - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL);
+          const CCTK_REAL phiL  = (1.0/12.0) * log(gdet);
+          const CCTK_REAL psiL  = exp(phiL);
+          const CCTK_REAL psi2L = psiL *psiL;
+          const CCTK_REAL psi4L = psi2L*psi2L;
+          const CCTK_REAL psi6L = psi4L*psi2L;
           CCTK_REAL kappa_nue[2], kappa_anue[2], kappa_nux[2];
           CCTK_REAL tau_nue[2], tau_anue[2], tau_nux[2];
 
           // Step 3: Check density threshold, compute opacities
-          if( rhoL < rho_threshold ) {
+          if( rhoL < rho_threshold || psi6L > psi6_threshold ) {
             // Step 3.a: Below density threshold; set opacities and optical
             // depths to zero
             kappa_nue[0] = kappa_anue[0] = kappa_nux[0] = 0.0;
@@ -87,11 +100,24 @@ void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS) {
 
           // Step 2: Declare variables, read in density
           const CCTK_REAL rhoL = rho[index];
+          const CCTK_REAL gxxL = gxx[index];
+          const CCTK_REAL gxyL = gxy[index];
+          const CCTK_REAL gxzL = gxz[index];
+          const CCTK_REAL gyyL = gyy[index];
+          const CCTK_REAL gyzL = gyz[index];
+          const CCTK_REAL gzzL = gzz[index];
+          const CCTK_REAL gdet = fabs(gxxL * gyyL * gzzL + gxyL * gyzL * gxzL + gxzL * gxyL * gyzL
+                                    - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL);
+          const CCTK_REAL phiL  = (1.0/12.0) * log(gdet);
+          const CCTK_REAL psiL  = exp(phiL);
+          const CCTK_REAL psi2L = psiL *psiL;
+          const CCTK_REAL psi4L = psi2L*psi2L;
+          const CCTK_REAL psi6L = psi4L*psi2L;
           CCTK_REAL kappa_nue[2], kappa_anue[2], kappa_nux[2];
           CCTK_REAL tau_nue[2], tau_anue[2], tau_nux[2];
 
           // Step 3: Check density threshold, compute opacities
-          if( rhoL < rho_threshold ) {
+          if( rhoL < rho_threshold || psi6L > psi6_threshold ) {
             // Step 3.a: Below density threshold; set opacities and optical
             // depths to zero
             kappa_nue[0] = kappa_anue[0] = kappa_nux[0] = 0.0;
@@ -137,10 +163,9 @@ void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS) {
     }
     break;
   default:
-    fprintf(stderr,"(NRPyLeakageET) ERROR: Unknown constant type (%d) in NRPyLeakageET_compute_GRMHD_source_terms().\n",constants_key);
-    fprintf(stderr,"(NRPyLeakageET) Options are: USE_NRPY_CONSTANTS (%d) and USE_HARM_CONSTANTS (%d)\n",USE_NRPY_CONSTANTS,USE_HARM_CONSTANTS);
-    fprintf(stderr,"(NRPyLeakageET) Aborting!\n");
-    exit(1);
+    CCTK_VINFO("Unknown constant type (%d) in NRPyLeakageET_compute_opacities()",constants_key);
+    CCTK_VINFO("Options are: USE_NRPY_CONSTANTS (%d) and USE_HARM_CONSTANTS (%d)",USE_NRPY_CONSTANTS,USE_HARM_CONSTANTS);
+    CCTK_ERROR("Aborting!");
   }
 
   if(verbosity_level>1) CCTK_VInfo(CCTK_THORNSTRING,"Finished computing opacities at ref. lvl. %d",GetRefinementLevel(cctkGH));
