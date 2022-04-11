@@ -300,8 +300,8 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
 
             //FIXME: might slow down the code.
-            if(isnan(CONSERVS[RHOSTAR]*CONSERVS[STILDEX]*CONSERVS[STILDEY]*CONSERVS[STILDEZ]*CONSERVS[TAUENERGY]*PRIMS[BX_CENTER]*PRIMS[BY_CENTER]*PRIMS[BZ_CENTER])) {
-              CCTK_VInfo(CCTK_THORNSTRING,"NAN FOUND: i,j,k = %d %d %d, x,y,z = %e %e %e , index=%d st_i = %e %e %e, rhostar = %e, tau = %e, Bi = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",
+            if(std::isnan(CONSERVS[RHOSTAR]*CONSERVS[STILDEX]*CONSERVS[STILDEY]*CONSERVS[STILDEZ]*CONSERVS[TAUENERGY]*PRIMS[BX_CENTER]*PRIMS[BY_CENTER]*PRIMS[BZ_CENTER])) {
+              CCTK_VWARN(CCTK_WARN_ALERT,"NAN FOUND: i,j,k = %d %d %d, x,y,z = %e %e %e , index=%d st_i = %e %e %e, rhostar = %e, tau = %e, Bi = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",
                          i,j,k,x[index],y[index],z[index],index,
                          CONSERVS[STILDEX],CONSERVS[STILDEY],CONSERVS[STILDEZ],CONSERVS[RHOSTAR],CONSERVS[TAUENERGY],
                          PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[PSI6]);
@@ -466,7 +466,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               if(stats.backup[1]==1) backup2++;
               if(stats.backup[2]==1) backup3++;
               if(stats.font_fixed==1) font_fixes++;
-              if(stats.nan_found==1) nan_found++;
+              if(stats.nan_found==1) { CCTK_VWARN(CCTK_WARN_ALERT,"Found NAN while imposing speed limit"); nan_found++; }
               vel_limited_ptcount+=stats.vel_limited;
               if(check!=0) {
                 failures++;
@@ -504,7 +504,12 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                failures_inhoriz,pointcount_inhoriz,
                error_int_numer/error_int_denom,error_int_denom);
   }
-  if( nan_found ) CCTK_ERROR("Found NAN during con2prim driver. See error messages above. ABORTING!");
+  if( nan_found && GetRefinementLevel(cctkGH) > 6 ) {
+    CCTK_ERROR("Found NAN during con2prim driver. See error messages above. ABORTING!");
+  }
+  else {
+    CCTK_VWARN(CCTK_WARN_ALERT,"Found NAN during con2prim driver, but not at finest level. Proceeding with caution...");
+  }
 
   // Very useful con2prim debugger. If the primitives (con2prim) solver fails, this will output all data needed to
   //     debug where and why the solver failed. Strongly suggested for experimenting with new fixes.

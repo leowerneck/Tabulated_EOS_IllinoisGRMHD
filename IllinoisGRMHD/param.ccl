@@ -165,7 +165,7 @@ CCTK_REAL igm_T_atm "Atmospheric temperature"
 } 0.1
 
 restricted:
-CCTK_REAL igm_T_max "Maximum temperature allowed"
+CCTK_REAL igm_T_max "Maximum temperature allowed" STEERABLE=ALWAYS
 {
  0.0:* :: "Positive. Should be within table limits (preferably at least 10% above the minimum)."
 } 90.0
