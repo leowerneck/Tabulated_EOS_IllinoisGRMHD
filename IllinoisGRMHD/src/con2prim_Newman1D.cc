@@ -5,6 +5,7 @@
 
 #include "IllinoisGRMHD_headers.h"
 #include "con2prim_headers.h"
+#include "con2prim_helpers.h"
 
 static const CCTK_INT senergyvar = 0;
 static const CCTK_INT entropyvar = 1;
@@ -19,45 +20,6 @@ void newman( const igm_eos_parameters eos,
              CCTK_REAL *restrict prim,
              CCTK_INT& got_temp_from,
              bool& c2p_failed );
-
-static inline void set_gammaDD_and_gammaUU_from_ADM_quantities( const CCTK_REAL *restrict adm_quantities,
-                                                                CCTK_REAL gammaDD[3][3],
-                                                                CCTK_REAL gammaUU[3][3] ) {
-
-  // Set gamma_{ij}
-  gammaDD[0][0] = adm_quantities[GXX];
-  gammaDD[0][1] = gammaDD[1][0] = adm_quantities[GXY];
-  gammaDD[0][2] = gammaDD[2][0] = adm_quantities[GXZ];
-  gammaDD[1][1] = adm_quantities[GYY];
-  gammaDD[1][2] = gammaDD[2][1] = adm_quantities[GYZ];
-  gammaDD[2][2] = adm_quantities[GZZ];
-
-  // Set gamma^{ij}
-  gammaUU[0][0] = adm_quantities[GUPXX];
-  gammaUU[0][1] = gammaUU[1][0] = adm_quantities[GUPXY];
-  gammaUU[0][2] = gammaUU[2][0] = adm_quantities[GUPXZ];
-  gammaUU[1][1] = adm_quantities[GUPYY];
-  gammaUU[1][2] = gammaUU[2][1] = adm_quantities[GUPYZ];
-  gammaUU[2][2] = adm_quantities[GUPZZ];
-
-}
-
-static inline void raise_or_lower_indices_3d( const CCTK_REAL *restrict vecD_or_U,
-                                              const CCTK_REAL gammaUU_or_DD[3][3],
-                                              CCTK_REAL *restrict vecU_or_D ) {
-  for(int i=0;i<3;i++) {
-    vecU_or_D[i] = 0;
-    for(int j=0;j<3;j++) {
-      vecU_or_D[i] += gammaUU_or_DD[i][j] * vecD_or_U[j];
-    }
-  }
-}
-
-static inline CCTK_REAL simple_rel_err( const CCTK_REAL a, const CCTK_REAL b ) {
-  if     ( a != 0.0 ) return( fabs(1.0 - b/a) );
-  else if( b != 0.0 ) return( fabs(1.0 - a/b) );
-  else                return(       0.0       );
-}
 
 int con2prim_Newman1D( const igm_eos_parameters eos,
                        const CCTK_REAL *restrict adm_quantities,
@@ -109,7 +71,7 @@ int con2prim_Newman1D( const igm_eos_parameters eos,
   // B * S = B^i * S_i
   CCTK_REAL BdotS = 0.0;
   for(int i=0;i<3;i++) BdotS += BU[i] * SD[i];
-  
+
   // B^2 = B^i * B_i
   CCTK_REAL B_squared = 0.0;
   for(int i=0;i<3;i++) B_squared += BU[i] * BD[i];
@@ -125,7 +87,7 @@ int con2prim_Newman1D( const igm_eos_parameters eos,
     got_temp_from = senergyvar;
     newman(eos,tol_x,S_squared,BdotS,B_squared,SU,con,prim,got_temp_from,c2p_failed);
   }
-  
+
   return( c2p_failed );
 }
 
@@ -139,7 +101,7 @@ void newman( const igm_eos_parameters eos,
              CCTK_REAL *restrict prim,
              CCTK_INT& got_temp_from,
              bool& c2p_failed ) {
- 
+
   bool conacc    = false;
   CCTK_REAL prec = tol_x;
 
@@ -178,7 +140,7 @@ void newman( const igm_eos_parameters eos,
     // skip the depsdT check and use a more efficient EOS call.
     enforce_table_bounds_rho_Ye_T( eos,&xrho,&xye,&xtemp );
     WVU_EOS_P_and_eps_from_rho_Ye_T( xrho,xye,xtemp, &xprs,&xeps );
-    
+
   }
 
   //Now, begin iterative procedure to derive the primitive variables
@@ -239,7 +201,7 @@ void newman( const igm_eos_parameters eos,
 
     // Impose physical limits on W
     W = fmin(fmax(W,1.0),eos.W_max);
-    
+
     // Then compute rho = D/W
     CCTK_REAL xrho = con[RHO]/W;
 
@@ -250,7 +212,7 @@ void newman( const igm_eos_parameters eos,
 
     prim[RHO     ] = con[DD]/W; // rho[s] = tildeD[s]/(sqrtDetg[s]*W[s]);
     prim[WLORENTZ] = W;
-    
+
     if( use_entropy == true ) {
       // If using the entropy, compute S = (WS)/W
       xent = con[WS]/W;
@@ -321,7 +283,7 @@ void newman( const igm_eos_parameters eos,
 
   //Compute v^i
   const CCTK_REAL W = prim[WLORENTZ];
-   
+
   prim[B1_con] = con[B1_con];
   prim[B2_con] = con[B2_con];
   prim[B3_con] = con[B3_con];
