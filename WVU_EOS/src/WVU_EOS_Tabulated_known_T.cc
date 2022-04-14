@@ -12,6 +12,37 @@
 // ----------- eps(rho,Ye,T) -----------
 // -------------------------------------
 extern "C"
+void WVU_EOS_P_from_rho_Ye_T_impl( const CCTK_REAL rho,
+                                   const CCTK_REAL Ye,
+                                   const CCTK_REAL T,
+                                   CCTK_REAL *restrict P ) {
+  // Number of interpolated quantities: 1 (P)
+  const CCTK_INT n = 1;
+  // Table variables keys
+  const CCTK_INT keys[n] = {WVU_EOS::press_key};
+  // Declare error variable
+  WVU_EOS::eos_error_report report;
+  // Set output variable array
+  CCTK_REAL outvars[n];
+
+  // Get P and eps
+  WVU_EOS_from_rho_Ye_T_interpolate_n_quantities( n,rho,Ye,T, keys,outvars, &report );
+
+  // Error handling
+  if( report.error ) {
+    CCTK_VINFO("Inside WVU_EOS_P_from_rho_Ye_T. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
+    // May want to terminate depending on the error. We'll just warn for now.
+  }
+
+  // Then update P
+  *P = outvars[0];
+}
+
+// -------------------------------------
+// -----------   P(rho,Ye,T) -----------
+// ----------- eps(rho,Ye,T) -----------
+// -------------------------------------
+extern "C"
 void WVU_EOS_P_and_eps_from_rho_Ye_T_impl( const CCTK_REAL rho,
                                            const CCTK_REAL Ye,
                                            const CCTK_REAL T,
@@ -31,7 +62,7 @@ void WVU_EOS_P_and_eps_from_rho_Ye_T_impl( const CCTK_REAL rho,
 
   // Error handling
   if( report.error ) {
-    CCTK_VInfo(CCTK_THORNSTRING,"Inside WVU_EOS_P_and_eps_from_rho_Ye_T. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
+    CCTK_VINFO("Inside WVU_EOS_P_and_eps_from_rho_Ye_T. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -66,7 +97,7 @@ void WVU_EOS_P_eps_and_S_from_rho_Ye_T_impl( const CCTK_REAL rho,
 
   // Error handling
   if( report.error ) {
-    CCTK_VInfo(CCTK_THORNSTRING,"Inside WVU_EOS_P_eps_and_S_from_rho_Ye_T. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
+    CCTK_VINFO("Inside WVU_EOS_P_eps_and_S_from_rho_Ye_T. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -104,7 +135,7 @@ void WVU_EOS_P_eps_S_and_cs2_from_rho_Ye_T_impl( const CCTK_REAL rho,
 
   // Error handling
   if( report.error ) {
-    CCTK_VInfo(CCTK_THORNSTRING,"Inside WVU_EOS_P_eps_and_S_from_rho_Ye_T. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
+    CCTK_VINFO("Inside WVU_EOS_P_eps_and_S_from_rho_Ye_T. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -143,7 +174,7 @@ void WVU_EOS_P_eps_and_depsdT_from_rho_Ye_T_impl( const CCTK_REAL rho,
 
   // Error handling
   if( report.error ) {
-    CCTK_VInfo(CCTK_THORNSTRING,"Inside WVU_EOS_P_eps_and_S_from_rho_Ye_T. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
+    CCTK_VINFO("Inside WVU_EOS_P_eps_and_S_from_rho_Ye_T. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -185,7 +216,7 @@ void WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T_impl( const CCT
   // .----------------------------.-------------------------.
   // | deps/drho = (deps/dP)(dP/drho) = (dP/drho)/(dP/deps) |
   // .------------------------------------------------------.
-  
+
   // Number of interpolated quantities: 5 (P, eps, dPdrho, depsdrho, and depsdT)
   const CCTK_INT n = 5;
   // Table variables keys (we use the table order here)
@@ -200,7 +231,7 @@ void WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T_impl( const CCT
 
   // Error handling
   if( report.error ) {
-    CCTK_VInfo(CCTK_THORNSTRING,"Inside WVU_EOS_P_eps_and_S_from_rho_Ye_T. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
+    CCTK_VINFO("Inside WVU_EOS_P_eps_and_S_from_rho_Ye_T. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 
@@ -250,7 +281,7 @@ void WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T_impl( const CCTK_REAL rho
 
   // Error handling
   if( report.error ) {
-    CCTK_VInfo(CCTK_THORNSTRING,"Inside WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
+    CCTK_VINFO("Inside WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T. Error message: %s (key = %d)",report.message.c_str(),report.error_key);
     // May want to terminate depending on the error. We'll just warn for now.
   }
 

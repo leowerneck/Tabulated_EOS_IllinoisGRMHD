@@ -11,6 +11,11 @@
 // ------------------------------------------------------
 // ------ Functions where the temperature is known ------
 // ------------------------------------------------------
+void WVU_EOS_P_from_rho_Ye_T_impl( const CCTK_REAL rho,
+                                   const CCTK_REAL Ye,
+                                   const CCTK_REAL T,
+                                   CCTK_REAL *restrict P );
+
 void WVU_EOS_P_and_eps_from_rho_Ye_T_impl( const CCTK_REAL rho,
                                            const CCTK_REAL Ye,
                                            const CCTK_REAL T,
@@ -88,5 +93,14 @@ void WVU_EOS_P_eps_and_T_from_rho_Ye_S_impl( const CCTK_REAL rho,
                                              CCTK_REAL *restrict P,
                                              CCTK_REAL *restrict eps,
                                              CCTK_REAL *restrict T );
+
+
+
+typedef struct WVU_EOS_slice_const_Ye_and_S {
+  CCTK_REAL Y_e,S,*lr_arr,*lt_arr,*lh_arr;
+} WVU_EOS_slice_const_Ye_and_S;
+
+// Table slicer
+WVU_EOS_slice_const_Ye_and_S WVU_EOS_slice_eos_table_constant_Ye_and_S( const double Y_e, const double S );
 
 #endif // WVU_EOS_HEADERS_H
