@@ -89,8 +89,8 @@ void NRPyLeakageET_compute_opacities_nrpy_constants(const CCTK_REAL rho_b,
 
   // Step 5: Make sure results are finite; if not reset to small value
   for(int i=0;i<2;i++) {
-    if( !isfinite(kappa_nue [i]) ) kappa_nue [i] = 1e-15;
-    if( !isfinite(kappa_anue[i]) ) kappa_anue[i] = 1e-15;
-    if( !isfinite(kappa_nux [i]) ) kappa_nux [i] = 1e-15;
+    if( !robust_isfinite(kappa_nue [i]) ) kappa_nue [i] = 1e-15;
+    if( !robust_isfinite(kappa_anue[i]) ) kappa_anue[i] = 1e-15;
+    if( !robust_isfinite(kappa_nux [i]) ) kappa_nux [i] = 1e-15;
   }
 }

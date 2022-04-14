@@ -192,6 +192,18 @@ void NRPyLeakageET_compute_optical_depth_change(CCTK_ARGUMENTS, const int it);
 void NRPyLeakageET_initialize_optical_depths_changes_to_zero(CCTK_ARGUMENTS);
 void NRPyLeakageET_CopyOpticalDepthsToAux(CCTK_ARGUMENTS);
 
+static inline int robust_isnan(double x) {
+  unsigned long *pbits = (unsigned long *)&x;
+  return( (*pbits & 0x7ff0000000000000UL) == 0x7ff0000000000000UL &&
+          (*pbits & 0x000fffffffffffffUL) );
+}
+
+static inline int robust_isfinite(double x) {
+  unsigned long *pbits = (unsigned long *)&x;
+  return( !((*pbits & 0x7ff0000000000000UL) == 0x7ff0000000000000UL &&
+           ((*pbits & 0x7ff0000000000000UL) || (*pbits & 0xfff0000000000000UL))) );
+}
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

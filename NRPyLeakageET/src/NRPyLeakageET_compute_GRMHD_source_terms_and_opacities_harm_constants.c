@@ -2,7 +2,7 @@
 #include "NRPyLeakageET.h"
 
 static CCTK_REAL EnsureFinite(const CCTK_REAL x) {
-  if(isfinite(x))
+  if(robust_isfinite(x))
     return x;
   else
     return 1e-15;

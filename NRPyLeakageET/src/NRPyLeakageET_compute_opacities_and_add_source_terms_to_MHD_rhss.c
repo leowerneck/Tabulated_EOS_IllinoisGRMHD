@@ -167,8 +167,8 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
                                                                    tau_nueL,tau_anueL,tau_nuxL,
                                                                    &R_sourceL,&Q_sourceL,kappa_nueL,kappa_anueL,kappa_nuxL);
 
-            if( isnan(R_sourceL*Q_sourceL*kappa_nueL[0]*kappa_nueL[1]*kappa_anueL[0]*kappa_anueL[1]*kappa_nuxL[0]*kappa_nuxL[1]) ||
-                isnan(Ye_star_rhs[index]*tau_rhs[index]*st_x_rhs[index]*st_y_rhs[index]*st_z_rhs[index]) ) {
+            if( robust_isnan(R_sourceL*Q_sourceL*kappa_nueL[0]*kappa_nueL[1]*kappa_anueL[0]*kappa_anueL[1]*kappa_nuxL[0]*kappa_nuxL[1]*
+                             Ye_star_rhs[index]*tau_rhs[index]*st_x_rhs[index]*st_y_rhs[index]*st_z_rhs[index]) ) {
               CCTK_VINFO("****************************");
               CCTK_VINFO("NAN found:");
               CCTK_VINFO("rho Ye T: %e %e %e",rhoL,Y_eL,temperatureL);
@@ -184,11 +184,13 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
 
             // Step 3.h: Compute MHD right-hand sides
             const CCTK_REAL sqrtmgL      = alpL * psi6L;
-            const CCTK_REAL Ye_star_rhsL = sqrtmgL * R_sourceL;
-            const CCTK_REAL tau_rhsL     = sqrtmgL * Q_sourceL * u0L;
-            const CCTK_REAL st_x_rhsL    = sqrtmgL * Q_sourceL * uxL;
-            const CCTK_REAL st_y_rhsL    = sqrtmgL * Q_sourceL * uyL;
-            const CCTK_REAL st_z_rhsL    = sqrtmgL * Q_sourceL * uzL;
+            const CCTK_REAL sqrtmgR      = sqrtmgL * R_sourceL;
+            const CCTK_REAL sqrtmgQ      = sqrtmgL * Q_sourceL;
+            const CCTK_REAL Ye_star_rhsL = sqrtmgR;
+            const CCTK_REAL tau_rhsL     = sqrtmgQ * u0L;
+            const CCTK_REAL st_x_rhsL    = sqrtmgQ * uxL;
+            const CCTK_REAL st_y_rhsL    = sqrtmgQ * uyL;
+            const CCTK_REAL st_z_rhsL    = sqrtmgQ * uzL;
 
             // Step 3.i: Write to main memory
             kappa_0_nue [index]  = kappa_nueL [0];
@@ -205,15 +207,15 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
             st_y_rhs    [index] += st_y_rhsL;
             st_z_rhs    [index] += st_z_rhsL;
 
-            R_avg += R_sourceL/rhoL;
-            Q_avg += Q_sourceL/rhoL;
+            R_avg += R_sourceL;
+            Q_avg += Q_sourceL;
           }
         }
       }
     }
   }
   if(verbosity_level>0) {
-    CCTK_VINFO("***** Iter. # %d, Lev: %d, Averages -- R/rho: %e | Q/rho: %e *****",cctk_iteration,GetRefinementLevel(cctkGH),R_avg,Q_avg);
+    CCTK_VINFO("***** Iter. # %d, Lev: %d, Averages -- sqrt(-g)R: %e | sqrt(-g)Q: %e *****",cctk_iteration,GetRefinementLevel(cctkGH),R_avg,Q_avg);
     if(verbosity_level>1) CCTK_INFO("Finished NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss");
   }
   if( nan_found ) CCTK_ERROR("NAN Found. See error messages above. ABORTING!");

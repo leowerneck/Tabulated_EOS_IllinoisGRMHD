@@ -191,7 +191,7 @@ void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
   } END_REFLEVEL_LOOP;
   if(verbosity_level>0) CCTK_INFO("Initialized all optical depths gridfunctions to zero");
 
-  if( CCTK_EQUALS(optical_depth_evolution_type,"PathOfLeastResistance") ) {
+  if( CCTK_EQUALS(initial_optical_depth,"PathOfLeastResistance") ) {
 
     const int startRefLev = MIN(MAX(minInitRefLevel,0),Carpet::reflevels-1);
     const int endRefLev   = maxInitRefLevel == 0 ? Carpet::reflevels-1 : MIN(maxInitRefLevel,Carpet::reflevels-1);
