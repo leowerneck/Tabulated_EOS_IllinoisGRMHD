@@ -6,6 +6,7 @@
 #include "IllinoisGRMHD_headers.h"
 #include "con2prim_headers.h"
 #include "con2prim_helpers.h"
+#include "inlined_functions.h"
 
 /*****************************************************************************/
 /*********** IMPORTED FROM A STRIPPED VERSION OF THE HEADER FILES ************/
@@ -115,7 +116,6 @@ int con2prim_CerdaDuran3D( const igm_eos_parameters eos,
   for(int i=0;i<3;i++) B_squared += BU[i] * BD[i];
 
   bool c2p_failed  = false;
-  int safe_guess   = 1;
   CCTK_REAL tol_x    = 5e-9;
   NR_3D_WZT( eos, tol_x, S_squared,BdotS,B_squared, SU,con,prim, &c2p_failed );
 
@@ -425,7 +425,7 @@ void NR_3D_WZT( const igm_eos_parameters eos,
   } // END of while(keep_iterating)
 
   //  Check for bad untrapped divergences
-  if( (!CCTK_isfinite(f[0])) || (!CCTK_isfinite(f[1])) ) {
+  if( (!robust_isfinite(f[0])) || (!robust_isfinite(f[1])) ) {
     *c2p_failed = true;
   }
 

@@ -4,6 +4,7 @@
 #include "IllinoisGRMHD_headers.h"
 #include "con2prim_headers.h"
 #include "harm_u2p_util.h"
+#include "inlined_functions.h"
 
 /**********************************************************************************
  * This is a modified version of the original HARM code which is compatible with
@@ -302,7 +303,7 @@ int Utoprim_new_body_1d( const igm_eos_parameters eos,
   // Calculate W:
   CCTK_REAL x_1d[1] = {W_last};
 
-  // We need a dummy variable to keep the function call in this file 
+  // We need a dummy variable to keep the function call in this file
   // consistent with the ones in the con2prim_Noble1D_entropy.cc and
   // con2prim_Noble1D_entropy2.cc files.
   CCTK_REAL dummy = 0.0;
@@ -357,9 +358,9 @@ int Utoprim_new_body_1d( const igm_eos_parameters eos,
       xprs  = -0.5*harm_aux.Bsq/(harm_aux.gamma*harm_aux.gamma)+harm_aux.Qdotn+W+harm_aux.Bsq-0.5*harm_aux.QdotBsq/(W*W);;
       xuu   = (W-harm_aux.D*harm_aux.gamma-xprs*harm_aux.gamma*harm_aux.gamma)/(harm_aux.D*harm_aux.gamma) * rho0;
       xeps  = xuu/xrho;
-      WVU_EOS_P_S_and_T_from_rho_Ye_eps( xrho,xye,xeps, &xprs,&xent,&xtemp );      
+      WVU_EOS_P_S_and_T_from_rho_Ye_eps( xrho,xye,xeps, &xprs,&xent,&xtemp );
     }
-    
+
     // Update P and T in the prim array
     prim[RHO  ] = xrho;
     prim[YE   ] = harm_aux.ye;
@@ -447,14 +448,14 @@ void func_1d_orig(CCTK_REAL x[], CCTK_REAL dx[], CCTK_REAL resid[],
   }
   // else if( eos.is_Tabulated ) {
   //   // Here we must compute dPdW and dPdvsq for tabulated EOS.
-  //   // We will be using the expressions 
+  //   // We will be using the expressions
   //   CCTK_REAL gamma_sq = 1.0/(1.0-vsq);
   //   harm_aux.gamma     = sqrt(gamma_sq);
   //   if( harm_aux.gamma > eos.W_max ) {
   //     harm_aux.gamma = eos.W_max;
   //     gamma_sq       = harm_aux.gamma * harm_aux.gamma;
   //   }
-    
+
   //   const CCTK_REAL rho = MAX(harm_aux.D / harm_aux.gamma,eos.rho_min);
   //   const CCTK_REAL xye = harm_aux.ye;
   //   const CCTK_REAL h   = fabs(W /(rho*gamma_sq)); // W := rho*h*gamma^{2}
@@ -578,7 +579,7 @@ int newton_raphson_1d( CCTK_REAL x[], int n, igm_eos_parameters eos, harm_aux_va
 
 
   /*  Check for bad untrapped divergences : */
-  if( (!CCTK_isfinite(f)) || (!CCTK_isfinite(df)) || (!CCTK_isfinite(x[0]))  ) {
+  if( (!robust_isfinite(f)) || (!robust_isfinite(df)) || (!robust_isfinite(x[0]))  ) {
     return(2);
   }
 

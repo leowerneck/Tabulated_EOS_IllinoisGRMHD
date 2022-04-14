@@ -22,7 +22,7 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
   /*
    * The short piece of code below takes care
    * of initializing the EOS parameters.
-   * Please refer to the "inlined_functions.C"
+   * Please refer to the "inlined_functions.h"
    * source file for the documentation on the
    * function.
    */

@@ -1,4 +1,5 @@
-
+#ifndef INLINED_FUNCTIONS_H_
+#define INLINED_FUNCTIONS_H_
 
 static inline void find_cp_cm(CCTK_REAL &cplus,CCTK_REAL &cminus,CCTK_REAL v02,CCTK_REAL u0,
                               CCTK_REAL vi,CCTK_REAL ONE_OVER_LAPSE_SQUARED,CCTK_REAL shifti,CCTK_REAL psim4,CCTK_REAL gupii) {
@@ -372,3 +373,23 @@ static inline void compute_smallba_b2_and_u_i_over_u0_psi4(CCTK_REAL *METRIC,CCT
              METRIC[GYZ]*(by_plus_shifty_bt)*(bz_plus_shiftz_bt) )  ) * METRIC_LAP_PSI4[PSI4]; // mult by psi4 because METRIC[GIJ] is the conformal metric.
   /***********************************************************/
 }
+
+// Robust functions to check for nans and infinities even when
+// the --ffast-math compilation flag (e.g., -Ofast) is enabled.
+// Special thanks to Roland Haas for providing the code for
+// robust_isnan(). robust_isfinite() is based on robust_isnan(),
+// with modifications inspired by chux's reply to this question:
+// https://stackoverflow.com/questions/36150514/check-if-a-number-is-inf-or-nan
+static inline int robust_isnan(double x) {
+  unsigned long *pbits = (unsigned long *)&x;
+  return( (*pbits & 0x7ff0000000000000UL) == 0x7ff0000000000000UL &&
+          (*pbits & 0x000fffffffffffffUL) );
+}
+
+static inline int robust_isfinite(double x) {
+  unsigned long *pbits = (unsigned long *)&x;
+  return( !((*pbits & 0x7ff0000000000000UL) == 0x7ff0000000000000UL &&
+           ((*pbits & 0x7ff0000000000000UL) || (*pbits & 0xfff0000000000000UL))) );
+}
+
+#endif // INLINED_FUNCTIONS_H_

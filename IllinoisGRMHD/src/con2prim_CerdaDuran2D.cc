@@ -5,6 +5,7 @@
 
 #include "IllinoisGRMHD_headers.h"
 #include "con2prim_headers.h"
+#include "inlined_functions.h"
 
 /*****************************************************************************/
 /*********** IMPORTED FROM A STRIPPED VERSION OF THE HEADER FILES ************/
@@ -93,11 +94,11 @@ int con2prim_CerdaDuran2D( const igm_eos_parameters eos,
   // B * S = B^i * S_i
   CCTK_REAL BdotS = 0.0;
   for(int i=0;i<3;i++) BdotS += BU[i] * SD[i];
-  
+
   // B^2 = B^i * B_i
   CCTK_REAL B_squared = 0.0;
   for(int i=0;i<3;i++) B_squared += BU[i] * BD[i];
-  
+
   // S^2 = S^i * S_i
   CCTK_REAL S_squared = 0.0;
   for(int i=0;i<3;i++) S_squared += SU[i] * SD[i];
@@ -152,27 +153,27 @@ void calc_WT_max( const igm_eos_parameters eos,
 
 
 void calc_prim_from_x_2D_WT( const igm_eos_parameters eos,
-                             const double BdotS, 
+                             const double BdotS,
                              const double B_squared,
                              const double *restrict S_con,
                              const double *restrict con,
                              double *restrict prim,
                              double *restrict x ) {
-  
-  // Recover the primitive variables from the scalars (W,Z) 
+
+  // Recover the primitive variables from the scalars (W,Z)
   // and conserved variables, Eq. (23)-(25) in Cerdá-Durán et al. 2008
   double W = x[0];
   double T = x[1];
-  
+
   // Calculate press, eps etc. from (rho, temp, Ye) using EOS,
   // required for consistency
   double xrho  = con[DD]/W;
   double xye   = con[YE]/con[DD];
   double xtemp = T;
   double xeps  = 0.0;
-  double xprs  = 0.0;  
+  double xprs  = 0.0;
   WVU_EOS_P_and_eps_from_rho_Ye_T( xrho,xye,xtemp, &xprs,&xeps );
-  
+
   double Z = con[DD] * (1.0 + xeps + xprs/xrho) * W;
 
   // Eq. (24) in Siegel et al. 2018, with S^{i} := gamma^{ij} S_{j}
@@ -189,28 +190,28 @@ void calc_prim_from_x_2D_WT( const igm_eos_parameters eos,
   prim[B2_con  ] = con[B2_con];
   prim[B3_con  ] = con[B3_con];
   prim[WLORENTZ] = W;
-  
+
 }
 
 void NR_step_2D_WT( const igm_eos_parameters eos,
                     const double S_squared,
                     const double BdotS,
                     const double B_squared,
-                    const double *restrict con, 
+                    const double *restrict con,
                     double *restrict x,
                     double *restrict dx,
                     double *restrict f ) {
   // Finding the roots of f(x):
   //
   // x_{n+1} = x_{n} - f(x)/J = x_{n} + dx_{n}
-  // 
+  //
   // where J is the Jacobian matrix J_{ij} = df_i/dx_j
   //
   // Here, compute dx = [dW, dT]
   double W = x[0];
   double T = x[1];
 
-  // Need partial derivatives of specific internal energy and pressure wrt density and 
+  // Need partial derivatives of specific internal energy and pressure wrt density and
   // temperature. Those need to be based on primitives computed from Newton-Raphson state
   // vector x and conservatives
   double rho      = con[DD]/W;
@@ -284,7 +285,7 @@ void NR_step_2D_WT( const igm_eos_parameters eos,
 
   // Then the inverse Jacobian Matrix
   double Ji[2][2];
-  double detJ = a*d - b*c; 
+  double detJ = a*d - b*c;
   Ji[0][0]    = +d/detJ;
   Ji[0][1]    = -b/detJ;
   Ji[1][0]    = -c/detJ;
@@ -397,7 +398,7 @@ void NR_2D_WT( const igm_eos_parameters eos,
   } // END of while(keep_iterating)
 
   //  Check for bad untrapped divergences
-  if( (!CCTK_isfinite(f[0])) || (!CCTK_isfinite(f[1])) ) {
+  if( (!robust_isfinite(f[0])) || (!robust_isfinite(f[1])) ) {
     *c2p_failed = true;
   }
 

@@ -5,6 +5,7 @@
 #include "EOS_headers.hh"
 #include "con2prim_headers.h"
 #include "harm_u2p_util.h"
+#include "inlined_functions.h"
 
 /***********************************************************************************
     Copyright 2006 Charles F. Gammie, Jonathan C. McKinney, Scott C. Noble,
@@ -357,9 +358,9 @@ int Utoprim_new_body( const igm_eos_parameters eos,
   //     xprs  = -0.5*harm_aux.Bsq/(harm_aux.gamma*harm_aux.gamma)+harm_aux.Qdotn+W+harm_aux.Bsq-0.5*harm_aux.QdotBsq/(W*W);;
   //     xuu   = (W-harm_aux.D*harm_aux.gamma-xprs*harm_aux.gamma*harm_aux.gamma)/(harm_aux.D*harm_aux.gamma) * rho0;
   //     xeps  = xuu/xrho;
-  //     get_P_S_and_T_from_rho_Ye_and_eps( eos,xrho,xye,xeps, &xprs,&xent,&xtemp );      
+  //     get_P_S_and_T_from_rho_Ye_and_eps( eos,xrho,xye,xeps, &xprs,&xent,&xtemp );
   //   }
-    
+
   //   // Update P and T in the prim array
   //   prim[RHO  ] = xrho;
   //   prim[YE   ] = harm_aux.ye;
@@ -481,7 +482,7 @@ int general_newton_raphson( igm_eos_parameters eos, harm_aux_vars_struct& harm_a
   errx = 1. ;
   df = f = 1.;
   i_extra = doing_extra = 0;
-  for( id = 0; id < n ; id++)  x_old[id] = x_orig[id] = x[id] ;
+  for( id = 0; id < NEWT_DIM ; id++)  x_old[id] = x_orig[id] = x[id] ;
 
   /* Start the Newton-Raphson iterations : */
   keep_iterating = 1;
@@ -534,7 +535,7 @@ int general_newton_raphson( igm_eos_parameters eos, harm_aux_vars_struct& harm_a
   }   // END of while(keep_iterating)
 
   /*  Check for bad untrapped divergences : */
-  if( (finite(f)==0) ||  (finite(df)==0) ) {
+  if( (robust_isfinite(f)==0) ||  (robust_isfinite(df)==0) ) {
     return(2);
   }
 
@@ -591,14 +592,14 @@ void func_vsq(igm_eos_parameters eos, harm_aux_vars_struct& harm_aux, CCTK_REAL 
   // }
   // else {
   //   // Here we must compute dPdW and dPdvsq for tabulated EOS.
-  //   // We will be using the expressions 
+  //   // We will be using the expressions
   //   CCTK_REAL gamma_sq = 1.0/(1.0-vsq);
   //   harm_aux.gamma     = sqrt(gamma_sq);
   //   if( harm_aux.gamma > eos.W_max ) {
   //     harm_aux.gamma = eos.W_max;
   //     gamma_sq       = harm_aux.gamma * harm_aux.gamma;
   //   }
-    
+
   //   const CCTK_REAL rho = MAX(harm_aux.D / harm_aux.gamma,eos.rho_min);
   //   const CCTK_REAL xye = harm_aux.ye;
   //   const CCTK_REAL h   = fabs(W /(rho*gamma_sq)); // W := rho*h*gamma^{2}
