@@ -5,6 +5,7 @@
 
 #include "IllinoisGRMHD_headers.h"
 #include "con2prim_headers.h"
+#include "con2prim_helpers.h"
 
 /*****************************************************************************/
 /*********** IMPORTED FROM A STRIPPED VERSION OF THE HEADER FILES ************/
@@ -17,8 +18,6 @@
 #include <stdbool.h>
 
 void NR_3D_WZT( const igm_eos_parameters eos,
-                const int safe_guess,
-                const int use_eps_or_P,
                 const CCTK_REAL tol_x,
                 const CCTK_REAL S_squared,
                 const CCTK_REAL BdotS,
@@ -28,15 +27,24 @@ void NR_3D_WZT( const igm_eos_parameters eos,
                 CCTK_REAL *restrict prim,
                 bool *restrict c2p_failed );
 
-static const int use_eps = 0;
-static const int use_P   = 1;
-
-static inline void compute_W_from_cons( const CCTK_REAL *restrict con,
-                                        CCTK_REAL *restrict W ) {
+static inline void compute_W_from_cons( const igm_eos_parameters eos,
+                                        const CCTK_REAL *restrict con,
+                                        const CCTK_REAL S_squared,
+                                        const CCTK_REAL B_squared,
+                                        const CCTK_REAL BdotS ) {
 
   // Use the same as the Palenzuela routine
-  
-  
+  const CCTK_REAL q = con[TAU]/con[DD];
+  const CCTK_REAL r = S_squared/(con[DD]*con[DD]);
+  const CCTK_REAL s = B_squared/con[DD];
+  const CCTK_REAL t = BdotS/(pow(con[DD],1.5));
+  const CCTK_REAL x = 2.0+2.0*q-s;
+
+  CCTK_REAL Wminus2 = 1.0 - ( x*x*r + (2*x+s)*t*t ) / ( x*x*(x+s)*(x+s) );
+  Wminus2           = fmin(fmax(Wminus2,eos.inv_W_max_squared ), 1.0);
+  const CCTK_REAL W = pow(Wminus2, -0.5);
+  return W;
+
 }
 
 /*****************************************************************************/
@@ -57,74 +65,60 @@ int con2prim_CerdaDuran3D( const igm_eos_parameters eos,
                            CCTK_REAL *restrict prim,
                            output_stats& stats ) {
 
-  // Set gamma_{ij}
-  CCTK_REAL gammaDD[3][3];
-  gammaDD[0][0] = adm_quantities[GXX];
-  gammaDD[0][1] = gammaDD[1][0] = adm_quantities[GXY];
-  gammaDD[0][2] = gammaDD[2][0] = adm_quantities[GXZ];
-  gammaDD[1][1] = adm_quantities[GYY];
-  gammaDD[1][2] = gammaDD[2][1] = adm_quantities[GYZ];
-  gammaDD[2][2] = adm_quantities[GZZ];
-
-  // Set gamma^{ij}
-  CCTK_REAL gammaUU[3][3];
-  gammaUU[0][0] = adm_quantities[GUPXX];
-  gammaUU[0][1] = gammaUU[1][0] = adm_quantities[GUPXY];
-  gammaUU[0][2] = gammaUU[2][0] = adm_quantities[GUPXZ];
-  gammaUU[1][1] = adm_quantities[GUPYY];
-  gammaUU[1][2] = gammaUU[2][1] = adm_quantities[GUPYZ];
-  gammaUU[2][2] = adm_quantities[GUPZZ];
+  // Set gamma_{ij} and gamma^{ij}
+  CCTK_REAL gammaDD[3][3],gammaUU[3][3];
+  set_gammaDD_and_gammaUU_from_ADM_quantities(adm_quantities,gammaDD,gammaUU);
 
   // Read in B^{i}
   CCTK_REAL BU[3];
   for(int i=0;i<3;i++) BU[i] = con[B1_con+i];
 
-  // Compute B_{i} = gamma_{ij}B^{j}
-  CCTK_REAL BD[3];
-  for(int i=0;i<3;i++) {
-    BD[i] = 0;
-    for(int j=0;j<3;j++) {
-      BD[i] += gammaDD[i][j] * BU[j];
-    }
-  }
-
-  // Read in S_{i}.
+  // Read in S_{i}
   CCTK_REAL SD[3];
   for(int i=0;i<3;i++) SD[i] = con[S1_cov+i];
 
+  // Compute B_{i} = gamma_{ij}B^{j}
+  CCTK_REAL BD[3];
+  raise_or_lower_indices_3d( BU,gammaDD, BD );
+
   // Compute S^{i} = gamma^{ij}S_{j}
   CCTK_REAL SU[3];
-  for(int i=0;i<3;i++) {
-    SU[i] = 0;
-    for(int j=0;j<3;j++) {
-      SU[i] += gammaUU[i][j] * SD[j];
-    }
+  raise_or_lower_indices_3d( SD,gammaUU, SU );
+
+  // S^2 = S^i * S_i
+  CCTK_REAL S_squared = 0.0;
+  for(int i=0;i<3;i++) S_squared += SU[i] * SD[i];
+
+  // Enforce ceiling on S^{2} (A5 of Palenzuela et al. https://arxiv.org/pdf/1505.01607.pdf)
+  CCTK_REAL S_squared_max = SQR( con[DD] + con[TAU] );
+  if( S_squared > 0.9999 * S_squared_max ) {
+    // Compute rescaling factor
+    CCTK_REAL rescale_factor_must_be_less_than_one = sqrt(0.9999*S_squared_max/S_squared);
+    // Rescale S_{i}
+    for(int i=0;i<3;i++) SD[i] *= rescale_factor_must_be_less_than_one;
+    // S_{i} has been rescaled. Recompute S^{i}.
+    raise_or_lower_indices_3d( SD,gammaUU, SU );
+    // Now recompute S^{2} := gamma^{ij}S^{i}S_{j}.
+    S_squared = 0.0;
+    for(int i=0;i<3;i++) S_squared += SU[i] * SD[i];
+    // Check if the fix was successful
+    if( simple_rel_err(S_squared,0.9999*S_squared_max) > 1e-12 ) CCTK_VError(VERR_DEF_PARAMS,"Incompatible values of S_squared after rescaling: %.15e %.15e\n",S_squared,0.9999*S_squared_max);
   }
 
   // Need to calculate for (21) and (22) in Cerda-Duran 2008
   // B * S = B^i * S_i
   CCTK_REAL BdotS = 0.0;
   for(int i=0;i<3;i++) BdotS += BU[i] * SD[i];
-  
+
   // B^2 = B^i * B_i
   CCTK_REAL B_squared = 0.0;
   for(int i=0;i<3;i++) B_squared += BU[i] * BD[i];
-  
-  // S^2 = S^i * S_i
-  CCTK_REAL S_squared = 0.0;
-  for(int i=0;i<3;i++) S_squared += SU[i] * SD[i];
 
   bool c2p_failed  = false;
-  int safe_guess   = 0;
+  int safe_guess   = 1;
   int use_eps_or_P = use_eps;
   CCTK_REAL tol_x    = 5e-9;
   NR_3D_WZT( eos, safe_guess,use_eps_or_P,tol_x, S_squared,BdotS,B_squared, SU,con,prim, &c2p_failed );
-
-  if( c2p_failed ) {
-    // If failed to recover the prims, try again with safe guesses
-    int safe_guess=1;
-    NR_3D_WZT( eos, safe_guess,use_eps_or_P,tol_x, S_squared,BdotS,B_squared, SU,con,prim, &c2p_failed );
-  }
 
   return c2p_failed;
 
@@ -133,37 +127,15 @@ int con2prim_CerdaDuran3D( const igm_eos_parameters eos,
 /*****************************************************************************/
 /*********************** CERDA-DURAN CON2PRIM FUNCTIONS **********************/
 /*****************************************************************************/
-void calc_WZT_from_prim( const igm_eos_parameters eos,
-                         const CCTK_REAL *restrict prim,
-                         const CCTK_REAL *restrict con,
-                         CCTK_REAL *restrict x ) {
-
-  // Start by computing P and eps using the EOS
-  CCTK_REAL W   = prim[WLORENTZ];
-  CCTK_REAL rho = con[DD]/W;
-  CCTK_REAL Ye  = con[YE]/con[DD];
-  CCTK_REAL T   = prim[TEMP];
-  CCTK_REAL P   = 0.0;
-  CCTK_REAL eps = 0.0;
-  WVU_EOS_P_and_eps_from_rho_Ye_T( rho,Ye,T, &P,&eps );
-
-  // Then compute the enthalpy
-  CCTK_REAL h = 1.0 + eps + P / rho;
-
-  // Then compute z
-  CCTK_REAL z = rho * h * W * W;
-
-  // Then set the x vector
-  x[0] = W;
-  x[1] = z;
-  x[2] = T;
-
-}
-
 void calc_WZT_max( const igm_eos_parameters eos,
+                   const CCTK_REAL S_squared,
                    const CCTK_REAL B_squared,
+                   const CCTK_REAL BdotS,
                    const CCTK_REAL *restrict con,
                    CCTK_REAL *restrict xmax ) {
+
+  // First compute W following Palenzuela
+  const CCTK_REAL W = compute_W_from_cons(eos, con, S_squared, B_squared, BdotS);
 
   // Calculate maximum values for x = (rho, T) ("safe guess" initial values)
   // cf. Cerda-Duran et al. 2008, Eq. (39)-(42)
@@ -171,18 +143,11 @@ void calc_WZT_max( const igm_eos_parameters eos,
   CCTK_REAL rhomax = con[DD];
   CCTK_REAL epsmax = (con[TAU] - 0.5*B_squared) / con[DD];
 
-  // ensure that rhomax and epsmax are in validity range of EOS
-  // Note that in setting the IllinoisGRMHD EOS parameters, we
-  // already impose a safety factor on the table floors and
-  // ceilings, so we don't need to use the prefactors of 95%
-  if(rhomax > eos.rho_max) rhomax = eos.rho_max;
-  if(epsmax > eos.eps_max) epsmax = eos.eps_max;
-
   // Now compute P max and T max
   CCTK_REAL xye   = con[YE]/con[DD];
   CCTK_REAL xtemp = eos.T_max; // initial guess, choose large enough
   CCTK_REAL xprs  = 0.0;
-  WVU_EOS_P_and_T_from_rho_Ye_eps( rhomax,xye,epsmax, &xprs,&xtemp );
+  WVU_EOS_P_from_rho_Ye_T( rhomax,xye,epsmax, &xprs,&xtemp );
 
   // Now set W_max and T_max
   xmax[0] = 1.0e4;
@@ -193,26 +158,26 @@ void calc_WZT_max( const igm_eos_parameters eos,
 
 
 void calc_prim_from_x_3D_WZT( const igm_eos_parameters eos,
-                              const CCTK_REAL BdotS, 
+                              const CCTK_REAL BdotS,
                               const CCTK_REAL B_squared,
                               const CCTK_REAL *restrict S_con,
                               const CCTK_REAL *restrict con,
                               CCTK_REAL *restrict prim,
                               CCTK_REAL *restrict x ) {
-  
-  // Recover the primitive variables from the scalars (W,Z) 
+
+  // Recover the primitive variables from the scalars (W,Z)
   // and conserved variables, Eq. (23)-(25) in Cerdá-Durán et al. 2008
   CCTK_REAL W = x[0];
   CCTK_REAL z = x[1];
   CCTK_REAL T = x[2];
-  
+
   // Calculate press, eps etc. from (rho, temp, Ye) using EOS,
   // required for consistency
   CCTK_REAL xrho  = con[DD]/W;
   CCTK_REAL xye   = con[YE]/con[DD];
   CCTK_REAL xtemp = T;
   CCTK_REAL xeps  = 0.0;
-  CCTK_REAL xprs  = 0.0;  
+  CCTK_REAL xprs  = 0.0;
   WVU_EOS_P_and_eps_from_rho_Ye_T( xrho,xye,xtemp, &xprs,&xeps );
 
   // Eq. (24) in Siegel et al. 2018, with S^{i} := gamma^{ij} S_{j}
@@ -229,21 +194,21 @@ void calc_prim_from_x_3D_WZT( const igm_eos_parameters eos,
   prim[B2_con  ] = con[B2_con];
   prim[B3_con  ] = con[B3_con];
   prim[WLORENTZ] = W;
-  
+
 }
 
 void NR_step_3D_eps( const igm_eos_parameters eos,
                      const CCTK_REAL S_squared,
                      const CCTK_REAL BdotS,
                      const CCTK_REAL B_squared,
-                     const CCTK_REAL *restrict con, 
+                     const CCTK_REAL *restrict con,
                      CCTK_REAL *restrict x,
                      CCTK_REAL *restrict dx,
                      CCTK_REAL *restrict f ) {
   // Finding the roots of f(x):
   //
   // x_{n+1} = x_{n} - f(x)/J = x_{n} + dx_{n}
-  // 
+  //
   // where J is the Jacobian matrix J_{ij} = df_i/dx_j
   //
   // Here, compute dx = [dW, dT]
@@ -251,7 +216,7 @@ void NR_step_3D_eps( const igm_eos_parameters eos,
   CCTK_REAL z = x[1];
   CCTK_REAL T = x[2];
 
-  // Need partial derivatives of specific internal energy and pressure wrt density and 
+  // Need partial derivatives of specific internal energy and pressure wrt density and
   // temperature. Those need to be based on primitives computed from Newton-Raphson state
   // vector x and conservatives
   CCTK_REAL xrho      = con[DD]/W;
@@ -362,138 +327,7 @@ void NR_step_3D_eps( const igm_eos_parameters eos,
 
 }
 
-void NR_step_3D_P( const igm_eos_parameters eos,
-                   const CCTK_REAL S_squared,
-                   const CCTK_REAL BdotS,
-                   const CCTK_REAL B_squared,
-                   const CCTK_REAL *restrict con, 
-                   CCTK_REAL *restrict x,
-                   CCTK_REAL *restrict dx,
-                   CCTK_REAL *restrict f ) {
-  // Finding the roots of f(x):
-  //
-  // x_{n+1} = x_{n} - f(x)/J = x_{n} + dx_{n}
-  // 
-  // where J is the Jacobian matrix J_{ij} = df_i/dx_j
-  //
-  // Here, compute dx = [dW, dT]
-  CCTK_REAL W = x[0];
-  CCTK_REAL z = x[1];
-  CCTK_REAL T = x[2];
-
-  // Need partial derivatives of specific internal energy and pressure wrt density and 
-  // temperature. Those need to be based on primitives computed from Newton-Raphson state
-  // vector x and conservatives
-  CCTK_REAL xrho      = con[DD]/W;
-  CCTK_REAL xye       = con[YE]/con[DD];
-  CCTK_REAL xprs      = 0.0;
-  CCTK_REAL xeps      = 0.0;
-  CCTK_REAL xdPdrho   = 0.0;
-  CCTK_REAL xdPdT     = 0.0;
-  CCTK_REAL xdepsdrho = 0.0;
-  CCTK_REAL xdepsdT   = 0.0;
-  WVU_EOS_P_eps_dPdrho_dPdT_depsdrho_and_depsdT_from_rho_Ye_T(xrho,xye,T,&xprs,&xeps,&xdPdrho,&xdPdT,&xdepsdrho,&xdepsdT);
-
-  // Some useful auxiliary variables
-  CCTK_REAL BdotSsqr       = BdotS*BdotS;
-  CCTK_REAL z_plus_Bsq     = z + B_squared;
-  CCTK_REAL z_plus_Bsq_sqr = z_plus_Bsq*z_plus_Bsq;
-  CCTK_REAL z_sqr          = z*z;
-  CCTK_REAL W_sqr          = W*W;
-  CCTK_REAL inv_W          = 1.0/W;
-  CCTK_REAL inv_W_sqr      = 1.0/W_sqr;
-
-  // Now compute P(W,z)
-  CCTK_REAL P = z*inv_W_sqr - con[DD] * ( 1.0 + xeps) * inv_W ;
-
-  //---------------------------------------------------------------
-  //------------ Equation (29) in Siegel et al. (2017) ------------
-  //---------------------------------------------------------------
-  // f0 = ( (z+B^{2})^{2} - S^{2} - (2z+B^{2})(B.S)^{2}/z^{2} )W^{2} - (z+B^{2})^{2}
-  CCTK_REAL f0 = (z_plus_Bsq_sqr - S_squared - (z+z_plus_Bsq)*BdotSsqr/z_sqr)*W_sqr - z_plus_Bsq_sqr;
-
-  // df0/dW = 2W( (z+B^{2})^{2} - S^{2} - (2z+B^{2})(B.S)^{2}/z^{2} )
-  CCTK_REAL a  = 2.0*(z_plus_Bsq_sqr - S_squared - (z+z_plus_Bsq)*(BdotSsqr)/z_sqr)*W;
-
-  // df0/dz = ( 2(z+B^{2}) + 2(B.S)^{2}/z^{2} + 2(B^{2})(B.S)^{2}/z^{3} )W^{2} - 2(z+B^{2})
-  CCTK_REAL b  = (2.0*z_plus_Bsq + (2.0/(z_sqr) + 2.0*B_squared/(z_sqr*z))*BdotSsqr)*W_sqr - 2.0*z_plus_Bsq;
-
-  // df0/dT = 0
-  CCTK_REAL c  = 0.0;
-  //---------------------------------------------------------------
-
-  //---------------------------------------------------------------
-  //------------ Equation (30) in Siegel et al. (2017) ------------
-  //---------------------------------------------------------------
-  // f1 = (tau + D - z - B^{2} + (B.S)^{2}/(2z^{2}) + P)W^{2} + B^{2}/2
-  CCTK_REAL f1 = (con[TAU] + con[DD] - z - B_squared + (BdotSsqr)/(2.0*z_sqr) + xprs)*W_sqr + 0.5*B_squared;
-
-  // Recall that D = W rho => rho = D / W. Thus
-  //
-  // dP/dW = (dP/drho)(drho/dW) = -W^{2}D(dP/drho)
-  //
-  // df1/dW = 2(tau + D - z - B^{2} + (B.S)^{2}/(2z^{2}) + P)W + dPdW * W^{2}
-  CCTK_REAL d  = 2.0*(con[TAU] + con[DD] - z - B_squared + BdotSsqr/(2.0*z_sqr) + xprs)*W - con[DD]*xdPdrho;
-
-  // df1/dz = ( -1 - (B.S)^{2}/z^{3} ) W^{2}
-  CCTK_REAL e  = (-1.0-BdotSsqr/(z_sqr*z))*W_sqr;
-
-  // df1/dT = W^{2}dPdT
-  CCTK_REAL fc = W_sqr * xdPdT;
-
-  //---------------------------------------------------------------
-
-  //---------------------------------------------------------------
-  //------------ Equation (31) in Siegel et al. (2017) ------------
-  //---------------------------------------------------------------
-  // Note that we use the *pressure* instead of eps
-  // f2 = P(W,z) - P(rho,Ye,T)
-  CCTK_REAL f2 = P - xprs;
-
-  // df2/dW = dP(W,z)/dW - (dP(rho,Ye,T)/drho)*(drho/dW)
-  //        = D( 1.0 + eps + (D/W)(deps/drho) )/W^{2} -2z/W^{3} + (D/W^{2})(dP/drho)
-  CCTK_REAL g  = (con[DD]*(1.0 + xeps + con[DD]*xdepsdrho/W) - 2.0*z*inv_W + con[DD]*xdPdrho)*inv_W_sqr;
-
-  // df2/dz = dP(W,z)/dz = 1/W^{2}
-  CCTK_REAL h  = inv_W_sqr;
-
-  // df2/dT = -(D/W)(deps/dT) - dP(rho,Ye,T)/dT
-  CCTK_REAL k  = -con[DD]*inv_W*xdepsdT - xdPdT;
-
-  // Set the vector of equations
-  f[0] = f0;
-  f[1] = f1;
-  f[2] = f2;
-
-  // Compute the determinant
-  CCTK_REAL A    = e*k-fc*h;
-  CCTK_REAL B    = fc*g-d*k;
-  CCTK_REAL C    = d*h-e*g;
-  CCTK_REAL detJ = a*(A) + b*(B) + c*(C);
-
-  //Compute the matrix inverse
-  CCTK_REAL Ji[3][3];
-  Ji[0][0] = A/detJ;
-  Ji[1][0] = B/detJ;
-  Ji[2][0] = C/detJ;
-  Ji[0][1] = (c*h-b*k)/detJ;
-  Ji[1][1] = (a*k-c*g)/detJ;
-  Ji[2][1] = (g*b-a*h)/detJ;
-  Ji[0][2] = (b*fc-c*e)/detJ;
-  Ji[1][2] = (c*d-a*fc)/detJ;
-  Ji[2][2] = (a*e-b*d)/detJ;
-
-  // Compute the step size
-  dx[0] = -Ji[0][0]* f[0] - Ji[0][1]* f[1] - Ji[0][2]* f[2];
-  dx[1] = -Ji[1][0]* f[0] - Ji[1][1]* f[1] - Ji[1][2]* f[2];
-  dx[2] = -Ji[2][0]* f[0] - Ji[2][1]* f[1] - Ji[2][2]* f[2];
-
-}
-
-
 void NR_3D_WZT( const igm_eos_parameters eos,
-                const int safe_guess,
-                const int use_eps_or_P,
                 const CCTK_REAL tol_x,
                 const CCTK_REAL S_squared,
                 const CCTK_REAL BdotS,
@@ -502,7 +336,7 @@ void NR_3D_WZT( const igm_eos_parameters eos,
                 const CCTK_REAL *restrict con,
                 CCTK_REAL *restrict prim,
                 bool *restrict c2p_failed ) {
-  
+
   // 2D Newton-Raphson scheme, using state vector x = (W, T) and 2D function
   // f(x) = (f1(x), f2(x)) given by Eqs. (27), (28) of Siegel et al. 2018
 
@@ -524,12 +358,7 @@ void NR_3D_WZT( const igm_eos_parameters eos,
   x_lowlim[2] = eos.T_atm;//exp( ( log(eos.T_max)+log(eos.T_min) )/2.0 );
 
   // set initial guess for Newton-Raphson state vector x = (W, T)
-  if( safe_guess==0 ) {
-    calc_WZT_from_prim(eos,prim,con,x);
-  }
-  else if( safe_guess==1 ) {
-    calc_WZT_max(eos,B_squared,con,x);
-  }
+  calc_WZT_max(eos,B_squared,con,x);
 
   // printf("Guesses: %e %e %e\n",x[0],x[1],x[2]);
 
@@ -559,15 +388,7 @@ void NR_3D_WZT( const igm_eos_parameters eos,
   while(keep_iterating) {
 
     // do Newton-Raphson step
-    if( use_eps_or_P == use_eps ) {
-      NR_step_3D_eps(eos,S_squared, BdotS, B_squared, con, x, dx, f);
-    }
-    else if( use_eps_or_P == use_P ) {
-      NR_step_3D_P(eos,S_squared, BdotS, B_squared, con, x, dx, f);
-    }
-    else {
-      CCTK_ERROR("(CerdaDuran3D) use_eps_or_P can only be \"use_eps\" or \"use_P\". ABORTING.");
-    }
+    NR_step_3D_eps(eos,S_squared, BdotS, B_squared, con, x, dx, f);
 
     // Update x vector and compute error
     for(int i=0;i<3;i++) {
