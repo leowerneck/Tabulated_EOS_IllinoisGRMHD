@@ -190,27 +190,43 @@ int con2prim( const igm_eos_parameters eos,
         } //Finished setting remaining primitives if there was a Font fix.
       }
 
-      /* Set rho_b */
-      PRIMS[RHOB] = prim[RHO];
-
-      if( eos.is_Hybrid ) {
-        PRIMS[PRESSURE] = pressure_rho0_u(eos, prim[RHO],prim[UU]);
+      // Check for NAN!
+      if( std::isnan(prim[RHO]*prim[TEMP]*prim[YE]*prim[PRESS]*prim[EPS]*prim[ENT]*utx_new*uty_new*utz_new*u0L) ) {
+	CCTK_VINFO("***********************************************************");
+	CCTK_VINFO("NAN found in function %s (file: %s)",__func__,__FILE__);
+	CCTK_VINFO("Input IllinoisGRMHD conserved variables:");
+	CCTK_VINFO("rho_*, Ye_*, ~tau, ~S_{i}: %e %e %e %e %e %e",CONSERVS[RHOSTAR],CONSERVS[YESTAR],CONSERVS[TAUENERGY],CONSERVS[STILDEX],CONSERVS[STILDEY],CONSERVS[STILDEZ]);
+	CCTK_VINFO("Input con2prim conserved variables:");
+	CCTK_VINFO("D, DYe, tau, S_{i}: %e %e %e %e %e %e",cons[RHO],cons[YE],cons[TAU],cons[S1_cov],cons[S2_cov],cons[S3_cov]);
+	CCTK_VINFO("Output primitive variables:");
+	CCTK_VINFO("rho, T, Ye: %e %e %e",prim[RHO],prim[TEMP],prim[YE]);
+	CCTK_VINFO("P, eps, S : %e %e %e",prim[PRESS],prim[EPS],prim[ENT]);
+	CCTK_VINFO("u^{mu}    : %e %e %e %e",u0L,utx_new,uty_new,utz_new);
+	CCTK_VINFO("***********************************************************");
       }
-      else if( eos.is_Tabulated ) {
-        PRIMS[YEPRIM     ] = prim[YE   ];
-        PRIMS[TEMPERATURE] = prim[TEMP ];
-        PRIMS[PRESSURE   ] = prim[PRESS];
-        PRIMS[EPSILON    ] = prim[EPS  ];
-        PRIMS[ENTROPY    ] = prim[ENT  ];
+      else {
+
+	/* Set rho_b */
+	PRIMS[RHOB] = prim[RHO];
+
+	if( eos.is_Hybrid ) {
+	  PRIMS[PRESSURE] = pressure_rho0_u(eos, prim[RHO],prim[UU]);
+	}
+	else if( eos.is_Tabulated ) {
+	  PRIMS[YEPRIM     ] = prim[YE   ];
+	  PRIMS[TEMPERATURE] = prim[TEMP ];
+	  PRIMS[PRESSURE   ] = prim[PRESS];
+	  PRIMS[EPSILON    ] = prim[EPS  ];
+	  PRIMS[ENTROPY    ] = prim[ENT  ];
+	}
+
+	/* Already set u0L. */
+	PRIMS[VX]       = utx_new/u0L - METRIC[SHIFTX];
+	PRIMS[VY]       = uty_new/u0L - METRIC[SHIFTY];
+	PRIMS[VZ]       = utz_new/u0L - METRIC[SHIFTZ];
+
+	return 0;
       }
-
-      /* Already set u0L. */
-      PRIMS[VX]       = utx_new/u0L - METRIC[SHIFTX];
-      PRIMS[VY]       = uty_new/u0L - METRIC[SHIFTY];
-      PRIMS[VZ]       = utz_new/u0L - METRIC[SHIFTZ];
-
-      return 0;
-
     } else {
       //If we didn't find a root, then try again with a different guess.
     }
