@@ -27,11 +27,11 @@ void NR_3D_WZT( const igm_eos_parameters eos,
                 CCTK_REAL *restrict prim,
                 bool *restrict c2p_failed );
 
-static inline void compute_W_from_cons( const igm_eos_parameters eos,
-                                        const CCTK_REAL *restrict con,
-                                        const CCTK_REAL S_squared,
-                                        const CCTK_REAL B_squared,
-                                        const CCTK_REAL BdotS ) {
+static inline CCTK_REAL compute_W_from_cons( const igm_eos_parameters eos,
+					     const CCTK_REAL *restrict con,
+					     const CCTK_REAL S_squared,
+					     const CCTK_REAL B_squared,
+					     const CCTK_REAL BdotS ) {
 
   // Use the same as the Palenzuela routine
   const CCTK_REAL q = con[TAU]/con[DD];
@@ -116,9 +116,8 @@ int con2prim_CerdaDuran3D( const igm_eos_parameters eos,
 
   bool c2p_failed  = false;
   int safe_guess   = 1;
-  int use_eps_or_P = use_eps;
   CCTK_REAL tol_x    = 5e-9;
-  NR_3D_WZT( eos, safe_guess,use_eps_or_P,tol_x, S_squared,BdotS,B_squared, SU,con,prim, &c2p_failed );
+  NR_3D_WZT( eos, tol_x, S_squared,BdotS,B_squared, SU,con,prim, &c2p_failed );
 
   return c2p_failed;
 
@@ -127,31 +126,31 @@ int con2prim_CerdaDuran3D( const igm_eos_parameters eos,
 /*****************************************************************************/
 /*********************** CERDA-DURAN CON2PRIM FUNCTIONS **********************/
 /*****************************************************************************/
-void calc_WZT_max( const igm_eos_parameters eos,
-                   const CCTK_REAL S_squared,
-                   const CCTK_REAL B_squared,
-                   const CCTK_REAL BdotS,
-                   const CCTK_REAL *restrict con,
-                   CCTK_REAL *restrict xmax ) {
+void calc_WZT_guesses( const igm_eos_parameters eos,
+		       const CCTK_REAL S_squared,
+		       const CCTK_REAL B_squared,
+		       const CCTK_REAL BdotS,
+		       const CCTK_REAL *restrict con,
+		       CCTK_REAL *restrict xmax ) {
 
   // First compute W following Palenzuela
   const CCTK_REAL W = compute_W_from_cons(eos, con, S_squared, B_squared, BdotS);
 
-  // Calculate maximum values for x = (rho, T) ("safe guess" initial values)
-  // cf. Cerda-Duran et al. 2008, Eq. (39)-(42)
+  // Compute P and eps
+  const CCTK_REAL xrho  = con[DD]/W;
+  const CCTK_REAL xye   = con[YE]/con[DD];
+  const CCTK_REAL xtemp = eos.T_max; // initial guess, choose large enough
+  CCTK_REAL xprs        = 0.0;
+  CCTK_REAL xeps        = 0.0;
+  WVU_EOS_P_and_eps_from_rho_Ye_T( xrho, xye, xtemp, &xprs, &xeps );
 
-  CCTK_REAL rhomax = con[DD];
-  CCTK_REAL epsmax = (con[TAU] - 0.5*B_squared) / con[DD];
+  // Compute z = rho * h * W^2
+  const CCTK_REAL h = 1.0 + xeps + xprs/xrho;
+  const CCTK_REAL z = xrho * h * W * W;
 
-  // Now compute P max and T max
-  CCTK_REAL xye   = con[YE]/con[DD];
-  CCTK_REAL xtemp = eos.T_max; // initial guess, choose large enough
-  CCTK_REAL xprs  = 0.0;
-  WVU_EOS_P_from_rho_Ye_T( rhomax,xye,epsmax, &xprs,&xtemp );
-
-  // Now set W_max and T_max
-  xmax[0] = 1.0e4;
-  xmax[1] = con[TAU] + xprs + con[DD] - 0.5*B_squared;
+  // Now set W, z, and T
+  xmax[0] = W;
+  xmax[1] = z;
   xmax[2] = xtemp;
 
 }
@@ -358,7 +357,7 @@ void NR_3D_WZT( const igm_eos_parameters eos,
   x_lowlim[2] = eos.T_atm;//exp( ( log(eos.T_max)+log(eos.T_min) )/2.0 );
 
   // set initial guess for Newton-Raphson state vector x = (W, T)
-  calc_WZT_max(eos,B_squared,con,x);
+  calc_WZT_guesses(eos,S_squared,B_squared,BdotS,con,x);
 
   // printf("Guesses: %e %e %e\n",x[0],x[1],x[2]);
 
