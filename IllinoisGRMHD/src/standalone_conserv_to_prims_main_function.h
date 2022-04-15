@@ -27,7 +27,7 @@ int update_Tmunu;
 #include "IllinoisGRMHD_headers.h"
 #include "harm_primitives_headers.h"
 #include "harm_u2p_util.c"
-#include "inlined_functions.C"
+#include "inlined_functions.h"
 #include "apply_tau_floor__enforce_limits_on_primitives_and_recompute_conservs.C"
 #include "convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij.C"
 

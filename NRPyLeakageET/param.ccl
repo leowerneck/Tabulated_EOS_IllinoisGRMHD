@@ -4,6 +4,13 @@ shares: IO
 USES STRING out_dir
 
 restricted:
+CCTK_STRING initial_optical_depth "Type of initial optical depth" STEERABLE = ALWAYS
+{
+  "PathOfLeastResistance" :: "Adopts the 'path of least resistance' algorithm of Nielsen et al. (2014) (1403.3680)"
+  "zero"                  :: "Initializes optical depths to zero"
+} "PathOfLeastResistance"
+
+restricted:
 CCTK_INT constants_key "Which values of physical constants to use. NRPy (0) is the most up to date." STEERABLE = ALWAYS
 {
   0 :: "NRPy constants"

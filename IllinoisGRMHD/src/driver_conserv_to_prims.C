@@ -43,7 +43,7 @@
 
 #include "IllinoisGRMHD_headers.h"
 #include "con2prim_headers.h"
-#include "inlined_functions.C"
+#include "inlined_functions.h"
 #include "apply_tau_floor__enforce_limits_on_primitives_and_recompute_conservs.C"
 
 extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
@@ -61,7 +61,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   /*
    * The short piece of code below takes care
    * of initializing the EOS parameters.
-   * Please refer to the "inlined_functions.C"
+   * Please refer to the "inlined_functions.h"
    * source file for the documentation on the
    * function.
    */
@@ -300,7 +300,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
 
             //FIXME: might slow down the code.
-            if(std::isnan(CONSERVS[RHOSTAR]*CONSERVS[STILDEX]*CONSERVS[STILDEY]*CONSERVS[STILDEZ]*CONSERVS[TAUENERGY]*PRIMS[BX_CENTER]*PRIMS[BY_CENTER]*PRIMS[BZ_CENTER])) {
+            if(robust_isnan(CONSERVS[RHOSTAR]*CONSERVS[STILDEX]*CONSERVS[STILDEY]*CONSERVS[STILDEZ]*CONSERVS[TAUENERGY]*PRIMS[BX_CENTER]*PRIMS[BY_CENTER]*PRIMS[BZ_CENTER])) {
               CCTK_VWARN(CCTK_WARN_ALERT,"NAN FOUND: i,j,k = %d %d %d, x,y,z = %e %e %e , index=%d st_i = %e %e %e, rhostar = %e, tau = %e, Bi = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",
                          i,j,k,x[index],y[index],z[index],index,
                          CONSERVS[STILDEX],CONSERVS[STILDEY],CONSERVS[STILDEZ],CONSERVS[RHOSTAR],CONSERVS[TAUENERGY],

@@ -44,7 +44,7 @@
 #include "cctk_Parameters.h"
 #include "IllinoisGRMHD_headers.h" /* Generic #define's and function prototypes */
 #include "driver_evaluate_MHD_rhs.h" /* Function prototypes for this file only */
-#include "inlined_functions.C"
+#include "inlined_functions.h"
 
 #define velx (&vel[0*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 #define vely (&vel[1*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
@@ -73,7 +73,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   /*
    * The short piece of code below takes care
    * of initializing the EOS parameters.
-   * Please refer to the "inlined_functions.C"
+   * Please refer to the "inlined_functions.h"
    * source file for the documentation on the
    * function.
    */

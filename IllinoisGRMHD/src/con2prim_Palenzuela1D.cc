@@ -6,6 +6,7 @@
 #include "IllinoisGRMHD_headers.h"
 #include "con2prim_headers.h"
 #include "con2prim_helpers.h"
+#include "inlined_functions.h"
 
 /*****************************************************************************/
 /*********** IMPORTED FROM A STRIPPED VERSION OF THE HEADER FILES ************/
@@ -529,7 +530,7 @@ double zbrent( double (*func)(const igm_eos_parameters, double, double *, double
 
   } //end for loop
 
-  if( (!CCTK_isfinite(fb)) ) {
+  if( (!robust_isfinite(fb)) ) {
     stats.c2p_failed = true;
     return b;
   } if( (fabs(maxerror) <= tol1 || fb == 0.0)){
