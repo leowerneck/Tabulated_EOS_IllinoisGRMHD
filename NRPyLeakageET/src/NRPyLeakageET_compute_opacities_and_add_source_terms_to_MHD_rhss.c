@@ -160,7 +160,46 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
             const CCTK_REAL uyL = vyL * u0L;
             const CCTK_REAL uzL = vzL * u0L;
 
-            // Step 3.g: Compute R, Q, and the neutrino opacities
+            // Step 3.g: Compute u_{mu} = g_{mu nu}u^{nu}
+            // Step 3.g.i: Set g_{mu nu}
+            // Step 3.g.i.1: Set gamma_{ij}
+            CCTK_REAL gammaDD[3][3];
+            gammaDD[0][0] = gxxL;
+            gammaDD[0][1] = gammaDD[1][0] = gxyL;
+            gammaDD[0][2] = gammaDD[2][0] = gxzL;
+            gammaDD[1][1] = gyyL;
+            gammaDD[1][2] = gammaDD[2][1] = gyzL;
+            gammaDD[2][2] = gzzL;
+
+            // Step 3.g.i.2: Compute beta_{i}
+            CCTK_REAL betaU[3] = {betaxL,betayL,betazL};
+            CCTK_REAL betaD[3] = {0.0,0.0,0.0};
+            for(int ii=0;ii<3;ii++)
+              for(int jj=0;jj<3;jj++)
+                betaD[ii] += gammaDD[ii][jj] * betaU[jj];
+
+            // Step 3.g.i.3: Compute beta^{2} = beta_{i}beta^{i}
+            CCTK_REAL betasqr = 0.0;
+            for(int ii=0;ii<3;ii++) betasqr += betaD[ii]*betaU[ii];
+
+            // Step 3.g.i.4: Set g_{mu nu}
+            CCTK_REAL g4DD[4][4];
+            g4DD[0][0] = -alpL*alpL + betasqr;
+            for(int ii=0;ii<3;ii++) {
+              g4DD[0][ii+1] = g4DD[ii+1][0] = betaD[ii];
+              for(int jj=ii;jj<3;jj++) {
+                g4DD[ii+1][jj+1] = g4DD[jj+1][ii+1] = gammaDD[ii][jj];
+              }
+            }
+
+            // Step 3.g.ii: Compute u_{mu} = g_{mu nu}u^{nu}
+            CCTK_REAL u4U[4] = {u0L,uxL,uyL,uzL};
+            CCTK_REAL u4D[4] = {0.0,0.0,0.0,0.0};
+            for(int mu=0;mu<4;mu++)
+              for(int nu=0;nu<4;nu++)
+                u4D[mu] += g4DD[mu][nu] * u4U[nu];
+
+            // Step 3.h: Compute R, Q, and the neutrino opacities
             CCTK_REAL R_sourceL, Q_sourceL, kappa_nueL[2],kappa_anueL[2],kappa_nuxL[2];
             NRPyLeakageET_compute_GRMHD_source_terms_and_opacities(constants_key,
                                                                    rhoL,Y_eL,temperatureL,
@@ -182,17 +221,17 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
               nan_found++;
             }
 
-            // Step 3.h: Compute MHD right-hand sides
+            // Step 3.i: Compute MHD right-hand sides
             const CCTK_REAL sqrtmgL      = alpL * psi6L;
             const CCTK_REAL sqrtmgR      = sqrtmgL * R_sourceL;
             const CCTK_REAL sqrtmgQ      = sqrtmgL * Q_sourceL;
             const CCTK_REAL Ye_star_rhsL = sqrtmgR;
-            const CCTK_REAL tau_rhsL     = sqrtmgQ * u0L;
-            const CCTK_REAL st_x_rhsL    = sqrtmgQ * uxL;
-            const CCTK_REAL st_y_rhsL    = sqrtmgQ * uyL;
-            const CCTK_REAL st_z_rhsL    = sqrtmgQ * uzL;
+            const CCTK_REAL tau_rhsL     = sqrtmgQ * u4U[0];
+            const CCTK_REAL st_x_rhsL    = sqrtmgQ * u4D[1];
+            const CCTK_REAL st_y_rhsL    = sqrtmgQ * u4D[2];
+            const CCTK_REAL st_z_rhsL    = sqrtmgQ * u4D[3];
 
-            // Step 3.i: Write to main memory
+            // Step 3.j: Write to main memory
             kappa_0_nue [index]  = kappa_nueL [0];
             kappa_1_nue [index]  = kappa_nueL [1];
             kappa_0_anue[index]  = kappa_anueL[0];
@@ -200,7 +239,7 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
             kappa_0_nux [index]  = kappa_nuxL [0];
             kappa_1_nux [index]  = kappa_nuxL [1];
 
-            // Step 3.j: Update right-hand sides only in the grid interior
+            // Step 3.k: Update right-hand sides only in the grid interior
             Ye_star_rhs [index] += Ye_star_rhsL;
             tau_rhs     [index] += tau_rhsL;
             st_x_rhs    [index] += st_x_rhsL;
