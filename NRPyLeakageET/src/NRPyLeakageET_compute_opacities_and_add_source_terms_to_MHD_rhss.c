@@ -40,11 +40,13 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
   const int kmin = cctk_nghostzones[2];
   const int kmax = cctk_lsh[2] - cctk_nghostzones[2];
 
+  const CCTK_REAL inv_numpts = 1.0/((CCTK_REAL)((imax-imin)*(jmax-jmin)*(kmax-kmin)));
+
 
   // Step 3: Compute opacities and leakage source terms
   int nan_found=0;
-  CCTK_REAL R_avg=0,Q_avg=0;
-#pragma omp parallel for reduction(+:nan_found,R_avg,Q_avg)
+  CCTK_REAL Ye_star_rhs_avg=0,tau_rhs_avg=0,st_x_rhs_avg=0,st_y_rhs_avg=0,st_z_rhs_avg=0;
+#pragma omp parallel for reduction(+:nan_found,Ye_star_rhs_avg,tau_rhs_avg,st_x_rhs_avg,st_y_rhs_avg,st_z_rhs_avg)
   for(int k=kmin;k<kmax;k++) {
     for(int j=jmin;j<jmax;j++) {
       for(int i=imin;i<imax;i++) {
@@ -199,6 +201,12 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
               for(int nu=0;nu<4;nu++)
                 u4D[mu] += g4DD[mu][nu] * u4U[nu];
 
+            CCTK_REAL usqr = 0.0;
+            for(int mu=0;mu<4;mu++) usqr += u4D[mu]*u4U[mu];
+            if( fabs(usqr + 1) > 1e-13 ) {
+              CCTK_VWARN(CCTK_WARN_ALERT,"Found u^2 != -1: usqr = %.15e",usqr);
+            }
+
             // Step 3.h: Compute R, Q, and the neutrino opacities
             CCTK_REAL R_sourceL, Q_sourceL, kappa_nueL[2],kappa_anueL[2],kappa_nuxL[2];
             NRPyLeakageET_compute_GRMHD_source_terms_and_opacities(constants_key,
@@ -246,15 +254,23 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
             st_y_rhs    [index] += st_y_rhsL;
             st_z_rhs    [index] += st_z_rhsL;
 
-            R_avg += R_sourceL;
-            Q_avg += Q_sourceL;
+            Ye_star_rhs_avg += Ye_star_rhsL;
+            tau_rhs_avg     += tau_rhsL;
+            st_x_rhs_avg    += st_x_rhsL;
+            st_y_rhs_avg    += st_y_rhsL;
+            st_z_rhs_avg    += st_z_rhsL;
           }
         }
       }
     }
   }
   if(verbosity_level>0) {
-    CCTK_VINFO("***** Iter. # %d, Lev: %d, Averages -- sqrt(-g)R: %e | sqrt(-g)Q: %e *****",cctk_iteration,GetRefinementLevel(cctkGH),R_avg,Q_avg);
+    CCTK_VINFO("***** Iter. # %d, Lev: %d, Averages -- Ye_rhs: %e | tau_rhs: %e | st_i_rhs: %e,%e,%e *****",cctk_iteration,GetRefinementLevel(cctkGH),
+               Ye_star_rhs_avg*inv_numpts,
+               tau_rhs_avg*inv_numpts,
+               st_x_rhs_avg*inv_numpts,
+               st_y_rhs_avg*inv_numpts,
+               st_z_rhs_avg*inv_numpts);
     if(verbosity_level>1) CCTK_INFO("Finished NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss");
   }
   if( nan_found ) CCTK_ERROR("NAN Found. See error messages above. ABORTING!");
