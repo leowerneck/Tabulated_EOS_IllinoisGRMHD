@@ -40,13 +40,11 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
   const int kmin = cctk_nghostzones[2];
   const int kmax = cctk_lsh[2] - cctk_nghostzones[2];
 
-  const CCTK_REAL inv_numpts = 1.0/((CCTK_REAL)((imax-imin)*(jmax-jmin)*(kmax-kmin)));
-
 
   // Step 3: Compute opacities and leakage source terms
-  int nan_found=0;
+  int nan_found=0,num_points=0;
   CCTK_REAL Ye_star_rhs_avg=0,tau_rhs_avg=0,st_x_rhs_avg=0,st_y_rhs_avg=0,st_z_rhs_avg=0;
-#pragma omp parallel for reduction(+:nan_found,Ye_star_rhs_avg,tau_rhs_avg,st_x_rhs_avg,st_y_rhs_avg,st_z_rhs_avg)
+#pragma omp parallel for reduction(+:nan_found,num_points,Ye_star_rhs_avg,tau_rhs_avg,st_x_rhs_avg,st_y_rhs_avg,st_z_rhs_avg)
   for(int k=kmin;k<kmax;k++) {
     for(int j=jmin;j<jmax;j++) {
       for(int i=imin;i<imax;i++) {
@@ -55,7 +53,7 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
         // Step 3.b: Check if we are within the threshold
-        const CCTK_REAL rhoL  = rho[index];
+        const CCTK_REAL rhoL = rho[index];
         if( rhoL < rho_min_threshold || rhoL > rho_max_threshold ) {
           // Step 3.b.i: Below density threshold.
           //             Set opacities to zero; don't add anything to the RHSs
@@ -156,7 +154,7 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
 
             // Step 3.f: Compute u^{mu} using:
             //  - W = alpha u^{0}     => u^{0} = W / alpha
-            //  - v^{i} = u^{i}/u^{i} => u^{i} = v^{i}u^{0}
+            //  - v^{i} = u^{i}/u^{0} => u^{i} = v^{i}u^{0}
             const CCTK_REAL u0L = W / alpL;
             const CCTK_REAL uxL = vxL * u0L;
             const CCTK_REAL uyL = vyL * u0L;
@@ -259,11 +257,14 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
             st_x_rhs_avg    += st_x_rhsL;
             st_y_rhs_avg    += st_y_rhsL;
             st_z_rhs_avg    += st_z_rhsL;
+
+            num_points++;
           }
         }
       }
     }
   }
+  CCTK_REAL inv_numpts = num_points > 0 ? 1.0/((CCTK_REAL)num_points) : 1.0;
   if(verbosity_level>0) {
     CCTK_VINFO("***** Iter. # %d, Lev: %d, Averages -- Ye_rhs: %e | tau_rhs: %e | st_i_rhs: %e,%e,%e *****",cctk_iteration,GetRefinementLevel(cctkGH),
                Ye_star_rhs_avg*inv_numpts,
