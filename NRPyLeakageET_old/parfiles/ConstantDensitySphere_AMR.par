@@ -1,0 +1,318 @@
+# .------------------------------------------------------------.
+# | Baikal+IllinoisGRMHD Piecewise Polytropic SLy4 EOS BNS run |
+# .------------------------------------------------------------.
+#
+#-------------Thorn activation-------------
+ActiveThorns = "
+  ADMBase
+  ADMCoupling
+  ADMMacros
+  AEILocalInterp
+  Boundary
+  Carpet
+  CarpetInterp
+  CarpetIOASCII
+  CarpetIOBasic
+  CarpetIOHDF5
+  CarpetIOScalar
+  CarpetLib
+  CarpetReduce
+  CarpetRegrid2
+  CarpetSlab
+  CartGrid3D
+  CoordBase
+  CoordGauge
+  Convert_to_HydroBase
+  ConstantDensitySphereID
+  EOS_Base
+  EOS_Omni
+  GenericFD
+  GSL
+  HDF5
+  HydroBase
+  ID_converter_ILGRMHD
+  IllinoisGRMHD
+  InitBase
+  IOUtil
+  LocalInterp
+  LocalReduce
+  LoopControl
+  MoL
+  MPI
+  NaNChecker
+  NewRad
+  NRPyLeakageET
+  Slab
+  smallbPoynET
+  SpaceMask
+  StaticConformal
+  SummationByParts
+  SymBase
+  Time
+  TmunuBase
+  Vectors
+  WVU_EOS
+"
+
+#---------Cactus---------
+Cactus::cctk_run_title     = "IllinoisGRMHD_ZelmaniLeak_IsotropicGas"
+Cactus::cctk_full_warnings = "yes"
+# Cactus::cctk_itlast        = 2000
+Cactus::terminate       = time
+Cactus::cctk_final_time = 0
+
+#---------ADMBase---------
+ADMBase::evolution_method         = "static"
+ADMBase::lapse_evolution_method   = "static"
+ADMBase::shift_evolution_method   = "static"
+ADMBase::dtlapse_evolution_method = "static"
+ADMBase::dtshift_evolution_method = "static"
+ADMBase::initial_data             = "ConstantDensitySphereID"
+ADMBase::initial_lapse            = "ConstantDensitySphereID"
+ADMBase::initial_shift            = "ConstantDensitySphereID"
+ADMBase::initial_dtlapse          = "zero"
+ADMBase::initial_dtshift          = "zero"
+ADMBase::metric_type              = "physical"
+ADMBase::metric_timelevels        = 3
+ADMBase::lapse_timelevels         = 3
+ADMBase::shift_timelevels         = 3
+
+#---------ADMMacros---------
+ADMMacros::spatial_order = 4
+
+#---------Boundary---------
+Boundary::radpower = 2
+
+#---------Carpet---------
+Carpet::time_refinement_factors  = "[1,2,4,4,8,16,32]"
+Carpet::domain_from_coordbase    = "yes"
+Carpet::enable_all_storage       = "no"
+Carpet::check_for_poison         = "no"
+Carpet::init_fill_timelevels     = "yes"
+Carpet::init_3_timelevels        = "no"
+Carpet::poison_new_timelevels    = "yes"
+Carpet::storage_verbose          = "no"
+Carpet::use_buffer_zones         = "yes"
+Carpet::verbose                  = "no"
+Carpet::veryverbose              = "no"
+Carpet::convergence_level        = 0
+Carpet::ghost_size               = 3
+Carpet::output_timers_every      = 512
+Carpet::prolongation_order_space = 5
+Carpet::prolongation_order_time  = 2
+Carpet::max_refinement_levels    = 2 # <- This will set the regrid/output frequency
+
+#---------CarpetInterp---------
+CarpetInterp::check_tree_search = "no"
+CarpetInterp::tree_search       = "yes"
+
+#---------CarpetLib---------
+CarpetLib::support_staggered_operators = "yes"
+CarpetLib::combine_recompose           = "no"
+CarpetLib::print_memstats_every        = -1
+
+#---------CarpetRegrid2---------
+CarpetRegrid2::freeze_unaligned_levels = "yes"
+CarpetRegrid2::symmetry_rotating180    = "no"
+CarpetRegrid2::verbose                 = "no"
+CarpetRegrid2::movement_threshold_1    = 0.10
+CarpetRegrid2::movement_threshold_2    = 0.10
+CarpetRegrid2::regrid_every            = 1
+CarpetRegrid2::num_centres             = 8
+
+# We're going to split the domain into
+# eight cubes to test AMR
+# Grid 1: centered at (+1,+1,+1)
+CarpetRegrid2::num_levels_1 = 2
+CarpetRegrid2::radius_1[1]  = 1
+CarpetRegrid2::position_x_1 = +1
+CarpetRegrid2::position_y_1 = +1
+CarpetRegrid2::position_z_1 = +1
+
+# Grid 2: centered at (-1,+1,+1)
+CarpetRegrid2::num_levels_2 = 2
+CarpetRegrid2::radius_2[1]  = 1
+CarpetRegrid2::position_x_2 = -1
+CarpetRegrid2::position_y_2 = +1
+CarpetRegrid2::position_z_2 = +1
+
+# Grid 3: centered at (+1,-1,+1)
+CarpetRegrid2::num_levels_3 = 2
+CarpetRegrid2::radius_3[1]  = 1
+CarpetRegrid2::position_x_3 = +1
+CarpetRegrid2::position_y_3 = -1
+CarpetRegrid2::position_z_3 = +1
+
+# Grid 4: centered at (+1,+1,-1)
+CarpetRegrid2::num_levels_4 = 2
+CarpetRegrid2::radius_4[1]  = 1
+CarpetRegrid2::position_x_4 = +1
+CarpetRegrid2::position_y_4 = +1
+CarpetRegrid2::position_z_4 = -1
+
+# Grid 5: centered at (-1,-1,+1)
+CarpetRegrid2::num_levels_5 = 2
+CarpetRegrid2::radius_5[1]  = 1
+CarpetRegrid2::position_x_5 = -1
+CarpetRegrid2::position_y_5 = -1
+CarpetRegrid2::position_z_5 = +1
+
+# Grid 6: centered at (-1,+1,-1)
+CarpetRegrid2::num_levels_6 = 2
+CarpetRegrid2::radius_6[1]  = 1
+CarpetRegrid2::position_x_6 = -1
+CarpetRegrid2::position_y_6 = +1
+CarpetRegrid2::position_z_6 = -1
+
+# Grid 7: centered at (+1,-1,-1)
+CarpetRegrid2::num_levels_7 = 2
+CarpetRegrid2::radius_7[1]  = 1
+CarpetRegrid2::position_x_7 = +1
+CarpetRegrid2::position_y_7 = -1
+CarpetRegrid2::position_z_7 = -1
+
+# Grid 8: centered at (-1,-1,-1)
+CarpetRegrid2::num_levels_8 = 2
+CarpetRegrid2::radius_8[1]  = 1
+CarpetRegrid2::position_x_8 = -1
+CarpetRegrid2::position_y_8 = -1
+CarpetRegrid2::position_z_8 = -1
+
+#---------CartGrid3D---------
+CartGrid3D::avoid_origin = "no"
+CartGrid3D::type         = "CoordBase"
+
+#---------CoordBase---------
+CoordBase::boundary_size_x_lower = 3
+CoordBase::boundary_size_y_lower = 3
+CoordBase::boundary_size_z_lower = 3
+CoordBase::boundary_size_x_upper = 3
+CoordBase::boundary_size_y_upper = 3
+CoordBase::boundary_size_z_upper = 3
+CoordBase::domainsize            = "minmax"
+CoordBase::spacing               = "gridspacing"
+CoordBase::xmax                  = 2.0
+CoordBase::ymax                  = +CoordBase::xmax
+CoordBase::zmax                  = +CoordBase::xmax
+CoordBase::xmin                  = -CoordBase::xmax
+CoordBase::ymin                  = -CoordBase::xmax
+CoordBase::zmin                  = -CoordBase::xmax
+CoordBase::dx                    = (CoordBase::xmax-CoordBase::xmin)/32
+CoordBase::dy                    = CoordBase::dx
+CoordBase::dz                    = CoordBase::dx
+
+#---------Convert_to_HydroBase---------
+Convert_to_HydroBase::Convert_to_HydroBase_every = CarpetRegrid2::regrid_every
+
+#---------EOS_Omni---------
+EOS_Omni::nuceos_read_table = "yes"
+EOS_Omni::nuceos_table_name = "SLy4_3335_rho391_temp163_ye66.h5"
+EOS_Omni::do_energy_shift   = "yes"
+
+#---------HydroBase---------
+HydroBase::initial_hydro       = "ConstantDensitySphereID"
+HydroBase::initial_Y_e         = "ConstantDensitySphereID"
+HydroBase::initial_temperature = "ConstantDensitySphereID"
+HydroBase::initial_entropy     = "zero"
+HydroBase::initial_Avec        = "zero"
+HydroBase::initial_Aphi        = "zero"
+HydroBase::initial_Bvec        = "zero"
+HydroBase::timelevels          = 1
+
+#---------ConstantDensitySphereID---------
+ConstantDensitySphereID::ConstantDensitySphereID_sphere_radius = 1.0
+ConstantDensitySphereID::ConstantDensitySphereID_rho_interior  = 1.586831634477515e-04 # 9.8e13 g/cm3
+ConstantDensitySphereID::ConstantDensitySphereID_Y_e_interior  = 0.1
+ConstantDensitySphereID::ConstantDensitySphereID_T_interior    = 8.0
+ConstantDensitySphereID::ConstantDensitySphereID_rho_exterior  = 9.715295721290909e-11 # 6.0e07 g/cm3
+ConstantDensitySphereID::ConstantDensitySphereID_Y_e_exterior  = 0.5
+ConstantDensitySphereID::ConstantDensitySphereID_T_exterior    = 0.01 
+
+#---------IllinoisGRMHD---------
+# Setting up the EOS parameters like this
+# ensures compatibility with EOS_Omni.
+IllinoisGRMHD::igm_PPM_reconstructed_variable    = "pressure"
+IllinoisGRMHD::igm_con2prim_routine              = "Palenzuela1D"
+IllinoisGRMHD::igm_con2prim_backup_routine[0]    = "Newman1D"
+IllinoisGRMHD::igm_eos_type                      = "Tabulated"
+IllinoisGRMHD::igm_evolve_entropy                = "yes"
+IllinoisGRMHD::rho_b_atm                         = 1e-13
+IllinoisGRMHD::igm_Ye_atm                        = 5e-1
+IllinoisGRMHD::igm_T_atm                         = 1e-2
+IllinoisGRMHD::tau_atm                           = 1e-20
+IllinoisGRMHD::conserv_to_prims_debug            = 0
+IllinoisGRMHD::Psi6threshold                     = 60
+IllinoisGRMHD::damp_lorenz                       = 0.1
+IllinoisGRMHD::palenzuela_depsdT_threshold       = 5e-5
+IllinoisGRMHD::igm_eos_table_floor_safety_factor = 1.0
+IllinoisGRMHD::enable_NRPyLeakageET_interface    = "yes"
+
+#---------NRPyLeakageET---------
+NRPyLeakageET::NRPyLeakageET_optical_depth_evolution_type = "PathOfLeastResistance"
+
+#---------InitBase---------
+InitBase::initial_data_setup_method = "init_some_levels"
+
+#---------MoL---------
+MoL::run_MoL_PostStep_in_Post_Recover_Variables = "no"
+MoL::ODE_Method                                 = "rk4"
+MoL::MoL_Intermediate_Steps                     = 4
+MoL::MoL_Num_Scratch_Levels                     = 1
+
+#---------NaNChecker---------
+NaNChecker::verbose         = "all"
+NaNChecker::action_if_found = "terminate"
+NaNChecker::check_every     = 1024
+NaNChecker::check_vars      = "ADMBase::metric ADMBase::lapse ADMBase::shift"
+
+#---------SpaceMask---------
+SpaceMask::use_mask = "yes"
+
+#---------Time---------
+Time::dtfac = 0.5
+
+#---------TmunuBase---------
+TmunuBase::stress_energy_storage = yes
+TmunuBase::stress_energy_at_RHS  = yes
+TmunuBase::timelevels            =  1
+TmunuBase::prolongation_type     = none
+
+# .----------------------.
+# | Output configuration |
+# .----------------------.
+IOUtil::out_dir                   = $parfile
+CarpetIOASCII::one_file_per_group = "yes"
+
+# .-----------.
+# | 1D output |
+# .-----------.
+CarpetIOASCII::out1D_every = 1
+CarpetIOASCII::out1D_x     = "yes"
+CarpetIOASCII::out1D_y     = "yes"
+CarpetIOASCII::out1D_z     = "yes"
+CarpetIOASCII::out1D_d     = "no"
+CarpetIOASCII::out1D_vars  = "
+  NRPyLeakageET::NRPyLeakageET_opacities
+  NRPyLeakageET::NRPyLeakageET_optical_depths
+"
+
+# .-----------.
+# | 2D output |
+# .-----------.
+CarpetIOASCII::out2D_every = 1
+CarpetIOASCII::out2D_xy    = "yes"
+CarpetIOASCII::out2D_xz    = "yes"
+CarpetIOASCII::out2D_yz    = "yes"
+CarpetIOASCII::out2D_vars  = "
+  NRPyLeakageET::NRPyLeakageET_opacities
+  NRPyLeakageET::NRPyLeakageET_optical_depths
+"
+
+#---------CarpetIOScalar---------
+CarpetIOScalar::one_file_per_group   = "no"
+CarpetIOScalar::outScalar_every      = 1
+CarpetIOScalar::outScalar_reductions = "minimum maximum average"
+CarpetIOScalar::outScalar_vars       = "
+  IllinoisGRMHD::igm_Ye
+  IllinoisGRMHD::igm_temperature
+"
