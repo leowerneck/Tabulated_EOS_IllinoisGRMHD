@@ -4,7 +4,7 @@
 
 #include "NRPyLeakageET.h"
 
-void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS) {
+void NRPyLeakageET_initialize_optical_depths_and_opacities_to_zero(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
