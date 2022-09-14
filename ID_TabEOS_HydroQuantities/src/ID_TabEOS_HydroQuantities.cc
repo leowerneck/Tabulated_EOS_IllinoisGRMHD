@@ -162,7 +162,11 @@ extern "C" void ID_TabEOS_HydroQuantities__recompute_HydroBase_variables( const 
 
 extern "C" void ID_TabEOS_HydroQuantities(CCTK_ARGUMENTS) {
 
+  #ifdef DECLARE_CCTK_ARGUMENTS_ID_TabEOS_HydroQuantities
+  DECLARE_CCTK_ARGUMENTS_CHECKED(ID_TabEOS_HydroQuantities);
+  #else
   DECLARE_CCTK_ARGUMENTS;
+  #endif
   DECLARE_CCTK_PARAMETERS;
 
   // Set total number of grid points
