@@ -12,7 +12,11 @@
 #include "IllinoisGRMHD_headers.h"
 
 extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CCTK_ARGUMENTS) {
+  #ifdef DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels
+  DECLARE_CCTK_ARGUMENTS_CHECKED(IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels);
+  #else
   DECLARE_CCTK_ARGUMENTS;
+  #endif
   DECLARE_CCTK_PARAMETERS;
 
   /**********************************

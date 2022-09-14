@@ -47,7 +47,11 @@
 #include "apply_tau_floor__enforce_limits_on_primitives_and_recompute_conservs.C"
 
 extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
+  #ifdef DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_conserv_to_prims
+  DECLARE_CCTK_ARGUMENTS_CHECKED(IllinoisGRMHD_conserv_to_prims);
+  #else
   DECLARE_CCTK_ARGUMENTS;
+  #endif
   DECLARE_CCTK_PARAMETERS;
 
   // We use proper C++ here, for file I/O later.

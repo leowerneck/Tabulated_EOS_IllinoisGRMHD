@@ -56,6 +56,11 @@ struct gf_and_gz_struct {
   int gz_lo[4],gz_hi[4];
 };
 
+struct const_gf_and_gz_struct {
+  const CCTK_REAL *gf;
+  int gz_lo[4],gz_hi[4];
+};
+
 struct output_stats {
   int font_fixed,vel_limited,failure_checker,atm_reset,backup[3],which_routine,c2p_failed,nan_found;
   double dx[3];
@@ -76,12 +81,12 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
 
 void IllinoisGRMHD_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij
 (const cGH *cctkGH,const int *cctk_lsh,
- CCTK_REAL *gxx,CCTK_REAL *gxy,CCTK_REAL *gxz,CCTK_REAL *gyy,CCTK_REAL *gyz,CCTK_REAL *gzz,CCTK_REAL *alp,
+ CCTK_REAL *gxx,CCTK_REAL *gxy,CCTK_REAL *gxz,CCTK_REAL *gyy,CCTK_REAL *gyz,CCTK_REAL *gzz,const CCTK_REAL *alp,
  CCTK_REAL *gtxx,CCTK_REAL *gtxy,CCTK_REAL *gtxz,CCTK_REAL *gtyy,CCTK_REAL *gtyz,CCTK_REAL *gtzz,
  CCTK_REAL *gtupxx,CCTK_REAL *gtupxy,CCTK_REAL *gtupxz,CCTK_REAL *gtupyy,CCTK_REAL *gtupyz,CCTK_REAL *gtupzz,
  CCTK_REAL *phi,CCTK_REAL *psi,CCTK_REAL *lapm1);
 
-void IllinoisGRMHD_set_symmetry_gzs_staggered(const cGH *cctkGH, const int *cctk_lsh,CCTK_REAL *X,CCTK_REAL *Y,CCTK_REAL *Z,  CCTK_REAL *gridfunc,
-                                              CCTK_REAL *gridfunc_syms,int stagger_x,int stagger_y,int stagger_z);
+void IllinoisGRMHD_set_symmetry_gzs_staggered(const cGH *cctkGH, const int *cctk_lsh, const CCTK_REAL *X, const CCTK_REAL *Y, const CCTK_REAL *Z, CCTK_REAL *gridfunc,
+                                              const CCTK_REAL *gridfunc_syms,int stagger_x,int stagger_y,int stagger_z);
 
 #endif // ILLINOISGRMHD_HEADERS_H

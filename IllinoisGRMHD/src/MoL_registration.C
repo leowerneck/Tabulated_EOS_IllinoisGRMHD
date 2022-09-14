@@ -15,7 +15,11 @@
 
 extern "C" void IllinoisGRMHD_RegisterVars(CCTK_ARGUMENTS)
 {
+  #ifdef DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_RegisterVars
+  DECLARE_CCTK_ARGUMENTS_CHECKED(IllinoisGRMHD_RegisterVars);
+  #else
   DECLARE_CCTK_ARGUMENTS;
+  #endif
   DECLARE_CCTK_PARAMETERS;
 
   CCTK_INT ierr = 0, group, rhs;

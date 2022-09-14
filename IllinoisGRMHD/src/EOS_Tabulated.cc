@@ -169,7 +169,7 @@ void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,i
 void compute_remaining_prims_on_right_and_left_face( const igm_eos_parameters eos,
                                                      const cGH *restrict cctkGH,
                                                      const CCTK_INT *restrict cctk_lsh,
-                                                     const gf_and_gz_struct *restrict in_prims,
+                                                     const_gf_and_gz_struct *restrict in_prims,
                                                      gf_and_gz_struct *restrict out_prims_r,
                                                      gf_and_gz_struct *restrict out_prims_l ) {
 

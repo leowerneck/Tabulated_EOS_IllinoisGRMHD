@@ -4,8 +4,17 @@
 #include <cstdlib>
 #include "IllinoisGRMHD_headers.h"
 
-void IllinoisGRMHD_set_symmetry_gzs_staggered(const cGH *cctkGH, const int *cctk_lsh,CCTK_REAL *X,CCTK_REAL *Y,CCTK_REAL *Z, CCTK_REAL *gridfunc,
-                                              CCTK_REAL *gridfunc_syms,int stagger_x,int stagger_y,int stagger_z) {
+void IllinoisGRMHD_set_symmetry_gzs_staggered(
+                   const cGH *restrict cctkGH,
+                   const int *restrict cctk_lsh,
+                   const CCTK_REAL *restrict X,
+                   const CCTK_REAL *restrict Y,
+                   const CCTK_REAL *restrict Z,
+                   CCTK_REAL *restrict gridfunc,
+                   const CCTK_REAL *restrict gridfunc_syms,
+                   int stagger_x,
+                   int stagger_y,
+                   int stagger_z) {
 
   DECLARE_CCTK_PARAMETERS;
 

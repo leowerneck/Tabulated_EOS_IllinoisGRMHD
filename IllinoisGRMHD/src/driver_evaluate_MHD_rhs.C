@@ -39,6 +39,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
+#include <cstring>
 #include <sys/time.h>
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
@@ -51,7 +52,11 @@
 #define velz (&vel[2*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 
 extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
+  #ifdef DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_driver_evaluate_MHD_rhs
+  DECLARE_CCTK_ARGUMENTS_CHECKED(IllinoisGRMHD_driver_evaluate_MHD_rhs);
+  #else
   DECLARE_CCTK_ARGUMENTS;
+  #endif
   DECLARE_CCTK_PARAMETERS;
   int levelnumber = GetRefinementLevel(cctkGH);
 
@@ -82,7 +87,8 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 
 
   // in_prims,out_prims_r, and out_prims_l are arrays of pointers to the actual gridfunctions.
-  gf_and_gz_struct in_prims[MAXNUMVARS],out_prims_r[MAXNUMVARS],out_prims_l[MAXNUMVARS];
+  gf_and_gz_struct out_prims_r[MAXNUMVARS],out_prims_l[MAXNUMVARS];
+  const_gf_and_gz_struct in_prims[MAXNUMVARS];
   int which_prims_to_reconstruct[MAXNUMVARS],num_prims_to_reconstruct;
 
   /* SET POINTERS TO GRMHD GRIDFUNCTIONS */
@@ -125,7 +131,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
                                                                               phi_bssn,psi_bssn,lapm1);
 
   /* SET POINTERS TO METRIC GRIDFUNCTIONS */
-  CCTK_REAL *metric[NUMVARS_FOR_METRIC_FACEVALS]; // "metric" here is array of pointers to the actual gridfunctions.
+  const CCTK_REAL *metric[NUMVARS_FOR_METRIC_FACEVALS]; // "metric" here is array of pointers to the actual gridfunctions.
   int ww=0;
   metric[ww]=phi_bssn;ww++;
   metric[ww]=psi_bssn;ww++;
@@ -259,10 +265,23 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   // in_prims[{VXR,VXL,VYR,VYL}].gz_{lo,hi} ghostzones are set to all zeros, which
   //    is incorrect. We fix this below.
   // [Note that this is a cheap operation, copying only 8 integers and a pointer.]
-  in_prims[VXR]=out_prims_r[VX];
-  in_prims[VXL]=out_prims_l[VX];
-  in_prims[VYR]=out_prims_r[VY];
-  in_prims[VYL]=out_prims_l[VY];
+  //#TODO: rdwr requires in_prims to have const, but this tries to set the const
+  //inside the struct; since pointers in both structs point to the same place,
+  //this should be equivalent to the old code
+  //in_prims[VXR]=out_prims_r[VX];
+  //in_prims[VXL]=out_prims_l[VX];
+  //in_prims[VYR]=out_prims_r[VY];
+  //in_prims[VYL]=out_prims_l[VY];
+  //consider using std::copy?
+  memcpy( in_prims[VXR].gz_lo, out_prims_r[VX].gz_lo, sizeof out_prims_r[VX].gz_lo );
+  memcpy( in_prims[VXL].gz_lo, out_prims_l[VX].gz_lo, sizeof out_prims_l[VX].gz_lo );
+  memcpy( in_prims[VYR].gz_lo, out_prims_r[VY].gz_lo, sizeof out_prims_r[VY].gz_lo );
+  memcpy( in_prims[VYL].gz_lo, out_prims_l[VY].gz_lo, sizeof out_prims_l[VY].gz_lo );
+
+  memcpy( in_prims[VXR].gz_hi, out_prims_r[VX].gz_hi, sizeof out_prims_r[VX].gz_hi );
+  memcpy( in_prims[VXL].gz_hi, out_prims_l[VX].gz_hi, sizeof out_prims_l[VX].gz_hi );
+  memcpy( in_prims[VYR].gz_hi, out_prims_r[VY].gz_hi, sizeof out_prims_r[VY].gz_hi );
+  memcpy( in_prims[VYL].gz_hi, out_prims_l[VY].gz_hi, sizeof out_prims_l[VY].gz_hi );
 
   /* There are two stories going on here:
    * 1) Computation of \partial_y on RHS of \partial_t {rho_star,tau,mhd_st_{x,y,z}},
@@ -367,11 +386,21 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   // in_prims[{VYR,VYL,VZR,VZL}].gz_{lo,hi} ghostzones are not correct, so we fix
   //    this below.
   // [Note that this is a cheap operation, copying only 8 integers and a pointer.]
-  in_prims[VYR]=out_prims_r[VY];
-  in_prims[VYL]=out_prims_l[VY];
-  in_prims[VZR]=out_prims_r[VZ];
-  in_prims[VZL]=out_prims_l[VZ];
+  //#TODO: changed for rdwr const reasons again
+  //in_prims[VYR]=out_prims_r[VY];
+  //in_prims[VYL]=out_prims_l[VY];
+  //in_prims[VZR]=out_prims_r[VZ];
+  //in_prims[VZL]=out_prims_l[VZ];
+  memcpy( in_prims[VYR].gz_lo, out_prims_r[VY].gz_lo, sizeof out_prims_r[VY].gz_lo );
+  memcpy( in_prims[VYL].gz_lo, out_prims_l[VY].gz_lo, sizeof out_prims_l[VY].gz_lo );
+  memcpy( in_prims[VZR].gz_lo, out_prims_r[VZ].gz_lo, sizeof out_prims_r[VZ].gz_lo );
+  memcpy( in_prims[VZL].gz_lo, out_prims_l[VZ].gz_lo, sizeof out_prims_l[VZ].gz_lo );
 
+  memcpy( in_prims[VYR].gz_hi, out_prims_r[VY].gz_hi, sizeof out_prims_r[VY].gz_hi );
+  memcpy( in_prims[VYL].gz_hi, out_prims_l[VY].gz_hi, sizeof out_prims_l[VY].gz_hi );
+  memcpy( in_prims[VZR].gz_hi, out_prims_r[VZ].gz_hi, sizeof out_prims_r[VZ].gz_hi );
+  memcpy( in_prims[VZL].gz_hi, out_prims_l[VZ].gz_hi, sizeof out_prims_l[VZ].gz_hi );
+  
   flux_dirn=3;
   // First compute ftilde, which is used for flattening left and right face values
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
@@ -448,10 +477,20 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   // in_prims[{VYR,VYL,VZR,VZL}].gz_{lo,hi} ghostzones are not set correcty.
   //    We fix this below.
   // [Note that this is a cheap operation, copying only 8 integers and a pointer.]
-  in_prims[VXR]=out_prims_r[VX];
-  in_prims[VZR]=out_prims_r[VZ];
-  in_prims[VXL]=out_prims_l[VX];
-  in_prims[VZL]=out_prims_l[VZ];
+  //#TODO: changed for rdwr const reasons again
+  //in_prims[VXR]=out_prims_r[VX];
+  //in_prims[VZR]=out_prims_r[VZ];
+  //in_prims[VXL]=out_prims_l[VX];
+  //in_prims[VZL]=out_prims_l[VZ];
+  memcpy( in_prims[VXR].gz_lo, out_prims_r[VX].gz_lo, sizeof out_prims_r[VX].gz_lo );
+  memcpy( in_prims[VXL].gz_lo, out_prims_l[VX].gz_lo, sizeof out_prims_l[VX].gz_lo );
+  memcpy( in_prims[VZR].gz_lo, out_prims_r[VZ].gz_lo, sizeof out_prims_r[VZ].gz_lo );
+  memcpy( in_prims[VZL].gz_lo, out_prims_l[VZ].gz_lo, sizeof out_prims_l[VZ].gz_lo );
+
+  memcpy( in_prims[VXR].gz_hi, out_prims_r[VX].gz_hi, sizeof out_prims_r[VX].gz_hi );
+  memcpy( in_prims[VXL].gz_hi, out_prims_l[VX].gz_hi, sizeof out_prims_l[VX].gz_hi );
+  memcpy( in_prims[VZR].gz_hi, out_prims_r[VZ].gz_hi, sizeof out_prims_r[VZ].gz_hi );
+  memcpy( in_prims[VZL].gz_hi, out_prims_l[VZ].gz_hi, sizeof out_prims_l[VZ].gz_hi );
   // FIXME: lines above seem to be inconsistent with lines below.... Possible bug, not major enough to affect evolutions though.
   in_prims[VZR].gz_lo[1]=in_prims[VZR].gz_hi[1]=0;
   in_prims[VXR].gz_lo[1]=in_prims[VXR].gz_hi[1]=0;
@@ -536,7 +575,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   // Next compute psi6phi_rhs, and add gauge terms to A_i_rhs terms!
   //   Note that in the following function, we don't bother with reconstruction, instead interpolating.
   // We need A^i, but only have A_i. So we add gtupij to the list of input variables.
-  CCTK_REAL *interp_vars[MAXNUMINTERP];
+  const CCTK_REAL *interp_vars[MAXNUMINTERP];
   ww=0;
   interp_vars[ww]=betax;   ww++;
   interp_vars[ww]=betay;   ww++;
