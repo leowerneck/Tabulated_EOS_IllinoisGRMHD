@@ -190,7 +190,6 @@ IllinoisGRMHD::Psi6threshold                     = 60
 IllinoisGRMHD::damp_lorenz                       = 0.1
 IllinoisGRMHD::palenzuela_depsdT_threshold       = 5e-5
 IllinoisGRMHD::igm_eos_table_floor_safety_factor = 1.0
-IllinoisGRMHD::enable_NRPyLeakageET_interface    = "yes"
 
 #---------NRPyLeakageET---------
 NRPyLeakageET::optical_depth_evolution_type = "PathOfLeastResistance"

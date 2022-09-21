@@ -38,8 +38,8 @@ if( CCTK_Equals(optical_depth_evolution_type,"static") ) {
   SCHEDULE NRPyLeakageET_copy_optical_depths_from_previous_time_level AS NRPyLeakageET_optical_depth_step IN MoL_CalcRHS AFTER NRPyLeakageET_RHS
   {
     LANG: C
-    READS: NRPyLeakageET_optical_depths_p(everywhere)
-    WRITES: NRPyLeakageET_optical_depths(everywhere)
+  READS: NRPyLeakageET_optical_depths_p(everywhere)
+  WRITES: NRPyLeakageET_optical_depths(everywhere)
   } "Static evolution: update optical depths by simply copying data from the previous time level."
 }
 else if( CCTK_Equals(optical_depth_evolution_type,"PathOfLeastResistance") ) {
