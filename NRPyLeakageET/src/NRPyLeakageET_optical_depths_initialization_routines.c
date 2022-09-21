@@ -5,7 +5,11 @@
 #include "NRPyLeakageET.h"
 
 void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS) {
+  #ifdef DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_optical_depths_initialize_to_zero
+  DECLARE_CCTK_ARGUMENTS_CHECKED(NRPyLeakageET_optical_depths_initialize_to_zero);
+  #else
   DECLARE_CCTK_ARGUMENTS;
+  #endif
   DECLARE_CCTK_PARAMETERS;
 
   if(!NRPyLeakageET_ProcessOwnsData()) return;
@@ -51,7 +55,11 @@ void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS) {
 
 void NRPyLeakageET_copy_opacities_and_optical_depths_to_previous_time_levels(CCTK_ARGUMENTS) {
 
+  #ifdef DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_Initialize
+  DECLARE_CCTK_ARGUMENTS_CHECKED(NRPyLeakageET_Initialize);
+  #else
   DECLARE_CCTK_ARGUMENTS;
+  #endif
   DECLARE_CCTK_PARAMETERS;
 
   if(!NRPyLeakageET_ProcessOwnsData()) return;
@@ -114,7 +122,11 @@ void NRPyLeakageET_copy_opacities_and_optical_depths_to_previous_time_levels(CCT
 
 void NRPyLeakageET_copy_optical_depths_from_previous_time_level(CCTK_ARGUMENTS) {
 
+  #ifdef DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_NRPyLeakageET_copy_optical_depths_from_previous_time_level
+  DECLARE_CCTK_ARGUMENTS_CHECKED(NRPyLeakageET_NRPyLeakageET_copy_optical_depths_from_previous_time_level);
+  #else
   DECLARE_CCTK_ARGUMENTS;
+  #endif
   DECLARE_CCTK_PARAMETERS;
     // Step 1: Copy optical depths from the previous time level to the current time level
 #pragma omp parallel for

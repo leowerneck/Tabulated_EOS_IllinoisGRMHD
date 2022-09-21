@@ -5,7 +5,11 @@
 #include "NRPyLeakageET.h"
 
 void NRPyLeakageET_CopyOpticalDepthsToAux(CCTK_ARGUMENTS) {
+  #ifdef DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_Initialize
+  DECLARE_CCTK_ARGUMENTS_CHECKED(NRPyLeakageET_Initialize);
+  #else
   DECLARE_CCTK_ARGUMENTS;
+  #endif
   DECLARE_CCTK_PARAMETERS;
 
   if(!NRPyLeakageET_ProcessOwnsData()) return;
@@ -33,7 +37,11 @@ static inline CCTK_REAL relative_difference(const CCTK_REAL a, const CCTK_REAL b
 }
 
 void NRPyLeakageET_compute_optical_depth_change(CCTK_ARGUMENTS, const int it) {
+  #ifdef DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_Initialize
+  DECLARE_CCTK_ARGUMENTS_CHECKED(NRPyLeakageET_Initialize);
+  #else
   DECLARE_CCTK_ARGUMENTS;
+  #endif
   DECLARE_CCTK_PARAMETERS;
 
   if(!NRPyLeakageET_ProcessOwnsData()) return;

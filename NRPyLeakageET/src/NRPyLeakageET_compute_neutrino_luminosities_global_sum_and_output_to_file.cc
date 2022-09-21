@@ -8,7 +8,11 @@
 extern "C"
 void NRPyLeakageET_compute_neutrino_luminosities_global_sum_and_output_to_file(CCTK_ARGUMENTS) {
 
+  #ifdef DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_compute_neutrino_luminosities_global_sum_and_output_to_file
+  DECLARE_CCTK_ARGUMENTS_CHECKED(NRPyLeakageET_compute_neutrino_luminosities_global_sum_and_output_to_file);
+  #else
   DECLARE_CCTK_ARGUMENTS;
+  #endif
   DECLARE_CCTK_PARAMETERS;
 
   if( cctk_iteration%compute_luminosities_every==0 ) {

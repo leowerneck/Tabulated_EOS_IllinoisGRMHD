@@ -5,18 +5,13 @@ SCHEDULE NRPyLeakageET_Initialize AT CCTK_INITIAL AFTER (HydroBase_Initial,Conve
 {
   LANG: C
   OPTIONS: GLOBAL-LATE
-  READS:  ADMBase::gxx             (Everywhere)
-  READS:  ADMBase::gyy             (Everywhere)
-  READS:  ADMBase::gzz             (Everywhere)
-  READS:  HydroBase::rho           (Everywhere)
-  READS:  HydroBase::Y_e           (Everywhere)
-  READS:  HydroBase::temperature   (Everywhere)
-  WRITES: NRPyLeakageET::tau_0_nue (Everywhere), tau_0_nue_p , tau_0_nue_p_p
-  WRITES: NRPyLeakageET::tau_1_nue (Everywhere), tau_1_nue_p , tau_1_nue_p_p
-  WRITES: NRPyLeakageET::tau_0_anue(Everywhere), tau_0_anue_p, tau_0_anue_p_p
-  WRITES: NRPyLeakageET::tau_1_anue(Everywhere), tau_1_anue_p, tau_1_anue_p_p
-  WRITES: NRPyLeakageET::tau_0_nux (Everywhere), tau_0_nux_p , tau_0_nux_p_p
-  WRITES: NRPyLeakageET::tau_1_nux (Everywhere), tau_1_nux_p , tau_1_nux_p_p
+  READS:  ADMBase::metric(everywhere)
+  READS:  HydroBase::rho(everywhere)
+  READS:  HydroBase::Y_e(everywhere)
+  READS:  HydroBase::temperature(everywhere)
+  WRITES: NRPyLeakageET_auxiliary_optical_depths(everywhere)
+  WRITES: NRPyLeakageET_opacities(everywhere), NRPyLeakageET_opacities_p, NRPyLeakageET_opacities_p_p
+  WRITES: NRPyLeakageET_optical_depths(everywhere), NRPyLeakageET_optical_depths_p, NRPyLeakageET_optical_depths_p_p
 } "Initialize optical depths and opacities"
 
 SCHEDULE NRPyLeakageET_InitSym AT BASEGRID AFTER Lapse_InitSymBound
@@ -26,34 +21,51 @@ SCHEDULE NRPyLeakageET_InitSym AT BASEGRID AFTER Lapse_InitSymBound
 
 SCHEDULE NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss AS NRPyLeakageET_RHS IN MoL_CalcRHS AFTER IllinoisGRMHD_RHS_eval
 {
-  SYNC: NRPyLeakageET_optical_depths, NRPyLeakageET_opacities
   LANG: C
+  READS:  ADMBase::metric(interior)
+  READS:  ADMBase::lapse(interior)
+  READS:  ADMBase::shift(interior)
+  READS:  HydroBase::rho(interior)
+  READS:  HydroBase::vel(interior)
+  READS:  HydroBase::Y_e(interior)
+  READS:  HydroBase::temperature(interior)
+  READS:  NRPyLeakageET_optical_depths_p(interior)
+  WRITES: NRPyLeakageET_opacities(interior)
+  SYNC: NRPyLeakageET_optical_depths, NRPyLeakageET_opacities
 } "Compute opacities and add source terms to GRMHD right-hand sides; Synchronize optical depths, opacities and ADMBase metric."
 
 if( CCTK_Equals(optical_depth_evolution_type,"static") ) {
   SCHEDULE NRPyLeakageET_copy_optical_depths_from_previous_time_level AS NRPyLeakageET_optical_depth_step IN MoL_CalcRHS AFTER NRPyLeakageET_RHS
   {
     LANG: C
+    READS: NRPyLeakageET_optical_depths_p(everywhere)
+    WRITES: NRPyLeakageET_optical_depths(everywhere)
   } "Static evolution: update optical depths by simply copying data from the previous time level."
 }
 else if( CCTK_Equals(optical_depth_evolution_type,"PathOfLeastResistance") ) {
   SCHEDULE NRPyLeakageET_optical_depths_PathOfLeastResistance AS NRPyLeakageET_optical_depth_step IN MoL_CalcRHS AFTER NRPyLeakageET_RHS
   {
-    SYNC: NRPyLeakageET_optical_depths
     LANG: C
+    READS: ADMBase::metric(everywhere)
+    READS: ADMBase::lapse(everywhere)
+    READS: HydroBase::rho(everywhere)
+    READS: NRPyLeakageET_opacities(everywhere), NRPyLeakageET_optical_depths_p
+    WRITES: NRPyLeakageET_optical_depths(interior)
+    SYNC: NRPyLeakageET_optical_depths
   } "PathOfLeastResistance evolution: update optical depths following Nielsen et al. (2014) (1403.3680)."
 }
 
 SCHEDULE NRPyLeakageET_InitSym IN HydroBase_Boundaries AS NRPyLeakageET_Sync BEFORE NRPyLeakageET_BoundaryConditions
 {
-  SYNC: NRPyLeakageET_opacities, NRPyLeakageET_optical_depths
   LANG: C
+  SYNC: NRPyLeakageET_opacities, NRPyLeakageET_optical_depths
 } "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
 
 SCHEDULE NRPyLeakageET_BoundaryConditions IN HydroBase_Boundaries
 {
-  SYNC: NRPyLeakageET_optical_depths, NRPyLeakageET_optical_depths # This might be unecessary
   LANG: C
+  WRITES: NRPyLeakageET_opacities(boundary), NRPyLeakageET_optical_depths
+  SYNC: NRPyLeakageET_opacities, NRPyLeakageET_optical_depths # This might be unecessary
 } "Apply boundary conditions to optical depth"
 
 if( compute_luminosities_every > 0 )
@@ -63,5 +75,14 @@ if( compute_luminosities_every > 0 )
   {
     LANG: C
     OPTIONS: GLOBAL
+    READS: ADMBase::metric(everywhere)
+    READS: ADMBase::lapse(everywhere)
+    READS: HydroBase::rho(everywhere)
+    READS: HydroBase::vel(everywhere)
+    READS: HydroBase::Y_e(everywhere)
+    READS: HydroBase::temperature(everywhere)
+    READS: HydroBase::w_lorentz(everywhere)
+    READS: NRPyLeakageET_optical_depths(everywhere)
+    WRITES: NRPyLeakageET_luminosities(everywhere)
   } "Compute neutrino luminosities and output to file"
 }
