@@ -26,7 +26,7 @@ int NRPyLeakageET_ProcessOwnsData() {
 
 extern "C"
 void NRPyLeakageET_Prolongate(CCTK_ARGUMENTS, const char *varname) {
-  _DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
   if(verbosity_level>1) CCTK_VINFO("Prolongating %s from ref. lvl. %d to ref. lvl. %d...", varname, GetRefinementLevel(cctkGH)-1, GetRefinementLevel(cctkGH));
@@ -50,7 +50,7 @@ void NRPyLeakageET_Prolongate(CCTK_ARGUMENTS, const char *varname) {
 
 extern "C"
 void NRPyLeakageET_Restrict(CCTK_ARGUMENTS, const char *varname) {
-  _DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
   if(verbosity_level>1) CCTK_VINFO("Restricting %s from ref. lvl. %d to ref. lvl. %d...", varname, GetRefinementLevel(cctkGH)+1, GetRefinementLevel(cctkGH));
@@ -73,7 +73,7 @@ void NRPyLeakageET_Restrict(CCTK_ARGUMENTS, const char *varname) {
 
 extern "C"
 void NRPyLeakageET_SyncOpticalDepths(CCTK_ARGUMENTS) {
-  _DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
   if( verbosity_level > 1 ) CCTK_VINFO("Synchronizing auxiliary optical depths at ref. lev. %d",GetRefinementLevel(cctkGH));
@@ -88,7 +88,7 @@ void NRPyLeakageET_SyncOpticalDepths(CCTK_ARGUMENTS) {
 
 extern "C"
 void NRPyLeakageET_getGlobalL2norm(CCTK_ARGUMENTS, const int startRefLev, const int endRefLev, const int it, CCTK_REAL *restrict l2norm_global) {
-  _DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
   // Step 1: Loop over refinement levels, maps, and components, computing the
@@ -161,11 +161,7 @@ void NRPyLeakageET_getGlobalL2norm(CCTK_ARGUMENTS, const int startRefLev, const 
 
 extern "C"
 void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
-  #ifdef DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_Initialize
-  DECLARE_CCTK_ARGUMENTS_CHECKED(NRPyLeakageET_Initialize);
-  #else
-  DECLARE_CCTK_ARGUMENTS;
-  #endif
+  DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_Initialize;
   DECLARE_CCTK_PARAMETERS;
 
   // Step 1: Initialize all optical depth gridfunctions to zero

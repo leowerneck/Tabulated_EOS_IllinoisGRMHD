@@ -19,11 +19,7 @@
 
 extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase_variables(CCTK_ARGUMENTS) {
 
-  #ifdef DECLARE_CCTK_ARGUMENTS_set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase_variables
-  DECLARE_CCTK_ARGUMENTS_CHECKED(set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase_variables);
-  #else
-  DECLARE_CCTK_ARGUMENTS;
-  #endif
+  DECLARE_CCTK_ARGUMENTS_set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase_variables;
   DECLARE_CCTK_PARAMETERS;
 
   if(rho_b_atm > 1e199) {

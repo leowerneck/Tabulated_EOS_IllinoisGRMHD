@@ -22,11 +22,7 @@ void IsotropicGasID(CCTK_ARGUMENTS) {
 
 
   // Step 1: Get access to gridfunctions and parameters
-  #ifdef DECLARE_CCTK_ARGUMENTS_IsotropicGasID
-  DECLARE_CCTK_ARGUMENTS_CHECKED(IsotropicGasID);
-  #else
-  DECLARE_CCTK_ARGUMENTS;
-  #endif
+  DECLARE_CCTK_ARGUMENTS_IsotropicGasID;
   DECLARE_CCTK_PARAMETERS;
 
   // Step 2: Check correct usage

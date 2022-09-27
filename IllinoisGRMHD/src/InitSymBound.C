@@ -12,11 +12,7 @@
 
 extern "C" void IllinoisGRMHD_InitSymBound(CCTK_ARGUMENTS)
 {
-  #ifdef DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_InitSymBound
-  DECLARE_CCTK_ARGUMENTS_CHECKED(IllinoisGRMHD_InitSymBound);
-  #else
-  DECLARE_CCTK_ARGUMENTS;
-  #endif
+  DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_InitSymBound;
   DECLARE_CCTK_PARAMETERS;
 
   if( ( CCTK_EQUALS(Matter_BC,"frozen") && !CCTK_EQUALS(EM_BC,"frozen") ) ||

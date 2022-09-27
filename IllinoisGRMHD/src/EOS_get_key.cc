@@ -13,11 +13,7 @@
 extern "C" void IllinoisGRMHD_EOS_get_key( CCTK_ARGUMENTS ) {
 
   // This gives us the pointer igm_eos_key
-  #ifdef DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_EOS_get_key
-  DECLARE_CCTK_ARGUMENTS_CHECKED(IllinoisGRMHD_EOS_get_key);
-  #else
-  DECLARE_CCTK_ARGUMENTS;
-  #endif
+  DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_EOS_get_key;
   // This gives us the parameter igm_eos_type
   DECLARE_CCTK_PARAMETERS;
 

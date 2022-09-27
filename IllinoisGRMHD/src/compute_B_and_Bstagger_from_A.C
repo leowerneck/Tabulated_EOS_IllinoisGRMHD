@@ -14,11 +14,7 @@
       for(int i=0;i<cctk_lsh[0];i++)
 
 extern "C" void IllinoisGRMHD_compute_B_and_Bstagger_from_A(CCTK_ARGUMENTS) {
-  #ifdef DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_compute_B_and_Bstagger_from_A
-  DECLARE_CCTK_ARGUMENTS_CHECKED(IllinoisGRMHD_compute_B_and_Bstagger_from_A);
-  #else
-  DECLARE_CCTK_ARGUMENTS;
-  #endif
+  DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_compute_B_and_Bstagger_from_A;
   DECLARE_CCTK_PARAMETERS;
 
   CCTK_REAL dxi = 1.0/CCTK_DELTA_SPACE(0);

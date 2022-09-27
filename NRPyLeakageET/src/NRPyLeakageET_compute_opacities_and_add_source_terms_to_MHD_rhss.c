@@ -11,11 +11,7 @@
 
 void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUMENTS) {
 
-  #ifdef DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss
-  DECLARE_CCTK_ARGUMENTS_CHECKED(NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss);
-  #else
-  DECLARE_CCTK_ARGUMENTS;
-  #endif
+  DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss;
   DECLARE_CCTK_PARAMETERS;
 
   if(verbosity_level>1) CCTK_VINFO("Inside NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss");

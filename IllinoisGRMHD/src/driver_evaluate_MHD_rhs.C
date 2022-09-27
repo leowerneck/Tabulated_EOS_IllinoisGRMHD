@@ -52,11 +52,7 @@
 #define velz (&vel[2*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 
 extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
-  #ifdef DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_driver_evaluate_MHD_rhs
-  DECLARE_CCTK_ARGUMENTS_CHECKED(IllinoisGRMHD_driver_evaluate_MHD_rhs);
-  #else
-  DECLARE_CCTK_ARGUMENTS;
-  #endif
+  DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_driver_evaluate_MHD_rhs;
   DECLARE_CCTK_PARAMETERS;
   int levelnumber = GetRefinementLevel(cctkGH);
 

@@ -10,11 +10,7 @@
  * https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
  */
 void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS) {
-  #ifdef DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_Initialize
-  DECLARE_CCTK_ARGUMENTS_CHECKED(NRPyLeakageET_Initialize);
-  #else
-  DECLARE_CCTK_ARGUMENTS;
-  #endif
+  DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_Initialize;
   DECLARE_CCTK_PARAMETERS;
 
   if(!NRPyLeakageET_ProcessOwnsData()) return;
