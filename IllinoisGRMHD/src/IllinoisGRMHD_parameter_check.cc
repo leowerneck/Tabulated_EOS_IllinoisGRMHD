@@ -65,7 +65,7 @@ void IllinoisGRMHD_con2prim_check( const igm_eos_parameters eos,
 extern "C"
 void IllinoisGRMHD_parameter_check(CCTK_ARGUMENTS) {
 
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_parameter_check;
   DECLARE_CCTK_PARAMETERS;
 
   // Initialize the IGM EOS parameter struct

@@ -23,7 +23,7 @@ void ConstantDensitySphereID(CCTK_ARGUMENTS) {
 
 
   // Step 1: Get access to gridfunctions and parameters
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_ConstantDensitySphereID;
   DECLARE_CCTK_PARAMETERS;
 
   // Step 2: Check correct usage

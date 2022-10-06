@@ -73,7 +73,10 @@ cctk_real BSSN_quantities type = GF TAGS='prolongation="none" Checkpoint="no"'
 } "BSSN quantities, computed from ADM quantities"
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
-private:
+#protected: #FIXME: I tried to make the protected and add friend to ex. ID_converter_ILGRMHD to give access,
+            #       since private variables can't be accessed by other thorns (never enforced until new macros)
+            #       for some reason it is giving a CST error that it can't find these gfs if they are protected
+            #       instead of private
 
 #vvvvvvv DIAGNOSTIC GRIDFUNCTIONS vvvvvvv#
 cctk_real diagnostic_gfs type = GF TAGS='prolongation="none" Checkpoint="no"'
@@ -81,6 +84,15 @@ cctk_real diagnostic_gfs type = GF TAGS='prolongation="none" Checkpoint="no"'
   failure_checker
 } "Gridfunction to track conservative-to-primitives solver fixes. Beware that this gridfunction is overwritten at each RK substep."
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+
+#vvvvvvv TEMPORARY VARIABLES USEFUL FOR FLUX COMPUTATION vvvvvvv#
+cctk_real grmhd_flux_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
+{
+  rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,Ye_star_flux,S_star_flux
+} "Temporary variables for storing the flux terms of tilde{S}_i."
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+
+private:
 
 #vvvvvvv TEMPORARY VARIABLES FOR RECONSTRUCTION vvvvvvv#
 cctk_real grmhd_primitives_reconstructed_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
@@ -124,13 +136,6 @@ cctk_real grmhd_cmin_cmax_temps type = GF TAGS='prolongation="none" Checkpoint="
   cmin_z,cmax_z
 } "Store min and max characteristic speeds in all three directions."
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
-
-#vvvvvvv TEMPORARY VARIABLES USEFUL FOR FLUX COMPUTATION vvvvvvv#
-cctk_real grmhd_flux_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
-{
-  rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,Ye_star_flux,S_star_flux
-} "Temporary variables for storing the flux terms of tilde{S}_i."
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
 #vvvvvvv T^{\mu \nu}, stored to avoid expensive recomputation vvvvvvv#
 cctk_real TUPmunu type = GF TAGS='prolongation="none" Checkpoint="no"'

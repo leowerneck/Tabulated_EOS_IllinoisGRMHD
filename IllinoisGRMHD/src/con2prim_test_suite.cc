@@ -25,7 +25,7 @@ inline CCTK_REAL relative_error( const CCTK_REAL a, const CCTK_REAL b ) {
 extern "C"
 void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
 
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_con2prim_test_suit;
   DECLARE_CCTK_PARAMETERS;
 
   // Initialize the EOS parameters

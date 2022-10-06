@@ -14,7 +14,7 @@
       for(int i=0;i<cctk_lsh[0];i++)
 
 extern "C" void IllinoisGRMHD_compute_B_and_Bstagger_from_A(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_compute_B_and_Bstagger_from_A;
   DECLARE_CCTK_PARAMETERS;
 
   CCTK_REAL dxi = 1.0/CCTK_DELTA_SPACE(0);
@@ -173,4 +173,3 @@ extern "C" void IllinoisGRMHD_compute_B_and_Bstagger_from_A(CCTK_ARGUMENTS) {
   IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Bz        , gridfunc_syms_Bz,0,0,0);
   IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Bz_stagger, gridfunc_syms_Bz,0,0,1);
 }
-

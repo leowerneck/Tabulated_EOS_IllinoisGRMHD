@@ -160,24 +160,8 @@ void NRPyLeakageET_getGlobalL2norm(CCTK_ARGUMENTS, const int startRefLev, const 
 }
 
 extern "C"
-void NRPyLeakageET_Print(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
-  DECLARE_CCTK_PARAMETERS;
-
-  if(!NRPyLeakageET_ProcessOwnsData()) return;
-
-  for(int i=0;i<12;i++) {
-    const int index = CCTK_GFINDEX3D(cctkGH,i,i,i);
-    CCTK_VINFO("Ref. Lev. %d - %02d,%02d,%02d - %g %g %g %g %g %g",
-               GetRefinementLevel(cctkGH),i,i,i,
-               tau_0_nue[index],tau_0_anue[index],tau_0_nux[index],
-               tau_1_nue[index],tau_1_anue[index],tau_1_nux[index]);
-  }
-}
-
-extern "C"
 void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_Initialize;
   DECLARE_CCTK_PARAMETERS;
 
   // Step 1: Initialize all optical depth gridfunctions to zero

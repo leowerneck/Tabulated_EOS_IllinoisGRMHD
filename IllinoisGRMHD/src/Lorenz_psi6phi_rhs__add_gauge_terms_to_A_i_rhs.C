@@ -4,8 +4,8 @@ static void Lorenz_psi6phi_rhs__add_gauge_terms_to_A_i_rhs( const cGH *restrict 
                                                             const int *restrict cctk_lsh,
                                                             const int *restrict cctk_nghostzones,
                                                             CCTK_REAL *restrict dX,
-                                                            CCTK_REAL **in_vars,
-                                                            CCTK_REAL *restrict psi6phi,
+                                                            const CCTK_REAL **in_vars,
+                                                            const CCTK_REAL *restrict psi6phi,
                                                             CCTK_REAL *restrict shiftx_iphjphkph,
                                                             CCTK_REAL *restrict shifty_iphjphkph,
                                                             CCTK_REAL *restrict shiftz_iphjphkph,
@@ -238,6 +238,5 @@ static inline CCTK_REAL avg(CCTK_REAL f[PLUS2+1][PLUS2+1][PLUS2+1],int imin,int 
       }
   return retval/num_in_sum;
 }
-
 
 

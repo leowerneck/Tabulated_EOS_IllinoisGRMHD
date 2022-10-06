@@ -13,7 +13,7 @@
 extern "C"
 void WVU_EOS_validation_against_EOS_Omni(CCTK_ARGUMENTS) {
 
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_WVU_EOS_validation_against_EOS_Omni;
   DECLARE_CCTK_PARAMETERS;
   
   // --------------------------------------------

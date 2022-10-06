@@ -182,10 +182,9 @@ IllinoisGRMHD::Psi6threshold                     = 60
 IllinoisGRMHD::damp_lorenz                       = 0.1
 IllinoisGRMHD::palenzuela_depsdT_threshold       = 5e-5
 IllinoisGRMHD::igm_eos_table_floor_safety_factor = 1.0
-IllinoisGRMHD::enable_NRPyLeakageET_interface    = "yes"
 
 #---------NRPyLeakageET---------
-NRPyLeakageET::NRPyLeakageET_optical_depth_evolution_type = "static"
+NRPyLeakageET::optical_depth_evolution_type = "static"
 
 #---------InitBase---------
 InitBase::initial_data_setup_method = "init_some_levels"
@@ -218,6 +217,7 @@ TmunuBase::prolongation_type     = none
 # | Output configuration |
 # .----------------------.
 
+IOUtil::out_dir                 = $parfile
 CarpetIOASCII::out2D_every = 1
 CarpetIOASCII::out2D_xy    = "yes"
 CarpetIOASCII::out2D_xz    = "no"

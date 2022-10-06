@@ -4,7 +4,7 @@
 #include "Symmetry.h"
 
 void NRPyLeakageET_InitSym(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_InitSym;
   DECLARE_CCTK_PARAMETERS;
 
   int sym[3] = {1,1,1};

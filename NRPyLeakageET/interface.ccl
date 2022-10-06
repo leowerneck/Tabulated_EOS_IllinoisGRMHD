@@ -7,6 +7,16 @@ includes header: NRPyLeakageET.h in NRPyLeakageET.h
 USES INCLUDE: Symmetry.h
 # USES INCLUDE HEADER: WVU_EOS_Tabulated_headers.h
 
+# Functions for programatically determining the validity of (and possibly trigging the sync for)
+# the constraints gridfunctions, which are determined at runtime.
+CCTK_INT FUNCTION Driver_RequireValidData
+  (CCTK_POINTER_TO_CONST IN cctkGH,
+   CCTK_INT ARRAY        IN variables,
+   CCTK_INT ARRAY        IN tls,
+   CCTK_INT              IN nvariables,
+   CCTK_INT ARRAY        IN where)
+USES FUNCTION Driver_RequireValidData
+
 # ------------------------------------------------------
 # Gridfunctions
 # ------------------------------------------------------

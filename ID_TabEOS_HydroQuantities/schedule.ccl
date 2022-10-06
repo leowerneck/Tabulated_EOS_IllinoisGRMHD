@@ -5,9 +5,7 @@ if( CCTK_EQUALS( initial_Y_e        ,"ID_tabEOS_HydroQuantities" ) ||
   schedule ID_TabEOS_HydroQuantities IN HydroBase_Initial AFTER NRPyPlusTOVID_ET_InitialData AFTER Meudon_Bin_NS_initialise
   {
     LANG: C
-    WRITES: HydroBase::vel[0](Everywhere)
-    WRITES: HydroBase::vel[1](Everywhere)
-    WRITES: HydroBase::vel[2](Everywhere)
+    WRITES: HydroBase::vel(Everywhere)
     WRITES: HydroBase::press(Everywhere)
     WRITES: HydroBase::rho(Everywhere)
     WRITES: HydroBase::eps(Everywhere)

@@ -12,6 +12,7 @@ schedule IllinoisGRMHD_EOS_get_key at BASEGRID after EOS_OMNI_get_energy_shift b
 {
   LANG: C
   OPTIONS: GLOBAL
+  WRITES: IllinoisGRMHD::igm_eos_key(everywhere)
 } "Get EOS handle for IllinoisGRMHD's interface with EOS_Omni"
 
 STORAGE: igm_eos_key
@@ -22,6 +23,7 @@ schedule IllinoisGRMHD_parameter_check at BASEGRID after IllinoisGRMHD_EOS_get_k
 {
   LANG: C
   OPTIONS: GLOBAL
+  READS: IllinoisGRMHD::igm_eos_key(everywhere)
 } "Check input parameters"
 
 # Con2prim standalone test suite
@@ -29,6 +31,7 @@ if( igm_con2prim_standalone ) {
   schedule IllinoisGRMHD_con2prim_test_suit at CCTK_BASEGRID after EOS_OMNI_get_energy_shift
   {
     LANG: C
+    READS: IllinoisGRMHD::igm_eos_key(everywhere)
   } "Performs a con2prim standalone test"
 }
 
@@ -60,28 +63,53 @@ schedule GROUP IllinoisGRMHD_PostPostInitial at CCTK_POSTPOSTINITIAL before MoL_
 
 schedule IllinoisGRMHD_InitSymBound in IllinoisGRMHD_PostPostInitial as postid before compute_b
 {
-  SYNC: grmhd_conservatives,em_Ax,em_Ay,em_Az,em_psi6phi
   LANG: C
+  SYNC: grmhd_conservatives,em_Ax,em_Ay,em_Az,em_psi6phi
 } "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
 
 # Easiest primitives to solve for: B^i
 schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_PostPostInitial as compute_b after postid after empostid after lapsepostid
 {
+  LANG: C
+  READS: GRID::coordinates(everywhere)
+  READS: Ax(everywhere), Ay, Az, phi_bssn
+  WRITES: psi_bssn(interior), grmhd_primitives_Bi, grmhd_primitives_Bi_stagger
+  WRITES: Ax(boundary), Ay, Az, psi6phi #FIXME: boundary of B is also written, but interior+boundary
+                                        # isn't an available option to my knowledge
   # This is strictly a processor sync, as prolongation is disabled for all primitives & B^i's.
   SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger # FIXME: Are both SYNC's necessary?
-  LANG: C
 } "Compute B and B_stagger from A SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger"
 
 # Nontrivial primitives solve, for P,rho_b,vx,vy,vz:
 schedule IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_PostPostInitial after compute_b
 {
   LANG: C
+  READS: ADMBase::metric(everywhere)
+  READS: ADMBase::lapse(everywhere)
+  READS: ADMBase::shift(everywhere)
+  READS: IllinoisGRMHD::grmhd_conservatives(everywhere), igm_eos_key
+  READS: GRID::coordinates(everywhere) #  only for debugging output
+  READS: grmhd_primitives_Bi(everywhere) # only for debugging output
+  WRITES: ADMBase::metric(interior)
+  WRITES: grmhd_primitives_allbutBi(interior), grmhd_conservatives, BSSN_quantities
+  WRITES: TmunuBase::stress_energy_scalar(interior) # parameter on/off
+  WRITES: TmunuBase::stress_energy_vector(interior) # parameter on/off
+  WRITES: TmunuBase::stress_energy_tensor(interior) # parameter on/off
+  WRITES: con2prim_failed_flag(everywhere)
+  WRITES: grmhd_flux_temps(everywhere) #  only for debugging output
+  WRITES: failure_checker(everywhere) # only for debugging output
 } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
 
 # Copy data to other timelevels.
 schedule IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels in IllinoisGRMHD_PostPostInitial as mhdpostid after compute_b after p2c
 {
   LANG: C
+  READS: GRID::coordinates(boundary)
+  READS: em_Ax(everywhere), em_Ay, em_Az, em_psi6phi
+  READS: grmhd_conservatives(everywhere), igm_eos_key
+  WRITES: grmhd_primitives_Bi_stagger(boundary), grmhd_primitives_Bi, em_Ax, em_Ay, em_Az, em_psi6phi
+  WRITES: Ax_p(everywhere), Ay_p, Az_p, Ax_p_p, Ay_p_p, Az_p_p, psi6phi_p, psi6phi_p_p
+  WRITES: grmhd_conservatives_p(everywhere), grmhd_conservatives_p_p
 } "Compute post-initialdata quantities"
 ####################
 
@@ -90,6 +118,21 @@ schedule IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels in Illino
 schedule IllinoisGRMHD_driver_evaluate_MHD_rhs in MoL_CalcRHS as IllinoisGRMHD_RHS_eval after bssn_rhs after shift_rhs
 {
   LANG: C
+  READS: ADMBase::metric(everywhere)
+  READS: ADMBase::lapse(everywhere)
+  READS: ADMBase::shift(everywhere)
+  READS: ADMBase::curv(everywhere)
+  READS: grmhd_primitives_allbutBi(everywhere), grmhd_primitives_Bi, grmhd_primitives_Bi_stagger, igm_eos_key
+  READS: Ax(everywhere), Ay, Az, psi6phi
+  WRITES: ADMBase::metric(interior)
+  WRITES: HydroBase::temperature(interior)
+  WRITES: HydroBase::rho(interior)
+  WRITES: HydroBase::Y_e(interior)
+  WRITES: HydroBase::vel(interior)
+  WRITES: BSSN_quantities(interior), grmhd_conservatives_rhs, grmhd_flux_temps
+  WRITES: grmhd_primitives_reconstructed_temps(interior), TUPmunu
+  WRITES: em_psi6phi_rhs(interior), grmhd_cmin_cmax_temps
+  WRITES: em_Ax_rhs(interior), em_Ay_rhs, em_Az_rhs
 } "Evaluate RHSs of GR Hydro & GRMHD equations"
 ####################
 
@@ -114,22 +157,30 @@ schedule IllinoisGRMHD_driver_evaluate_MHD_rhs in MoL_CalcRHS as IllinoisGRMHD_R
 
 schedule IllinoisGRMHD_InitSymBound in HydroBase_Boundaries as Boundary_SYNCs before compute_B_postrestrict
 {
-  SYNC: grmhd_conservatives,em_Ax,em_Ay,em_Az,em_psi6phi
   LANG: C
+  SYNC: grmhd_conservatives,em_Ax,em_Ay,em_Az,em_psi6phi
 } "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
 
 schedule IllinoisGRMHD_outer_boundaries_on_A_mu in HydroBase_Boundaries after Boundary_SYNCs before mhd_conserv2prims_postrestrict
 {
   LANG: C
+  READS: ADMBase::metric(everywhere)
+  READS: ADMBase::lapse(everywhere)
+  WRITES: ADMBase::metric(boundary)
+  WRITES: IllinoisGRMHD::BSSN_quantities(boundary)
+  WRITES: IllinoisGRMHD::em_Ax(boundary)
+  WRITES: IllinoisGRMHD::em_Ay(boundary)
+  WRITES: IllinoisGRMHD::em_Az(boundary)
+  WRITES: IllinoisGRMHD::em_psi6phi(boundary)
 } "Apply linear extrapolation BCs on A_{mu}, so that BCs are flat on B^i."
 
 # Easiest primitives to solve for: B^i.
 # Note however that B^i depends on derivatives of A_{\mu}, so a SYNC is necessary on B^i.
 schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in HydroBase_Boundaries after outer_boundaries_on_A_mu
 {
+  LANG: C
   # This is strictly a processor sync, as prolongation is disabled for all B^i's.
   SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger # FIXME: Are both SYNC's necessary?
-  LANG: C
 } "Compute B and B_stagger from A,  SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger"
 
 # Nontrivial primitives solve, for P,rho_b,vx,vy,vz.
@@ -140,9 +191,19 @@ schedule IllinoisGRMHD_conserv_to_prims in AddToTmunu after compute_B_and_Bstagg
 
 schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in AddToTmunu after IllinoisGRMHD_conserv_to_prims
 {
+  LANG: C
+  READS: ADMBase::metric(everywhere)
+  READS: ADMBase::lapse(everywhere)
+  READS: ADMBase::shift(everywhere)
+  READS: IllinoisGRMHD::grmhd_primitives_Bi(everywhere), igm_eos_key
+  WRITES: ADMBase::metric(boundary)
+  WRITES: IllinoisGRMHD::grmhd_conservatives(boundary)
+  WRITES: IllinoisGRMHD::grmhd_primitives_allbutBi(boundary)
+  WRITES: IllinoisGRMHD::BSSN_quantities(boundary)
+  WRITES: TmunuBase::stress_energy_scalar(boundary)
+  WRITES: TmunuBase::stress_energy_vector(boundary)
+  WRITES: TmunuBase::stress_energy_tensor(boundary)
 # We must sync {P,rho_b,vx,vy,vz} here.
   SYNC: grmhd_primitives_allbutBi
-  LANG: C
 } "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
 ##########################################################
-

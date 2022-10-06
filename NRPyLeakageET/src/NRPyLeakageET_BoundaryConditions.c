@@ -17,7 +17,7 @@
  * Apply outer boundary conditions on A_{\mu}
  ********************************************/
 void NRPyLeakageET_BoundaryConditions(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_BoundaryConditions;
   DECLARE_CCTK_PARAMETERS;
 
   int levelnumber = GetRefinementLevel(cctkGH);

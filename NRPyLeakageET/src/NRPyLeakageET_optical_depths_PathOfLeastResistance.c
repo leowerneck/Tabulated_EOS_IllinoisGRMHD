@@ -11,7 +11,7 @@
  * https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
  */
 void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_optical_depths_PathOfLeastResistance;
   DECLARE_CCTK_PARAMETERS;
 
   if(!NRPyLeakageET_ProcessOwnsData()) return;

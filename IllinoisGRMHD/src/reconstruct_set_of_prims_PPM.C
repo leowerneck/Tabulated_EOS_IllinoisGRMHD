@@ -37,7 +37,7 @@ static void reconstruct_set_of_prims_PPM( const igm_eos_parameters eos,
                                           const int flux_dirn,
                                           const int num_prims_to_reconstruct,
                                           const int *restrict which_prims_to_reconstruct,
-                                          gf_and_gz_struct *restrict in_prims,
+                                          const_gf_and_gz_struct *restrict in_prims,
                                           gf_and_gz_struct *restrict out_prims_r,
                                           gf_and_gz_struct *restrict out_prims_l,
                                           CCTK_REAL *restrict ftilde_gf,
@@ -353,7 +353,7 @@ static inline void compute_P_cold__Gamma_cold(CCTK_REAL rho_b,const igm_eos_para
 static void ftilde_gf_compute( const cGH *restrict cctkGH,
                                const int *restrict cctk_lsh,
                                const int flux_dirn,
-                               gf_and_gz_struct *restrict in_prims,
+                               const_gf_and_gz_struct *restrict in_prims,
                                CCTK_REAL *restrict ftilde_gf ) {
   int ijkgz_lo_hi[4][2];
   CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES];

@@ -12,7 +12,7 @@
 
 extern "C" void IllinoisGRMHD_InitSymBound(CCTK_ARGUMENTS)
 {
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_InitSymBound;
   DECLARE_CCTK_PARAMETERS;
 
   if( ( CCTK_EQUALS(Matter_BC,"frozen") && !CCTK_EQUALS(EM_BC,"frozen") ) ||
@@ -65,5 +65,4 @@ extern "C" void IllinoisGRMHD_InitSymBound(CCTK_ARGUMENTS)
     }
   }
 }
-
 

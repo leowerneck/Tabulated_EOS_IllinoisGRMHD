@@ -19,7 +19,7 @@
 
 extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase_variables(CCTK_ARGUMENTS) {
 
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase_variables;
   DECLARE_CCTK_PARAMETERS;
 
   if(rho_b_atm > 1e199) {
@@ -57,6 +57,19 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
   for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
         int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
 
+        /**************************
+// SC: This section will interact with rdwr declarations in a nontrivial way.
+//     If active, the relevant rdwr are
+          READS: press
+          WRITES: rho, press, eps, rho_b, P
+       If inactive, the rdwr are
+          READS: press, rho, eps
+          WRITES: rho_b, P
+       The case of pressure is not at significant, as it reads before writing in both cases.
+       However, eps and rho change behavior depending on the parameters (at runtime). 
+       Technically, putting that they are read **should** be fine, as in the case where they
+       are overwritten it will not matter, so long as something before this function had already
+       written them. Still, it is best if these cases are minimized.
         if( eos.is_Hybrid ) {
           if( apply_pressure_depletion ) {
             // Deplete the pressure
@@ -80,6 +93,7 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
             eps    [index] = epsL;
           }
         }
+        ***************************/
 
         rho_b  [index]           = rho[index];
         P      [index]           = press[index];
@@ -91,7 +105,7 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         if( eos.evolve_entropy ) {
           // In this case we expect another thorn,
           // such as ID_TabEOS_HydroQuantities,
-          // to ahve already taken care of the
+          // to have already taken care of the
           // entropy initialization.
           igm_entropy[index]   = entropy[index];
         }

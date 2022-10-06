@@ -34,7 +34,7 @@
  * Apply outer boundary conditions on A_{\mu}
  ********************************************/
 extern "C" void IllinoisGRMHD_outer_boundaries_on_A_mu(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_outer_boundaries_on_A_mu;
   DECLARE_CCTK_PARAMETERS;
 
   if(CCTK_EQUALS(EM_BC,"frozen")) return;
@@ -100,7 +100,7 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_A_mu(CCTK_ARGUMENTS) {
  * primitives & unnecessary fixes.
  *******************************************************/
 extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz;
   DECLARE_CCTK_PARAMETERS;
 
   // Initialize EOS parameters

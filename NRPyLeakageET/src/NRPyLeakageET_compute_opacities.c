@@ -10,7 +10,7 @@
  * https://adsabs.harvard.edu/pdf/1996A%26A...311..532R
  */
 void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_Initialize;
   DECLARE_CCTK_PARAMETERS;
 
   if(!NRPyLeakageET_ProcessOwnsData()) return;
@@ -158,6 +158,22 @@ void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS) {
                                                              kappa_nue,kappa_anue,kappa_nux);
             }
           }
+
+          // Step 4: Write to main memory
+          kappa_0_nue [index] = kappa_nue [0];
+          kappa_1_nue [index] = kappa_nue [1];
+          kappa_0_anue[index] = kappa_anue[0];
+          kappa_1_anue[index] = kappa_anue[1];
+          kappa_0_nux [index] = kappa_nux [0];
+          kappa_1_nux [index] = kappa_nux [1];
+
+          // Step 5: Copy the optical depths to the previous time level as a placeholder
+          tau_0_nue_p [index] = tau_nue [0];
+          tau_1_nue_p [index] = tau_nue [1];
+          tau_0_anue_p[index] = tau_anue[0];
+          tau_1_anue_p[index] = tau_anue[1];
+          tau_0_nux_p [index] = tau_nux [0];
+          tau_1_nux_p [index] = tau_nux [1];
         }
       }
     }

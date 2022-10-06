@@ -3,18 +3,18 @@ static void compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu( const igm_eos
                                                                    const int *restrict cctk_lsh,
                                                                    const int *restrict cctk_nghostzones,
                                                                    CCTK_REAL *restrict dX,
-                                                                   CCTK_REAL **metric,
-                                                                   gf_and_gz_struct *restrict prims,
+                                                                   const CCTK_REAL **metric,
+                                                                   const_gf_and_gz_struct *restrict prims,
                                                                    CCTK_REAL **TUPmunu,
                                                                    CCTK_REAL *restrict gupxy,
                                                                    CCTK_REAL *restrict gupxz,
                                                                    CCTK_REAL *restrict gupyz,
-                                                                   CCTK_REAL *restrict kxx,
-                                                                   CCTK_REAL *restrict kxy,
-                                                                   CCTK_REAL *restrict kxz,
-                                                                   CCTK_REAL *restrict kyy,
-                                                                   CCTK_REAL *restrict kyz,
-                                                                   CCTK_REAL *restrict kzz,
+                                                                   const CCTK_REAL *restrict kxx,
+                                                                   const CCTK_REAL *restrict kxy,
+                                                                   const CCTK_REAL *restrict kxz,
+                                                                   const CCTK_REAL *restrict kyy,
+                                                                   const CCTK_REAL *restrict kyz,
+                                                                   const CCTK_REAL *restrict kzz,
                                                                    CCTK_REAL *restrict tau_rhs ) {
 
   // These loop extents must be consistent with add_fluxes_and_source_terms_to_hydro_rhss(), since we use TUPmunu there as well.
@@ -128,4 +128,3 @@ static void compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu( const igm_eos
         for(int ii=0;ii<4;ii++) for(int jj=ii;jj<4;jj++) { TUPmunu[counter][index] = TUP[ii][jj]; counter++; }
       }
 }
-

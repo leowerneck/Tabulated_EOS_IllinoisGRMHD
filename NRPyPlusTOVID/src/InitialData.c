@@ -91,7 +91,7 @@ void read_TOV_input_data_from_file(ID_inputs *TOV_in) {
 }
 
 void NRPyPlusTOVID_ET_InitialData(CCTK_ARGUMENTS) {
-    DECLARE_CCTK_ARGUMENTS;
+    DECLARE_CCTK_ARGUMENTS_NRPyPlusTOVID_ET_InitialData;
     DECLARE_CCTK_PARAMETERS;
 
     ID_inputs TOV_in;

@@ -4,11 +4,40 @@
 SCHEDULE Convert_to_HydroBase AT CCTK_INITIAL AFTER SetTmunu
 {
   LANG: C
+  READS: ADMBase::metric(everywhere)
+  READS: ADMBase::lapse(everywhere)
+  READS: ADMBase::shift(everywhere)
+  READS: IllinoisGRMHD::grmhd_primitives_allbutBi(everywhere) #TODO: igm_c2p_mask isnt used
+  READS: IllinoisGRMHD::grmhd_primitives_Bi(everywhere)
+  READS: IllinoisGRMHD::igm_eos_key(everywhere)
+  WRITES: HydroBase::temperature(interior)
+  WRITES: HydroBase::w_lorentz(interior)
+  WRITES: HydroBase::entropy(interior)
+  WRITES: HydroBase::press(interior)
+  WRITES: HydroBase::Bvec(interior)
+  WRITES: HydroBase::vel(interior)
+  WRITES: HydroBase::eps(interior)
+  WRITES: HydroBase::rho(interior)
+  WRITES: HydroBase::Y_e(interior)
 } "Convert IllinoisGRMHD-native variables to HydroBase"
 
 SCHEDULE Convert_to_HydroBase AT CCTK_ANALYSIS BEFORE compute_bi_b2_Poyn_fluxET BEFORE particle_tracerET BEFORE VolumeIntegralGroup BEFORE convert_to_MHD_3velocity AFTER ML_BSSN_evolCalcGroup
 {
   OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
   LANG: C
+  READS: ADMBase::metric(everywhere)
+  READS: ADMBase::lapse(everywhere)
+  READS: ADMBase::shift(everywhere)
+  READS: IllinoisGRMHD::grmhd_primitives_allbutBi(everywhere) #TODO: igm_c2p_mask isnt used
+  READS: IllinoisGRMHD::grmhd_primitives_Bi(everywhere)
+  WRITES: HydroBase::temperature(interior)
+  WRITES: HydroBase::w_lorentz(interior)
+  WRITES: HydroBase::entropy(interior)
+  WRITES: HydroBase::press(interior)
+  WRITES: HydroBase::Bvec(interior)
+  WRITES: HydroBase::vel(interior)
+  WRITES: HydroBase::eps(interior)
+  WRITES: HydroBase::rho(interior)
+  WRITES: HydroBase::Y_e(interior)
 } "Convert IllinoisGRMHD-native variables to HydroBase"
 
