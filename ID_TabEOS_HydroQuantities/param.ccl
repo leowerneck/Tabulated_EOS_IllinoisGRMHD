@@ -22,13 +22,15 @@ EXTENDS KEYWORD initial_entropy
 restricted:
 CCTK_STRING Y_e_filename "Initial data file for electron fraction"
 {
- ".+" :: "Any nonempty string"
+  ".+" :: "Any nonempty string"
+  ""   :: "Forbidden value"
 } ""
 
 restricted:
 CCTK_STRING temperature_filename "Initial data file for temperature"
 {
- ".+" :: "Any nonempty string"
+  ".+" :: "Any nonempty string"
+  ""   :: "Forbidden value"
 } ""
 
 #----------------- Initial data type ------------------

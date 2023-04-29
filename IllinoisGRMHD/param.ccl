@@ -174,13 +174,13 @@ restricted:
 CCTK_REAL igm_eos_table_ceiling_safety_factor "How close to the table maximum do we set the ceiling?"
 {
  0.0:1.0 :: "1 -> table maximum, 0.9 -> 0.9*table_maximum, etc"
-} 0.9
+} 1
 
 restricted:
 CCTK_REAL igm_eos_table_floor_safety_factor "How close to the table maximum do we set the floor?"
 {
  1.0:* :: "1 -> table minimum, 1.1 -> 1.1*table_minimum, etc"
-} 1.1
+} 1
 
 restricted:
 CCTK_REAL igm_eos_root_finding_precision "Root-finding precision for EOS table inversions"

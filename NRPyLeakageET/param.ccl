@@ -78,7 +78,7 @@ restricted:
 CCTK_INT numberOfIterations "How many iterations are we going to perform to initialize the optical depth?"
 {
   1:* :: "Should be greater than one"
-} 128
+} 2048
 
 restricted:
 CCTK_STRING GFstring_Ye_star_rhs "Gridfunction for the conserved electron fraction right-hand side" STEERABLE = ALWAYS
