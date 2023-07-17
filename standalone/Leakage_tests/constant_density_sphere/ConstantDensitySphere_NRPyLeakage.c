@@ -189,8 +189,8 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
   const int Nt1    = N1 + 2*Ng1;
   const int Nt2    = N2 + 2*Ng2;
   const int Ntotal = Nt0 * Nt1 * Nt2;
-  const REAL xmax  = +2;
-  const REAL xmin  = -2;
+  const REAL xmax  = +5;
+  const REAL xmin  = -5;
   const REAL ymax  = xmax;
   const REAL ymin  = xmin;
   const REAL zmax  = xmax;
@@ -198,7 +198,7 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
   const REAL dx    = (xmax-xmin)/((REAL)N0);
   const REAL dy    = (xmax-xmin)/((REAL)N1);
   const REAL dz    = (xmax-xmin)/((REAL)N2);
-  const REAL rSph  = 1;
+  const REAL rSph  = 2.5;
 
   // Step 2: Allocate memory for the metric, opacities, and optical depths
   REAL **xx         = (REAL **)malloc(sizeof(REAL *)*3);

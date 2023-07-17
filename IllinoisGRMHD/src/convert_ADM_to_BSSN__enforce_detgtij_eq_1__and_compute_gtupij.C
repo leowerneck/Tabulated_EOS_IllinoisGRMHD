@@ -7,11 +7,29 @@
 #endif
 
 void IllinoisGRMHD_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij
-(const cGH *cctkGH,const int *cctk_lsh,
- CCTK_REAL *gxx,CCTK_REAL *gxy,CCTK_REAL *gxz,CCTK_REAL *gyy,CCTK_REAL *gyz,CCTK_REAL *gzz,CCTK_REAL *alp,
- CCTK_REAL *gtxx,CCTK_REAL *gtxy,CCTK_REAL *gtxz,CCTK_REAL *gtyy,CCTK_REAL *gtyz,CCTK_REAL *gtzz,
- CCTK_REAL *gtupxx,CCTK_REAL *gtupxy,CCTK_REAL *gtupxz,CCTK_REAL *gtupyy,CCTK_REAL *gtupyz,CCTK_REAL *gtupzz,
- CCTK_REAL *phi,CCTK_REAL *psi,CCTK_REAL *lapm1) {
+(const cGH *restrict cctkGH,
+ const int *restrict cctk_lsh,
+ CCTK_REAL *restrict gxx, CCTK_REAL *gxy,
+ CCTK_REAL *restrict gxz,
+ CCTK_REAL *restrict gyy,
+ CCTK_REAL *restrict gyz,
+ CCTK_REAL *restrict gzz,
+ const CCTK_REAL *restrict alp,
+ CCTK_REAL *restrict gtxx,
+ CCTK_REAL *restrict gtxy,
+ CCTK_REAL *restrict gtxz,
+ CCTK_REAL *restrict gtyy,
+ CCTK_REAL *restrict gtyz,
+ CCTK_REAL *restrict gtzz,
+ CCTK_REAL *restrict gtupxx,
+ CCTK_REAL *restrict gtupxy,
+ CCTK_REAL *restrict gtupxz,
+ CCTK_REAL *restrict gtupyy,
+ CCTK_REAL *restrict gtupyz,
+ CCTK_REAL *restrict gtupzz,
+ CCTK_REAL *restrict phi,
+ CCTK_REAL *restrict psi,
+ CCTK_REAL *restrict lapm1) {
 
 #ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
  DECLARE_CCTK_PARAMETERS;
@@ -106,4 +124,3 @@ i,j,k,cctk_lsh[0],cctk_lsh[1],cctk_lsh[2],gxx_physL,gxy_physL,gxz_physL,gyy_phys
         gtupzz[index] =   ( gtxxL * gtyyL - gtxyL * gtxyL );
       }
 }
-

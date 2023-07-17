@@ -121,6 +121,7 @@ static void compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu( const igm_eos
              2.0*(TUP[1][2]*KxyL + TUP[1][3]*KxzL + TUP[2][3]*KyzL) );
 
           tau_rhs[index] = tau_rhs_extrinsic_curvature_terms;
+          s_tau  [index] = tau_rhs_extrinsic_curvature_terms;
         }
 
         // Set the T^{\mu \nu} gridfunction, since computing T^{\mu \nu} is expensive
@@ -128,4 +129,3 @@ static void compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu( const igm_eos
         for(int ii=0;ii<4;ii++) for(int jj=ii;jj<4;jj++) { TUPmunu[counter][index] = TUP[ii][jj]; counter++; }
       }
 }
-
