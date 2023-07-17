@@ -71,8 +71,30 @@ const int kronecker_delta[4][3] = { { 0,0,0 },
 #include "EOS_headers.hh"
 
 /* PUBLIC FUNCTIONS, USED OUTSIDE IllinoisGRMHD AS WELL */
-void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int already_computed_physical_metric_and_inverse,CCTK_REAL *U,struct output_stats &stats,igm_eos_parameters &eos,
-                                                                       CCTK_REAL *METRIC,CCTK_REAL g4dn[4][4],CCTK_REAL g4up[4][4], CCTK_REAL *TUPMUNU,CCTK_REAL *TDNMUNU,CCTK_REAL *CONSERVS);
+void IllinoisGRMHD_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij(
+    const cGH *restrict cctkGH,
+    const int *restrict cctk_lsh,
+    CCTK_REAL *restrict gxx, CCTK_REAL *gxy,
+    CCTK_REAL *restrict gxz,
+    CCTK_REAL *restrict gyy,
+    CCTK_REAL *restrict gyz,
+    CCTK_REAL *restrict gzz,
+    const CCTK_REAL *restrict alp,
+    CCTK_REAL *restrict gtxx,
+    CCTK_REAL *restrict gtxy,
+    CCTK_REAL *restrict gtxz,
+    CCTK_REAL *restrict gtyy,
+    CCTK_REAL *restrict gtyz,
+    CCTK_REAL *restrict gtzz,
+    CCTK_REAL *restrict gtupxx,
+    CCTK_REAL *restrict gtupxy,
+    CCTK_REAL *restrict gtupxz,
+    CCTK_REAL *restrict gtupyy,
+    CCTK_REAL *restrict gtupyz,
+    CCTK_REAL *restrict gtupzz,
+    CCTK_REAL *restrict phi,
+    CCTK_REAL *restrict psi,
+    CCTK_REAL *restrict lapm1 );
 
 void IllinoisGRMHD_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij
 (const cGH *cctkGH,const int *cctk_lsh,

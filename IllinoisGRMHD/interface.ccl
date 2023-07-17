@@ -49,7 +49,7 @@ cctk_real em_psi6phi type = GF Timelevels=3 tags='Prolongation="STAGGER111"'
 
 CCTK_INT con2prim_failed_flag type=GF Timelevels=1 tags='Prolongation="none" Checkpoint="no"'
 
-CCTK_INT Tmunu_source_terms type=GF Timelevels=1 tags='Prolongation="none" Checkpoint="no"'
+CCTK_REAL Tmunu_source_terms type=GF Timelevels=1 tags='Prolongation="none" Checkpoint="no"'
 {
   s_tau, s_sx, s_sy, s_sz
 } "Non-flux terms on conservatives right-hand sides"
