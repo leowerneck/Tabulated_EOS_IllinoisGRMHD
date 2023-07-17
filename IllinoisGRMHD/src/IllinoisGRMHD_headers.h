@@ -71,6 +71,9 @@ const int kronecker_delta[4][3] = { { 0,0,0 },
 #include "EOS_headers.hh"
 
 /* PUBLIC FUNCTIONS, USED OUTSIDE IllinoisGRMHD AS WELL */
+void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int already_computed_physical_metric_and_inverse,CCTK_REAL *U,struct output_stats &stats,igm_eos_parameters &eos,
+                                                                       CCTK_REAL *METRIC,CCTK_REAL g4dn[4][4],CCTK_REAL g4up[4][4], CCTK_REAL *TUPMUNU,CCTK_REAL *TDNMUNU,CCTK_REAL *CONSERVS);
+
 void IllinoisGRMHD_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij(
     const cGH *restrict cctkGH,
     const int *restrict cctk_lsh,
@@ -95,13 +98,6 @@ void IllinoisGRMHD_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij
     CCTK_REAL *restrict phi,
     CCTK_REAL *restrict psi,
     CCTK_REAL *restrict lapm1 );
-
-void IllinoisGRMHD_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij
-(const cGH *cctkGH,const int *cctk_lsh,
- CCTK_REAL *gxx,CCTK_REAL *gxy,CCTK_REAL *gxz,CCTK_REAL *gyy,CCTK_REAL *gyz,CCTK_REAL *gzz,CCTK_REAL *alp,
- CCTK_REAL *gtxx,CCTK_REAL *gtxy,CCTK_REAL *gtxz,CCTK_REAL *gtyy,CCTK_REAL *gtyz,CCTK_REAL *gtzz,
- CCTK_REAL *gtupxx,CCTK_REAL *gtupxy,CCTK_REAL *gtupxz,CCTK_REAL *gtupyy,CCTK_REAL *gtupyz,CCTK_REAL *gtupzz,
- CCTK_REAL *phi,CCTK_REAL *psi,CCTK_REAL *lapm1);
 
 void IllinoisGRMHD_set_symmetry_gzs_staggered(const cGH *cctkGH, const int *cctk_lsh,CCTK_REAL *X,CCTK_REAL *Y,CCTK_REAL *Z,  CCTK_REAL *gridfunc,
                                               CCTK_REAL *gridfunc_syms,int stagger_x,int stagger_y,int stagger_z);
