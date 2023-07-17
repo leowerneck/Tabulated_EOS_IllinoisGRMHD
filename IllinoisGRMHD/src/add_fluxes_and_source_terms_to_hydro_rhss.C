@@ -73,7 +73,11 @@ static void add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters 
                                                        CCTK_REAL *restrict st_y_rhs,
                                                        CCTK_REAL *restrict st_z_rhs,
                                                        CCTK_REAL *restrict Ye_star_rhs,
-                                                       CCTK_REAL *restrict S_star_rhs ) {
+                                                       CCTK_REAL *restrict S_star_rhs,
+                                                       CCTK_REAL *restrict s_tau,
+                                                       CCTK_REAL *restrict s_sx,
+                                                       CCTK_REAL *restrict s_sy,
+                                                       CCTK_REAL *restrict s_sz ) {
 
   DECLARE_CCTK_PARAMETERS;
 

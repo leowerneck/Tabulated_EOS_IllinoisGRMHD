@@ -15,7 +15,8 @@ static void compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu( const igm_eos
                                                                    CCTK_REAL *restrict kyy,
                                                                    CCTK_REAL *restrict kyz,
                                                                    CCTK_REAL *restrict kzz,
-                                                                   CCTK_REAL *restrict tau_rhs ) {
+                                                                   CCTK_REAL *restrict tau_rhs,
+                                                                   CCTK_REAL *restrict s_tau ) {
 
   // These loop extents must be consistent with add_fluxes_and_source_terms_to_hydro_rhss(), since we use TUPmunu there as well.
 #pragma omp parallel for

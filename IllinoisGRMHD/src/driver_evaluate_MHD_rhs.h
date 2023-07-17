@@ -37,7 +37,8 @@ static void compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu( const igm_eos
                                                                    CCTK_REAL *restrict kyy,
                                                                    CCTK_REAL *restrict kyz,
                                                                    CCTK_REAL *restrict kzz,
-                                                                   CCTK_REAL *restrict tau_rhs );
+                                                                   CCTK_REAL *restrict tau_rhs,
+                                                                   CCTK_REAL *restrict s_tau );
 
 static void A_i_rhs_no_gauge_terms( const int A_dirn,
                                     const cGH *restrict cctkGH,
@@ -98,7 +99,10 @@ static void add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters 
                                                        CCTK_REAL *restrict st_y_rhs,
                                                        CCTK_REAL *restrict st_z_rhs,
                                                        CCTK_REAL *restrict Ye_star_rhs,
-                                                       CCTK_REAL *restrict S_star_rhs );
+                                                       CCTK_REAL *restrict S_star_rhs,
+                                                       CCTK_REAL *restrict s_tau,
+                                                       CCTK_REAL *restrict s_sx,
+                                                       CCTK_REAL *restrict s_sy,
+                                                       CCTK_REAL *restrict s_sz  );
 
 #endif /* DRIVER_EVALUATE_MHD_RHS_H_ */
-
