@@ -26,6 +26,13 @@ void rhs( const int which_constants,
 
   rhs_gfs[Y_E] = R_source/rho_b;
   rhs_gfs[EPS] = Q_source/rho_b;
+
+  // printf("Input prims: %.15e %.15e %.15e\n", rho_b, Y_e, T);
+  // printf("taus       : %.15e %.15e %.15e %.15e %.15e %.15e\n", tau_nue[0], tau_nue[1], tau_anue[0], tau_anue[1], tau_nux[0], tau_nux[1]);
+  // printf("kappas     : %.15e %.15e %.15e %.15e %.15e %.15e\n", kappa_nue[0], kappa_nue[1], kappa_anue[0], kappa_anue[1], kappa_nux[0], kappa_nux[1]);
+  // printf("R_source   : %.15e\n", R_source);
+  // printf("Q_source   : %.15e\n", Q_source);
+  // printf("RHSs       : %.15e %.15e\n", rhs_gfs[Y_E], rhs_gfs[EPS]);
 }
 
 static inline
@@ -33,7 +40,8 @@ void rk4_step_ode( const int which_constants,
                    const NRPyEOS_params *restrict eos_params,
                    const REAL dt,
                    const REAL rho_b,
-                   REAL *restrict gfs ) {
+                   REAL *restrict gfs,
+                   REAL *restrict T ) {
 
   // RK4 (no explicit time dependence on rhs):
   //
@@ -44,31 +52,44 @@ void rk4_step_ode( const int which_constants,
   //
   // y(t+dt) = y(t) + (1/6)( k1 + 2(k2 + k3) + k4 )
   REAL k1[2],k2[2],k3[2],k4[2],Y_e,P,eps;
-  REAL T = 1.0;
 
   // RK4 - substep 1
+  *T = eos_params->eos_tempmax;
   Y_e = gfs[Y_E];
   eps = gfs[EPS];
-  NRPyEOS_P_and_T_from_rho_Ye_eps(eos_params,rho_b,Y_e,eps,&P,&T);
-  rhs(which_constants,eos_params,rho_b,Y_e,eps,T,k1);
+  NRPyEOS_P_and_T_from_rho_Ye_eps(eos_params,rho_b,Y_e,eps,&P,T);
+  rhs(which_constants,eos_params,rho_b,Y_e,eps,*T,k1);
+  // printf("k1         : %.15e %.15e\n", k1[Y_E], k1[EPS]);
 
   // RK4 - substep 2;
+  *T = eos_params->eos_tempmax;
   Y_e = gfs[Y_E] + 0.5*dt*k1[Y_E];
   eps = gfs[EPS] + 0.5*dt*k1[EPS];
-  NRPyEOS_P_and_T_from_rho_Ye_eps(eos_params,rho_b,Y_e,eps,&P,&T);
-  rhs(which_constants,eos_params,rho_b,Y_e,eps,T,k2);
+  // printf("Y_e        : %.15e %.15e %.15e (%.15e)\n", Y_e, gfs[Y_E], k1[Y_E], dt);
+  // printf("eps        : %.15e %.15e %.15e (%.15e)\n", eps, gfs[EPS], k1[EPS], dt);
+  NRPyEOS_P_and_T_from_rho_Ye_eps(eos_params,rho_b,Y_e,eps,&P,T);
+  rhs(which_constants,eos_params,rho_b,Y_e,eps,*T,k2);
+  // printf("k2         : %.15e %.15e\n", k2[Y_E], k2[EPS]);
 
   // RK4 - substep 3;
+  *T = eos_params->eos_tempmax;
   Y_e = gfs[Y_E] + 0.5*dt*k2[Y_E];
   eps = gfs[EPS] + 0.5*dt*k2[EPS];
-  NRPyEOS_P_and_T_from_rho_Ye_eps(eos_params,rho_b,Y_e,eps,&P,&T);
-  rhs(which_constants,eos_params,rho_b,Y_e,eps,T,k3);
+  // printf("Y_e        : %.15e %.15e %.15e (%.15e)\n", Y_e, gfs[Y_E], k2[Y_E], dt);
+  // printf("eps        : %.15e %.15e %.15e (%.15e)\n", eps, gfs[EPS], k2[EPS], dt);
+  NRPyEOS_P_and_T_from_rho_Ye_eps(eos_params,rho_b,Y_e,eps,&P,T);
+  rhs(which_constants,eos_params,rho_b,Y_e,eps,*T,k3);
+  // printf("k3         : %.15e %.15e\n", k3[Y_E], k3[EPS]);
 
   // RK4 - substep 4;
+  *T = eos_params->eos_tempmax;
   Y_e = gfs[Y_E] + dt*k3[Y_E];
   eps = gfs[EPS] + dt*k3[EPS];
-  NRPyEOS_P_and_T_from_rho_Ye_eps(eos_params,rho_b,Y_e,eps,&P,&T);
-  rhs(which_constants,eos_params,rho_b,Y_e,eps,T,k4);
+  // printf("Y_e        : %.15e %.15e %.15e (%.15e)\n", Y_e, gfs[Y_E], k3[Y_E], dt);
+  // printf("eps        : %.15e %.15e %.15e (%.15e)\n", eps, gfs[EPS], k3[EPS], dt);
+  NRPyEOS_P_and_T_from_rho_Ye_eps(eos_params,rho_b,Y_e,eps,&P,T);
+  rhs(which_constants,eos_params,rho_b,Y_e,eps,*T,k4);
+  // printf("k4         : %.15e %.15e\n", k4[Y_E], k4[EPS]);
 
   // RK4 - update step
   for(int i=0;i<2;i++)
@@ -85,6 +106,8 @@ void OpticallyThinGas_NRPyLeakage( const int which_constants,
   const int n_steps  = (int)(t_final/dt+0.5);
   REAL t = 0.0;
 
+  // printf("dt = %.15e (%.15e)\n", dt, NRPyLeakage_units_cgs_to_geom_T);
+
   REAL P,eps;
   NRPyEOS_P_and_eps_from_rho_Ye_T(eos_params,initial_rho_b,initial_Y_e,initial_T,&P,&eps);
 
@@ -92,11 +115,13 @@ void OpticallyThinGas_NRPyLeakage( const int which_constants,
 
   FILE *fp = fopen("opticallythingas_semi_analytic_nrpy.txt","w");
   fprintf(fp,"%.15e %.15e %.15e %.15e\n",t*NRPyLeakage_units_geom_to_cgs_T,gfs[Y_E],gfs[EPS],initial_T);
+  // printf("%.15e %.15e %.15e %.15e\n",t*NRPyLeakage_units_geom_to_cgs_T,gfs[Y_E],gfs[EPS],initial_T);
   for(int n=0;n<n_steps;n++) {
-    rk4_step_ode(which_constants,eos_params,dt,initial_rho_b,gfs);
-    t+= dt;
-    REAL T = 1.0;
-    NRPyEOS_P_and_T_from_rho_Ye_eps(eos_params,initial_rho_b,gfs[Y_E],gfs[EPS],&P,&T);
+    REAL T;
+    rk4_step_ode(which_constants, eos_params, dt, initial_rho_b, gfs, &T);
+    t += dt;
+    // NRPyEOS_P_and_T_from_rho_Ye_eps(eos_params,initial_rho_b,gfs[Y_E],gfs[EPS],&P,&T);
+    // printf("%.15e %.15e %.15e %.15e\n",t*NRPyLeakage_units_geom_to_cgs_T,gfs[Y_E],gfs[EPS],T);
     fprintf(fp,"%.15e %.15e %.15e %.15e\n",t*NRPyLeakage_units_geom_to_cgs_T,gfs[Y_E],gfs[EPS],T);
   }
   fclose(fp);

@@ -346,25 +346,59 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
         tau_anue  [1][index] = 0.0;
         tau_nux   [0][index] = 0.0;
         tau_nux   [1][index] = 0.0;
+        tau_nue_p [0][index] = 0.0;
+        tau_nue_p [1][index] = 0.0;
+        tau_anue_p[0][index] = 0.0;
+        tau_anue_p[1][index] = 0.0;
+        tau_nux_p [0][index] = 0.0;
+        tau_nux_p [1][index] = 0.0;
       }
     }
   }
 
   // Step 4: Initial data dumps
   char buffer[32];
-  // sprintf(buffer,"%04d",0);
-  // dump_1d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
-  // dump_2d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
+  sprintf(buffer,"%04d",0);
+  dump_1d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
+  dump_2d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
 
   // Step 5: Now update the optical depth
   for(int n=0;n<20*N0;n++) {
 
     // Step 5.a: Copy optical depth to previous level
-    REAL l2norm = 0.0;
-#pragma omp parallel for reduction(+:l2norm)
     for(int i2=0;i2<Nt2;i2++) {
       for(int i1=0;i1<Nt1;i1++) {
         for(int i0=0;i0<Nt0;i0++) {
+          const int index = IDX3D(i0,i1,i2);
+          tau_nue_p [0][index] = tau_nue [0][index];
+          tau_nue_p [1][index] = tau_nue [1][index];
+          tau_anue_p[0][index] = tau_anue[0][index];
+          tau_anue_p[1][index] = tau_anue[1][index];
+          tau_nux_p [0][index] = tau_nux [0][index];
+          tau_nux_p [1][index] = tau_nux [1][index];
+        }
+      }
+    }
+
+    // Step 5.b: Update optical depth
+    NRPyLeakage_compute_optical_depths(Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,
+                                       dx,dy,dz,
+                                       gammaDD00,gammaDD11,gammaDD22,
+                                       kappa_nue [0],kappa_nue [1],
+                                       kappa_anue[0],kappa_anue[1],
+                                       kappa_nux [0],kappa_nux [1],
+                                       tau_nue_p [0],tau_nue_p [1],
+                                       tau_anue_p[0],tau_anue_p[1],
+                                       tau_nux_p [0],tau_nux_p [1],
+                                       tau_nue   [0],tau_nue   [1],
+                                       tau_anue  [0],tau_anue  [1],
+                                       tau_nux   [0],tau_nux   [1]);
+
+    REAL l2norm = 0.0;
+#pragma omp parallel for reduction(+:l2norm)
+    for(int i2=Ng2;i2<Nt2-Ng2;i2++) {
+      for(int i1=Ng1;i1<Nt1-Ng1;i1++) {
+        for(int i0=Ng0;i0<Nt0-Ng0;i0++) {
           const int index = IDX3D(i0,i1,i2);
           // Read from main memory
           const REAL tau_0_nue    = tau_nue   [0][index];
@@ -394,43 +428,21 @@ void ConstantDensitySphere_NRPyLeakage(const NRPyEOS_params *restrict eos_params
           l2norm += diff_tau_1_anue*diff_tau_1_anue;
           l2norm += diff_tau_0_nux*diff_tau_0_nux;
           l2norm += diff_tau_1_nux*diff_tau_1_nux;
-
-          tau_nue_p [0][index] = tau_nue [0][index];
-          tau_nue_p [1][index] = tau_nue [1][index];
-          tau_anue_p[0][index] = tau_anue[0][index];
-          tau_anue_p[1][index] = tau_anue[1][index];
-          tau_nux_p [0][index] = tau_nux [0][index];
-          tau_nux_p [1][index] = tau_nux [1][index];
         }
       }
     }
 
-    l2norm = sqrt(l2norm);
-    printf("it. %02d: l2norm = %.15e\n", n, l2norm);
-    if( n > 0 && l2norm < 1e-16 ) {
-      // sprintf(buffer,"%04d",n+1);
-      // dump_1d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
-      // dump_2d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
+    if( n > 0 && sqrt(l2norm) < 1e-8 ) {
+      sprintf(buffer,"%04d",n+1);
+      dump_1d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
+      dump_2d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
       break;
     }
 
-    // Step 5.b: Update optical depth
-    NRPyLeakage_compute_optical_depths(Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,
-                                       dx,dy,dz,
-                                       gammaDD00,gammaDD11,gammaDD22,
-                                       kappa_nue [0],kappa_nue [1],
-                                       kappa_anue[0],kappa_anue[1],
-                                       kappa_nux [0],kappa_nux [1],
-                                       tau_nue_p [0],tau_nue_p [1],
-                                       tau_anue_p[0],tau_anue_p[1],
-                                       tau_nux_p [0],tau_nux_p [1],
-                                       tau_nue   [0],tau_nue   [1],
-                                       tau_anue  [0],tau_anue  [1],
-                                       tau_nux   [0],tau_nux   [1]);
-    // char buffer[32];
-    // sprintf(buffer,"%04d",n+1);
-    // dump_1d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
-    // dump_2d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
+    char buffer[32];
+    sprintf(buffer,"%04d",n+1);
+    dump_1d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
+    dump_2d_data(buffer,Nt0,Nt1,Nt2,Ng0,Ng1,Ng2,xx,kappa_nue,kappa_anue,kappa_nux,tau_nue,tau_anue,tau_nux);
   }
 
   // Step 6: Final data dumps

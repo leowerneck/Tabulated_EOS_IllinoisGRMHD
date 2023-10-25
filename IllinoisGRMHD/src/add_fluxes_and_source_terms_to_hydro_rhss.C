@@ -211,3 +211,297 @@ static void add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters 
       }
 }
 
+static inline double randf(double low,double high) {
+  return (rand()/(double)(RAND_MAX))*(high-low)+low;
+}
+
+void test_mhdflux(CCTK_ARGUMENTS) {
+
+  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_PARAMETERS;
+
+  igm_eos_parameters eos;
+  initialize_igm_eos_parameters_from_input(igm_eos_key,cctk_time,eos);
+
+  srand(0);
+
+  double METRIC[NUMVARS_FOR_METRIC_FACEVALS];
+  METRIC[LAPM1 ] = randf(0.1,1) - 1.0;
+  METRIC[SHIFTX] = randf(-0.1,0.1);
+  METRIC[SHIFTY] = randf(-0.1,0.1);
+  METRIC[SHIFTZ] = randf(-0.1,0.1);
+  METRIC[GXX   ] = randf(0,0.3) + 1;
+  METRIC[GXY   ] = randf(-0.1,0.1);
+  METRIC[GXZ   ] = randf(-0.1,0.1);
+  METRIC[GYY   ] = randf(0,0.3) + 1;
+  METRIC[GYZ   ] = randf(-0.1,0.1);
+  METRIC[GZZ   ] = randf(0,0.3) + 1;
+
+  printf("Metric: %e, %e %e %e, %e %e %e %e %e %e\n",
+         METRIC[LAPM1]+1, METRIC[SHIFTX], METRIC[SHIFTY], METRIC[SHIFTZ],
+         METRIC[GXX], METRIC[GXY], METRIC[GXZ], METRIC[GYY], METRIC[GYZ], METRIC[GZZ]);
+
+  // Compute inverse metric
+  const double gdet = -METRIC[GXZ] * METRIC[GXZ] * METRIC[GYY] + 2 * METRIC[GXY] * METRIC[GXZ] * METRIC[GYZ] - \
+                       METRIC[GXX] * METRIC[GYZ] * METRIC[GYZ] - METRIC[GXY] * METRIC[GXY] * METRIC[GZZ] +     \
+                       METRIC[GXX] * METRIC[GYY] * METRIC[GZZ];
+
+  METRIC[PHI] = log(gdet) / 12.0;
+  METRIC[PSI] = exp(METRIC[PHI]);
+
+  METRIC[GUPXX] = (-METRIC[GYZ]*METRIC[GYZ] + METRIC[GYY]*METRIC[GZZ])/gdet;
+  METRIC[GUPYY] = (-METRIC[GXZ]*METRIC[GXZ] + METRIC[GXX]*METRIC[GZZ])/gdet;
+  METRIC[GUPZZ] = (-METRIC[GXY]*METRIC[GXY] + METRIC[GXX]*METRIC[GYY])/gdet;
+
+  const double psi4  = METRIC[PSI] * METRIC[PSI] * METRIC[PSI] * METRIC[PSI];
+  const double psim4 = 1.0 / psi4;
+
+  METRIC[GXX   ] *= psim4;
+  METRIC[GXY   ] *= psim4;
+  METRIC[GXZ   ] *= psim4;
+  METRIC[GYY   ] *= psim4;
+  METRIC[GYZ   ] *= psim4;
+  METRIC[GZZ   ] *= psim4;
+  METRIC[GUPXX ] *= psi4;
+  METRIC[GUPYY ] *= psi4;
+  METRIC[GUPZZ ] *= psi4;
+
+  // printf("psi4 = %e, psim4 = %e\n", psi4, psim4);
+  // printf("%e %e %e %e %e %e, %e %e %e\n",
+  //        METRIC[GXX], METRIC[GXY], METRIC[GXZ], METRIC[GYY], METRIC[GYZ], METRIC[GZZ],
+  //        METRIC[GUPXX], METRIC[GUPYY], METRIC[GUPZZ]);
+
+  double LAPSE_PSI4[NUMVARS_METRIC_AUX];
+  SET_LAPSE_PSI4(LAPSE_PSI4, METRIC);
+
+  double prims_r[MAXNUMVARS], prims_l[MAXNUMVARS];
+  prims_r[RHOB       ] = exp(randf(log(eos.rho_min), log(eos.rho_max)));
+  prims_r[TEMPERATURE] = exp(randf(log(eos.T_min  ), log(eos.T_max  )));
+  prims_r[YEPRIM     ] = randf(eos.Ye_min, eos.Ye_max);
+  prims_r[VX         ] = 0;//randf(-1,1);
+  prims_r[VY         ] = 0;//randf(-1,1);
+  prims_r[VZ         ] = 0;//randf(-1,1);
+  prims_l[RHOB       ] = exp(randf(log(eos.rho_min), log(eos.rho_max)));
+  prims_l[TEMPERATURE] = exp(randf(log(eos.T_min  ), log(eos.T_max  )));
+  prims_l[YEPRIM     ] = randf(eos.Ye_min, eos.Ye_max);
+  prims_l[VX         ] = 0;//randf(-1,1);
+  prims_l[VY         ] = 0;//randf(-1,1);
+  prims_l[VZ         ] = 0;//randf(-1,1);
+
+  // printf("mins: %e %e %e\n", eos.rho_min, eos.Ye_min, eos.T_min);
+  // printf("maxs: %e %e %e\n", eos.rho_max, eos.Ye_max, eos.T_max);
+
+  WVU_EOS_P_eps_and_S_from_rho_Ye_T(prims_r[RHOB], prims_r[YEPRIM], prims_r[TEMPERATURE],
+                                    &prims_r[PRESSURE], &prims_r[EPSILON], &prims_r[ENTROPY]);
+  WVU_EOS_P_eps_and_S_from_rho_Ye_T(prims_l[RHOB], prims_l[YEPRIM], prims_l[TEMPERATURE],
+                                    &prims_l[PRESSURE], &prims_l[EPSILON], &prims_l[ENTROPY]);
+
+  prims_r[BX_CENTER] = 0; //prims_r[PRESSURE] * pow(10, randf(-5, -3)) / ONE_OVER_SQRT_4PI;
+  prims_r[BY_CENTER] = 0; //prims_r[PRESSURE] * pow(10, randf(-5, -3)) / ONE_OVER_SQRT_4PI;
+  prims_r[BZ_CENTER] = 0; //prims_r[PRESSURE] * pow(10, randf(-5, -3)) / ONE_OVER_SQRT_4PI;
+  prims_l[BX_CENTER] = 0; //prims_l[PRESSURE] * pow(10, randf(-5, -3)) / ONE_OVER_SQRT_4PI;
+  prims_l[BY_CENTER] = 0; //prims_l[PRESSURE] * pow(10, randf(-5, -3)) / ONE_OVER_SQRT_4PI;
+  prims_l[BZ_CENTER] = 0; //prims_l[PRESSURE] * pow(10, randf(-5, -3)) / ONE_OVER_SQRT_4PI;
+
+  printf("R: %e %e %e -> %e %e %e, %e %e %e, %e %e %e\n",
+         prims_r[RHOB], prims_r[YEPRIM], prims_r[TEMPERATURE],
+         prims_r[PRESSURE], prims_r[EPSILON], prims_r[ENTROPY],
+         prims_r[VX], prims_r[VY], prims_r[VZ],
+         prims_r[BX_CENTER], prims_r[BY_CENTER], prims_r[BZ_CENTER]);
+  printf("L: %e %e %e -> %e %e %e, %e %e %e, %e %e %e\n",
+         prims_l[RHOB], prims_l[YEPRIM], prims_l[TEMPERATURE],
+         prims_l[PRESSURE], prims_l[EPSILON], prims_l[ENTROPY],
+         prims_l[VX], prims_l[VY], prims_l[VZ],
+         prims_l[BX_CENTER], prims_l[BY_CENTER], prims_l[BZ_CENTER]);
+
+  double cmin, cmax, flux[7];
+
+  for(int i=0;i<7;i++) flux[i] = 0;
+  cmax = cmin = 0;
+  mhdflux(eos, 0, 0, 0, 1, prims_r, prims_l, METRIC, LAPSE_PSI4, cmax,cmin,
+          flux[0], flux[1], flux[2], flux[3], flux[4], flux[5], flux[6]);
+  fprintf(stderr, "0 %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n",
+          cmin, cmax, flux[0], flux[1], flux[2], flux[3], flux[4], flux[5], flux[6]);
+
+  for(int i=0;i<7;i++) flux[i] = 0;
+  cmax = cmin = 0;
+  mhdflux(eos, 0, 0, 0, 2, prims_r, prims_l, METRIC, LAPSE_PSI4, cmax,cmin,
+          flux[0], flux[1], flux[2], flux[3], flux[4], flux[5], flux[6]);
+  fprintf(stderr, "1 %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n",
+          cmin, cmax, flux[0], flux[1], flux[2], flux[3], flux[4], flux[5], flux[6]);
+
+  for(int i=0;i<7;i++) flux[i] = 0;
+  cmax = cmin = 0;
+  mhdflux(eos, 0, 0, 0, 3, prims_r, prims_l, METRIC, LAPSE_PSI4, cmax,cmin,
+          flux[0], flux[1], flux[2], flux[3], flux[4], flux[5], flux[6]);
+  fprintf(stderr, "2 %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n",
+          cmin, cmax, flux[0], flux[1], flux[2], flux[3], flux[4], flux[5], flux[6]);
+
+  exit(1);
+}
+
+static void GRHayL_add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters eos,
+                                                              const int flux_dirn,
+                                                              const int dirlength,
+                                                              const int ghostzone,
+                                                              const CCTK_REAL *restrict dX,
+                                                              CCTK_REAL **metric,
+                                                              CCTK_REAL **TUPmunu,
+                                                              const int numvars_reconstructed,
+                                                              gf_and_gz_struct *restrict in_prims,
+                                                              gf_and_gz_struct *restrict out_prims_r,
+                                                              gf_and_gz_struct *restrict out_prims_l,
+                                                              CCTK_REAL *restrict cmax,
+                                                              CCTK_REAL *restrict cmin,
+                                                              CCTK_REAL *restrict rho_star_flux,
+                                                              CCTK_REAL *restrict tau_flux,
+                                                              CCTK_REAL *restrict st_x_flux,
+                                                              CCTK_REAL *restrict st_y_flux,
+                                                              CCTK_REAL *restrict st_z_flux,
+                                                              CCTK_REAL *restrict Ye_star_flux,
+                                                              CCTK_REAL *restrict S_star_flux,
+                                                              CCTK_REAL *restrict rho_star_rhs,
+                                                              CCTK_REAL *restrict tau_rhs,
+                                                              CCTK_REAL *restrict st_x_rhs,
+                                                              CCTK_REAL *restrict st_y_rhs,
+                                                              CCTK_REAL *restrict st_z_rhs,
+                                                              CCTK_REAL *restrict Ye_star_rhs,
+                                                              CCTK_REAL *restrict S_star_rhs ) {
+
+  DECLARE_CCTK_PARAMETERS;
+
+  CCTK_REAL dxi[4] = { 1e100,1.0/dX[0],1.0/dX[1],1.0/dX[2] };
+
+  // Notice in the loop below that we go from 3 to cctk_lsh-2 for i, j, AND k, even though
+  //   we are only computing the flux in one direction at a time. This is because in the end,
+  //   we only need the rhs's from 3 to cctk_lsh-3 for i, j, and k.
+#pragma omp parallel for
+  for(int k=ghostzone; k<dirlength-(ghostzone-1); k++)
+    for(int j=ghostzone; j<dirlength-(ghostzone-1); j++)
+      for(int i=ghostzone; i<dirlength-(ghostzone-1); i++) {
+	int index = indexf(dirlength,i,j,k);
+
+	// Set metric and associated variables
+	CCTK_REAL METRIC[NUMVARS_FOR_METRIC_FACEVALS]; for(int ii=0;ii<NUMVARS_FOR_METRIC_FACEVALS;ii++) METRIC[ii] = metric[ii][index];
+	CCTK_REAL METRIC_LAP_PSI4[NUMVARS_METRIC_AUX]; SET_LAPSE_PSI4(METRIC_LAP_PSI4,METRIC);
+
+	CCTK_REAL Ur[MAXNUMVARS]; for(int ii=0;ii<MAXNUMVARS;ii++) Ur[ii] = out_prims_r[ii].gf[index];
+	CCTK_REAL Ul[MAXNUMVARS]; for(int ii=0;ii<MAXNUMVARS;ii++) Ul[ii] = out_prims_l[ii].gf[index];
+
+        if( eos.evolve_entropy ) {
+          apply_floors_and_ceilings_to_prims__recompute_prims(eos,METRIC_LAP_PSI4,Ur);
+          apply_floors_and_ceilings_to_prims__recompute_prims(eos,METRIC_LAP_PSI4,Ul);
+        }
+
+	// Read the T^{\mu \nu} gridfunction from memory, since computing T^{\mu \nu} is expensive
+	CCTK_REAL TUP[4][4]; int counter=0;
+	for(int ii=0;ii<4;ii++) for(int jj=ii;jj<4;jj++) { TUP[ii][jj] = TUPmunu[counter][index]; counter++; }
+
+	// Next set metric on the faces, applying a 3rd-order lopsided stencil.
+	int indexm2 = CCTK_GFINDEX3D(cctkGH,i-2*kronecker_delta[flux_dirn][0],j-2*kronecker_delta[flux_dirn][1],k-2*kronecker_delta[flux_dirn][2]);
+	int indexm1 = CCTK_GFINDEX3D(cctkGH,i-  kronecker_delta[flux_dirn][0],j-  kronecker_delta[flux_dirn][1],k-  kronecker_delta[flux_dirn][2]);
+	int indexp1 = CCTK_GFINDEX3D(cctkGH,i+  kronecker_delta[flux_dirn][0],j+  kronecker_delta[flux_dirn][1],k+  kronecker_delta[flux_dirn][2]);
+	int indexp2 = CCTK_GFINDEX3D(cctkGH,i+2*kronecker_delta[flux_dirn][0],j+2*kronecker_delta[flux_dirn][1],k+2*kronecker_delta[flux_dirn][2]);
+	// The "vector" METRIC stores needed metric-related quantities.
+	CCTK_REAL METRICm2[NUMVARS_FOR_METRIC_FACEVALS]; for(int ii=0;ii<NUMVARS_FOR_METRIC_FACEVALS;ii++) METRICm2[ii] = metric[ii][indexm2];
+	CCTK_REAL METRICm1[NUMVARS_FOR_METRIC_FACEVALS]; for(int ii=0;ii<NUMVARS_FOR_METRIC_FACEVALS;ii++) METRICm1[ii] = metric[ii][indexm1];
+	CCTK_REAL METRICp1[NUMVARS_FOR_METRIC_FACEVALS]; for(int ii=0;ii<NUMVARS_FOR_METRIC_FACEVALS;ii++) METRICp1[ii] = metric[ii][indexp1];
+	CCTK_REAL METRICp2[NUMVARS_FOR_METRIC_FACEVALS]; for(int ii=0;ii<NUMVARS_FOR_METRIC_FACEVALS;ii++) METRICp2[ii] = metric[ii][indexp2];
+
+	// Next compute the metric values at the {i,j,k} +/- 1/2 faces (i.e., the "face values" of the metric)
+	CCTK_REAL FACEVAL[NUMVARS_FOR_METRIC_FACEVALS],FACEVALp1[NUMVARS_FOR_METRIC_FACEVALS];
+	for(int w=0;w<NUMVARS_FOR_METRIC_FACEVALS;w++) FACEVAL[w]   = COMPUTE_FCVAL(METRICm2[w],METRICm1[w],METRIC[w],METRICp1[w]);
+	for(int w=0;w<NUMVARS_FOR_METRIC_FACEVALS;w++) FACEVALp1[w] = COMPUTE_FCVAL(METRICm1[w],METRIC[w],METRICp1[w],METRICp2[w]);
+	// Then compute the lapse and Psi4 = exp(4*phi)
+	CCTK_REAL FACEVAL_LAPSE_PSI4[NUMVARS_METRIC_AUX],FACEVAL_LAPSE_PSI4p1[NUMVARS_METRIC_AUX];
+	SET_LAPSE_PSI4(FACEVAL_LAPSE_PSI4,  FACEVAL);
+	SET_LAPSE_PSI4(FACEVAL_LAPSE_PSI4p1,FACEVALp1);
+
+	//-----------------------------------------------------------------------------
+	// Next compute fluxes for \tilde{S}_i, tau, and rho_*
+	mhdflux(eos, i,j,k,flux_dirn, Ur,Ul ,FACEVAL  ,FACEVAL_LAPSE_PSI4, cmax[index],cmin[index],
+		rho_star_flux[index],tau_flux[index],st_x_flux[index],st_y_flux[index],st_z_flux[index],
+                Ye_star_flux[index],S_star_flux[index]);
+
+
+	//-----------------------------------------------------------------------------
+	// If we are not in the ghostzones, then add third-order accurate curvature terms to \tilde{S}_i RHS's
+	//    Without this if() statement, _rhs variables are in general set to nonzero values in ghostzones, which messes up frozen BC's.
+	//    Also, this if() statement should speed up the computation slightly.
+	if(k<cctk_lsh[2]-cctk_nghostzones[2] && j<cctk_lsh[1]-cctk_nghostzones[1] && i<cctk_lsh[0]-cctk_nghostzones[0]) {
+
+	  CCTK_REAL Psi6 = METRIC_LAP_PSI4[PSI2]*METRIC_LAP_PSI4[PSI4];
+	  CCTK_REAL half_alpha_sqrtgamma = 0.5*METRIC_LAP_PSI4[LAPSE]*Psi6;
+
+	  // First compute four metric.
+	  CCTK_REAL g4tt_f,g4tx_f,g4ty_f,g4tz_f,g4xx_f,g4xy_f,g4xz_f,g4yy_f,g4yz_f,g4zz_f;
+	  COMPUTE_FOURMETRIC(g4tt_f,g4tx_f,g4ty_f,g4tz_f,g4xx_f,g4xy_f,g4xz_f,g4yy_f,g4yz_f,g4zz_f,FACEVAL,FACEVAL_LAPSE_PSI4);
+
+	  CCTK_REAL g4tt_fp1,g4tx_fp1,g4ty_fp1,g4tz_fp1,g4xx_fp1,g4xy_fp1,g4xz_fp1,g4yy_fp1,g4yz_fp1,g4zz_fp1;
+	  COMPUTE_FOURMETRIC(g4tt_fp1,g4tx_fp1,g4ty_fp1,g4tz_fp1,g4xx_fp1,g4xy_fp1,g4xz_fp1,g4yy_fp1,g4yz_fp1,g4zz_fp1,FACEVALp1,FACEVAL_LAPSE_PSI4p1);
+
+	  // Compute \partial_i g_{\mu \nu} at m+1/2
+	  CCTK_REAL partial_i_gmunu[4][4];
+	  partial_i_gmunu[0][0] = (g4tt_fp1 - g4tt_f)*dxi[flux_dirn];
+	  partial_i_gmunu[0][1] = (g4tx_fp1 - g4tx_f)*dxi[flux_dirn];
+	  partial_i_gmunu[0][2] = (g4ty_fp1 - g4ty_f)*dxi[flux_dirn];
+	  partial_i_gmunu[0][3] = (g4tz_fp1 - g4tz_f)*dxi[flux_dirn];
+	  partial_i_gmunu[1][1] = (g4xx_fp1 - g4xx_f)*dxi[flux_dirn];
+	  partial_i_gmunu[1][2] = (g4xy_fp1 - g4xy_f)*dxi[flux_dirn];
+	  partial_i_gmunu[1][3] = (g4xz_fp1 - g4xz_f)*dxi[flux_dirn];
+	  partial_i_gmunu[2][2] = (g4yy_fp1 - g4yy_f)*dxi[flux_dirn];
+	  partial_i_gmunu[2][3] = (g4yz_fp1 - g4yz_f)*dxi[flux_dirn];
+	  partial_i_gmunu[3][3] = (g4zz_fp1 - g4zz_f)*dxi[flux_dirn];
+
+	  // Needed for tau_rhs computation:
+	  CCTK_REAL lapse_deriv[4] = { 0,0,0,0 };
+	  lapse_deriv[flux_dirn] = (FACEVALp1[LAPM1] - FACEVAL[LAPM1])*dxi[flux_dirn];
+
+	  // Needed for st_i_rhs computation:
+	  CCTK_REAL st_i_curvature_terms[4] = { 0,0,0,0 };
+	  // add \frac{1}{2} \alpha \sqrt{\gamma} T^{\mu \nu} \partial_i g_{\mu \nu} . Note that i is given by the flux direction.
+	  //   (Source term of Eq 43 in http://arxiv.org/pdf/astro-ph/0503420.pdf)
+	  st_i_curvature_terms[flux_dirn] = half_alpha_sqrtgamma * ( TUP[0][0]*partial_i_gmunu[0][0] +
+                                                                     TUP[1][1]*partial_i_gmunu[1][1] +
+                                                                     TUP[2][2]*partial_i_gmunu[2][2] +
+                                                                     TUP[3][3]*partial_i_gmunu[3][3] +
+                                                                2.0*(TUP[0][1]*partial_i_gmunu[0][1] +
+                                                                     TUP[0][2]*partial_i_gmunu[0][2] +
+                                                                     TUP[0][3]*partial_i_gmunu[0][3] +
+                                                                     TUP[1][2]*partial_i_gmunu[1][2] +
+                                                                     TUP[1][3]*partial_i_gmunu[1][3] +
+                                                                     TUP[2][3]*partial_i_gmunu[2][3]) );
+
+	  // add - ( T^{00} \beta^i + T^{0i} ) \partial_i \alpha.
+	  //   (Last part of Eq. 39 source term in http://arxiv.org/pdf/astro-ph/0503420.pdf)
+	  CCTK_REAL alpha_sqrtgamma = 2.0*half_alpha_sqrtgamma;
+	  tau_rhs[index]  += alpha_sqrtgamma*(-(TUP[0][0]*METRIC[SHIFTX+(flux_dirn-1)] + TUP[0][flux_dirn])*lapse_deriv[flux_dirn]);
+
+	  // Eq 43 in http://arxiv.org/pdf/astro-ph/0503420.pdf:
+	  // \partial_t \tilde{S}_i = - \partial_i (\alpha \sqrt{\gamma} T^j_i) + \frac{1}{2}\alpha \sqrt{\gamma} T^{\mu \nu}g_{\mu \nu,i}
+	  // Notice that st_i_curvature_terms[N]=0 for N!=flux_dirn.
+	  st_x_rhs[index] += st_i_curvature_terms[1];
+	  st_y_rhs[index] += st_i_curvature_terms[2];
+	  st_z_rhs[index] += st_i_curvature_terms[3];
+	}
+
+      }
+
+#pragma omp parallel for
+  for(int k=cctk_nghostzones[2];k<cctk_lsh[2]-cctk_nghostzones[2];k++) for(int j=cctk_nghostzones[1];j<cctk_lsh[1]-cctk_nghostzones[1];j++) for(int i=cctk_nghostzones[0];i<cctk_lsh[0]-cctk_nghostzones[0];i++) {
+	int index   = CCTK_GFINDEX3D(cctkGH,i,j,k);
+	int indexp1 = CCTK_GFINDEX3D(cctkGH,i+kronecker_delta[flux_dirn][0],j+kronecker_delta[flux_dirn][1],k+kronecker_delta[flux_dirn][2]);
+
+	rho_star_rhs [index] += (rho_star_flux[index] - rho_star_flux[indexp1]) * dxi[flux_dirn];
+	tau_rhs      [index] += (tau_flux     [index] - tau_flux     [indexp1]) * dxi[flux_dirn];
+	st_x_rhs     [index] += (st_x_flux    [index] - st_x_flux    [indexp1]) * dxi[flux_dirn];
+	st_y_rhs     [index] += (st_y_flux    [index] - st_y_flux    [indexp1]) * dxi[flux_dirn];
+	st_z_rhs     [index] += (st_z_flux    [index] - st_z_flux    [indexp1]) * dxi[flux_dirn];
+        if( eos.is_Tabulated ) {
+          Ye_star_rhs[index] += (Ye_star_flux[index] - Ye_star_flux[indexp1]) * dxi[flux_dirn];
+        }
+        if( eos.evolve_entropy ) {
+          S_star_rhs [index] += (S_star_flux [index] - S_star_flux [indexp1]) * dxi[flux_dirn];
+        }
+      }
+}

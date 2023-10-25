@@ -15,6 +15,11 @@ void OpticallyThinGas_harm_leakage( const int which_constants,
                                     const REAL initial_rho_b,
                                     const REAL initial_Y_e,
                                     const REAL initial_T );
+
+void OpticallyThinGas_GRHayL( const char *tablepath,
+                              const REAL initial_rho_b,
+                              const REAL initial_Y_e,
+                              const REAL initial_T );
 //******************************************************************************
 
 //******************************************************************************

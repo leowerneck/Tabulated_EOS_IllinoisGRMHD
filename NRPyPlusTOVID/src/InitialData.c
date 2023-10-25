@@ -29,6 +29,7 @@ typedef struct __ID_inputs {
 #define vely (&vel[1*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 #define velz (&vel[2*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 
+static inline
 void read_TOV_input_data_from_file(ID_inputs *TOV_in) {
 
     DECLARE_CCTK_PARAMETERS;
@@ -90,7 +91,7 @@ void read_TOV_input_data_from_file(ID_inputs *TOV_in) {
     /* END TOV INPUT ROUTINE */
 }
 
-void NRPyPlusTOVID_ET_InitialData(CCTK_ARGUMENTS) {
+void NRPyTOV_ET_InitialData(CCTK_ARGUMENTS) {
     DECLARE_CCTK_ARGUMENTS;
     DECLARE_CCTK_PARAMETERS;
 

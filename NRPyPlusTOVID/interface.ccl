@@ -1,2 +1,2 @@
-implements: NRPyPlusTOVID
+implements: NRPyTOV
 inherits: admbase grid hydrobase

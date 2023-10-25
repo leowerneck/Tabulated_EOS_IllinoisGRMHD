@@ -258,6 +258,43 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
             st_y_rhs_avg    += st_y_rhsL;
             st_z_rhs_avg    += st_z_rhsL;
 
+            // if( i==6 && j==6 && k==6 ) {
+            //   printf("*********************************************\n");
+            //   printf("In %s\n", __func__);
+            //   printf("*********************************************\n");
+            //   printf("taus   : %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n",
+            //          tau_nueL [0], tau_nueL [1],
+            //          tau_anueL[0], tau_anueL[1],
+            //          tau_nuxL [0], tau_nuxL [1]);
+            //   printf("kappas : %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n",
+            //          kappa_nueL [0], kappa_nueL [1],
+            //          kappa_anueL[0], kappa_anueL[1],
+            //          kappa_nuxL [0], kappa_nuxL [1]);
+            //   printf("Prims: %22.15e %22.15e %22.15e\n", rhoL, Y_eL, temperatureL);
+            //   printf("R, Q : %22.15e %22.15e\n", R_sourceL, Q_sourceL);
+            //   printf("RHSs : %22.15e %22.15e %22.15e %22.15e %22.15e\n",
+            //          Ye_star_rhsL, tau_rhsL, st_x_rhsL, st_y_rhsL, st_z_rhsL);
+
+              // const CCTK_REAL tau_nue [2] = {0.01,0.02};
+              // const CCTK_REAL tau_anue[2] = {0.03,0.04};
+              // const CCTK_REAL tau_nux [2] = {0.05,0.06};
+              // CCTK_REAL R, Q, kappa_nue[2], kappa_anue[2], kappa_nux[2];
+              // NRPyLeakageET_compute_GRMHD_source_terms_and_opacities(constants_key,
+              //                                                        1e-12, 0.5, 0.01,
+              //                                                        tau_nue, tau_anue, tau_nux,
+              //                                                        &R,&Q,kappa_nue,kappa_anue,kappa_nux);
+
+              // CCTK_VINFO("After manual call:");
+              // CCTK_VINFO("R, Q   : %22.15e %22.15e", R, Q);
+              // CCTK_VINFO("T_nue  : %22.15e %22.15e", tau_nue   [0], tau_nue   [1]);
+              // CCTK_VINFO("T_anue : %22.15e %22.15e", tau_anue  [0], tau_anue  [1]);
+              // CCTK_VINFO("T_nux  : %22.15e %22.15e", tau_nux   [0], tau_nux   [1]);
+              // CCTK_VINFO("K_nue  : %22.15e %22.15e", kappa_nue [0], kappa_nue [1]);
+              // CCTK_VINFO("K_Anue : %22.15e %22.15e", kappa_anue[0], kappa_anue[1]);
+              // CCTK_VINFO("K_nux  : %22.15e %22.15e", kappa_nux [0], kappa_nux [1]);
+              // exit(1);
+            // }
+
             num_points++;
           }
         }

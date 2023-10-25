@@ -13,7 +13,7 @@
 
 //#define STANDALONE_UNIT_TEST
 
-int count_num_lines_in_file(FILE *in1Dpolytrope) {
+static inline int count_num_lines_in_file(FILE *in1Dpolytrope) {
   int numlines_in_file = 0;
   char * line = NULL;
 
@@ -28,7 +28,7 @@ int count_num_lines_in_file(FILE *in1Dpolytrope) {
   return numlines_in_file;
 }
 
-int read_datafile__set_arrays(FILE *in1Dpolytrope, REAL *restrict r_Schw_arr,REAL *restrict rho_arr,REAL *restrict rho_baryon_arr,REAL *restrict P_arr,
+static inline int read_datafile__set_arrays(FILE *in1Dpolytrope, REAL *restrict r_Schw_arr,REAL *restrict rho_arr,REAL *restrict rho_baryon_arr,REAL *restrict P_arr,
                                                    REAL *restrict M_arr,REAL *restrict expnu_arr,REAL *restrict exp4phi_arr,REAL *restrict rbar_arr) {
   char * line = NULL;
 
@@ -94,7 +94,7 @@ static inline int bisection_idx_finder(const REAL rrbar, const int numlines_in_f
   exit(1);
 }
 
-void TOV_interpolate_1D(REAL rrbar,const REAL Rbar,const int Rbar_idx,const int interp_stencil_size,
+static inline void TOV_interpolate_1D(REAL rrbar,const REAL Rbar,const int Rbar_idx,const int interp_stencil_size,
                         const int numlines_in_file,const REAL *restrict r_Schw_arr,const REAL *restrict rho_arr,const REAL *restrict rho_baryon_arr,const REAL *restrict P_arr,
                                                    const REAL *restrict M_arr,const REAL *restrict expnu_arr,const REAL *restrict exp4phi_arr,const REAL *restrict rbar_arr,
                         REAL *restrict rho,REAL *restrict rho_baryon,REAL *restrict P,REAL *restrict M,REAL *restrict expnu,REAL *restrict exp4phi) {

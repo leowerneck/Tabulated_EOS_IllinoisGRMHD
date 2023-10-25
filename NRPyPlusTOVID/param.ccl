@@ -8,29 +8,29 @@ USES KEYWORD metric_type
 
 EXTENDS KEYWORD initial_data
 {
-  "NRPyPlusTOVID" :: "Initial data from NRPyPlusTOVID solution"
+  "NRPyTOV" :: "Initial data from NRPyPlusTOVID solution"
 }
 EXTENDS KEYWORD initial_lapse
 {
-  "NRPyPlusTOVID" :: "Initial lapse from NRPyPlusTOVID solution"
+  "NRPyTOV" :: "Initial lapse from NRPyPlusTOVID solution"
 }
 EXTENDS KEYWORD initial_shift
 {
-  "NRPyPlusTOVID" :: "Initial shift from NRPyPlusTOVID solution"
+  "NRPyTOV" :: "Initial shift from NRPyPlusTOVID solution"
 }
 EXTENDS KEYWORD initial_dtlapse
 {
-  "NRPyPlusTOVID" :: "Initial dtlapse from NRPyPlusTOVID solution"
+  "NRPyTOV" :: "Initial dtlapse from NRPyPlusTOVID solution"
 }
 EXTENDS KEYWORD initial_dtshift
 {
-  "NRPyPlusTOVID" :: "Initial dtshift from NRPyPlusTOVID solution"
+  "NRPyTOV" :: "Initial dtshift from NRPyPlusTOVID solution"
 }
 
 shares: HydroBase
 EXTENDS KEYWORD initial_hydro
 {
-  "NRPyPlusTOVID" :: "Initial GRHD data from NRPyPlusTOVID solution"
+  "NRPyTOV" :: "Initial GRHD data from NRPyPlusTOVID solution"
 }
 
 #["r_in","r_at_max_density","a","M"] A_b, kappa, gamma

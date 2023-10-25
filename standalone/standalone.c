@@ -6,6 +6,8 @@
 #include "harm_neutrinos.h"
 #include "harm_units.h"
 
+#include "GRHayL.h"
+
 void calc_taus_(const NRPyEOS_params *eos_params,
                 const REAL *eos_tempmin,
                 const REAL *atm_temp,
@@ -100,8 +102,9 @@ int main(int argc, char **argv) {
     const REAL rho_b = strtod(argv[3],NULL);
     const REAL Y_e   = strtod(argv[4],NULL);
     const REAL T     = strtod(argv[5],NULL);
-    OpticallyThinGas_NRPyLeakage(USE_HARM_CONSTANTS,&eos_params,rho_b,Y_e,T);
-    OpticallyThinGas_harm_leakage(USE_HARM_CONSTANTS,&eos_params,rho_b,Y_e,T);
+    OpticallyThinGas_NRPyLeakage(USE_NRPY_CONSTANTS,&eos_params,rho_b,Y_e,T);
+    // OpticallyThinGas_GRHayL(argv[1], rho_b, Y_e, T);
+    // OpticallyThinGas_harm_leakage(USE_HARM_CONSTANTS,&eos_params,rho_b,Y_e,T);
   }
   else if( test_type == 1 ) {
     ConstantDensitySphere_NRPyLeakage(&eos_params);

@@ -219,6 +219,15 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             CONSERVS[YESTAR   ] = Ye_star [index];
             CONSERVS[ENTSTAR  ] = S_star  [index];
 
+            // if( i==6 && j==6 && k==6 ) {
+            //   printf("*********************************************\n");
+            //   printf("In %s\n", __func__);
+            //   printf("*********************************************\n");
+            //   printf("cons_in   : %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n",
+            //          CONSERVS[RHOSTAR], CONSERVS[YESTAR], CONSERVS[TAUENERGY],
+            //          CONSERVS[STILDEX], CONSERVS[STILDEY], CONSERVS[STILDEZ]);
+            // }
+
             // Check if we need to perform the new conservative averaging fix
             if( c2p_fail_flag != 0 ) {
 
@@ -432,6 +441,14 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               if( eos.evolve_entropy ) {
                 S_star[index]          = CONSERVS[ENTSTAR ];
               }
+
+              // if( i==6 && j==6 && k==6 ) {
+              //   printf("prims_out : %22.15e %22.15e %22.15e\n",
+              //          PRIMS[RHOB], PRIMS[YEPRIM], PRIMS[TEMPERATURE]);
+              //   printf("cons_out  : %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n",
+              //          CONSERVS[RHOSTAR], CONSERVS[YESTAR], CONSERVS[TAUENERGY],
+              //          CONSERVS[STILDEX], CONSERVS[STILDEY], CONSERVS[STILDEZ]);
+              // }
 
               if(update_Tmunu) {
                 int ww=0;

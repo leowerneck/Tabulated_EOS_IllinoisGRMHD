@@ -4,19 +4,22 @@ LEAKAGE_DIR = $(BASEDIR)/NRPyLeakage
 TESTS_DIR   = $(BASEDIR)/Leakage_tests
 HARM_DIR    = $(BASEDIR)/harm_leakage
 
-HDF5_DIR = /usr/local/opt/hdf5
-# HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
+# HDF5_DIR = /usr/local/opt/hdf5
+HDF5_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
+GRHAYL_DIR = /home/leo/codes/grhayl/build
+GRHAYL_INC = $(GRHAYL_DIR)/include
+GRHAYL_LIB = $(GRHAYL_DIR)/lib
 
 CC       = gcc
-CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(HARM_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
+CFLAGS   = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(HARM_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include -I$(GRHAYL_INC)
 
 FC       = gfortran
 FCFLAGS  = -Wall -O2 -fopenmp -march=native -J./obj
 
 CXX      = g++
-CXXFLAGS = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(HARM_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include
+CXXFLAGS = -Wall -O2 -fopenmp -march=native -I$(BASEDIR) -I$(NRPyEOS_DIR) -I$(LEAKAGE_DIR) -I$(HARM_DIR) -I$(TESTS_DIR) -I$(HDF5_DIR)/include -I$(GRHAYL_INC)
 
-LD_FLAGS = -lm -L$(HDF5_DIR)/lib -lhdf5 -lgfortran
+LD_FLAGS = -lm -L$(HDF5_DIR)/lib -lhdf5 -lgfortran -L$(GRHAYL_LIB) -lgrhayl
 
 SRC  = standalone.c
 EXE  = $(SRC:.c=)
@@ -48,6 +51,7 @@ ZELMANI_SRC = ZelmaniLeak_calc_taus.F90 ZelmaniLeak_calc_leak.F90
 
 TESTS_SRC   = OpticallyThinGas_NRPyLeakage.c \
               OpticallyThinGas_harm_leakage.c \
+	      OpticallyThinGas_GRHayL.c \
               ConstantDensitySphere_NRPyLeakage.c \
               ConstantDensitySphere_harm_leakage.c \
               NRPyEOS_benchmark.c
@@ -129,6 +133,9 @@ obj/OpticallyThinGas_NRPyLeakage.o: $(TESTS_DIR)/optically_thin/OpticallyThinGas
 	$(CC) $(CFLAGS) -c $< -o $@
 
 obj/OpticallyThinGas_harm_leakage.o: $(TESTS_DIR)/optically_thin/OpticallyThinGas_harm_leakage.c $(INC)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+obj/OpticallyThinGas_GRHayL.o: $(TESTS_DIR)/optically_thin/OpticallyThinGas_GRHayL.c $(INC)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 obj/ConstantDensitySphere_NRPyLeakage.o: $(TESTS_DIR)/constant_density_sphere/ConstantDensitySphere_NRPyLeakage.c $(INC)

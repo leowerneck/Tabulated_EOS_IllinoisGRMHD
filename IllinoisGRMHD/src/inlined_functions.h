@@ -81,8 +81,9 @@ static inline void compute_cs2_and_enthalpy( const igm_eos_parameters eos,
     CCTK_REAL xeps  = 0.0;
     CCTK_REAL xent  = 0.0;
     CCTK_REAL xcs2  = 0.0;
-    enforce_table_bounds_rho_Ye_T( eos,&xrho,&xye,&xtemp );
-    WVU_EOS_P_eps_S_and_cs2_from_rho_Ye_T(xrho,xye,xtemp, &xprs,&xeps,&xent,&xcs2);
+    printf("EOS_in: %.15e %.15e %.15e\n", xrho, xye, xtemp);
+    enforce_table_bounds_rho_Ye_T(eos, &xrho, &xye, &xtemp);
+    WVU_EOS_P_eps_S_and_cs2_from_rho_Ye_T(xrho, xye, xtemp, &xprs, &xeps, &xent, &xcs2);
 
     // Now update everything, since we may have imposed limits
     PRIMS[RHOB       ] = xrho;
@@ -97,6 +98,8 @@ static inline void compute_cs2_and_enthalpy( const igm_eos_parameters eos,
 
     // And update cs2
     *c_s_squared = xcs2;
+
+    printf("EOS   : %.15e %.15e %.15e -> %.15e %.15e %.15e %.15e\n", xrho, xye, xtemp, xprs, xeps, xcs2, *enthalpy);
   }
 }
 

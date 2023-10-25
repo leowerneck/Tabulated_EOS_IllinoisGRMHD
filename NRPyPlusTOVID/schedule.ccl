@@ -1,6 +1,6 @@
 STORAGE: ADMBase::metric[metric_timelevels], ADMBase::curv[metric_timelevels], ADMBase::lapse[lapse_timelevels], ADMBase::shift[shift_timelevels]
 
-schedule NRPyPlusTOVID_ET_InitialData IN HydroBase_Initial
+schedule NRPyTOV_ET_InitialData IN HydroBase_Initial
 {
   LANG: C
   READS: grid::x(Everywhere)

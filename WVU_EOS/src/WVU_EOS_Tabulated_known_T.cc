@@ -146,6 +146,8 @@ void WVU_EOS_P_eps_S_and_cs2_from_rho_Ye_T_impl( const CCTK_REAL rho,
   *cs2 = outvars[3];
   // Must update cs2
   *cs2 = rho * (*cs2) / (rho + rho*(*eps) + (*P));
+  const double h = 1 + (*eps) + (*P)/rho;
+  printf("EOS: %e %e %e -> %e %e %e %e %e\n", rho, Ye, T, *P, *eps, *S, *cs2, h);
 }
 
 // ----------------------------------------

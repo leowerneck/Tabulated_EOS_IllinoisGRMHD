@@ -2,6 +2,7 @@ if( CCTK_EQUALS( initial_Y_e        ,"ID_tabEOS_HydroQuantities" ) ||
     CCTK_EQUALS( initial_temperature,"ID_tabEOS_HydroQuantities" ) ||
     CCTK_EQUALS( initial_entropy    ,"ID_tabEOS_HydroQuantities" ) )
 {
+  STORAGE: HydroBase::Y_e[1], HydroBase::temperature[1], HydroBase::entropy[1]
   schedule ID_TabEOS_HydroQuantities IN HydroBase_Initial AFTER NRPyPlusTOVID_ET_InitialData AFTER Meudon_Bin_NS_initialise
   {
     LANG: C

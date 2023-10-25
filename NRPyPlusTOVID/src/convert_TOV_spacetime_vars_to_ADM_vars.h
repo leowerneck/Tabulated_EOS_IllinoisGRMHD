@@ -2,6 +2,7 @@
 /* This function converts TOV quantities into
  * ADM quantities in Spherical coordinates.
  */
+static inline
 void convert_TOV_spacetime_vars_to_ADM_vars( const CCTK_REAL rr, const CCTK_REAL th,
                            const CCTK_REAL IDexp_4phi, const CCTK_REAL IDexpnu,
                            CCTK_REAL *IDalpha,

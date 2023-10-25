@@ -1,3 +1,4 @@
+// clang-format off
 /*********************************************
  * Evaluate RHS of GRMHD & induction equations
  * (vector potential prescription), using the
@@ -247,6 +248,17 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
                                             rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,Ye_star_flux,S_star_flux,
                                             rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs,Ye_star_rhs,S_star_rhs);
 
+  // {
+  //   const int index = CCTK_GFINDEX3D(cctkGH, 6, 6, 6);
+  //   printf("*********************************************\n");
+  //   printf("In %s\n", __func__);
+  //   printf("*********************************************\n");
+  //   printf("First  reconstruction: %22.15e %22.15e %22.15e\n",
+  //          in_prims[YEPRIM].gf[index], out_prims_r[YEPRIM].gf[index], out_prims_l[YEPRIM].gf[index]);
+  //   printf("First  fluxes/RHSs   : %22.15e %22.15e\n",
+  //          Ye_star_flux[index], Ye_star_rhs[index]);
+  // }
+
   // Note that we have already reconstructed vx and vy along the x-direction,
   //   at (i-1/2,j,k). That result is stored in v{x,y}{r,l}.  Bx_stagger data
   //   are defined at (i+1/2,j,k).
@@ -312,6 +324,14 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
   reconstruct_set_of_prims_PPM(eos,cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
                                in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
+
+  // {
+  //   const int index = CCTK_GFINDEX3D(cctkGH, 6, 6, 6);
+  //   printf("Second reconstruction: %22.15e %22.15e %22.15e\n",
+  //          in_prims[YEPRIM].gf[index], out_prims_r[YEPRIM].gf[index], out_prims_l[YEPRIM].gf[index]);
+  //   printf("Second fluxes/RHSs   : %22.15e %22.15e\n",
+  //          Ye_star_flux[index], Ye_star_rhs[index]);
+  // }
 
   if( eos.is_Tabulated ) {
     // check_temperature_reconstruction(eos,cctkGH,cctk_lsh,in_prims,out_prims_r,out_prims_l);
@@ -422,6 +442,14 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   // This function is housed in the file: "reconstruct_set_of_prims_PPM.C"
   reconstruct_set_of_prims_PPM(eos,cctkGH,cctk_lsh,flux_dirn,num_prims_to_reconstruct,which_prims_to_reconstruct,
                                in_prims,out_prims_r,out_prims_l,ftilde_gf,temporary);
+
+  // {
+  //   const int index = CCTK_GFINDEX3D(cctkGH, 6, 6, 6);
+  //   printf("Third  reconstruction: %22.15e %22.15e %22.15e\n",
+  //          in_prims[YEPRIM].gf[index], out_prims_r[YEPRIM].gf[index], out_prims_l[YEPRIM].gf[index]);
+  //   printf("Third  fluxes/RHSs   : %22.15e %22.15e\n",
+  //          Ye_star_flux[index], Ye_star_rhs[index]);
+  // }
 
   if( eos.is_Tabulated ) {
     // check_temperature_reconstruction(eos,cctkGH,cctk_lsh,in_prims,out_prims_r,out_prims_l);
@@ -592,7 +620,23 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
     }
   }
 
-  return;
+  // {
+  //   const int index   = CCTK_GFINDEX3D(cctkGH, 6, 6, 6);
+  //   const double rhoL = rho_b[index];
+  //   const double  TL  = igm_temperature[index];
+  //   const double Y_eL = igm_Ye[index];
+  //   const double rho_star_rhsL = rho_star_rhs[index];
+  //   const double Y_e_star_rhsL = Ye_star_rhs[index];
+  //   const double tau_rhsL      = tau_rhs[index];
+  //   const double st_x_rhsL     = st_x_rhs[index];
+  //   const double st_y_rhsL     = st_y_rhs[index];
+  //   const double st_z_rhsL     = st_z_rhs[index];
+  //   printf("Prims: %22.15e %22.15e %22.15e\n", rhoL, TL, Y_eL);
+  //   printf("RHSs : %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n",
+  //          rho_star_rhsL, Y_e_star_rhsL, tau_rhsL,
+  //          st_x_rhsL, st_y_rhsL, st_z_rhsL);
+  // }
+
   /*
   // FUN DEBUGGING TOOL (trust me!):
   #pragma omp parallel for
@@ -622,3 +666,500 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 #include "mhdflux.C"
 #include "A_i_rhs_no_gauge_terms.C"
 #include "Lorenz_psi6phi_rhs__add_gauge_terms_to_A_i_rhs.C"
+
+#include "GRHayL_test.h"
+
+void GRHayL_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij
+(const int dirlength,
+ CCTK_REAL *gxx,CCTK_REAL *gxy,CCTK_REAL *gxz,CCTK_REAL *gyy,CCTK_REAL *gyz,CCTK_REAL *gzz,CCTK_REAL *alp,
+ CCTK_REAL *gtxx,CCTK_REAL *gtxy,CCTK_REAL *gtxz,CCTK_REAL *gtyy,CCTK_REAL *gtyz,CCTK_REAL *gtzz,
+ CCTK_REAL *gtupxx,CCTK_REAL *gtupxy,CCTK_REAL *gtupxz,CCTK_REAL *gtupyy,CCTK_REAL *gtupyz,CCTK_REAL *gtupzz,
+ CCTK_REAL *phi,CCTK_REAL *psi,CCTK_REAL *lapm1) {
+  DECLARE_CCTK_PARAMETERS;
+#pragma omp parallel for
+  for(int k=0; k<dirlength; k++)
+    for(int j=0; j<dirlength; j++)
+      for(int i=0; i<dirlength; i++) {
+        int index=indexf(dirlength,i,j,k);
+        CCTK_REAL gxx_physL=gxx[index];
+        CCTK_REAL gxy_physL=gxy[index];
+        CCTK_REAL gxz_physL=gxz[index];
+        CCTK_REAL gyy_physL=gyy[index];
+        CCTK_REAL gyz_physL=gyz[index];
+        CCTK_REAL gzz_physL=gzz[index];
+
+        /*********************************************************************
+         * Compute \tilde{\gamma_{ij}}, phi, and psi (BSSN) from g_{ij} (ADM) *
+         **********************************************************************/
+        CCTK_REAL gijdet = gxx_physL * gyy_physL * gzz_physL + gxy_physL * gyz_physL * gxz_physL + gxz_physL * gxy_physL * gyz_physL
+          - gxz_physL * gyy_physL * gxz_physL - gxy_physL * gxy_physL * gzz_physL - gxx_physL * gyz_physL * gyz_physL;
+
+        gijdet = fabs(gijdet);
+
+        CCTK_REAL phiL = (1.0/12.0) * log(gijdet);
+        CCTK_REAL psiL = exp(phiL);
+
+        CCTK_REAL Psim4 = 1.0/(psiL*psiL*psiL*psiL);
+        CCTK_REAL gtxxL = gxx_physL*Psim4;
+        CCTK_REAL gtxyL = gxy_physL*Psim4;
+        CCTK_REAL gtxzL = gxz_physL*Psim4;
+        CCTK_REAL gtyyL = gyy_physL*Psim4;
+        CCTK_REAL gtyzL = gyz_physL*Psim4;
+        CCTK_REAL gtzzL = gzz_physL*Psim4;
+
+        /*********************************
+         * Apply det gtij = 1 constraint *
+         *********************************/
+        CCTK_REAL gtijdet = gtxxL * gtyyL * gtzzL + gtxyL * gtyzL * gtxzL + gtxzL * gtxyL * gtyzL -
+          gtxzL * gtyyL * gtxzL - gtxyL * gtxyL * gtzzL - gtxxL * gtyzL * gtyzL;
+
+        CCTK_REAL gtijdet_Fm1o3 = fabs(1.0/cbrt(gtijdet));
+
+        gtxxL = gtxxL * gtijdet_Fm1o3;
+        gtxyL = gtxyL * gtijdet_Fm1o3;
+        gtxzL = gtxzL * gtijdet_Fm1o3;
+        gtyyL = gtyyL * gtijdet_Fm1o3;
+        gtyzL = gtyzL * gtijdet_Fm1o3;
+        gtzzL = gtzzL * gtijdet_Fm1o3;
+        gtzzL = gtzzL * gtijdet_Fm1o3;
+
+        CCTK_REAL Psi4 = psiL*psiL*psiL*psiL;
+        /*****************************************
+         * Set all the needed BSSN gridfunctions *
+         *****************************************/
+        phi[index] = phiL;
+        psi[index] = psiL;
+
+        lapm1[index] = alp[index] - 1.0;
+
+        gtxx[index] = gtxxL;
+        gtxy[index] = gtxyL;
+        gtxz[index] = gtxzL;
+        gtyy[index] = gtyyL;
+        gtyz[index] = gtyzL;
+        gtzz[index] = gtzzL;
+
+        gxx[index] = gtxxL*Psi4;
+        gxy[index] = gtxyL*Psi4;
+        gxz[index] = gtxzL*Psi4;
+        gyy[index] = gtyyL*Psi4;
+        gyz[index] = gtyzL*Psi4;
+        gzz[index] = gtzzL*Psi4;
+
+        gtupxx[index] =   ( gtyyL * gtzzL - gtyzL * gtyzL );
+        gtupxy[index] = - ( gtxyL * gtzzL - gtyzL * gtxzL );
+        gtupxz[index] =   ( gtxyL * gtyzL - gtyyL * gtxzL );
+        gtupyy[index] =   ( gtxxL * gtzzL - gtxzL * gtxzL );
+        gtupyz[index] = - ( gtxxL * gtyzL - gtxyL * gtxzL );
+        gtupzz[index] =   ( gtxxL * gtyyL - gtxyL * gtxyL );
+      }
+}
+
+extern "C" void GRHayL_flux_source_test_data(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_PARAMETERS;
+
+  // FIXME: only for single gamma-law EOS.
+  igm_eos_parameters eos;
+  initialize_igm_eos_parameters_from_input(igm_eos_key,cctk_time,eos);
+
+  const char *infilename = "ET_Legacy_tabulated_flux_source_input.bin";
+  char *outfilename;
+  switch(perturb) {
+    case 0:
+      sprintf(filename,"ET_Legacy_flux_source_output.bin");
+      break;
+    case 1:
+      sprintf(filename,"ET_Legacy_flux_source_output_pert.bin");
+      break;
+  }
+
+
+  // Set up test data
+  FILE* infile = fopen(infilename, "rb");
+  check_file_was_successfully_open(infile, infilename);
+
+  int dirlength;
+  int key = fread(&dirlength, sizeof(int), 1, infile);
+  const int ghostzone = 3;
+  const int arraylength = dirlength*dirlength*dirlength;
+  double dX[3] = {0.1, 0.1, 0.1};
+
+  // Note that we do not make test versions of the BSSN variables
+  // or TUP, as these are written by this function. As such,
+  // we can simply overwrite whatever is in the gridfunctions provided
+  // by the toolkit. This is the same for the RHS variables.
+
+  // Allocate memory for metric
+  double *test_gxx   = (double*) malloc(sizeof(double)*arraylength);
+  double *test_gxy   = (double*) malloc(sizeof(double)*arraylength);
+  double *test_gxz   = (double*) malloc(sizeof(double)*arraylength);
+  double *test_gyy   = (double*) malloc(sizeof(double)*arraylength);
+  double *test_gyz   = (double*) malloc(sizeof(double)*arraylength);
+  double *test_gzz   = (double*) malloc(sizeof(double)*arraylength);
+  double *test_lapse = (double*) malloc(sizeof(double)*arraylength);
+  double *test_betax = (double*) malloc(sizeof(double)*arraylength);
+  double *test_betay = (double*) malloc(sizeof(double)*arraylength);
+  double *test_betaz = (double*) malloc(sizeof(double)*arraylength);
+
+  // Allocate memory for extrinsic curvature
+  double *test_kxx   = (double*) malloc(sizeof(double)*arraylength);
+  double *test_kxy   = (double*) malloc(sizeof(double)*arraylength);
+  double *test_kxz   = (double*) malloc(sizeof(double)*arraylength);
+  double *test_kyy   = (double*) malloc(sizeof(double)*arraylength);
+  double *test_kyz   = (double*) malloc(sizeof(double)*arraylength);
+  double *test_kzz   = (double*) malloc(sizeof(double)*arraylength);
+
+  // Allocate memory for primitives
+  double *test_rho   = (double*) malloc(sizeof(double)*arraylength);
+  double *test_press = (double*) malloc(sizeof(double)*arraylength);
+  double *test_vx    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_vy    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_vz    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_Bx    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_By    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_Bz    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_Ye    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_T     = (double*) malloc(sizeof(double)*arraylength);
+  double *test_S     = (double*) malloc(sizeof(double)*arraylength);
+  double *test_eps   = (double*) malloc(sizeof(double)*arraylength);
+
+  // Allocate memory for right face
+  double *test_rho_r   = (double*) malloc(sizeof(double)*arraylength);
+  double *test_press_r = (double*) malloc(sizeof(double)*arraylength);
+  double *test_vx_r    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_vy_r    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_vz_r    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_Bx_r    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_By_r    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_Bz_r    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_Ye_r    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_T_r     = (double*) malloc(sizeof(double)*arraylength);
+  double *test_S_r     = (double*) malloc(sizeof(double)*arraylength);
+  double *test_eps_r   = (double*) malloc(sizeof(double)*arraylength);
+
+  // Allocate memory for left face
+  double *test_rho_l   = (double*) malloc(sizeof(double)*arraylength);
+  double *test_press_l = (double*) malloc(sizeof(double)*arraylength);
+  double *test_vx_l    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_vy_l    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_vz_l    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_Bx_l    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_By_l    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_Bz_l    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_Ye_l    = (double*) malloc(sizeof(double)*arraylength);
+  double *test_T_l     = (double*) malloc(sizeof(double)*arraylength);
+  double *test_S_l     = (double*) malloc(sizeof(double)*arraylength);
+  double *test_eps_l   = (double*) malloc(sizeof(double)*arraylength);
+
+  double *test_tau_flux      = (double*) malloc(sizeof(double)*arraylength);
+  double *test_rho_star_flux = (double*) malloc(sizeof(double)*arraylength);
+  double *test_S_x_flux      = (double*) malloc(sizeof(double)*arraylength);
+  double *test_S_y_flux      = (double*) malloc(sizeof(double)*arraylength);
+  double *test_S_z_flux      = (double*) malloc(sizeof(double)*arraylength);
+  double *test_Ye_star_flux  = (double*) malloc(sizeof(double)*arraylength);
+  double *test_S_star_flux   = (double*) malloc(sizeof(double)*arraylength);
+
+  double *test_tau_rhs      = (double*) malloc(sizeof(double)*arraylength);
+  double *test_rho_star_rhs = (double*) malloc(sizeof(double)*arraylength);
+  double *test_S_x_rhs      = (double*) malloc(sizeof(double)*arraylength);
+  double *test_S_y_rhs      = (double*) malloc(sizeof(double)*arraylength);
+  double *test_S_z_rhs      = (double*) malloc(sizeof(double)*arraylength);
+  double *test_Ye_star_rhs  = (double*) malloc(sizeof(double)*arraylength);
+  double *test_S_star_rhs   = (double*) malloc(sizeof(double)*arraylength);
+
+  // in_prims,out_prims_r, and out_prims_l are arrays of pointers to the actual gridfunctions.
+  gf_and_gz_struct in_prims[MAXNUMVARS],out_prims_r[MAXNUMVARS],out_prims_l[MAXNUMVARS];
+  int num_prims_to_reconstruct;
+
+  /* SET POINTERS TO GRMHD GRIDFUNCTIONS */
+  // The order here MATTERS, and must be consistent with the global variable declarations in
+  //   evaluate_MHD_rhs_headers.h (look for RHOB=0, etc.)
+  //   For example, in_prims[0] _must_ be rho_b.
+  in_prims[RHOB       ].gf=test_rho;   out_prims_r[RHOB       ].gf=test_rho_r;   out_prims_l[RHOB       ].gf=test_rho_l;
+  in_prims[PRESSURE   ].gf=test_press; out_prims_r[PRESSURE   ].gf=test_press_r; out_prims_l[PRESSURE   ].gf=test_press_l;
+  in_prims[VX         ].gf=test_vx;    out_prims_r[VX         ].gf=test_vx_r;    out_prims_l[VX         ].gf=test_vx_l;
+  in_prims[VY         ].gf=test_vy;    out_prims_r[VY         ].gf=test_vy_r;    out_prims_l[VY         ].gf=test_vy_l;
+  in_prims[VZ         ].gf=test_vz;    out_prims_r[VZ         ].gf=test_vz_r;    out_prims_l[VZ         ].gf=test_vz_l;
+  in_prims[BX_CENTER  ].gf=test_Bx;    out_prims_r[BX_CENTER  ].gf=test_Bx_r;    out_prims_l[BX_CENTER  ].gf=test_Bx_l;
+  in_prims[BY_CENTER  ].gf=test_By;    out_prims_r[BY_CENTER  ].gf=test_By_r;    out_prims_l[BY_CENTER  ].gf=test_By_l;
+  in_prims[BZ_CENTER  ].gf=test_Bz;    out_prims_r[BZ_CENTER  ].gf=test_Bz_r;    out_prims_l[BZ_CENTER  ].gf=test_Bz_l;
+  in_prims[BX_STAGGER ].gf=test_Bx;    out_prims_r[BX_STAGGER ].gf=test_Bx_r;    out_prims_l[BX_STAGGER ].gf=test_Bx_l;
+  in_prims[BY_STAGGER ].gf=test_By;    out_prims_r[BY_STAGGER ].gf=test_By_r;    out_prims_l[BY_STAGGER ].gf=test_By_l;
+  in_prims[BZ_STAGGER ].gf=test_Bz;    out_prims_r[BZ_STAGGER ].gf=test_Bz_r;    out_prims_l[BZ_STAGGER ].gf=test_Bz_l;
+  in_prims[YEPRIM     ].gf=test_Ye;    out_prims_r[YEPRIM     ].gf=test_Ye_r;    out_prims_l[YEPRIM     ].gf=test_Ye_l;
+  in_prims[TEMPERATURE].gf=test_T;     out_prims_r[TEMPERATURE].gf=test_T_r;     out_prims_l[TEMPERATURE].gf=test_T_l;
+  in_prims[EPSILON    ].gf=test_eps;   out_prims_r[EPSILON    ].gf=test_eps_r;   out_prims_l[EPSILON    ].gf=test_eps_l;
+  in_prims[ENTROPY    ].gf=test_S;     out_prims_r[ENTROPY    ].gf=test_S_r;     out_prims_l[ENTROPY    ].gf=test_S_l;
+  // in_prims[VXR        ].gf=test_vxr;             out_prims_r[VXR        ].gf=vxrr;        out_prims_l[VXR        ].gf=vxrl;
+  // in_prims[VYR        ].gf=test_vyr;             out_prims_r[VYR        ].gf=vyrr;        out_prims_l[VYR        ].gf=vyrl;
+  // in_prims[VZR        ].gf=test_vzr;             out_prims_r[VZR        ].gf=vzrr;        out_prims_l[VZR        ].gf=vzrl;
+  // in_prims[VXL        ].gf=test_vxl;             out_prims_r[VXL        ].gf=vxlr;        out_prims_l[VXL        ].gf=vxll;
+  // in_prims[VYL        ].gf=test_vyl;             out_prims_r[VYL        ].gf=vylr;        out_prims_l[VYL        ].gf=vyll;
+  // in_prims[VZL        ].gf=test_vzl;             out_prims_r[VZL        ].gf=vzlr;        out_prims_l[VZL        ].gf=vzll;
+
+  for(int perturb=0; perturb<2; perturb++) {
+    if(perturb==1) {
+      infile = fopen(infilename, "rb");
+      check_file_was_successfully_open(infile, infilename);
+    }
+
+    // Read in data from file to ensure portability
+    key  = fread(test_gxx,     sizeof(double), arraylength, infile);
+    key += fread(test_gxy,     sizeof(double), arraylength, infile);
+    key += fread(test_gxz,     sizeof(double), arraylength, infile);
+    key += fread(test_gyy,     sizeof(double), arraylength, infile);
+    key += fread(test_gyz,     sizeof(double), arraylength, infile);
+    key += fread(test_gzz,     sizeof(double), arraylength, infile);
+    key += fread(test_lapse,   sizeof(double), arraylength, infile);
+    key += fread(test_betax,   sizeof(double), arraylength, infile);
+    key += fread(test_betay,   sizeof(double), arraylength, infile);
+    key += fread(test_betaz,   sizeof(double), arraylength, infile);
+    key += fread(test_kxx,     sizeof(double), arraylength, infile);
+    key += fread(test_kxy,     sizeof(double), arraylength, infile);
+    key += fread(test_kxz,     sizeof(double), arraylength, infile);
+    key += fread(test_kyy,     sizeof(double), arraylength, infile);
+    key += fread(test_kyz,     sizeof(double), arraylength, infile);
+    key += fread(test_kzz,     sizeof(double), arraylength, infile);
+
+    key += fread(test_rho,     sizeof(double), arraylength, infile);
+    key += fread(test_press,   sizeof(double), arraylength, infile);
+    key += fread(test_vx,      sizeof(double), arraylength, infile);
+    key += fread(test_vy,      sizeof(double), arraylength, infile);
+    key += fread(test_vz,      sizeof(double), arraylength, infile);
+    key += fread(test_Bx,      sizeof(double), arraylength, infile);
+    key += fread(test_By,      sizeof(double), arraylength, infile);
+    key += fread(test_Bz,      sizeof(double), arraylength, infile);
+    key += fread(test_Ye,      sizeof(double), arraylength, infile);
+    key += fread(test_T,       sizeof(double), arraylength, infile);
+    key += fread(test_S,       sizeof(double), arraylength, infile);
+    key += fread(test_eps,     sizeof(double), arraylength, infile);
+
+    if(key != arraylength*24)
+      CCTK_VERROR("An error has occured with reading in initial data. Please check that data\n"
+                  "is up-to-date with current test version.\n");
+
+    // Prims are defined AT ALL GRIDPOINTS, so we set the # of ghostzones to zero:
+    for(int i=0;i<MAXNUMVARS;i++) for(int j=1;j<=3;j++) { in_prims[i].gz_lo[j]=0; in_prims[i].gz_hi[j]=0; }
+    // Left/right variables are not yet defined, yet we set the # of gz's to zero by default:
+    for(int i=0;i<MAXNUMVARS;i++) for(int j=1;j<=3;j++) { out_prims_r[i].gz_lo[j]=0; out_prims_r[i].gz_hi[j]=0; }
+    for(int i=0;i<MAXNUMVARS;i++) for(int j=1;j<=3;j++) { out_prims_l[i].gz_lo[j]=0; out_prims_l[i].gz_hi[j]=0; }
+
+#pragma omp parallel for
+    for(int k=0; k<dirlength; k++) {
+      for(int j=0; j<dirlength; j++) {
+        for(int i=0; i<dirlength; i++) {
+          int index=indexf(dirlength,i,j,k);
+          // Make doubly sure that we are setting any memory that we're borrowing from the ET
+          phi_bssn[index] = 0.0/0.0;
+          psi_bssn[index] = 0.0/0.0;
+          gtxx[index]     = 0.0/0.0;
+          gtxy[index]     = 0.0/0.0;
+          gtxz[index]     = 0.0/0.0;
+          gtyy[index]     = 0.0/0.0;
+          gtyz[index]     = 0.0/0.0;
+          gtzz[index]     = 0.0/0.0;
+          lapm1[index]    = 0.0/0.0;
+          gtupxx[index]   = 0.0/0.0;
+          gtupyy[index]   = 0.0/0.0;
+          gtupzz[index]   = 0.0/0.0;
+          TUPtt[index]    = 0.0/0.0;
+          TUPtx[index]    = 0.0/0.0;
+          TUPty[index]    = 0.0/0.0;
+          TUPtz[index]    = 0.0/0.0;
+          TUPxx[index]    = 0.0/0.0;
+          TUPxy[index]    = 0.0/0.0;
+          TUPxz[index]    = 0.0/0.0;
+          TUPyy[index]    = 0.0/0.0;
+          TUPyz[index]    = 0.0/0.0;
+          TUPzz[index]    = 0.0/0.0;
+
+          test_tau_rhs[index]=0.0;
+          test_rho_star_rhs[index]=0.0;
+          test_S_x_rhs[index]=0.0;
+          test_S_y_rhs[index]=0.0;
+          test_S_z_rhs[index]=0.0;
+          test_Ye_star_rhs[index]=0.0;
+          test_S_star_rhs[inedx]=0.0;
+        }
+      }
+    }
+
+    // Convert ADM variables (from ADMBase) to the BSSN-based variables expected by this routine.
+    GRHayL_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij(dirlength, test_gxx,test_gxy,test_gxz,test_gyy,test_gyz,test_gzz,test_lapse,
+                                                                  gtxx,gtxy,gtxz,gtyy,gtyz,gtzz,
+                                                                  gtupxx,gtupxy,gtupxz,gtupyy,gtupyz,gtupzz,
+                                                                  phi_bssn,psi_bssn,lapm1);
+
+    /* SET POINTERS TO METRIC GRIDFUNCTIONS */
+    CCTK_REAL *metric[NUMVARS_FOR_METRIC_FACEVALS]; // "metric" here is array of pointers to the actual gridfunctions.
+    ww=0;
+    metric[ww]=phi_bssn;ww++;
+    metric[ww]=psi_bssn;ww++;
+    metric[ww]=gtxx;    ww++;
+    metric[ww]=gtxy;    ww++;
+    metric[ww]=gtxz;    ww++;
+    metric[ww]=gtyy;    ww++;
+    metric[ww]=gtyz;    ww++;
+    metric[ww]=gtzz;    ww++;
+    metric[ww]=lapm1;   ww++;
+    metric[ww]=test_betax;   ww++;
+    metric[ww]=test_betay;   ww++;
+    metric[ww]=test_betaz;   ww++;
+    metric[ww]=gtupxx;  ww++;
+    metric[ww]=gtupyy;  ww++;
+    metric[ww]=gtupzz;  ww++;
+
+    /* SET POINTERS TO STRESS-ENERGY TENSOR GRIDFUNCTIONS */
+    CCTK_REAL *TUPmunu[10];// "TUPmunu" here is array of pointers to the actual gridfunctions.
+    ww=0;
+    TUPmunu[ww]=TUPtt; ww++;
+    TUPmunu[ww]=TUPtx; ww++;
+    TUPmunu[ww]=TUPty; ww++;
+    TUPmunu[ww]=TUPtz; ww++;
+    TUPmunu[ww]=TUPxx; ww++;
+    TUPmunu[ww]=TUPxy; ww++;
+    TUPmunu[ww]=TUPxz; ww++;
+    TUPmunu[ww]=TUPyy; ww++;
+    TUPmunu[ww]=TUPyz; ww++;
+    TUPmunu[ww]=TUPzz; ww++;
+
+    // Here, we:
+    // 1) Compute tau_rhs extrinsic curvature terms, and
+    // 2) Compute TUPmunu.
+    // This function is housed in the file: "compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu.C"
+    // TPJ made a change in this file
+    GRHayL_compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu(dirlength, ghostzone, dX, metric, in_prims, TUPmunu, eos,
+                                                          gtupxy,gtupxz,gtupyz,
+                                                          test_kxx,test_kxy,test_kxz,test_kyy,test_kyz,test_kzz,
+                                                          test_tau_rhs);
+    int flux_dirn;
+    flux_dirn=1;
+
+    key  = fread(test_rho_r,   sizeof(double), arraylength, infile);
+    key += fread(test_press_r, sizeof(double), arraylength, infile);
+    key += fread(test_vx_r,    sizeof(double), arraylength, infile);
+    key += fread(test_vy_r,    sizeof(double), arraylength, infile);
+    key += fread(test_vz_r,    sizeof(double), arraylength, infile);
+    key += fread(test_Bx_r,    sizeof(double), arraylength, infile);
+    key += fread(test_By_r,    sizeof(double), arraylength, infile);
+    key += fread(test_Bz_r,    sizeof(double), arraylength, infile);
+    key += fread(test_Ye_r,    sizeof(double), arraylength, infile);
+    key += fread(test_S_r,     sizeof(double), arraylength, infile);
+
+    key += fread(test_rho_l,   sizeof(double), arraylength, infile);
+    key += fread(test_press_l, sizeof(double), arraylength, infile);
+    key += fread(test_vx_l,    sizeof(double), arraylength, infile);
+    key += fread(test_vy_l,    sizeof(double), arraylength, infile);
+    key += fread(test_vz_l,    sizeof(double), arraylength, infile);
+    key += fread(test_Bx_l,    sizeof(double), arraylength, infile);
+    key += fread(test_By_l,    sizeof(double), arraylength, infile);
+    key += fread(test_Bz_l,    sizeof(double), arraylength, infile);
+    key += fread(test_Ye_l,    sizeof(double), arraylength, infile);
+    key += fread(test_S_l,     sizeof(double), arraylength, infile);
+
+    if(key != arraylength*16)
+      CCTK_VERROR("An error has occured with reading in initial data. Please check that data\n"
+                  "is up-to-date with current test version.\n");
+
+    num_prims_to_reconstruct=8;
+    // Then add fluxes to RHS for hydro variables {rho_b,P,vx,vy,vz}:
+    // This function is housed in the file: "add_fluxes_and_source_terms_to_hydro_rhss.C"
+    GRHayL_add_fluxes_and_source_terms_to_hydro_rhss(flux_dirn,dirlength,ghostzone,dX,   metric,in_prims,TUPmunu,
+                                              num_prims_to_reconstruct,out_prims_r,out_prims_l,eos,
+                                              cmax_x,cmin_x,
+                                              test_rho_star_flux,test_tau_flux,test_S_x_flux,test_S_y_flux,test_S_z_flux,
+                                              test_rho_star_rhs,test_tau_rhs,test_S_x_rhs,test_S_y_rhs,test_S_z_rhs);
+    // Note that we have already reconstructed vx and vy along the x-direction,
+    //   at (i-1/2,j,k). That result is stored in v{x,y}{r,l}.  Bx_stagger data
+    //   are defined at (i+1/2,j,k).
+    // Next goal: reconstruct Bx, vx and vy at (i+1/2,j+1/2,k).
+    flux_dirn=2;
+
+    key  = fread(test_rho_r,   sizeof(double), arraylength, infile);
+    key += fread(test_press_r, sizeof(double), arraylength, infile);
+    key += fread(test_vx_r,    sizeof(double), arraylength, infile);
+    key += fread(test_vy_r,    sizeof(double), arraylength, infile);
+    key += fread(test_vz_r,    sizeof(double), arraylength, infile);
+    key += fread(test_Bx_r,    sizeof(double), arraylength, infile);
+    key += fread(test_By_r,    sizeof(double), arraylength, infile);
+    key += fread(test_Bz_r,    sizeof(double), arraylength, infile);
+    key += fread(test_Ye_r,    sizeof(double), arraylength, infile);
+    key += fread(test_S_r,     sizeof(double), arraylength, infile);
+
+    key += fread(test_rho_l,   sizeof(double), arraylength, infile);
+    key += fread(test_press_l, sizeof(double), arraylength, infile);
+    key += fread(test_vx_l,    sizeof(double), arraylength, infile);
+    key += fread(test_vy_l,    sizeof(double), arraylength, infile);
+    key += fread(test_vz_l,    sizeof(double), arraylength, infile);
+    key += fread(test_Bx_l,    sizeof(double), arraylength, infile);
+    key += fread(test_By_l,    sizeof(double), arraylength, infile);
+    key += fread(test_Bz_l,    sizeof(double), arraylength, infile);
+    key += fread(test_Ye_l,    sizeof(double), arraylength, infile);
+    key += fread(test_S_l,     sizeof(double), arraylength, infile);
+
+    if(key != arraylength*16)
+      CCTK_VERROR("An error has occured with reading in initial data. Please check that data\n"
+                  "is up-to-date with current test version.\n");
+
+    num_prims_to_reconstruct=9;
+    // Then add fluxes to RHS for hydro variables {rho_b,P,vx,vy,vz}:
+    // This function is housed in the file: "add_fluxes_and_source_terms_to_hydro_rhss.C"
+    GRHayL_add_fluxes_and_source_terms_to_hydro_rhss(flux_dirn,dirlength,ghostzone,dX,   metric,in_prims,TUPmunu,
+                                              num_prims_to_reconstruct,out_prims_r,out_prims_l,eos,
+                                              cmax_y,cmin_y,
+                                              test_rho_star_flux,test_tau_flux,test_S_x_flux,test_S_y_flux,test_S_z_flux,
+                                              test_rho_star_rhs,test_tau_rhs,test_S_x_rhs,test_S_y_rhs,test_S_z_rhs);
+
+    flux_dirn=3;
+
+    key  = fread(test_rho_r,   sizeof(double), arraylength, infile);
+    key += fread(test_press_r, sizeof(double), arraylength, infile);
+    key += fread(test_vx_r,    sizeof(double), arraylength, infile);
+    key += fread(test_vy_r,    sizeof(double), arraylength, infile);
+    key += fread(test_vz_r,    sizeof(double), arraylength, infile);
+    key += fread(test_Bx_r,    sizeof(double), arraylength, infile);
+    key += fread(test_By_r,    sizeof(double), arraylength, infile);
+    key += fread(test_Bz_r,    sizeof(double), arraylength, infile);
+    key += fread(test_Ye_r,    sizeof(double), arraylength, infile);
+    key += fread(test_S_r,     sizeof(double), arraylength, infile);
+
+    key += fread(test_rho_l,   sizeof(double), arraylength, infile);
+    key += fread(test_press_l, sizeof(double), arraylength, infile);
+    key += fread(test_vx_l,    sizeof(double), arraylength, infile);
+    key += fread(test_vy_l,    sizeof(double), arraylength, infile);
+    key += fread(test_vz_l,    sizeof(double), arraylength, infile);
+    key += fread(test_Bx_l,    sizeof(double), arraylength, infile);
+    key += fread(test_By_l,    sizeof(double), arraylength, infile);
+    key += fread(test_Bz_l,    sizeof(double), arraylength, infile);
+    key += fread(test_Ye_l,    sizeof(double), arraylength, infile);
+    key += fread(test_S_l,     sizeof(double), arraylength, infile);
+
+    if(key != arraylength*16)
+      CCTK_VERROR("An error has occured with reading in initial data. Please check that data\n"
+                  "is up-to-date with current test version.\n");
+
+    num_prims_to_reconstruct=9;
+    // Then add fluxes to RHS for hydro variables {rho_b,P,vx,vy,vz}:
+    // This function is housed in the file: "add_fluxes_and_source_terms_to_hydro_rhss.C"
+    GRHayL_add_fluxes_and_source_terms_to_hydro_rhss(flux_dirn,dirlength,ghostzone,dX,   metric,in_prims,TUPmunu,
+                                              num_prims_to_reconstruct,out_prims_r,out_prims_l,eos,
+                                              cmax_z,cmin_z,
+                                              test_rho_star_flux,test_tau_flux,test_S_x_flux,test_S_y_flux,test_S_z_flux,
+                                              test_rho_star_rhs,test_tau_rhs,test_S_x_rhs,test_S_y_rhs,test_S_z_rhs);
+
+
+    FILE *outfile = fopen(filename, "wb");
+    check_file_was_successfully_open(outfile, filename);
+
+    fwrite(test_rho_star_rhs, sizeof(double), arraylength, outfile);
+    fwrite(test_tau_rhs,      sizeof(double), arraylength, outfile);
+    fwrite(test_S_x_rhs,      sizeof(double), arraylength, outfile);
+    fwrite(test_S_y_rhs,      sizeof(double), arraylength, outfile);
+    fwrite(test_S_z_rhs,      sizeof(double), arraylength, outfile);
+    fwrite(test_Ye_star_rhs,  sizeof(double), arraylength, outfile);
+    fwrite(test_S_star_rhs,   sizeof(double), arraylength, outfile);
+    fclose(outfile);
+  }
+  CCTK_VINFO("GRHayL_flux_source_test_data finished.");
+}

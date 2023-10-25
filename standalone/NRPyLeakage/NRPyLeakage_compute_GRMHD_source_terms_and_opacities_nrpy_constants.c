@@ -126,4 +126,16 @@ void NRPyLeakage_compute_GRMHD_source_terms_and_opacities_nrpy_constants(const N
   kappa_anue[1] = NRPyLeakage_units_geom_to_cgs_L*tmp_86;
   kappa_nux[0] = NRPyLeakage_units_geom_to_cgs_L*(EnsureFinite(tmp_49*tmp_87) + EnsureFinite(tmp_41*tmp_42*tmp_87));
   kappa_nux[1] = NRPyLeakage_units_geom_to_cgs_L*tmp_73;
+
+  // printf("*************************************\n");
+  // printf("Inside %s\n", __func__);
+  // printf("*************************************\n");
+  // printf("prims      : %.15e %.15e %.15e\n", rho_b, Y_e, T);
+  // printf("taus       : %.15e %.15e %.15e %.15e %.15e %.15e\n", tau_nue[0], tau_nue[1], tau_anue[0], tau_anue[1], tau_nux[0], tau_nux[1]);
+  // printf("mus & xs   : %.15e %.15e %.15e %.15e %.15e %.15e\n", muhat, mu_e, mu_p, mu_n, X_n, X_p);
+  // printf("rho_cgs    : %.15e\n", rho_b_cgs);
+  // printf("Ys         : %.15e %.15e %.15e %.15e\n",Y_p, Y_n, Y_np, Y_pn);
+  // printf("kappas     : %.15e %.15e %.15e %.15e %.15e %.15e\n", kappa_nue[0], kappa_nue[1], kappa_anue[0], kappa_anue[1], kappa_nux[0], kappa_nux[1]);
+  // printf("R_source   : %.15e\n", *R_source);
+  // printf("Q_source   : %.15e\n", *Q_source);
 }

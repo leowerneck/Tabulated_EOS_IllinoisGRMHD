@@ -300,7 +300,7 @@ void calc_prim( const igm_eos_parameters eos,
 
   // Now we compute the velocity using eq. (24) in https://arxiv.org/pdf/1712.07538.pdf.
   // Note, however, that IllinoisGRMHD expects the velocity tilde(u)^{i} := W v^{i},
-  // and wo we already perform the conversion here (see the discussion above eq. (26) in
+  // and so we already perform the conversion here (see the discussion above eq. (26) in
   // https://arxiv.org/pdf/astro-ph/0512420.pdf for the definition of tilde(u)^{i}).
   prim[UTCON1  ] = W*(SU[0] + (BdotS)*con[B1_con]/Z)/(Z+B_squared);
   prim[UTCON2  ] = W*(SU[1] + (BdotS)*con[B2_con]/Z)/(Z+B_squared);

@@ -5,6 +5,7 @@
 /* This function returns the TOV quantities at point rr
  * by interpolating the data in the TOV initial data file.
  */
+static inline
 void interpolate_TOV_solution_to_point(const CCTK_REAL rr, ID_inputs other_inputs,
                            CCTK_REAL *exp_4phi, CCTK_REAL *expnu,
                            CCTK_REAL *Pressure, CCTK_REAL *rho_baryon, CCTK_REAL *rho__total_energy_density) {

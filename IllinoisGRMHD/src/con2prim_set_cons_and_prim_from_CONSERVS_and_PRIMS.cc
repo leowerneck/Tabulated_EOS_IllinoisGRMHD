@@ -73,7 +73,8 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   // Compute the conserv needed by the Noble routines
   cons[UU] = (uu - CONSERVS[RHOSTAR]) * psim6;
   // Then set tau
-  cons[TAU] = MAX(CONSERVS[TAUENERGY] * psim6,eos.tau_atm);
+  cons[TAU] = CONSERVS[TAUENERGY]*psim6;
+  // cons[TAU] = MAX(CONSERVS[TAUENERGY] * psim6,eos.tau_atm);
 
   //----------------------------------------
 
@@ -206,10 +207,10 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   if( eos.is_Tabulated ) {
     // This one is very simple! The only guess required is the temperature
     if( which_guess == 1 ) {
-      prim[TEMP  ] = eos.T_atm;
+      prim[TEMP  ] = eos.T_max;
     }
     else {
-      prim[TEMP  ] = eos.T_max;
+      prim[TEMP  ] = eos.T_atm;
     }
     prim[YE      ] = CONSERVS[YESTAR]/CONSERVS[RHOSTAR];
   }
