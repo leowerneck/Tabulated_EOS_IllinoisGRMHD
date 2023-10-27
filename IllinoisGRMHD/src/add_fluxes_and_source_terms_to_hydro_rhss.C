@@ -215,130 +215,7 @@ static inline double randf(double low,double high) {
   return (rand()/(double)(RAND_MAX))*(high-low)+low;
 }
 
-void test_mhdflux(CCTK_ARGUMENTS) {
-
-  DECLARE_CCTK_ARGUMENTS;
-  DECLARE_CCTK_PARAMETERS;
-
-  igm_eos_parameters eos;
-  initialize_igm_eos_parameters_from_input(igm_eos_key,cctk_time,eos);
-
-  srand(0);
-
-  double METRIC[NUMVARS_FOR_METRIC_FACEVALS];
-  METRIC[LAPM1 ] = randf(0.1,1) - 1.0;
-  METRIC[SHIFTX] = randf(-0.1,0.1);
-  METRIC[SHIFTY] = randf(-0.1,0.1);
-  METRIC[SHIFTZ] = randf(-0.1,0.1);
-  METRIC[GXX   ] = randf(0,0.3) + 1;
-  METRIC[GXY   ] = randf(-0.1,0.1);
-  METRIC[GXZ   ] = randf(-0.1,0.1);
-  METRIC[GYY   ] = randf(0,0.3) + 1;
-  METRIC[GYZ   ] = randf(-0.1,0.1);
-  METRIC[GZZ   ] = randf(0,0.3) + 1;
-
-  printf("Metric: %e, %e %e %e, %e %e %e %e %e %e\n",
-         METRIC[LAPM1]+1, METRIC[SHIFTX], METRIC[SHIFTY], METRIC[SHIFTZ],
-         METRIC[GXX], METRIC[GXY], METRIC[GXZ], METRIC[GYY], METRIC[GYZ], METRIC[GZZ]);
-
-  // Compute inverse metric
-  const double gdet = -METRIC[GXZ] * METRIC[GXZ] * METRIC[GYY] + 2 * METRIC[GXY] * METRIC[GXZ] * METRIC[GYZ] - \
-                       METRIC[GXX] * METRIC[GYZ] * METRIC[GYZ] - METRIC[GXY] * METRIC[GXY] * METRIC[GZZ] +     \
-                       METRIC[GXX] * METRIC[GYY] * METRIC[GZZ];
-
-  METRIC[PHI] = log(gdet) / 12.0;
-  METRIC[PSI] = exp(METRIC[PHI]);
-
-  METRIC[GUPXX] = (-METRIC[GYZ]*METRIC[GYZ] + METRIC[GYY]*METRIC[GZZ])/gdet;
-  METRIC[GUPYY] = (-METRIC[GXZ]*METRIC[GXZ] + METRIC[GXX]*METRIC[GZZ])/gdet;
-  METRIC[GUPZZ] = (-METRIC[GXY]*METRIC[GXY] + METRIC[GXX]*METRIC[GYY])/gdet;
-
-  const double psi4  = METRIC[PSI] * METRIC[PSI] * METRIC[PSI] * METRIC[PSI];
-  const double psim4 = 1.0 / psi4;
-
-  METRIC[GXX   ] *= psim4;
-  METRIC[GXY   ] *= psim4;
-  METRIC[GXZ   ] *= psim4;
-  METRIC[GYY   ] *= psim4;
-  METRIC[GYZ   ] *= psim4;
-  METRIC[GZZ   ] *= psim4;
-  METRIC[GUPXX ] *= psi4;
-  METRIC[GUPYY ] *= psi4;
-  METRIC[GUPZZ ] *= psi4;
-
-  // printf("psi4 = %e, psim4 = %e\n", psi4, psim4);
-  // printf("%e %e %e %e %e %e, %e %e %e\n",
-  //        METRIC[GXX], METRIC[GXY], METRIC[GXZ], METRIC[GYY], METRIC[GYZ], METRIC[GZZ],
-  //        METRIC[GUPXX], METRIC[GUPYY], METRIC[GUPZZ]);
-
-  double LAPSE_PSI4[NUMVARS_METRIC_AUX];
-  SET_LAPSE_PSI4(LAPSE_PSI4, METRIC);
-
-  double prims_r[MAXNUMVARS], prims_l[MAXNUMVARS];
-  prims_r[RHOB       ] = exp(randf(log(eos.rho_min), log(eos.rho_max)));
-  prims_r[TEMPERATURE] = exp(randf(log(eos.T_min  ), log(eos.T_max  )));
-  prims_r[YEPRIM     ] = randf(eos.Ye_min, eos.Ye_max);
-  prims_r[VX         ] = 0;//randf(-1,1);
-  prims_r[VY         ] = 0;//randf(-1,1);
-  prims_r[VZ         ] = 0;//randf(-1,1);
-  prims_l[RHOB       ] = exp(randf(log(eos.rho_min), log(eos.rho_max)));
-  prims_l[TEMPERATURE] = exp(randf(log(eos.T_min  ), log(eos.T_max  )));
-  prims_l[YEPRIM     ] = randf(eos.Ye_min, eos.Ye_max);
-  prims_l[VX         ] = 0;//randf(-1,1);
-  prims_l[VY         ] = 0;//randf(-1,1);
-  prims_l[VZ         ] = 0;//randf(-1,1);
-
-  // printf("mins: %e %e %e\n", eos.rho_min, eos.Ye_min, eos.T_min);
-  // printf("maxs: %e %e %e\n", eos.rho_max, eos.Ye_max, eos.T_max);
-
-  WVU_EOS_P_eps_and_S_from_rho_Ye_T(prims_r[RHOB], prims_r[YEPRIM], prims_r[TEMPERATURE],
-                                    &prims_r[PRESSURE], &prims_r[EPSILON], &prims_r[ENTROPY]);
-  WVU_EOS_P_eps_and_S_from_rho_Ye_T(prims_l[RHOB], prims_l[YEPRIM], prims_l[TEMPERATURE],
-                                    &prims_l[PRESSURE], &prims_l[EPSILON], &prims_l[ENTROPY]);
-
-  prims_r[BX_CENTER] = 0; //prims_r[PRESSURE] * pow(10, randf(-5, -3)) / ONE_OVER_SQRT_4PI;
-  prims_r[BY_CENTER] = 0; //prims_r[PRESSURE] * pow(10, randf(-5, -3)) / ONE_OVER_SQRT_4PI;
-  prims_r[BZ_CENTER] = 0; //prims_r[PRESSURE] * pow(10, randf(-5, -3)) / ONE_OVER_SQRT_4PI;
-  prims_l[BX_CENTER] = 0; //prims_l[PRESSURE] * pow(10, randf(-5, -3)) / ONE_OVER_SQRT_4PI;
-  prims_l[BY_CENTER] = 0; //prims_l[PRESSURE] * pow(10, randf(-5, -3)) / ONE_OVER_SQRT_4PI;
-  prims_l[BZ_CENTER] = 0; //prims_l[PRESSURE] * pow(10, randf(-5, -3)) / ONE_OVER_SQRT_4PI;
-
-  printf("R: %e %e %e -> %e %e %e, %e %e %e, %e %e %e\n",
-         prims_r[RHOB], prims_r[YEPRIM], prims_r[TEMPERATURE],
-         prims_r[PRESSURE], prims_r[EPSILON], prims_r[ENTROPY],
-         prims_r[VX], prims_r[VY], prims_r[VZ],
-         prims_r[BX_CENTER], prims_r[BY_CENTER], prims_r[BZ_CENTER]);
-  printf("L: %e %e %e -> %e %e %e, %e %e %e, %e %e %e\n",
-         prims_l[RHOB], prims_l[YEPRIM], prims_l[TEMPERATURE],
-         prims_l[PRESSURE], prims_l[EPSILON], prims_l[ENTROPY],
-         prims_l[VX], prims_l[VY], prims_l[VZ],
-         prims_l[BX_CENTER], prims_l[BY_CENTER], prims_l[BZ_CENTER]);
-
-  double cmin, cmax, flux[7];
-
-  for(int i=0;i<7;i++) flux[i] = 0;
-  cmax = cmin = 0;
-  mhdflux(eos, 0, 0, 0, 1, prims_r, prims_l, METRIC, LAPSE_PSI4, cmax,cmin,
-          flux[0], flux[1], flux[2], flux[3], flux[4], flux[5], flux[6]);
-  fprintf(stderr, "0 %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n",
-          cmin, cmax, flux[0], flux[1], flux[2], flux[3], flux[4], flux[5], flux[6]);
-
-  for(int i=0;i<7;i++) flux[i] = 0;
-  cmax = cmin = 0;
-  mhdflux(eos, 0, 0, 0, 2, prims_r, prims_l, METRIC, LAPSE_PSI4, cmax,cmin,
-          flux[0], flux[1], flux[2], flux[3], flux[4], flux[5], flux[6]);
-  fprintf(stderr, "1 %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n",
-          cmin, cmax, flux[0], flux[1], flux[2], flux[3], flux[4], flux[5], flux[6]);
-
-  for(int i=0;i<7;i++) flux[i] = 0;
-  cmax = cmin = 0;
-  mhdflux(eos, 0, 0, 0, 3, prims_r, prims_l, METRIC, LAPSE_PSI4, cmax,cmin,
-          flux[0], flux[1], flux[2], flux[3], flux[4], flux[5], flux[6]);
-  fprintf(stderr, "2 %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n",
-          cmin, cmax, flux[0], flux[1], flux[2], flux[3], flux[4], flux[5], flux[6]);
-
-  exit(1);
-}
+#include "GRHayL_test.h"
 
 static void GRHayL_add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters eos,
                                                               const int flux_dirn,
@@ -398,10 +275,10 @@ static void GRHayL_add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_para
 	for(int ii=0;ii<4;ii++) for(int jj=ii;jj<4;jj++) { TUP[ii][jj] = TUPmunu[counter][index]; counter++; }
 
 	// Next set metric on the faces, applying a 3rd-order lopsided stencil.
-	int indexm2 = CCTK_GFINDEX3D(cctkGH,i-2*kronecker_delta[flux_dirn][0],j-2*kronecker_delta[flux_dirn][1],k-2*kronecker_delta[flux_dirn][2]);
-	int indexm1 = CCTK_GFINDEX3D(cctkGH,i-  kronecker_delta[flux_dirn][0],j-  kronecker_delta[flux_dirn][1],k-  kronecker_delta[flux_dirn][2]);
-	int indexp1 = CCTK_GFINDEX3D(cctkGH,i+  kronecker_delta[flux_dirn][0],j+  kronecker_delta[flux_dirn][1],k+  kronecker_delta[flux_dirn][2]);
-	int indexp2 = CCTK_GFINDEX3D(cctkGH,i+2*kronecker_delta[flux_dirn][0],j+2*kronecker_delta[flux_dirn][1],k+2*kronecker_delta[flux_dirn][2]);
+	int indexm2 = indexf(dirlength,i-2*kronecker_delta[flux_dirn][0],j-2*kronecker_delta[flux_dirn][1],k-2*kronecker_delta[flux_dirn][2]);
+	int indexm1 = indexf(dirlength,i-  kronecker_delta[flux_dirn][0],j-  kronecker_delta[flux_dirn][1],k-  kronecker_delta[flux_dirn][2]);
+	int indexp1 = indexf(dirlength,i+  kronecker_delta[flux_dirn][0],j+  kronecker_delta[flux_dirn][1],k+  kronecker_delta[flux_dirn][2]);
+	int indexp2 = indexf(dirlength,i+2*kronecker_delta[flux_dirn][0],j+2*kronecker_delta[flux_dirn][1],k+2*kronecker_delta[flux_dirn][2]);
 	// The "vector" METRIC stores needed metric-related quantities.
 	CCTK_REAL METRICm2[NUMVARS_FOR_METRIC_FACEVALS]; for(int ii=0;ii<NUMVARS_FOR_METRIC_FACEVALS;ii++) METRICm2[ii] = metric[ii][indexm2];
 	CCTK_REAL METRICm1[NUMVARS_FOR_METRIC_FACEVALS]; for(int ii=0;ii<NUMVARS_FOR_METRIC_FACEVALS;ii++) METRICm1[ii] = metric[ii][indexm1];
@@ -428,7 +305,7 @@ static void GRHayL_add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_para
 	// If we are not in the ghostzones, then add third-order accurate curvature terms to \tilde{S}_i RHS's
 	//    Without this if() statement, _rhs variables are in general set to nonzero values in ghostzones, which messes up frozen BC's.
 	//    Also, this if() statement should speed up the computation slightly.
-	if(k<cctk_lsh[2]-cctk_nghostzones[2] && j<cctk_lsh[1]-cctk_nghostzones[1] && i<cctk_lsh[0]-cctk_nghostzones[0]) {
+	if(k<dirlength-ghostzone && j<dirlength-ghostzone && i<dirlength-ghostzone) {
 
 	  CCTK_REAL Psi6 = METRIC_LAP_PSI4[PSI2]*METRIC_LAP_PSI4[PSI4];
 	  CCTK_REAL half_alpha_sqrtgamma = 0.5*METRIC_LAP_PSI4[LAPSE]*Psi6;
@@ -488,9 +365,11 @@ static void GRHayL_add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_para
       }
 
 #pragma omp parallel for
-  for(int k=cctk_nghostzones[2];k<cctk_lsh[2]-cctk_nghostzones[2];k++) for(int j=cctk_nghostzones[1];j<cctk_lsh[1]-cctk_nghostzones[1];j++) for(int i=cctk_nghostzones[0];i<cctk_lsh[0]-cctk_nghostzones[0];i++) {
-	int index   = CCTK_GFINDEX3D(cctkGH,i,j,k);
-	int indexp1 = CCTK_GFINDEX3D(cctkGH,i+kronecker_delta[flux_dirn][0],j+kronecker_delta[flux_dirn][1],k+kronecker_delta[flux_dirn][2]);
+  for(int k=ghostzone; k<dirlength-ghostzone; k++)
+    for(int j=ghostzone; j<dirlength-ghostzone; j++)
+      for(int i=ghostzone; i<dirlength-ghostzone; i++) {
+	int index   = indexf(dirlength,i,j,k);
+	int indexp1 = indexf(dirlength,i+kronecker_delta[flux_dirn][0],j+kronecker_delta[flux_dirn][1],k+kronecker_delta[flux_dirn][2]);
 
 	rho_star_rhs [index] += (rho_star_flux[index] - rho_star_flux[indexp1]) * dxi[flux_dirn];
 	tau_rhs      [index] += (tau_flux     [index] - tau_flux     [indexp1]) * dxi[flux_dirn];

@@ -32,12 +32,6 @@ if( igm_con2prim_standalone ) {
   } "Performs a con2prim standalone test"
 }
 
-schedule test_mhdflux in CCTK_INITIAL before HydroBase_Initial
-{
-  LANG: C
-  OPTIONS: GLOBAL
-} "perform mhdflux test"
-
 ####################
 # RUN INITIALLY ONLY
 schedule IllinoisGRMHD_RegisterVars in MoL_Register after BSSN_RegisterVars after lapse_RegisterVars
@@ -152,3 +146,7 @@ schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in AddToTmunu after 
 } "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
 ##########################################################
 
+schedule GRHayL_flux_source_test_data at CCTK_INITIAL before HydroBase_Initial AFTER GRHayL_HLL_flux_test_data
+{
+  LANG: C
+} "Generates output data for induction equation gauge RHS unit test"

@@ -93,9 +93,6 @@ static inline void mhdflux( const igm_eos_parameters eos,
   CCTK_REAL cmaxL =  MAX(0.0,MAX(cplusl,cplusr));
   CCTK_REAL cminL = -MIN(0.0,MIN(cminusl,cminusr));
 
-  printf("%d h, cs2, cmin, cmax: %e %e, %e %e, %e %e\n", flux_dirn-1, h_r, h_l, cs2_r, cs2_l, cminL, cmaxL);
-
-
   //*********************************************************************
   // density flux = \rho_* v^m, where m is the current flux direction (the m index)
   //*********************************************************************
