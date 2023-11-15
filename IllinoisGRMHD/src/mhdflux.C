@@ -30,6 +30,10 @@ static inline void mhdflux( const igm_eos_parameters eos,
   CCTK_REAL ONE_OVER_LAPSE_SQUARED=SQR(ONE_OVER_LAPSE);
 
   // Compute the sound speed and enthalpy on the right face
+  // if(i==16 && j==16 && k==16) {
+  //   printf("Tr: %22.15e\n", Ur[TEMPERATURE]);
+  //   printf("Tl: %22.15e\n", Ul[TEMPERATURE]);
+  // }
   CCTK_REAL cs2_r=0,h_r=0;
   compute_cs2_and_enthalpy(eos,Ur,&cs2_r,&h_r);
 
@@ -43,6 +47,11 @@ static inline void mhdflux( const igm_eos_parameters eos,
   CCTK_REAL u0_r,u0_l;
   impose_speed_limit_output_u0(FACEVAL,Ur,psi4,ONE_OVER_LAPSE,stats,u0_r);
   impose_speed_limit_output_u0(FACEVAL,Ul,psi4,ONE_OVER_LAPSE,stats,u0_l);
+
+  if(i==12 && j==3 && k==13) {
+    printf("hr: %22.15e %22.15e %22.15e -> %22.15e %22.15e %22.15e %22.15e %22.15e\n", Ur[RHOB], Ur[YEPRIM], Ur[TEMPERATURE], Ur[PRESSURE], Ur[EPSILON], h_r, cs2_r, u0_r);
+    printf("hl: %22.15e %22.15e %22.15e -> %22.15e %22.15e %22.15e %22.15e %22.15e\n", Ul[RHOB], Ul[YEPRIM], Ul[TEMPERATURE], Ul[PRESSURE], Ul[EPSILON], h_l, cs2_l, u0_l);
+  }
 
   //Next compute b^{\mu}, the magnetic field measured in the comoving fluid frame:
   CCTK_REAL ONE_OVER_LAPSE_SQRT_4PI = ONE_OVER_LAPSE*ONE_OVER_SQRT_4PI;

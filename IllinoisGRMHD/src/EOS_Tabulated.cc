@@ -100,11 +100,11 @@ void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,i
 
   // --------- Atmospheric values ---------
   // Atmospheric rho
-  eos.rho_atm = rho_b_atm;
+  eos.rho_atm = eos_rhomin;
   // Atmospheric electron fraction
-  eos.Ye_atm  = igm_Ye_atm;
+  eos.Ye_atm  = eos_yemax;
   // Atmospheric temperature fraction
-  eos.T_atm   = igm_T_atm;
+  eos.T_atm   = eos_tempmin;
   // Compute P, eps, and S in the atmosphere
   if( eos.evolve_entropy ) {
     WVU_EOS_P_eps_and_S_from_rho_Ye_T( eos.rho_atm,eos.Ye_atm,eos.T_atm,
@@ -130,9 +130,9 @@ void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,i
   // Finally, get the maximum entropy
   const CCTK_REAL eos_entmax = get_EOS_table_max( table_key_entropy );
   // Now set the EOS struct variables
-  eos.rho_max = MIN(rho_b_max,eos_rhomax  * igm_eos_table_ceiling_safety_factor);
+  eos.rho_max = eos_rhomax  * igm_eos_table_ceiling_safety_factor;
   eos.Ye_max  = eos_yemax   * igm_eos_table_ceiling_safety_factor;
-  eos.T_max   = MIN(igm_T_max,eos_tempmax * igm_eos_table_ceiling_safety_factor);
+  eos.T_max   = eos_tempmax * igm_eos_table_ceiling_safety_factor;
   eos.P_max   = eos_prsmax  * igm_eos_table_ceiling_safety_factor;
   eos.eps_max = eos_epsmax  * igm_eos_table_ceiling_safety_factor;
   eos.S_max   = eos_entmax  * igm_eos_table_ceiling_safety_factor;

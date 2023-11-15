@@ -985,7 +985,7 @@ extern "C" void GRHayL_flux_source_test_data(CCTK_ARGUMENTS) {
     for(int i=0;i<MAXNUMVARS;i++) for(int j=1;j<=3;j++) { out_prims_r[i].gz_lo[j]=0; out_prims_r[i].gz_hi[j]=0; }
     for(int i=0;i<MAXNUMVARS;i++) for(int j=1;j<=3;j++) { out_prims_l[i].gz_lo[j]=0; out_prims_l[i].gz_hi[j]=0; }
 
-#pragma omp parallel for
+    #pragma omp parallel for
     for(int k=0; k<dirlength; k++) {
       for(int j=0; j<dirlength; j++) {
         for(int i=0; i<dirlength; i++) {
@@ -1021,6 +1021,19 @@ extern "C" void GRHayL_flux_source_test_data(CCTK_ARGUMENTS) {
           S_z_rhs[index]=0.0;
           Ye_star_rhs[index]=0.0;
           S_star_rhs[index]=0.0;
+
+          T  [index] = 5.0;
+          if(index == 6736) {
+            printf("About to call: %e %e %e\n", rho[index], Ye[index], press[index]);
+          }
+          double S;
+          WVU_EOS_eps_S_and_T_from_rho_Ye_P(rho[index], Ye[index], press[index], &eps[index], &S, &T[index]);
+          if(index == 6736) {
+            printf("Got: %e %e\n", eps[index], T[index]);
+          }
+
+          T_r[index] = T[index];
+          T_l[index] = T[index];
         }
       }
     }
@@ -1100,6 +1113,13 @@ extern "C" void GRHayL_flux_source_test_data(CCTK_ARGUMENTS) {
     key += fread(Ye_l,    sizeof(double), arraylength, infile); count++;
     key += fread(S_l,     sizeof(double), arraylength, infile); count++;
 
+    const int dbidx = 5272;//dirlength/2 + dirlength*(dirlength/2) + dirlength*dirlength*(dirlength/2);
+
+    printf("P : %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n", rho  [dbidx], Ye  [dbidx], press  [dbidx], S  [dbidx], vx  [dbidx], vy  [dbidx], vz  [dbidx]);
+    printf("Pr: %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n", rho_r[dbidx], Ye_r[dbidx], press_r[dbidx], S_r[dbidx], vx_r[dbidx], vy_r[dbidx], vz_r[dbidx]);
+    printf("Pl: %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n", rho_l[dbidx], Ye_l[dbidx], press_l[dbidx], S_l[dbidx], vx_l[dbidx], vy_l[dbidx], vz_l[dbidx]);
+
+
     if(key != arraylength*count)
       CCTK_VERROR("An error has occured with reading in initial data. Please check that data\n"
                   "is up-to-date with current test version.\n");
@@ -1142,6 +1162,9 @@ extern "C" void GRHayL_flux_source_test_data(CCTK_ARGUMENTS) {
     key += fread(Ye_l,    sizeof(double), arraylength, infile); count++;
     key += fread(S_l,     sizeof(double), arraylength, infile); count++;
 
+    printf("Pr: %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n", rho_r[dbidx], Ye_r[dbidx], press_r[dbidx], S_r[dbidx], vx_r[dbidx], vy_r[dbidx], vz_r[dbidx]);
+    printf("Pl: %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n", rho_l[dbidx], Ye_l[dbidx], press_l[dbidx], S_l[dbidx], vx_l[dbidx], vy_l[dbidx], vz_l[dbidx]);
+
     if(key != arraylength*count)
       CCTK_VERROR("An error has occured with reading in initial data. Please check that data\n"
                   "is up-to-date with current test version.\n");
@@ -1154,6 +1177,7 @@ extern "C" void GRHayL_flux_source_test_data(CCTK_ARGUMENTS) {
                                               cmax_y,cmin_y,
                                               rho_star_flux,tau_flux,S_x_flux,S_y_flux,S_z_flux,Ye_star_flux,S_star_flux,
                                               rho_star_rhs,tau_rhs,S_x_rhs,S_y_rhs,S_z_rhs,Ye_star_rhs,S_star_rhs);
+    // printf("F : %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n", rho_star_flux[dbidx], tau_flux[dbidx], S_x_flux[dbidx], S_y_flux[dbidx], S_z_flux[dbidx], Ye_star_flux[dbidx], S_star_flux[dbidx]);
 
     flux_dirn=3;
 
@@ -1180,6 +1204,9 @@ extern "C" void GRHayL_flux_source_test_data(CCTK_ARGUMENTS) {
     key += fread(Ye_l,    sizeof(double), arraylength, infile); count++;
     key += fread(S_l,     sizeof(double), arraylength, infile); count++;
 
+    printf("Pr: %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n", rho_r[dbidx], Ye_r[dbidx], press_r[dbidx], S_r[dbidx], vx_r[dbidx], vy_r[dbidx], vz_r[dbidx]);
+    printf("Pl: %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n", rho_l[dbidx], Ye_l[dbidx], press_l[dbidx], S_l[dbidx], vx_l[dbidx], vy_l[dbidx], vz_l[dbidx]);
+
     if(key != arraylength*count)
       CCTK_VERROR("An error has occured with reading in initial data. Please check that data\n"
                   "is up-to-date with current test version.\n");
@@ -1192,6 +1219,10 @@ extern "C" void GRHayL_flux_source_test_data(CCTK_ARGUMENTS) {
                                               cmax_z,cmin_z,
                                               rho_star_flux,tau_flux,S_x_flux,S_y_flux,S_z_flux,Ye_star_flux,S_star_flux,
                                               rho_star_rhs,tau_rhs,S_x_rhs,S_y_rhs,S_z_rhs,Ye_star_rhs,S_star_rhs);
+
+    // printf("F : %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n", rho_star_flux[dbidx], tau_flux[dbidx], S_x_flux[dbidx], S_y_flux[dbidx], S_z_flux[dbidx], Ye_star_flux[dbidx], S_star_flux[dbidx]);
+    printf("R : %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n", rho_star_rhs[dbidx], tau_rhs[dbidx], S_x_rhs[dbidx], S_y_rhs[dbidx], S_z_rhs[dbidx], Ye_star_rhs[dbidx], S_star_rhs[dbidx]);
+    printf("***********************************************************\n");
 
     char filename[100];
     switch (perturb) {
