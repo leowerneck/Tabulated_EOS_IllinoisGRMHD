@@ -175,6 +175,11 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 
         Ye_star_rhs [index] = 0.0;
         S_star_rhs  [index] = 0.0;
+
+	s_tau       [index] = 0.0;
+	s_sx        [index] = 0.0;
+	s_sy        [index] = 0.0;
+	s_sz        [index] = 0.0;
       }
 
   // Here, we:

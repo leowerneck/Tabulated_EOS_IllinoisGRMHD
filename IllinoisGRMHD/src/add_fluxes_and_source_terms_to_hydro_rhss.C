@@ -194,9 +194,9 @@ static void add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters 
 	  st_x_rhs[index] += st_i_curvature_terms[1];
 	  st_y_rhs[index] += st_i_curvature_terms[2];
 	  st_z_rhs[index] += st_i_curvature_terms[3];
-          s_sx    [index]  = st_i_curvature_terms[1];
-          s_sy    [index]  = st_i_curvature_terms[2];
-          s_sz    [index]  = st_i_curvature_terms[3];
+          s_sx    [index] += st_i_curvature_terms[1];
+          s_sy    [index] += st_i_curvature_terms[2];
+          s_sz    [index] += st_i_curvature_terms[3];
 	}
 
       }

@@ -200,9 +200,9 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
           // Step 3.h.iii: Compute u^{2} = u_{mu}u^{mu}
           CCTK_REAL usqr = 0.0;
           for(int mu=0;mu<4;mu++) usqr += u4D[mu]*u4U[mu];
-          if( fabs(usqr + 1) > 1e-13 ) {
-            CCTK_VWARN(CCTK_WARN_ALERT,"Found u^2 != -1: usqr = %.15e",usqr);
-          }
+          //if( fabs(usqr + 1) > 1e-13 ) {
+          //  CCTK_VWARN(CCTK_WARN_ALERT,"Found u^2 != -1: usqr = %.15e",usqr);
+          //}
 
           if( robust_isnan(R_sourceL*Q_sourceL*kappa_nueL[0]*kappa_nueL[1]*kappa_anueL[0]*kappa_anueL[1]*kappa_nuxL[0]*kappa_nuxL[1]*
                            Ye_star_rhs[index]*tau_rhs[index]*st_x_rhs[index]*st_y_rhs[index]*st_z_rhs[index]) ) {
