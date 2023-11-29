@@ -1,11 +1,11 @@
 # Interface definition for thorn IllinoisGRMHD
 
 implements: IllinoisGRMHD
-inherits: ADMBase, Boundary, SpaceMask, Tmunubase, HydroBase, grid
+inherits: ADMBase, Boundary, SpaceMask, Tmunubase, HydroBase, grid, GRHayLib
 
 includes header: IllinoisGRMHD_headers.h in IllinoisGRMHD_headers.h
 
-USES INCLUDE: Symmetry.h
+USES INCLUDE: Symmetry.h GRHayLib.h
 USES INCLUDE HEADER: WVU_EOS_Tabulated_headers.hh
 
 public:
@@ -15,6 +15,8 @@ cctk_real grmhd_conservatives type = GF Timelevels=3 TAGS='prolongation="ENO"'
 {
   rho_star,tau,mhd_st_x,mhd_st_y,mhd_st_z,Ye_star,S_star  # Note that st = Stilde, as mhd_st_i = \tilde{S}_i.
 } "Evolved mhd variables"
+
+CCTK_INT needs_average type = GF TAGS='prolongation="none" Checkpoint="no" InterpNumTimelevels=1' ""
 
 # These variables are semi-staggered:
 # Ax is defined on the semi-staggered grid (i,j+1/2,k+1/2)
