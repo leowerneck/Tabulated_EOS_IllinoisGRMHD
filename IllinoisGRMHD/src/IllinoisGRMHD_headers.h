@@ -2,8 +2,14 @@
 #ifndef ILLINOISGRMHD_HEADERS_H_
 #define ILLINOISGRMHD_HEADERS_H_
 
+#ifndef MIN
 #define MIN(a,b) ( ((a) < (b)) ? (a) : (b) )
+#endif
+
+#ifndef MAX
 #define MAX(a,b) ( ((a) > (b)) ? (a) : (b) )
+#endif
+
 #define SQR(x) ((x) * (x))
 #define ONE_OVER_SQRT_4PI 0.282094791773878143474039725780
 
