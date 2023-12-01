@@ -139,10 +139,10 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
           }
         }
 
-        Ax[index] = Avec[CCTK_GFINDEX4D(cctkGH,i,j,k,0)];
-        Ay[index] = Avec[CCTK_GFINDEX4D(cctkGH,i,j,k,1)];
-        Az[index] = Avec[CCTK_GFINDEX4D(cctkGH,i,j,k,2)];
-        psi6phi[index] = Aphi[index];
+        Ax[index] = Avec[CCTK_GFINDEX4D(cctkGH,i,j,k,0)] * ONE_OVER_SQRT_4PI;
+        Ay[index] = Avec[CCTK_GFINDEX4D(cctkGH,i,j,k,1)] * ONE_OVER_SQRT_4PI;
+        Az[index] = Avec[CCTK_GFINDEX4D(cctkGH,i,j,k,2)] * ONE_OVER_SQRT_4PI;
+        psi6phi[index] = Aphi[index] * ONE_OVER_SQRT_4PI;
 
         double ETvx = vel[CCTK_GFINDEX4D(cctkGH,i,j,k,0)];
         double ETvy = vel[CCTK_GFINDEX4D(cctkGH,i,j,k,1)];

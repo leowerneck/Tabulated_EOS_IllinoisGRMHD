@@ -180,9 +180,9 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         // so using the previous timelevel as an initial guess would need to
         // be implemented here.
         ghl_primitive_quantities prims;
-        prims.BU[0] = Bx[index] * ONE_OVER_SQRT_4PI;
-        prims.BU[1] = By[index] * ONE_OVER_SQRT_4PI;
-        prims.BU[2] = Bz[index] * ONE_OVER_SQRT_4PI;
+        prims.BU[0] = Bx[index];
+        prims.BU[1] = By[index];
+        prims.BU[2] = Bz[index];
 
         // Read in conservative variables from gridfunctions
         ghl_conservative_quantities cons, cons_orig;
