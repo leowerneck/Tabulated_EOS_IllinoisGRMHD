@@ -37,9 +37,9 @@ void Convert_to_HydroBase(CCTK_ARGUMENTS) {
         PRIMS[VX           ] = vx[index];
         PRIMS[VY           ] = vy[index];
         PRIMS[VZ           ] = vz[index];
-        PRIMS[BX_CENTER    ] = Bx[index] / OVER_ONE_SQRT_4PI;
-        PRIMS[BY_CENTER    ] = By[index] / OVER_ONE_SQRT_4PI;
-        PRIMS[BZ_CENTER    ] = Bz[index] / OVER_ONE_SQRT_4PI;
+        PRIMS[BX_CENTER    ] = Bx[index] / ONE_OVER_SQRT_4PI;
+        PRIMS[BY_CENTER    ] = By[index] / ONE_OVER_SQRT_4PI;
+        PRIMS[BZ_CENTER    ] = Bz[index] / ONE_OVER_SQRT_4PI;
         if( eos.is_Tabulated ) {
           PRIMS[YEPRIM     ] = igm_Ye[index];
           PRIMS[TEMPERATURE] = igm_temperature[index];
