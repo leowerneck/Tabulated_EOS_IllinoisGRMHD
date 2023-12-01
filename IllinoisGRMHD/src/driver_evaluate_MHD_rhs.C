@@ -339,9 +339,9 @@ static void GRHayLMHD_tabulated_entropy_evaluate_sources_rhs(CCTK_ARGUMENTS) {
         prims.vU[0]       = vx[index];
         prims.vU[1]       = vy[index];
         prims.vU[2]       = vz[index];
-        prims.BU[0]       = Bx[index];
-        prims.BU[1]       = By[index];
-        prims.BU[2]       = Bz[index];
+        prims.BU[0]       = Bx[index] * ONE_OVER_SQRT_4PI;
+        prims.BU[1]       = By[index] * ONE_OVER_SQRT_4PI;
+        prims.BU[2]       = Bz[index] * ONE_OVER_SQRT_4PI;
         prims.entropy     = igm_entropy[index];
         prims.Y_e         = igm_Ye[index];
         prims.temperature = igm_temperature[index];
@@ -538,8 +538,8 @@ void GRHayLMHD_tabulated_entropy_calculate_flux_dir_rhs(
           v_flux_dir[ind]    = v_flux[stencil]; // Could be smaller; doesn't use full stencil
           rho_stencil[ind]   = rho_b[stencil];
           press_stencil[ind] = P[stencil];
-          B1_stencil[ind]    = B_center[B_recon[1]][stencil];
-          B2_stencil[ind]    = B_center[B_recon[2]][stencil];
+          B1_stencil[ind]    = B_center[B_recon[1]][stencil] * ONE_OVER_SQRT_4PI;
+          B2_stencil[ind]    = B_center[B_recon[2]][stencil] * ONE_OVER_SQRT_4PI;
           ent_stencil[ind]   = igm_entropy[stencil];
           Ye_stencil[ind]    = igm_Ye[stencil];
         }
@@ -557,7 +557,7 @@ void GRHayLMHD_tabulated_entropy_calculate_flux_dir_rhs(
         ghl_ppm_reconstruction(ftilde, Ye_stencil, &prims_r.Y_e, &prims_l.Y_e);
 
         // B_stagger is densitized, but B_center is not.
-        prims_r.BU[B_recon[0]] = prims_l.BU[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
+        prims_r.BU[B_recon[0]] = prims_l.BU[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma * ONE_OVER_SQRT_4PI;
 
         prims_r.vU[0] = vel_r[0][index];
         prims_r.vU[1] = vel_r[1][index];
