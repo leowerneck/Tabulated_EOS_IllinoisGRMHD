@@ -645,9 +645,10 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   int max_num_interp_variables=ww;
   if(max_num_interp_variables>MAXNUMINTERP) {CCTK_VError(VERR_DEF_PARAMS,"Error: Didn't allocate enough space for interp_vars[]."); }
   // We are FINISHED with v{x,y,z}{r,l} and P{r,l} so we use these 8 gridfunctions' worth of space as temp storage.
-  Lorenz_psi6phi_rhs__add_gauge_terms_to_A_i_rhs(cctkGH,cctk_lsh,cctk_nghostzones,dX,interp_vars,psi6phi,
-                                                 vxr,vyr,vzr,vxl,vyl,vzl,Pr,Pl,
-                                                 psi6phi_rhs,Ax_rhs,Ay_rhs,Az_rhs);
+  //Lorenz_psi6phi_rhs__add_gauge_terms_to_A_i_rhs(cctkGH,cctk_lsh,cctk_nghostzones,dX,interp_vars,psi6phi,
+  //                                               vxr,vyr,vzr,vxl,vyl,vzl,Pr,Pl,
+  //                                               psi6phi_rhs,Ax_rhs,Ay_rhs,Az_rhs);
+  GRHayLMHD_evaluate_psi6phi_and_A_gauge_rhs(CCTK_ARGUMENTS);
 
   if( CCTK_IsThornActive("NRPyLeakageET") ) {
     // Convert rho, Y_e, T, and velocities to HydroBase
