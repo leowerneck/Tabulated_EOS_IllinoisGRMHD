@@ -1,3 +1,5 @@
+#include <math.h>
+
 int con2prim( const igm_eos_parameters eos,
               const int index,const int i,const int j,const int k,
               const CCTK_REAL *restrict X,const CCTK_REAL *restrict Y,const CCTK_REAL *restrict Z,
@@ -57,7 +59,7 @@ int con2prim( const igm_eos_parameters eos,
 
   //FIXME: Only works if poisoning is turned on. Otherwise will access unknown memory. This trick alone speeds up the whole code (Cowling) by 2%.
   //int startguess=0;
-  //if(robust_isnan(PRIMS[VX])) startguess=1;
+  //if(isnan(PRIMS[VX])) startguess=1;
   int startguess=1;
 
   CCTK_REAL u0L=1.0;
@@ -191,7 +193,7 @@ int con2prim( const igm_eos_parameters eos,
       }
 
       // Check for NAN!
-      if( robust_isnan(prim[RHO]*prim[TEMP]*prim[YE]*prim[PRESS]*prim[EPS]*prim[ENT]*utx_new*uty_new*utz_new*u0L) ) {
+      if( isnan(prim[RHO]*prim[TEMP]*prim[YE]*prim[PRESS]*prim[EPS]*prim[ENT]*utx_new*uty_new*utz_new*u0L) ) {
 	CCTK_VINFO("***********************************************************");
 	CCTK_VINFO("NAN found in function %s (file: %s)",__func__,__FILE__);
 	CCTK_VINFO("Input IllinoisGRMHD conserved variables:");

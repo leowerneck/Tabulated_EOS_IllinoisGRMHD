@@ -530,7 +530,7 @@ double zbrent( double (*func)(const igm_eos_parameters, double, double *, double
 
   } //end for loop
 
-  if( (!robust_isfinite(fb)) ) {
+  if( (!isfinite(fb)) ) {
     stats.c2p_failed = true;
     return b;
   } if( (fabs(maxerror) <= tol1 || fb == 0.0)){

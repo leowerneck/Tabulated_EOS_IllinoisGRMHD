@@ -6,6 +6,8 @@
 #include "harm_u2p_util.h"
 #include "inlined_functions.h"
 
+#include <math.h>
+
 /**********************************************************************************
  * This is a modified version of the original HARM code which is compatible with
  * IllinoisGRMHD. The modifications below are documented in pedagogical Jupyter
@@ -579,7 +581,7 @@ int newton_raphson_1d( CCTK_REAL x[], int n, igm_eos_parameters eos, harm_aux_va
 
 
   /*  Check for bad untrapped divergences : */
-  if( (!robust_isfinite(f)) || (!robust_isfinite(df)) || (!robust_isfinite(x[0]))  ) {
+  if( (!isfinite(f)) || (!isfinite(df)) || (!isfinite(x[0]))  ) {
     return(2);
   }
 

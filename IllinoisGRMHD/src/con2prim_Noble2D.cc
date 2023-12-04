@@ -7,6 +7,8 @@
 #include "harm_u2p_util.h"
 #include "inlined_functions.h"
 
+#include <math.h>
+
 /***********************************************************************************
     Copyright 2006 Charles F. Gammie, Jonathan C. McKinney, Scott C. Noble,
                    Gabor Toth, and Luca Del Zanna
@@ -535,7 +537,7 @@ int general_newton_raphson( igm_eos_parameters eos, harm_aux_vars_struct& harm_a
   }   // END of while(keep_iterating)
 
   /*  Check for bad untrapped divergences : */
-  if( (robust_isfinite(f)==0) ||  (robust_isfinite(df)==0) ) {
+  if( (isfinite(f)==0) ||  (isfinite(df)==0) ) {
     return(2);
   }
 

@@ -5,11 +5,12 @@
 //     am2 = -1/16, am1 = 9/16, a0 = 9/16, a1 = -1/16
 // This will yield the third-order-accurate face values at m-1/2,
 //      using values specified at {m-2,m-1,m,m+1}
-#define AM2 -0.0625
-#define AM1  0.5625
-#define A0   0.5625
-#define A1  -0.0625
-#define COMPUTE_FCVAL(METRICm2,METRICm1,METRIC,METRICp1) (AM2*(METRICm2) + AM1*(METRICm1) + A0*(METRIC) + A1*(METRICp1))
+// #define AM2 -0.0625
+// #define AM1  0.5625
+// #define A0   0.5625
+// #define A1  -0.0625
+// #undef COMPUTE_FCVAL
+// #define COMPUTE_FCVAL(METRICm2,METRICm1,METRIC,METRICp1) (AM2*(METRICm2) + AM1*(METRICm1) + A0*(METRIC) + A1*(METRICp1))
 
 static inline void mhdflux( const igm_eos_parameters eos,
                             const int i,
