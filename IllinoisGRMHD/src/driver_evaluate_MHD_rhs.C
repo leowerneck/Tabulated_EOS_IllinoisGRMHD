@@ -208,8 +208,8 @@ static void IllinoisGRHD_tabulated_evaluate_sources_rhs(CCTK_ARGUMENTS) {
         prims.vU[0] = vx[index];
         prims.vU[1] = vy[index];
         prims.vU[2] = vz[index];
-        prims.Y_e   = Y_e[index];
-        prims.temperature = temperature[index];
+        prims.Y_e   = igm_Ye[index];
+        prims.temperature = igm_temperature[index];
 
         const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims);
 
@@ -344,7 +344,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
             vx_stencil[ind]    = vx[stencil];
             vy_stencil[ind]    = vy[stencil];
             vz_stencil[ind]    = vz[stencil];
-            Ye_stencil[ind]    = Y_e[stencil];
+            Ye_stencil[ind]    = igm_Ye[stencil];
           }
 
           CCTK_REAL ftilde[2];
@@ -362,7 +362,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
           prims_r.BU[0] = prims_r.BU[1] = prims_r.BU[2] = 0.0;
           prims_l.BU[0] = prims_l.BU[1] = prims_l.BU[2] = 0.0;
 
-          prims_r.temperature = prims_l.temperature = temperature[index];
+          prims_r.temperature = prims_l.temperature = igm_temperature[index];
 
           int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r);
           speed_limited = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l);
