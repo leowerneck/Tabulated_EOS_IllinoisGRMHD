@@ -7,11 +7,11 @@
  * to have 3 ghostzones instead of 4.
  *****************************************/
 
-#define MINUS2 0
-#define MINUS1 1
-#define PLUS0  2
-#define PLUS1  3
-#define PLUS2  4
+// #define MINUS2 0
+// #define MINUS1 1
+// #define PLUS0  2
+// #define PLUS1  3
+// #define PLUS2  4
 #define MAXNUMINDICES 5
 //      ^^^^^^^^^^^^^ Be _sure_ to define MAXNUMINDICES appropriately!
 

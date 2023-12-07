@@ -6,6 +6,7 @@ inherits: ADMBase, Boundary, SpaceMask, Tmunubase, HydroBase, grid
 includes header: IllinoisGRMHD_headers.h in IllinoisGRMHD_headers.h
 
 USES INCLUDE: Symmetry.h
+USES INCLUDE: GRHayLib.h
 USES INCLUDE HEADER: WVU_EOS_Tabulated_headers.hh
 
 public:

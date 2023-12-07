@@ -624,6 +624,10 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 //    These files only include about 800 lines of code in total (~1200 lines in total), but it's arguably more
 //    convenient to edit a 600 line file than an 1800 line file, so I'd prefer to leave this unconventional structure
 //    alone.
+#include "GRHayLib.h"
+#define PLUS0 PLUS_0
+#define PLUS1 PLUS_1
+#define PLUS2 PLUS_2
 #include "reconstruct_set_of_prims_PPM.C"
 #include "compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu.C"
 #include "add_fluxes_and_source_terms_to_hydro_rhss.C"

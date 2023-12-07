@@ -380,16 +380,16 @@ static inline void compute_smallba_b2_and_u_i_over_u0_psi4(CCTK_REAL *METRIC,CCT
 // robust_isnan(). robust_isfinite() is based on robust_isnan(),
 // with modifications inspired by chux's reply to this question:
 // https://stackoverflow.com/questions/36150514/check-if-a-number-is-inf-or-nan
-static inline int robust_isnan(double x) {
-  unsigned long *pbits = (unsigned long *)&x;
-  return( (*pbits & 0x7ff0000000000000UL) == 0x7ff0000000000000UL &&
-          (*pbits & 0x000fffffffffffffUL) );
-}
-
-static inline int robust_isfinite(double x) {
-  unsigned long *pbits = (unsigned long *)&x;
-  return( !((*pbits & 0x7ff0000000000000UL) == 0x7ff0000000000000UL &&
-           ((*pbits & 0x7ff0000000000000UL) || (*pbits & 0xfff0000000000000UL))) );
-}
+// static inline int robust_isnan(double x) {
+//   unsigned long *pbits = (unsigned long *)&x;
+//   return( (*pbits & 0x7ff0000000000000UL) == 0x7ff0000000000000UL &&
+//           (*pbits & 0x000fffffffffffffUL) );
+// }
+// 
+// static inline int robust_isfinite(double x) {
+//   unsigned long *pbits = (unsigned long *)&x;
+//   return( !((*pbits & 0x7ff0000000000000UL) == 0x7ff0000000000000UL &&
+//            ((*pbits & 0x7ff0000000000000UL) || (*pbits & 0xfff0000000000000UL))) );
+// }
 
 #endif // INLINED_FUNCTIONS_H_

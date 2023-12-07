@@ -1,6 +1,7 @@
 #include "cctk.h"
 #include "cctk_Parameters.h"
 
+#include <cmath>
 #include "IllinoisGRMHD_headers.h"
 #include "EOS_headers.hh"
 #include "con2prim_headers.h"
@@ -535,7 +536,7 @@ int general_newton_raphson( igm_eos_parameters eos, harm_aux_vars_struct& harm_a
   }   // END of while(keep_iterating)
 
   /*  Check for bad untrapped divergences : */
-  if( (robust_isfinite(f)==0) ||  (robust_isfinite(df)==0) ) {
+  if( (std::isfinite(f)==0) ||  (std::isfinite(df)==0) ) {
     return(2);
   }
 

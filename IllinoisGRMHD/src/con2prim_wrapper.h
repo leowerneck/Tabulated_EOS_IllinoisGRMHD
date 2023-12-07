@@ -191,7 +191,7 @@ int con2prim( const igm_eos_parameters eos,
       }
 
       // Check for NAN!
-      if( robust_isnan(prim[RHO]*prim[TEMP]*prim[YE]*prim[PRESS]*prim[EPS]*prim[ENT]*utx_new*uty_new*utz_new*u0L) ) {
+      if( std::isnan(prim[RHO]*prim[TEMP]*prim[YE]*prim[PRESS]*prim[EPS]*prim[ENT]*utx_new*uty_new*utz_new*u0L) ) {
 	CCTK_VINFO("***********************************************************");
 	CCTK_VINFO("NAN found in function %s (file: %s)",__func__,__FILE__);
 	CCTK_VINFO("Input IllinoisGRMHD conserved variables:");
