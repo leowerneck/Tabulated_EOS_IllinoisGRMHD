@@ -60,12 +60,6 @@
 #define COMPUTE_DERIV(Varm2,Varm1,Varp1,Varp2) (B_in*(Varp1 - Varm1) + B_out*(Varp2 - Varm2))
 
 
-static inline CCTK_REAL get_Gamma_eff(
-      const CCTK_REAL rho_in,
-      const CCTK_REAL press_in) {
-  return 1.0;
-}
-
 static void GRHayLHD_interpolate_metric_to_face(
       const cGH *cctkGH,
       const int i, const int j, const int k,
@@ -203,8 +197,8 @@ static void IllinoisGRHD_tabulated_evaluate_sources_rhs(CCTK_ARGUMENTS) {
 
         ghl_primitive_quantities prims;
         prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-        prims.rho   = rho[index];
-        prims.press = press[index];
+        prims.rho   = rho_b[index];
+        prims.press = P[index];
         prims.vU[0] = vx[index];
         prims.vU[1] = vy[index];
         prims.vU[2] = vz[index];
@@ -339,8 +333,8 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
             // Stencil from -3 to +2 reconstructs to e.g. i-1/2
             const int stencil  = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
             v_flux[ind]        = v_flux_dir[stencil]; // Could be smaller; doesn't use full stencil
-            rho_stencil[ind]   = rho[stencil];
-            press_stencil[ind] = press[stencil];
+            rho_stencil[ind]   = rho_b[stencil];
+            press_stencil[ind] = P[stencil];
             vx_stencil[ind]    = vx[stencil];
             vy_stencil[ind]    = vy[stencil];
             vz_stencil[ind]    = vz[stencil];
@@ -350,7 +344,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
           CCTK_REAL ftilde[2];
           ghl_compute_ftilde(ghl_params, press_stencil, v_flux, ftilde);
 
-          const CCTK_REAL Gamma = get_Gamma_eff(rho[index], press[index]);
+          const CCTK_REAL Gamma = 1.0;
           ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, Gamma, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
 
           ghl_ppm_reconstruction(ftilde, press_stencil, &prims_r.press, &prims_l.press);
