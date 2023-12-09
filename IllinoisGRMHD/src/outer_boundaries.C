@@ -5,7 +5,7 @@
  * ( 1) Apply outer boundary conditions (BCs) on A_{\mu}
  * ( 2) Compute B^i from A_i everywhere, synchronize B^i
  * ( 3) Call con2prim to get primitives on interior pts
- * ( 4) Apply outer BCs on {P,rho_b,vx,vy,vz}.
+ * ( 4) Apply outer BCs on {press,rho,vx,vy,vz}.
  * ( 5) (optional) set conservatives on outer boundary.
  *******************************************************/
 
@@ -93,7 +93,7 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_A_mu(CCTK_ARGUMENTS) {
 
 
 /*******************************************************
- * Apply outer boundary conditions on {P,rho_b,vx,vy,vz}
+ * Apply outer boundary conditions on {press,rho,vx,vy,vz}
  * It is better to apply BCs on primitives than conservs,
  * because small errors in conservs can be greatly
  * amplified in con2prim, sometimes leading to unphysical
@@ -139,16 +139,16 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
     /* XMIN & XMAX */
     // i=imax=outer boundary
     if(cctk_bbox[1]) {
-      XMAX_OB_SIMPLE_COPY(P,imax);
-      XMAX_OB_SIMPLE_COPY(rho_b,imax);
+      XMAX_OB_SIMPLE_COPY(press,imax);
+      XMAX_OB_SIMPLE_COPY(rho,imax);
       XMAX_OB_SIMPLE_COPY(vx,imax);
       XMAX_OB_SIMPLE_COPY(vy,imax);
       XMAX_OB_SIMPLE_COPY(vz,imax);
-      XMAX_OB_SIMPLE_COPY(igm_entropy,imax);
-      XMAX_OB_SIMPLE_COPY(igm_eps,imax);
+      XMAX_OB_SIMPLE_COPY(entropy,imax);
+      XMAX_OB_SIMPLE_COPY(eps,imax);
       if( eos.is_Tabulated ) {
-        XMAX_OB_SIMPLE_COPY(igm_Ye,imax);
-        XMAX_OB_SIMPLE_COPY(igm_temperature,imax);
+        XMAX_OB_SIMPLE_COPY(Y_e,imax);
+        XMAX_OB_SIMPLE_COPY(temperature,imax);
       }
       if(ENABLE) {
         XMAX_INFLOW_CHECK(vx,imax);
@@ -156,16 +156,16 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
     }
     // i=imin=outer boundary
     if(cctk_bbox[0]) {
-      XMIN_OB_SIMPLE_COPY(P,imin);
-      XMIN_OB_SIMPLE_COPY(rho_b,imin);
+      XMIN_OB_SIMPLE_COPY(press,imin);
+      XMIN_OB_SIMPLE_COPY(rho,imin);
       XMIN_OB_SIMPLE_COPY(vx,imin);
       XMIN_OB_SIMPLE_COPY(vy,imin);
       XMIN_OB_SIMPLE_COPY(vz,imin);
-      XMIN_OB_SIMPLE_COPY(igm_entropy,imin);
-      XMIN_OB_SIMPLE_COPY(igm_eps,imin);
+      XMIN_OB_SIMPLE_COPY(entropy,imin);
+      XMIN_OB_SIMPLE_COPY(eps,imin);
       if( eos.is_Tabulated ) {
-        XMIN_OB_SIMPLE_COPY(igm_Ye,imin);
-        XMIN_OB_SIMPLE_COPY(igm_temperature,imin);
+        XMIN_OB_SIMPLE_COPY(Y_e,imin);
+        XMIN_OB_SIMPLE_COPY(temperature,imin);
       }
       if(ENABLE) XMIN_INFLOW_CHECK(vx,imin);
     }
@@ -173,30 +173,30 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
     /* YMIN & YMAX */
     // j=jmax=outer boundary
     if(cctk_bbox[3]) {
-      YMAX_OB_SIMPLE_COPY(P,jmax);
-      YMAX_OB_SIMPLE_COPY(rho_b,jmax);
+      YMAX_OB_SIMPLE_COPY(press,jmax);
+      YMAX_OB_SIMPLE_COPY(rho,jmax);
       YMAX_OB_SIMPLE_COPY(vx,jmax);
       YMAX_OB_SIMPLE_COPY(vy,jmax);
       YMAX_OB_SIMPLE_COPY(vz,jmax);
-      YMAX_OB_SIMPLE_COPY(igm_entropy,jmax);
-      YMAX_OB_SIMPLE_COPY(igm_eps,jmax);
+      YMAX_OB_SIMPLE_COPY(entropy,jmax);
+      YMAX_OB_SIMPLE_COPY(eps,jmax);
       if( eos.is_Tabulated ) {
-        YMAX_OB_SIMPLE_COPY(igm_Ye,jmax);
-        YMAX_OB_SIMPLE_COPY(igm_temperature,jmax);
+        YMAX_OB_SIMPLE_COPY(Y_e,jmax);
+        YMAX_OB_SIMPLE_COPY(temperature,jmax);
       }
       if(ENABLE) YMAX_INFLOW_CHECK(vy,jmax); }
     // j=jmin=outer boundary
     if(cctk_bbox[2]) {
-      YMIN_OB_SIMPLE_COPY(P,jmin);
-      YMIN_OB_SIMPLE_COPY(rho_b,jmin);
+      YMIN_OB_SIMPLE_COPY(press,jmin);
+      YMIN_OB_SIMPLE_COPY(rho,jmin);
       YMIN_OB_SIMPLE_COPY(vx,jmin);
       YMIN_OB_SIMPLE_COPY(vy,jmin);
       YMIN_OB_SIMPLE_COPY(vz,jmin);
-      YMIN_OB_SIMPLE_COPY(igm_entropy,jmin);
-      YMIN_OB_SIMPLE_COPY(igm_eps,jmin);
+      YMIN_OB_SIMPLE_COPY(entropy,jmin);
+      YMIN_OB_SIMPLE_COPY(eps,jmin);
       if( eos.is_Tabulated ) {
-        YMIN_OB_SIMPLE_COPY(igm_Ye,jmin);
-        YMIN_OB_SIMPLE_COPY(igm_temperature,jmin);
+        YMIN_OB_SIMPLE_COPY(Y_e,jmin);
+        YMIN_OB_SIMPLE_COPY(temperature,jmin);
       }
       if(ENABLE) YMIN_INFLOW_CHECK(vy,jmin);
     }
@@ -204,30 +204,30 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
     /* ZMIN & ZMAX */
     // k=kmax=outer boundary
     if(cctk_bbox[5]) {
-      ZMAX_OB_SIMPLE_COPY(P,kmax);
-      ZMAX_OB_SIMPLE_COPY(rho_b,kmax);
+      ZMAX_OB_SIMPLE_COPY(press,kmax);
+      ZMAX_OB_SIMPLE_COPY(rho,kmax);
       ZMAX_OB_SIMPLE_COPY(vx,kmax);
       ZMAX_OB_SIMPLE_COPY(vy,kmax);
       ZMAX_OB_SIMPLE_COPY(vz,kmax);
-      ZMAX_OB_SIMPLE_COPY(igm_entropy,kmax);
-      ZMAX_OB_SIMPLE_COPY(igm_eps,kmax);
+      ZMAX_OB_SIMPLE_COPY(entropy,kmax);
+      ZMAX_OB_SIMPLE_COPY(eps,kmax);
       if( eos.is_Tabulated ) {
-        ZMAX_OB_SIMPLE_COPY(igm_Ye,kmax);
-        ZMAX_OB_SIMPLE_COPY(igm_temperature,kmax);
+        ZMAX_OB_SIMPLE_COPY(Y_e,kmax);
+        ZMAX_OB_SIMPLE_COPY(temperature,kmax);
       }
       if(ENABLE) ZMAX_INFLOW_CHECK(vz,kmax); }
     // k=kmin=outer boundary
     if((cctk_bbox[4]) && Symmetry_none) {
-      ZMIN_OB_SIMPLE_COPY(P,kmin);
-      ZMIN_OB_SIMPLE_COPY(rho_b,kmin);
+      ZMIN_OB_SIMPLE_COPY(press,kmin);
+      ZMIN_OB_SIMPLE_COPY(rho,kmin);
       ZMIN_OB_SIMPLE_COPY(vx,kmin);
       ZMIN_OB_SIMPLE_COPY(vy,kmin);
       ZMIN_OB_SIMPLE_COPY(vz,kmin);
-      ZMIN_OB_SIMPLE_COPY(igm_entropy,kmin);
-      ZMIN_OB_SIMPLE_COPY(igm_temperature,kmin);
+      ZMIN_OB_SIMPLE_COPY(entropy,kmin);
+      ZMIN_OB_SIMPLE_COPY(temperature,kmin);
       if( eos.is_Tabulated ) {
-        ZMIN_OB_SIMPLE_COPY(igm_Ye,kmin);
-        ZMIN_OB_SIMPLE_COPY(igm_temperature,kmin);
+        ZMIN_OB_SIMPLE_COPY(Y_e,kmin);
+        ZMIN_OB_SIMPLE_COPY(temperature,kmin);
       }
       if(ENABLE) ZMIN_INFLOW_CHECK(vz,kmin); }
   }
@@ -266,8 +266,8 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
           METRIC[ww] = gtupyz[index];  ww++;
 
           CCTK_REAL PRIMS[MAXNUMVARS];
-          PRIMS[RHOB         ] = rho_b[index];
-          PRIMS[PRESSURE     ] = P[index];
+          PRIMS[RHOB         ] = rho[index];
+          PRIMS[PRESSURE     ] = press[index];
           PRIMS[VX           ] = vx[index];
           PRIMS[VY           ] = vy[index];
           PRIMS[VZ           ] = vz[index];
@@ -275,8 +275,8 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
           PRIMS[BY_CENTER    ] = By[index];
           PRIMS[BZ_CENTER    ] = Bz[index];
           if( eos.is_Tabulated ) {
-            PRIMS[YEPRIM     ] = igm_Ye[index];
-            PRIMS[TEMPERATURE] = igm_temperature[index];
+            PRIMS[YEPRIM     ] = Y_e[index];
+            PRIMS[TEMPERATURE] = temperature[index];
           }
 
           struct output_stats stats;
@@ -286,13 +286,13 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
           CCTK_REAL g4dn[4][4],g4up[4][4];
           IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(already_computed_physical_metric_and_inverse,PRIMS,stats,eos,METRIC,g4dn,g4up, TUPMUNU,TDNMUNU,CONSERVS);
 
-          rho_b            [index] = PRIMS[RHOB        ];
-          P                [index] = PRIMS[PRESSURE    ];
+          rho            [index] = PRIMS[RHOB        ];
+          press                [index] = PRIMS[PRESSURE    ];
           vx               [index] = PRIMS[VX          ];
           vy               [index] = PRIMS[VY          ];
           vz               [index] = PRIMS[VZ          ];
-          igm_eps          [index] = PRIMS[EPSILON     ];
-          igm_entropy      [index] = PRIMS[ENTROPY     ];
+          eps          [index] = PRIMS[EPSILON     ];
+          entropy      [index] = PRIMS[ENTROPY     ];
 
           rho_star         [index] = CONSERVS[RHOSTAR  ];
           tau              [index] = CONSERVS[TAUENERGY];
@@ -307,8 +307,8 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
           // Tabulated EOS
           if( eos.is_Tabulated ) {
             // Primitives
-            igm_Ye         [index] = PRIMS[YEPRIM      ];
-            igm_temperature[index] = PRIMS[TEMPERATURE ];
+            Y_e         [index] = PRIMS[YEPRIM      ];
+            temperature[index] = PRIMS[TEMPERATURE ];
             // Conservatives
             Ye_star        [index] = CONSERVS[YESTAR   ];
           }

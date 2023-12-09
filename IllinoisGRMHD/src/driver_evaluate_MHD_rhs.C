@@ -197,13 +197,13 @@ static void IllinoisGRHD_tabulated_evaluate_sources_rhs(CCTK_ARGUMENTS) {
 
         ghl_primitive_quantities prims;
         prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-        prims.rho   = rho_b[index];
-        prims.press = P[index];
+        prims.rho   = rho[index];
+        prims.press = press[index];
         prims.vU[0] = vx[index];
         prims.vU[1] = vy[index];
         prims.vU[2] = vz[index];
-        prims.Y_e   = igm_Ye[index];
-        prims.temperature = igm_temperature[index];
+        prims.Y_e   = Y_e[index];
+        prims.temperature = temperature[index];
 
         const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims);
 
@@ -333,12 +333,12 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
             // Stencil from -3 to +2 reconstructs to e.g. i-1/2
             const int stencil  = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
             v_flux[ind]        = v_flux_dir[stencil]; // Could be smaller; doesn't use full stencil
-            rho_stencil[ind]   = rho_b[stencil];
-            press_stencil[ind] = P[stencil];
+            rho_stencil[ind]   = rho[stencil];
+            press_stencil[ind] = press[stencil];
             vx_stencil[ind]    = vx[stencil];
             vy_stencil[ind]    = vy[stencil];
             vz_stencil[ind]    = vz[stencil];
-            Ye_stencil[ind]    = igm_Ye[stencil];
+            Ye_stencil[ind]    = Y_e[stencil];
           }
 
           CCTK_REAL ftilde[2];
@@ -356,7 +356,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
           prims_r.BU[0] = prims_r.BU[1] = prims_r.BU[2] = 0.0;
           prims_l.BU[0] = prims_l.BU[1] = prims_l.BU[2] = 0.0;
 
-          prims_r.temperature = prims_l.temperature = igm_temperature[index];
+          prims_r.temperature = prims_l.temperature = temperature[index];
 
           int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r);
           speed_limited = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l);

@@ -212,8 +212,8 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
           ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);
 
           prims.Y_e         = cons.Y_e / cons.rho;
-          prims.rho         = rho_b[index];
-          prims.temperature = igm_temperature[index];
+          prims.rho         = rho[index];
+          prims.temperature = temperature[index];
           prims.vU[0]       = vx[index];
           prims.vU[1]       = vy[index];
           prims.vU[2]       = vz[index];
@@ -250,15 +250,15 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         ghl_compute_conservs_and_Tmunu(
                                        &ADM_metric, &metric_aux, &prims, &cons, &Tmunu);
 
-        rho_b[index]           = prims.rho;
-        P[index]               = prims.press;
-        igm_eps[index]         = prims.eps;
+        rho[index]           = prims.rho;
+        press[index]               = prims.press;
+        eps[index]         = prims.eps;
         vx[index]              = prims.vU[0];
         vy[index]              = prims.vU[1];
         vz[index]              = prims.vU[2];
-        igm_entropy[index]     = prims.entropy;
-        igm_Ye[index]          = prims.Y_e;
-        igm_temperature[index] = prims.temperature;
+        entropy[index]     = prims.entropy;
+        Y_e[index]          = prims.Y_e;
+        temperature[index] = prims.temperature;
 
         rho_star[index] = cons.rho;
         tau[index]      = cons.tau;
@@ -418,15 +418,15 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         ghl_compute_conservs(
               &ADM_metric, &metric_aux, &prims, &cons);
 
-        rho_b[index]       = prims.rho;
-        P[index]           = prims.press;
+        rho[index]       = prims.rho;
+        press[index]           = prims.press;
         eps[index]         = prims.eps;
         vx[index]          = prims.vU[0];
         vy[index]          = prims.vU[1];
         vz[index]          = prims.vU[2];
-        igm_entropy[index]     = prims.entropy;
-        igm_Ye[index]         = prims.Y_e;
-        igm_temperature[index] = prims.temperature;
+        entropy[index]     = prims.entropy;
+        Y_e[index]         = prims.Y_e;
+        temperature[index] = prims.temperature;
 
         rho_star[index] = cons.rho;
         tau[index]      = cons.tau;
@@ -536,15 +536,15 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         ghl_compute_conservs(
               &ADM_metric, &metric_aux, &prims, &cons);
 
-        rho_b[index]       = prims.rho;
-        P[index]           = prims.press;
+        rho[index]       = prims.rho;
+        press[index]           = prims.press;
         eps[index]         = prims.eps;
         vx[index]          = prims.vU[0];
         vy[index]          = prims.vU[1];
         vz[index]          = prims.vU[2];
-        igm_entropy[index]     = prims.entropy;
-        igm_Ye[index]         = prims.Y_e;
-        igm_temperature[index] = prims.temperature;
+        entropy[index]     = prims.entropy;
+        Y_e[index]         = prims.Y_e;
+        temperature[index] = prims.temperature;
 
         rho_star[index] = cons.rho;
         tau[index]      = cons.tau;

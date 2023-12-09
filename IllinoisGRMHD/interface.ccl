@@ -60,7 +60,7 @@ CCTK_REAL Tmunu_source_terms type=GF Timelevels=1 tags='Prolongation="none" Chec
 # TODO: split into groups with well defined symmetry properties: (rho_b, P, u0), (vx,vy,vz)
 cctk_real grmhd_primitives_allbutBi type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
 {
-  rho_b,P,vx,vy,vz,igm_Ye,igm_temperature,igm_eps,igm_entropy,igm_c2p_mask
+  vx,vy,vz
 } "Primitive variables density, pressure, and components of three velocity v^i. Note that v^i is defined in terms of 4-velocity as: v^i = u^i/u^0. Note that this definition differs from the Valencia formalism."
 # It is useful to split Bi from Bi_stagger, since we're generally only interested in outputting Bi for diagnostics
 cctk_real grmhd_primitives_Bi type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
@@ -87,16 +87,6 @@ cctk_real diagnostic_gfs type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
   failure_checker
 } "Gridfunction to track conservative-to-primitives solver fixes. Beware that this gridfunction is overwritten at each RK substep."
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
-
-#vvvvvvv TEMPORARY VARIABLES FOR RECONSTRUCTION vvvvvvv#
-cctk_real grmhd_primitives_reconstructed_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
-{
-  ftilde_gf,temporary,
-  rho_br,Pr,vxr,vyr,vzr,Bxr,Byr,Bzr,Bx_staggerr,By_staggerr,Bz_staggerr,Yer,Tr,epsr,Sr,
-  rho_bl,Pl,vxl,vyl,vzl,Bxl,Byl,Bzl,Bx_staggerl,By_staggerl,Bz_staggerl,Yel,Tl,epsl,Sl,
-  vxrr,vxrl,vyrr,vyrl,vzrr,vzrl,vxlr,vxll,vylr,vyll,vzlr,vzll
-} "Temporary variables used for primitives reconstruction"
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
 #vvvvvvv RHS VARIABLES vvvvvvv#
