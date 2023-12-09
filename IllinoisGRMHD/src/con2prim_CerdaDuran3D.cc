@@ -425,7 +425,7 @@ void NR_3D_WZT( const igm_eos_parameters eos,
   } // END of while(keep_iterating)
 
   //  Check for bad untrapped divergences
-  if( (!robust_isfinite(f[0])) || (!robust_isfinite(f[1])) ) {
+  if( (!isfinite(f[0])) || (!isfinite(f[1])) ) {
     *c2p_failed = true;
   }
 

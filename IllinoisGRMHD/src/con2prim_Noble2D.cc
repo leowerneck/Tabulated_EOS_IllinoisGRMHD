@@ -535,7 +535,7 @@ int general_newton_raphson( igm_eos_parameters eos, harm_aux_vars_struct& harm_a
   }   // END of while(keep_iterating)
 
   /*  Check for bad untrapped divergences : */
-  if( (robust_isfinite(f)==0) ||  (robust_isfinite(df)==0) ) {
+  if( (std::isfinite(f)==0) ||  (std::isfinite(df)==0) ) {
     return(2);
   }
 

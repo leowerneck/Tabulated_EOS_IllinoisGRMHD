@@ -579,7 +579,7 @@ int newton_raphson_1d( CCTK_REAL x[], int n, igm_eos_parameters eos, harm_aux_va
 
 
   /*  Check for bad untrapped divergences : */
-  if( (!robust_isfinite(f)) || (!robust_isfinite(df)) || (!robust_isfinite(x[0]))  ) {
+  if( (!std::isfinite(f)) || (!std::isfinite(df)) || (!std::isfinite(x[0]))  ) {
     return(2);
   }
 
