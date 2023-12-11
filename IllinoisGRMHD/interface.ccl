@@ -54,6 +54,13 @@ CCTK_REAL Tmunu_source_terms type=GF Timelevels=1 tags='Prolongation="none" Chec
   s_tau, s_sx, s_sy, s_sz
 } "Non-flux terms on conservatives right-hand sides"
 
+CCTK_REAL metric_derivs type=GF Timelevels=1 tags='Prolongation="none" Checkpoint="no"'
+{
+  gxx_dx, gxy_dx, gxz_dx, gyy_dx, gyz_dx, gzz_dx,
+  gxx_dy, gxy_dy, gxz_dy, gyy_dy, gyz_dy, gzz_dy,
+  gxx_dz, gxy_dz, gxz_dz, gyy_dz, gyz_dz, gzz_dz
+} "Non-flux terms on conservatives right-hand sides"
+
 #vvvvvvv PRIMITIVE VARIABLES vvvvvvv#
 # TODO: split into groups with well defined symmetry properties: (rho_b, P, u0), (vx,vy,vz)
 cctk_real grmhd_primitives_allbutBi type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
