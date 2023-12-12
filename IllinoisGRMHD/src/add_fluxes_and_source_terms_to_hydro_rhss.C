@@ -93,18 +93,30 @@ add_fluxes_and_source_terms_to_hydro_rhss(
     CCTK_REAL *restrict s_sx,
     CCTK_REAL *restrict s_sy,
     CCTK_REAL *restrict s_sz,
+    CCTK_REAL *restrict gtt_dx,
+    CCTK_REAL *restrict gtx_dx,
+    CCTK_REAL *restrict gty_dx,
+    CCTK_REAL *restrict gtz_dx,
     CCTK_REAL *restrict gxx_dx,
     CCTK_REAL *restrict gxy_dx,
     CCTK_REAL *restrict gxz_dx,
     CCTK_REAL *restrict gyy_dx,
     CCTK_REAL *restrict gyz_dx,
     CCTK_REAL *restrict gzz_dx,
+    CCTK_REAL *restrict gtt_dy,
+    CCTK_REAL *restrict gtx_dy,
+    CCTK_REAL *restrict gty_dy,
+    CCTK_REAL *restrict gtz_dy,
     CCTK_REAL *restrict gxx_dy,
     CCTK_REAL *restrict gxy_dy,
     CCTK_REAL *restrict gxz_dy,
     CCTK_REAL *restrict gyy_dy,
     CCTK_REAL *restrict gyz_dy,
     CCTK_REAL *restrict gzz_dy,
+    CCTK_REAL *restrict gtt_dz,
+    CCTK_REAL *restrict gtx_dz,
+    CCTK_REAL *restrict gty_dz,
+    CCTK_REAL *restrict gtz_dz,
     CCTK_REAL *restrict gxx_dz,
     CCTK_REAL *restrict gxy_dz,
     CCTK_REAL *restrict gxz_dz,
@@ -258,6 +270,10 @@ add_fluxes_and_source_terms_to_hydro_rhss(
 
           switch(flux_dirn) {
             case 1:
+              gtt_dx[index] = alpha_sqrtgamma * partial_i_gmunu[0][0];
+              gtx_dx[index] = alpha_sqrtgamma * partial_i_gmunu[0][1];
+              gty_dx[index] = alpha_sqrtgamma * partial_i_gmunu[0][2];
+              gtz_dx[index] = alpha_sqrtgamma * partial_i_gmunu[0][3];
               gxx_dx[index] = alpha_sqrtgamma * partial_i_gmunu[1][1];
               gxy_dx[index] = alpha_sqrtgamma * partial_i_gmunu[1][2];
               gxz_dx[index] = alpha_sqrtgamma * partial_i_gmunu[1][3];
@@ -266,6 +282,10 @@ add_fluxes_and_source_terms_to_hydro_rhss(
               gzz_dx[index] = alpha_sqrtgamma * partial_i_gmunu[3][3];
               break;
             case 2:
+              gtt_dy[index] = alpha_sqrtgamma * partial_i_gmunu[0][0];
+              gtx_dy[index] = alpha_sqrtgamma * partial_i_gmunu[0][1];
+              gty_dy[index] = alpha_sqrtgamma * partial_i_gmunu[0][2];
+              gtz_dy[index] = alpha_sqrtgamma * partial_i_gmunu[0][3];
               gxx_dy[index] = alpha_sqrtgamma * partial_i_gmunu[1][1];
               gxy_dy[index] = alpha_sqrtgamma * partial_i_gmunu[1][2];
               gxz_dy[index] = alpha_sqrtgamma * partial_i_gmunu[1][3];
@@ -274,6 +294,10 @@ add_fluxes_and_source_terms_to_hydro_rhss(
               gzz_dy[index] = alpha_sqrtgamma * partial_i_gmunu[3][3];
               break;
             case 3:
+              gtt_dz[index] = alpha_sqrtgamma * partial_i_gmunu[0][0];
+              gtx_dz[index] = alpha_sqrtgamma * partial_i_gmunu[0][1];
+              gty_dz[index] = alpha_sqrtgamma * partial_i_gmunu[0][2];
+              gtz_dz[index] = alpha_sqrtgamma * partial_i_gmunu[0][3];
               gxx_dz[index] = alpha_sqrtgamma * partial_i_gmunu[1][1];
               gxy_dz[index] = alpha_sqrtgamma * partial_i_gmunu[1][2];
               gxz_dz[index] = alpha_sqrtgamma * partial_i_gmunu[1][3];

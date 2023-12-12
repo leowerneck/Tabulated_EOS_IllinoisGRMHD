@@ -56,9 +56,9 @@ CCTK_REAL Tmunu_source_terms type=GF Timelevels=1 tags='Prolongation="none" Chec
 
 CCTK_REAL metric_derivs type=GF Timelevels=1 tags='Prolongation="none" Checkpoint="no"'
 {
-  gxx_dx, gxy_dx, gxz_dx, gyy_dx, gyz_dx, gzz_dx,
-  gxx_dy, gxy_dy, gxz_dy, gyy_dy, gyz_dy, gzz_dy,
-  gxx_dz, gxy_dz, gxz_dz, gyy_dz, gyz_dz, gzz_dz
+  gtt_dx, gtx_dx, gty_dx, gtz_dx, gxx_dx, gxy_dx, gxz_dx, gyy_dx, gyz_dx, gzz_dx,
+  gtt_dy, gtx_dy, gty_dy, gtz_dy, gxx_dy, gxy_dy, gxz_dy, gyy_dy, gyz_dy, gzz_dy,
+  gtt_dz, gtx_dz, gty_dz, gtz_dz, gxx_dz, gxy_dz, gxz_dz, gyy_dz, gyz_dz, gzz_dz
 } "Non-flux terms on conservatives right-hand sides"
 
 #vvvvvvv PRIMITIVE VARIABLES vvvvvvv#

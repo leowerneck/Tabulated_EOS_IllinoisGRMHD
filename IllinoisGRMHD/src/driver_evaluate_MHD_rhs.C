@@ -181,6 +181,10 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 	s_sy        [index] = 0.0;
 	s_sz        [index] = 0.0;
 
+        gtt_dx[index] = 0.0;
+        gtx_dx[index] = 0.0;
+        gty_dx[index] = 0.0;
+        gtz_dx[index] = 0.0;
         gxx_dx[index] = 0.0;
         gxy_dx[index] = 0.0;
         gxz_dx[index] = 0.0;
@@ -188,6 +192,10 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
         gyz_dx[index] = 0.0;
         gzz_dx[index] = 0.0;
 
+        gtt_dy[index] = 0.0;
+        gtx_dy[index] = 0.0;
+        gty_dy[index] = 0.0;
+        gtz_dy[index] = 0.0;
         gxx_dy[index] = 0.0;
         gxy_dy[index] = 0.0;
         gxz_dy[index] = 0.0;
@@ -195,6 +203,10 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
         gyz_dy[index] = 0.0;
         gzz_dy[index] = 0.0;
 
+        gtt_dz[index] = 0.0;
+        gtx_dz[index] = 0.0;
+        gty_dz[index] = 0.0;
+        gtz_dz[index] = 0.0;
         gxx_dz[index] = 0.0;
         gxy_dz[index] = 0.0;
         gxz_dz[index] = 0.0;
@@ -273,9 +285,9 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
                                             rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,Ye_star_flux,S_star_flux,
                                             rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs,Ye_star_rhs,S_star_rhs,
                                             s_tau, s_sx, s_sy, s_sz,
-                                            gxx_dx, gxy_dx, gxz_dx, gyy_dx, gyz_dx, gzz_dx,
-                                            gxx_dy, gxy_dy, gxz_dy, gyy_dy, gyz_dy, gzz_dy,
-                                            gxx_dz, gxy_dz, gxz_dz, gyy_dz, gyz_dz, gzz_dz);
+                                            gtt_dx, gtx_dx, gty_dx, gtz_dx, gxx_dx, gxy_dx, gxz_dx, gyy_dx, gyz_dx, gzz_dx,
+                                            gtt_dy, gtx_dy, gty_dy, gtz_dy, gxx_dy, gxy_dy, gxz_dy, gyy_dy, gyz_dy, gzz_dy,
+                                            gtt_dz, gtx_dz, gty_dz, gtz_dz, gxx_dz, gxy_dz, gxz_dz, gyy_dz, gyz_dz, gzz_dz);
 
   // Note that we have already reconstructed vx and vy along the x-direction,
   //   at (i-1/2,j,k). That result is stored in v{x,y}{r,l}.  Bx_stagger data
@@ -363,10 +375,10 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
                                             cmax_y,cmin_y,
                                             rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,Ye_star_flux,S_star_flux,
                                             rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs,Ye_star_rhs,S_star_rhs,
-                                                                                        s_tau, s_sx, s_sy, s_sz,
-                                                                                        gxx_dx, gxy_dx, gxz_dx, gyy_dx, gyz_dx, gzz_dx,
-                                                                                        gxx_dy, gxy_dy, gxz_dy, gyy_dy, gyz_dy, gzz_dy,
-                                                                                        gxx_dz, gxy_dz, gxz_dz, gyy_dz, gyz_dz, gzz_dz);
+                                            s_tau, s_sx, s_sy, s_sz,
+                                            gtt_dx, gtx_dx, gty_dx, gtz_dx, gxx_dx, gxy_dx, gxz_dx, gyy_dx, gyz_dx, gzz_dx,
+                                            gtt_dy, gtx_dy, gty_dy, gtz_dy, gxx_dy, gxy_dy, gxz_dy, gyy_dy, gyz_dy, gzz_dy,
+                                            gtt_dz, gtx_dz, gty_dz, gtz_dz, gxx_dz, gxy_dz, gxz_dz, gyy_dz, gyz_dz, gzz_dz);
 
 
   /*****************************************
@@ -479,10 +491,10 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
                                             cmax_z,cmin_z,
                                             rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,Ye_star_flux,S_star_flux,
                                             rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs,Ye_star_rhs,S_star_rhs,
-                                                                                        s_tau, s_sx, s_sy, s_sz,
-                                                                                        gxx_dx, gxy_dx, gxz_dx, gyy_dx, gyz_dx, gzz_dx,
-                                                                                        gxx_dy, gxy_dy, gxz_dy, gyy_dy, gyz_dy, gzz_dy,
-                                                                                        gxx_dz, gxy_dz, gxz_dz, gyy_dz, gyz_dz, gzz_dz);
+                                            s_tau, s_sx, s_sy, s_sz,
+                                            gtt_dx, gtx_dx, gty_dx, gtz_dx, gxx_dx, gxy_dx, gxz_dx, gyy_dx, gyz_dx, gzz_dx,
+                                            gtt_dy, gtx_dy, gty_dy, gtz_dy, gxx_dy, gxy_dy, gxz_dy, gyy_dy, gyz_dy, gzz_dy,
+                                            gtt_dz, gtx_dz, gty_dz, gtz_dz, gxx_dz, gxy_dz, gxz_dz, gyy_dz, gyz_dz, gzz_dz);
 
 
   // in_prims[{VYR,VYL,VZR,VZL}].gz_{lo,hi} ghostzones are not set correcty.
