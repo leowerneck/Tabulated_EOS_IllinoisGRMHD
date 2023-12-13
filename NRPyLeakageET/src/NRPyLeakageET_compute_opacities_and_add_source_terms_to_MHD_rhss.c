@@ -224,7 +224,7 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
           const CCTK_REAL sqrtmgR      = sqrtmgL * R_sourceL;
           const CCTK_REAL sqrtmgQ      = sqrtmgL * Q_sourceL;
           const CCTK_REAL Ye_star_rhsL = sqrtmgR;
-          const CCTK_REAL tau_rhsL     = sqrtmgQ * u4U[0];
+          const CCTK_REAL tau_rhsL     = sqrtmgQ * u4U[0] * alpL;
           const CCTK_REAL st_x_rhsL    = sqrtmgQ * u4D[1];
           const CCTK_REAL st_y_rhsL    = sqrtmgQ * u4D[2];
           const CCTK_REAL st_z_rhsL    = sqrtmgQ * u4D[3];
