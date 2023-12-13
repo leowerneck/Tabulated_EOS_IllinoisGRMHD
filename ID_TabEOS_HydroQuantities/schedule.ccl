@@ -2,7 +2,7 @@ if( CCTK_EQUALS( initial_Y_e        ,"ID_tabEOS_HydroQuantities" ) ||
     CCTK_EQUALS( initial_temperature,"ID_tabEOS_HydroQuantities" ) ||
     CCTK_EQUALS( initial_entropy    ,"ID_tabEOS_HydroQuantities" ) )
 {
-  schedule ID_TabEOS_HydroQuantities AT CCTK_INITIAL AFTER HydroBase_Initial BEFORE ADMBase_PostInitial
+  schedule ID_TabEOS_HydroQuantities AT CCTK_INITIAL AFTER (HydroBase_Initial GRHayLID_compute_entropy_tabulated GRHayLID_BetaEquilibrium) BEFORE ADMBase_PostInitial
   {
     LANG: C
     WRITES: HydroBase::vel[0](Everywhere)
