@@ -43,15 +43,9 @@ schedule GROUP IllinoisGRMHD_PostPostInitial at CCTK_POSTPOSTINITIAL before MoL_
 
 schedule IllinoisGRMHD_InitSymBound in IllinoisGRMHD_PostPostInitial as postid before compute_b
 {
-  SYNC: grmhd_conservatives,em_Ax,em_Ay,em_Az,em_psi6phi
+  SYNC: grmhd_conservatives
   LANG: C
 } "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
-
-schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_PostPostInitial as compute_b after postid after empostid after lapsepostid
-{
-  SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger
-  LANG: C
-} "Compute B and B_stagger from A SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger"
 
 schedule IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_PostPostInitial after compute_b
 {
@@ -70,22 +64,11 @@ schedule IllinoisGRMHD_driver_evaluate_MHD_rhs in MoL_CalcRHS as IllinoisGRMHD_R
 
 schedule IllinoisGRMHD_InitSymBound in HydroBase_Boundaries as Boundary_SYNCs before compute_B_postrestrict
 {
-  SYNC: grmhd_conservatives,em_Ax,em_Ay,em_Az,em_psi6phi
+  SYNC: grmhd_conservatives
   LANG: C
 } "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
 
-schedule IllinoisGRMHD_outer_boundaries_on_A_mu in HydroBase_Boundaries after Boundary_SYNCs before mhd_conserv2prims_postrestrict
-{
-  LANG: C
-} "Apply linear extrapolation BCs on A_{mu}, so that BCs are flat on B^i."
-
-schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in HydroBase_Boundaries after outer_boundaries_on_A_mu
-{
-  SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger
-  LANG: C
-} "Compute B and B_stagger from A,  SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger"
-
-schedule IllinoisGRMHD_conserv_to_prims in AddToTmunu after compute_B_and_Bstagger_from_A
+schedule IllinoisGRMHD_conserv_to_prims in AddToTmunu
 {
   LANG: C
 } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."

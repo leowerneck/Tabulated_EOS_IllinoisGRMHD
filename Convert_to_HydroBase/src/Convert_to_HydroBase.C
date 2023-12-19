@@ -35,9 +35,9 @@ void Convert_to_HydroBase(CCTK_ARGUMENTS) {
         PRIMS[VX           ] = vx[index];
         PRIMS[VY           ] = vy[index];
         PRIMS[VZ           ] = vz[index];
-        PRIMS[BX_CENTER    ] = Bx[index];
-        PRIMS[BY_CENTER    ] = By[index];
-        PRIMS[BZ_CENTER    ] = Bz[index];
+        // PRIMS[BX_CENTER    ] = Bx[index];
+        // PRIMS[BY_CENTER    ] = By[index];
+        // PRIMS[BZ_CENTER    ] = Bz[index];
 
         // IllinoisGRMHD defines v^i = u^i/u^0.
 
@@ -105,9 +105,9 @@ void Convert_to_HydroBase(CCTK_ARGUMENTS) {
 
         w_lorentz[index] = alpha_u0;
 
-        Bvec[CCTK_GFINDEX4D(cctkGH,i,j,k,0)] = PRIMS[BX_CENTER];
-        Bvec[CCTK_GFINDEX4D(cctkGH,i,j,k,1)] = PRIMS[BY_CENTER];
-        Bvec[CCTK_GFINDEX4D(cctkGH,i,j,k,2)] = PRIMS[BZ_CENTER];
+        Bvec[CCTK_GFINDEX4D(cctkGH,i,j,k,0)] = 0.0; /* PRIMS[BX_CENTER]; */
+        Bvec[CCTK_GFINDEX4D(cctkGH,i,j,k,1)] = 0.0; /* PRIMS[BY_CENTER]; */
+        Bvec[CCTK_GFINDEX4D(cctkGH,i,j,k,2)] = 0.0; /* PRIMS[BZ_CENTER]; */
 
       }
 }
