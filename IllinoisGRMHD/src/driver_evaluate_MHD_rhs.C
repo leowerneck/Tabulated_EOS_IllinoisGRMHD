@@ -50,6 +50,8 @@
 #define vely (&vel[1*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 #define velz (&vel[2*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 
+void IllinoisGRMHD_compute_four_metric_time_derivatives(CCTK_ARGUMENTS);
+
 extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
@@ -644,7 +646,8 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
     }
   }
 
-  return;
+  IllinoisGRMHD_compute_four_metric_time_derivatives(CCTK_PASS_CTOC);
+
   /*
   // FUN DEBUGGING TOOL (trust me!):
   #pragma omp parallel for
