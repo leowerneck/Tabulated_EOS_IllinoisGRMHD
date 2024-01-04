@@ -41,11 +41,11 @@ void IllinoisGRMHD_compute_four_metric_time_derivatives(CCTK_ARGUMENTS) {
   DECLARE_CCTK_PARAMETERS;
 
   const int imin = cctk_nghostzones[0];
-  const int imax = imin + cctk_lsh[0];
+  const int imax = cctk_lsh[0] - imin;
   const int jmin = cctk_nghostzones[1];
-  const int jmax = jmin + cctk_lsh[1];
+  const int jmax = cctk_lsh[1] - jmin;
   const int kmin = cctk_nghostzones[2];
-  const int kmax = kmin + cctk_lsh[2];
+  const int kmax = cctk_lsh[2];
 
   for (int k = kmin; k < kmax; k++) {
     for (int j = jmin; j < jmax; j++) {
