@@ -504,14 +504,14 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                failures_inhoriz,pointcount_inhoriz,
                error_int_numer/error_int_denom,error_int_denom);
   }
-  if( nan_found ) {
-    if( GetRefinementLevel(cctkGH) > 6 ) {
-      CCTK_ERROR("Found NAN during con2prim driver. See error messages above. ABORTING!");
-    }
-    else {
-      CCTK_VWARN(CCTK_WARN_ALERT,"Found NAN during con2prim driver, but not at finest level. Proceeding with caution...");
-    }
-  }
+  // if( nan_found ) {
+  //   if( GetRefinementLevel(cctkGH) > 6 ) {
+  //     CCTK_ERROR("Found NAN during con2prim driver. See error messages above. ABORTING!");
+  //   }
+  //   else {
+  //     CCTK_VWARN(CCTK_WARN_ALERT,"Found NAN during con2prim driver, but not at finest level. Proceeding with caution...");
+  //   }
+  // }
 
   // Very useful con2prim debugger. If the primitives (con2prim) solver fails, this will output all data needed to
   //     debug where and why the solver failed. Strongly suggested for experimenting with new fixes.

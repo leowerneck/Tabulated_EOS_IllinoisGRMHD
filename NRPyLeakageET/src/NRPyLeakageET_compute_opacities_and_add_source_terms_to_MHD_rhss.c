@@ -204,20 +204,20 @@ void NRPyLeakageET_compute_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUM
           //  CCTK_VWARN(CCTK_WARN_ALERT,"Found u^2 != -1: usqr = %.15e",usqr);
           //}
 
-          if( robust_isnan(R_sourceL*Q_sourceL*kappa_nueL[0]*kappa_nueL[1]*kappa_anueL[0]*kappa_anueL[1]*kappa_nuxL[0]*kappa_nuxL[1]*
-                           Ye_star_rhs[index]*tau_rhs[index]*st_x_rhs[index]*st_y_rhs[index]*st_z_rhs[index]) ) {
-            CCTK_VINFO("****************************");
-            CCTK_VINFO("NAN found:");
-            CCTK_VINFO("rho Ye T: %e %e %e",rhoL,Y_eL,temperatureL);
-            CCTK_VINFO("vx vy vz: %e %e %e",vxL,vyL,vzL);
-            CCTK_VINFO("u^{mu}  : %e %e %e %e",u0L,uxL,uyL,uzL);
-            CCTK_VINFO("alp beta: %e , %e %e %e",alpL,betaxL,betayL,betazL);
-            CCTK_VINFO("R, Q | kappas: %e %e | %e %e , %e %e , %e %e",
-                       R_sourceL,Q_sourceL,kappa_nueL[0],kappa_nueL[1],kappa_anueL[0],kappa_anueL[1],kappa_nuxL[0],kappa_nuxL[1]);
-            CCTK_VINFO("rhss: %e %e %e %e %e",Ye_star_rhs[index],tau_rhs[index],st_x_rhs[index],st_y_rhs[index],st_z_rhs[index]);
-            CCTK_VINFO("****************************");
-            nan_found++;
-          }
+          // if( robust_isnan(R_sourceL*Q_sourceL*kappa_nueL[0]*kappa_nueL[1]*kappa_anueL[0]*kappa_anueL[1]*kappa_nuxL[0]*kappa_nuxL[1]*
+          //                  Ye_star_rhs[index]*tau_rhs[index]*st_x_rhs[index]*st_y_rhs[index]*st_z_rhs[index]) ) {
+          //   CCTK_VINFO("****************************");
+          //   CCTK_VINFO("NAN found:");
+          //   CCTK_VINFO("rho Ye T: %e %e %e",rhoL,Y_eL,temperatureL);
+          //   CCTK_VINFO("vx vy vz: %e %e %e",vxL,vyL,vzL);
+          //   CCTK_VINFO("u^{mu}  : %e %e %e %e",u0L,uxL,uyL,uzL);
+          //   CCTK_VINFO("alp beta: %e , %e %e %e",alpL,betaxL,betayL,betazL);
+          //   CCTK_VINFO("R, Q | kappas: %e %e | %e %e , %e %e , %e %e",
+          //              R_sourceL,Q_sourceL,kappa_nueL[0],kappa_nueL[1],kappa_anueL[0],kappa_anueL[1],kappa_nuxL[0],kappa_nuxL[1]);
+          //   CCTK_VINFO("rhss: %e %e %e %e %e",Ye_star_rhs[index],tau_rhs[index],st_x_rhs[index],st_y_rhs[index],st_z_rhs[index]);
+          //   CCTK_VINFO("****************************");
+          //   nan_found++;
+          // }
 
           // Step 3.i: Compute MHD right-hand sides
           const CCTK_REAL sqrtmgL      = alpL * psi6L;
