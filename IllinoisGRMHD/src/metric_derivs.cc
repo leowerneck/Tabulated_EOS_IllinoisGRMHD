@@ -51,7 +51,7 @@ void IllinoisGRMHD_compute_four_metric_time_derivatives(CCTK_ARGUMENTS) {
     for (int j = jmin; j < jmax; j++) {
       for (int i = imin; i < imax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
-        const double inv_dt = 1.0 / cctk_delta_time;
+        const double inv_dt = 1.0 / CCTK_DELTA_TIME;
 
         double g4DD[4][4];
         compute_four_metric_from_adm_quantities(index, alp, betax, betay, betaz,
