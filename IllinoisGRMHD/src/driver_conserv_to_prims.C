@@ -1,8 +1,8 @@
-#include "GRHayLib.h"
-#include "Symmetry.h"
 #include "cctk.h"
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
+#include "GRHayLib.h"
+#include "Symmetry.h"
 
 #include "IllinoisGRMHD_headers.h"
 #include "inlined_functions.h"
@@ -247,9 +247,10 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             ghl_enforce_primitive_limits_and_compute_u0(ghl_params, ghl_eos,
                                                         &ADM_metric, &prims);
 
-        ghl_stress_energy Tmunu;
-        ghl_compute_conservs_and_Tmunu(&ADM_metric, &metric_aux, &prims, &cons,
-                                       &Tmunu);
+        // ghl_stress_energy Tmunu;
+        // ghl_compute_conservs_and_Tmunu(&ADM_metric, &metric_aux, &prims, &cons,
+        //                                &Tmunu);
+        ghl_compute_conservs(&ADM_metric, &metric_aux, &prims, &cons);
 
         rho[index] = prims.rho;
         press[index] = prims.press;
@@ -269,16 +270,16 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         S_star[index] = cons.entropy;
         Ye_star[index] = cons.Y_e;
 
-        eTtt[index] = Tmunu.T4[0][0];
-        eTtx[index] = Tmunu.T4[0][1];
-        eTty[index] = Tmunu.T4[0][2];
-        eTtz[index] = Tmunu.T4[0][3];
-        eTxx[index] = Tmunu.T4[1][1];
-        eTxy[index] = Tmunu.T4[1][2];
-        eTxz[index] = Tmunu.T4[1][3];
-        eTyy[index] = Tmunu.T4[2][2];
-        eTyz[index] = Tmunu.T4[2][3];
-        eTzz[index] = Tmunu.T4[3][3];
+        // eTtt[index] = Tmunu.T4[0][0];
+        // eTtx[index] = Tmunu.T4[0][1];
+        // eTty[index] = Tmunu.T4[0][2];
+        // eTtz[index] = Tmunu.T4[0][3];
+        // eTxx[index] = Tmunu.T4[1][1];
+        // eTxy[index] = Tmunu.T4[1][2];
+        // eTxz[index] = Tmunu.T4[1][3];
+        // eTyy[index] = Tmunu.T4[2][2];
+        // eTyz[index] = Tmunu.T4[2][3];
+        // eTzz[index] = Tmunu.T4[3][3];
 
         needs_average[index] = 0;
 
