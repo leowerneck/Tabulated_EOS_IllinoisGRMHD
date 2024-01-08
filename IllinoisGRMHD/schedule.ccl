@@ -134,7 +134,7 @@ schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in HydroBase_Boundaries aft
 } "Compute B and B_stagger from A,  SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger"
 
 # Nontrivial primitives solve, for P,rho_b,vx,vy,vz.
-schedule IllinoisGRMHD_Con2Prim in HydroBase_Con2Prim
+schedule group IllinoisGRMHD_Con2Prim in HydroBase_Con2Prim
 {
 } "Compute primitive variables from conservatives"
 
