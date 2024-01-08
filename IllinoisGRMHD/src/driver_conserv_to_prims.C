@@ -5,9 +5,7 @@
 #include "Symmetry.h"
 
 #include "IllinoisGRMHD_headers.h"
-//#include "con2prim_headers.h"
 #include "inlined_functions.h"
-#include "apply_tau_floor__enforce_limits_on_primitives_and_recompute_conservs.C"
 
 static inline int GRHayLMHD_local_avg(
       const cGH *restrict cctkGH,
