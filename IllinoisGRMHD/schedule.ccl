@@ -74,10 +74,10 @@ schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_PostPostIn
 } "Compute B and B_stagger from A SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger"
 
 # Nontrivial primitives solve, for P,rho_b,vx,vy,vz:
-schedule IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_PostPostInitial after compute_b
-{
-  LANG: C
-} "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
+# schedule IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_PostPostInitial after compute_b
+# {
+#   LANG: C
+# } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
 
 # Copy data to other timelevels.
 schedule IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels in IllinoisGRMHD_PostPostInitial as mhdpostid after compute_b after p2c
@@ -134,15 +134,24 @@ schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in HydroBase_Boundaries aft
 } "Compute B and B_stagger from A,  SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger"
 
 # Nontrivial primitives solve, for P,rho_b,vx,vy,vz.
-schedule IllinoisGRMHD_conserv_to_prims in AddToTmunu after compute_B_and_Bstagger_from_A
+schedule IllinoisGRMHD_Con2Prim in HydroBase_Con2Prim
+{
+} "Compute primitive variables from conservatives"
+
+schedule IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_Con2Prim
 {
   LANG: C
 } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
 
-schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in AddToTmunu after IllinoisGRMHD_conserv_to_prims
+schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in IllinoisGRMHD_Con2Prim after IllinoisGRMHD_conserv_to_prims
 {
 # We must sync {P,rho_b,vx,vy,vz} here.
 SYNC: grmhd_primitives_allbutBi, HydroBase::rho, HydroBase::Y_e, HydroBase::temperature, HydroBase::press, HydroBase::eps, HydroBase::entropy
   LANG: C
 } "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
+
+schedule IllinoisGRMHD_compute_Tmunu in AddToTmunu
+{
+  LANG: C
+} "Add the GR(M)HD stress-tensor to Tmunu"
 ##########################################################
