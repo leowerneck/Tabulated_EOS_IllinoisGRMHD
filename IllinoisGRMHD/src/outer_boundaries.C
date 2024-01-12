@@ -8,6 +8,7 @@
  * ( 4) Apply outer BCs on {P,rho,vx,vy,vz}.
  * ( 5) (optional) set conservatives on outer boundary.
  *******************************************************/
+
 #include "cctk.h"
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
@@ -30,7 +31,7 @@ void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
-  if(CCTK_EQUALS(Matter_BC,"frozen") || GetRefinementLevel(cctkGH) != 0) return;
+  if(CCTK_EQUALS(Matter_BC,"frozen")) return;
 
   const bool do_outflow = CCTK_EQUALS(Matter_BC,"outflow");
 
@@ -53,17 +54,14 @@ void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH,imax, j, k);
           const int indm1 = CCTK_GFINDEX3D(cctkGH,imax-1, j, k);
 
-          ghl_primitive_quantities prims;
-          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-          prims.rho         = rho[indm1];
-          prims.press       = press[indm1];
-          prims.vU[0]       = (do_outflow && vx[indm1] < 0.0) ? 0 : vx[indm1];
-          prims.vU[1]       = vy[indm1];
-          prims.vU[2]       = vz[indm1];
-          prims.Y_e         = Y_e[indm1];
-          prims.temperature = temperature[indm1];
-
-          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+          Bx[index] = By[index] = Bz[index] = 0.0;
+          rho[index] = rho[indm1];
+          press[index] = press[indm1];
+          vx[index] = vx[indm1];
+          vy[index] = vy[indm1];
+          vz[index] = (do_outflow && vz[indm1] > 0.0) ? 0 : vz[indm1];
+          Y_e[index] = Y_e[indm1];
+          temperature[index] = temperature[indm1];
         }
       }
     }
@@ -76,17 +74,14 @@ void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, imin, j, k);
           const int indp1 = CCTK_GFINDEX3D(cctkGH, imin+1, j, k);
 
-          ghl_primitive_quantities prims;
-          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-          prims.rho         = rho[indp1];
-          prims.press       = press[indp1];
-          prims.vU[0]       = (do_outflow && vx[indp1] > 0.0) ? 0 : vx[indp1];
-          prims.vU[1]       = vy[indp1];
-          prims.vU[2]       = vz[indp1];
-          prims.Y_e         = Y_e[indp1];
-          prims.temperature = temperature[indp1];
-
-          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+          Bx[index] = By[index] = Bz[index] = 0.0;
+          rho[index] = rho[indp1];
+          press[index] = press[indp1];
+          vx[index] = vx[indp1];
+          vy[index] = vy[indp1];
+          vz[index] = (do_outflow && vz[indp1] > 0.0) ? 0 : vz[indp1];
+          Y_e[index] = Y_e[indp1];
+          temperature[index] = temperature[indp1];
         }
       }
     }
@@ -101,17 +96,14 @@ void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, jmax, k);
           const int indm1 = CCTK_GFINDEX3D(cctkGH, i, jmax-1, k);
 
-          ghl_primitive_quantities prims;
-          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-          prims.rho         = rho[indm1];
-          prims.press       = press[indm1];
-          prims.vU[0]       = vx[indm1];
-          prims.vU[1]       = (do_outflow && vy[indm1] < 0.0) ? 0 : vy[indm1];
-          prims.vU[2]       = vz[indm1];
-          prims.Y_e         = Y_e[indm1];
-          prims.temperature = temperature[indm1];
-
-          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+          Bx[index] = By[index] = Bz[index] = 0.0;
+          rho[index] = rho[indm1];
+          press[index] = press[indm1];
+          vx[index] = vx[indm1];
+          vy[index] = vy[indm1];
+          vz[index] = (do_outflow && vz[indm1] > 0.0) ? 0 : vz[indm1];
+          Y_e[index] = Y_e[indm1];
+          temperature[index] = temperature[indm1];
         }
       }
     }
@@ -124,17 +116,14 @@ void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, jmin, k);
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i, jmin+1, k);
 
-          ghl_primitive_quantities prims;
-          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-          prims.rho         = rho[indp1];
-          prims.press       = press[indp1];
-          prims.vU[0]       = vx[indp1];
-          prims.vU[1]       = (do_outflow && vy[indp1] > 0.0) ? 0 : vy[indp1];
-          prims.vU[2]       = vz[indp1];
-          prims.Y_e         = Y_e[indp1];
-          prims.temperature = temperature[indp1];
-
-          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+          Bx[index] = By[index] = Bz[index] = 0.0;
+          rho[index] = rho[indp1];
+          press[index] = press[indp1];
+          vx[index] = vx[indp1];
+          vy[index] = vy[indp1];
+          vz[index] = (do_outflow && vz[indp1] > 0.0) ? 0 : vz[indp1];
+          Y_e[index] = Y_e[indp1];
+          temperature[index] = temperature[indp1];
         }
       }
     }
@@ -149,17 +138,14 @@ void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, j, kmax);
           const int indm1 = CCTK_GFINDEX3D(cctkGH, i, j, kmax-1);
 
-          ghl_primitive_quantities prims;
-          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-          prims.rho         = rho[indm1];
-          prims.press       = press[indm1];
-          prims.vU[0]       = vx[indm1];
-          prims.vU[1]       = vy[indm1];
-          prims.vU[2]       = (do_outflow && vz[indm1] < 0.0) ? 0 : vz[indm1];
-          prims.Y_e         = Y_e[indm1];
-          prims.temperature = temperature[indm1];
-
-          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+          Bx[index] = By[index] = Bz[index] = 0.0;
+          rho[index] = rho[indm1];
+          press[index] = press[indm1];
+          vx[index] = vx[indm1];
+          vy[index] = vy[indm1];
+          vz[index] = (do_outflow && vz[indm1] > 0.0) ? 0 : vz[indm1];
+          Y_e[index] = Y_e[indm1];
+          temperature[index] = temperature[indm1];
         }
       }
     }
@@ -172,15 +158,153 @@ void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, j, kmin);
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i, j, kmin+1);
 
+          Bx[index] = By[index] = Bz[index] = 0.0;
+          rho[index] = rho[indp1];
+          press[index] = press[indp1];
+          vx[index] = vx[indp1];
+          vy[index] = vy[indp1];
+          vz[index] = (do_outflow && vz[indp1] > 0.0) ? 0 : vz[indp1];
+          Y_e[index] = Y_e[indp1];
+          temperature[index] = temperature[indp1];
+        }
+      }
+    }
+  }
+
+  for(int which_bdry_pt=0;which_bdry_pt<cctk_nghostzones[0];which_bdry_pt++) {
+    /* XMIN & XMAX */
+    // i=imax=outer boundary
+    if(cctk_bbox[1]) {
+      const int imax=cctk_lsh[0]-cctk_nghostzones[0]+which_bdry_pt;
+#pragma omp parallel for
+      for(int k=0; k<cctk_lsh[2]; k++) {
+        for(int j=0; j<cctk_lsh[1]; j++) {
+          const int index = CCTK_GFINDEX3D(cctkGH,imax, j, k);
+
           ghl_primitive_quantities prims;
           prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-          prims.rho         = rho[indp1];
-          prims.press       = press[indp1];
-          prims.vU[0]       = vx[indp1];
-          prims.vU[1]       = vy[indp1];
-          prims.vU[2]       = (do_outflow && vz[indp1] > 0.0) ? 0 : vz[indp1];
-          prims.Y_e         = Y_e[indp1];
-          prims.temperature = temperature[indp1];
+          prims.rho         = rho[index];
+          prims.press       = press[index];
+          prims.vU[0]       = vx[index];
+          prims.vU[1]       = vy[index];
+          prims.vU[2]       = vz[index];
+          prims.Y_e         = Y_e[index];
+          prims.temperature = temperature[index];
+
+          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+        }
+      }
+    }
+    // i=imin=outer boundary
+    if(cctk_bbox[0]) {
+      const int imin=cctk_nghostzones[0]-which_bdry_pt-1;
+#pragma omp parallel for
+      for(int k=0; k<cctk_lsh[2]; k++) {
+        for(int j=0; j<cctk_lsh[1]; j++) {
+          const int index = CCTK_GFINDEX3D(cctkGH,imin, j, k);
+
+          ghl_primitive_quantities prims;
+          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+          prims.rho         = rho[index];
+          prims.press       = press[index];
+          prims.vU[0]       = vx[index];
+          prims.vU[1]       = vy[index];
+          prims.vU[2]       = vz[index];
+          prims.Y_e         = Y_e[index];
+          prims.temperature = temperature[index];
+
+          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+        }
+      }
+    }
+
+    /* YMIN & YMAX */
+    // j=jmax=outer boundary
+    if(cctk_bbox[3]) {
+      const int jmax=cctk_lsh[1]-cctk_nghostzones[1]+which_bdry_pt;
+#pragma omp parallel for
+      for(int k=0; k<cctk_lsh[2]; k++) {
+        for(int i=0; i<cctk_lsh[0]; i++) {
+          const int index = CCTK_GFINDEX3D(cctkGH,i, jmax, k);
+
+          ghl_primitive_quantities prims;
+          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+          prims.rho         = rho[index];
+          prims.press       = press[index];
+          prims.vU[0]       = vx[index];
+          prims.vU[1]       = vy[index];
+          prims.vU[2]       = vz[index];
+          prims.Y_e         = Y_e[index];
+          prims.temperature = temperature[index];
+
+          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+        }
+      }
+    }
+    // j=jmin=outer boundary
+    if(cctk_bbox[2]) {
+      const int jmin=cctk_nghostzones[1]-which_bdry_pt-1;
+#pragma omp parallel for
+      for(int k=0; k<cctk_lsh[2]; k++) {
+        for(int i=0; i<cctk_lsh[0]; i++) {
+          const int index = CCTK_GFINDEX3D(cctkGH,i, jmin, k);
+
+          ghl_primitive_quantities prims;
+          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+          prims.rho         = rho[index];
+          prims.press       = press[index];
+          prims.vU[0]       = vx[index];
+          prims.vU[1]       = vy[index];
+          prims.vU[2]       = vz[index];
+          prims.Y_e         = Y_e[index];
+          prims.temperature = temperature[index];
+
+          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+      
+        }
+      }
+    }
+
+    /* ZMIN & ZMAX */
+    // k=kmax=outer boundary
+    if(cctk_bbox[5]) {
+      const int kmax=cctk_lsh[2]-cctk_nghostzones[2]+which_bdry_pt;
+#pragma omp parallel for
+      for(int j=0; j<cctk_lsh[1]; j++) {
+        for(int i=0; i<cctk_lsh[0]; i++) {
+          const int index = CCTK_GFINDEX3D(cctkGH,i, j, kmax);
+
+          ghl_primitive_quantities prims;
+          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+          prims.rho         = rho[index];
+          prims.press       = press[index];
+          prims.vU[0]       = vx[index];
+          prims.vU[1]       = vy[index];
+          prims.vU[2]       = vz[index];
+          prims.Y_e         = Y_e[index];
+          prims.temperature = temperature[index];
+
+          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+        }
+      }
+    }
+    // k=kmin=outer boundary
+    if((cctk_bbox[4]) && Symmetry_none) {
+      const int kmin=cctk_nghostzones[2]-which_bdry_pt-1;
+#pragma omp parallel for
+      for(int j=0; j<cctk_lsh[1]; j++) {
+        for(int i=0; i<cctk_lsh[0]; i++) {
+          const int index = CCTK_GFINDEX3D(cctkGH,i, j, kmin);
+
+          ghl_primitive_quantities prims;
+          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+          prims.rho         = rho[index];
+          prims.press       = press[index];
+          prims.vU[0]       = vx[index];
+          prims.vU[1]       = vy[index];
+          prims.vU[2]       = vz[index];
+          prims.Y_e         = Y_e[index];
+          prims.temperature = temperature[index];
 
           IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
         }
@@ -228,50 +352,4 @@ void IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(const
   Ye_star[index]  = cons.Y_e;
 }
 
-#define IDX(i,j,k) CCTK_GFINDEX3D(cctkGH,(i),(j),(k))
-
-#define XMAX_OB_LINEAR_EXTRAP(FUNC,imax) for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) FUNC[IDX(imax,j,k)] = 2.0 * FUNC[IDX(imax-1,j,k)] - FUNC[IDX(imax-2,j,k)];
-#define YMAX_OB_LINEAR_EXTRAP(FUNC,jmax) for(int k=0;k<cctk_lsh[2];k++) for(int i=0;i<cctk_lsh[0];i++) FUNC[IDX(i,jmax,k)] = 2.0 * FUNC[IDX(i,jmax-1,k)] - FUNC[IDX(i,jmax-2,k)];
-#define ZMAX_OB_LINEAR_EXTRAP(FUNC,kmax) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) FUNC[IDX(i,j,kmax)] = 2.0 * FUNC[IDX(i,j,kmax-1)] - FUNC[IDX(i,j,kmax-2)];
-
-#define XMIN_OB_LINEAR_EXTRAP(FUNC,imin) for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) FUNC[IDX(imin,j,k)] = 2.0 * FUNC[IDX(imin+1,j,k)] - FUNC[IDX(imin+2,j,k)];
-#define YMIN_OB_LINEAR_EXTRAP(FUNC,jmin) for(int k=0;k<cctk_lsh[2];k++) for(int i=0;i<cctk_lsh[0];i++) FUNC[IDX(i,jmin,k)] = 2.0 * FUNC[IDX(i,jmin+1,k)] - FUNC[IDX(i,jmin+2,k)];
-#define ZMIN_OB_LINEAR_EXTRAP(FUNC,kmin) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) FUNC[IDX(i,j,kmin)] = 2.0 * FUNC[IDX(i,j,kmin+1)] - FUNC[IDX(i,j,kmin+2)];
-
-
-/*********************************************
-*  * Apply outer boundary conditions on A_{\mu}
-*   ********************************************/
-extern "C" void IllinoisGRMHD_outer_boundaries_on_A_mu(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
-  DECLARE_CCTK_PARAMETERS;
-
-  if(CCTK_EQUALS(EM_BC,"frozen")) return;
-
-  bool Symmetry_none=false; if(CCTK_EQUALS(Symmetry,"none")) Symmetry_none=true;
-
-  int levelnumber = GetRefinementLevel(cctkGH);
-
-  // Don't apply approximate outer boundary conditions on initial data, which should be defined everywhere, or on levels != [coarsest level].
-  if(cctk_iteration==0 || levelnumber!=0) return;
-
-  if(cctk_nghostzones[0]!=cctk_nghostzones[1] || cctk_nghostzones[0]!=cctk_nghostzones[2])
-    CCTK_VERROR("ERROR: IllinoisGRMHD outer BC driver does not support unequal number of ghostzones in different directions!");
-  for(int which_bdry_pt=0;which_bdry_pt<cctk_nghostzones[0];which_bdry_pt++) {
-    int imax=cctk_lsh[0]-cctk_nghostzones[0]+which_bdry_pt; // for cctk_nghostzones==3, this goes {cctk_lsh-3,cctk_lsh-2,cctk_lsh-1}; outer bdry pt is at cctk_lsh-1
-    int jmax=cctk_lsh[1]-cctk_nghostzones[1]+which_bdry_pt;
-    int kmax=cctk_lsh[2]-cctk_nghostzones[2]+which_bdry_pt;
-
-    int imin=cctk_nghostzones[0]-which_bdry_pt-1; // for cctk_nghostzones==3, this goes {2,1,0}
-    int jmin=cctk_nghostzones[1]-which_bdry_pt-1;
-    int kmin=cctk_nghostzones[2]-which_bdry_pt-1;
-
-    if(cctk_bbox[1]) { XMAX_OB_LINEAR_EXTRAP(Ax,imax); XMAX_OB_LINEAR_EXTRAP(Ay,imax); XMAX_OB_LINEAR_EXTRAP(Az,imax); XMAX_OB_LINEAR_EXTRAP(psi6phi,imax); }
-    if(cctk_bbox[3]) { YMAX_OB_LINEAR_EXTRAP(Ax,jmax); YMAX_OB_LINEAR_EXTRAP(Ay,jmax); YMAX_OB_LINEAR_EXTRAP(Az,jmax); YMAX_OB_LINEAR_EXTRAP(psi6phi,jmax); }
-    if(cctk_bbox[5]) { ZMAX_OB_LINEAR_EXTRAP(Ax,kmax); ZMAX_OB_LINEAR_EXTRAP(Ay,kmax); ZMAX_OB_LINEAR_EXTRAP(Az,kmax); ZMAX_OB_LINEAR_EXTRAP(psi6phi,kmax); }
-
-    if(cctk_bbox[0]) {                    XMIN_OB_LINEAR_EXTRAP(Ax,imin); XMIN_OB_LINEAR_EXTRAP(Ay,imin); XMIN_OB_LINEAR_EXTRAP(Az,imin); XMIN_OB_LINEAR_EXTRAP(psi6phi,imin); }
-    if(cctk_bbox[2]) {                    YMIN_OB_LINEAR_EXTRAP(Ax,jmin); YMIN_OB_LINEAR_EXTRAP(Ay,jmin); YMIN_OB_LINEAR_EXTRAP(Az,jmin); YMIN_OB_LINEAR_EXTRAP(psi6phi,jmin); }
-    if((cctk_bbox[4]) && Symmetry_none) { ZMIN_OB_LINEAR_EXTRAP(Ax,kmin); ZMIN_OB_LINEAR_EXTRAP(Ay,kmin); ZMIN_OB_LINEAR_EXTRAP(Az,kmin); ZMIN_OB_LINEAR_EXTRAP(psi6phi,kmin); }
-  }
-}
+void IllinoisGRMHD_outer_boundaries_on_A_mu(CCTK_ARGUMENTS) {} 
