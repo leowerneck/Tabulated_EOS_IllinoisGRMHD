@@ -314,7 +314,11 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
   if(n_avg>0) {
     CCTK_VINFO("Con2Prim failed for %d points. Beginning averaging method...", n_avg);
-    int ind_vals[n_avg], i_vals[n_avg], j_vals[n_avg], k_vals[n_avg];
+    // int ind_vals[n_avg], i_vals[n_avg], j_vals[n_avg], k_vals[n_avg];
+    int *ind_vals = malloc(sizeof(int)*n_avg);
+    int *i_vals = malloc(sizeof(int)*n_avg);
+    int *j_vals = malloc(sizeof(int)*n_avg);
+    int *k_vals = malloc(sizeof(int)*n_avg);
     int counter = 0;
     int avg_weight = 1;
     for(int k=0; k<kmax; k++) {
@@ -331,6 +335,7 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         }
       }
     }
+    CCTK_VINFO("Finished first loop");
     while(n_avg > 0 && avg_weight < 5) {
       int new_avg = 0;
       for(int iter=0; iter<n_avg; iter++) {
@@ -582,6 +587,10 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                                + 100000*diagnostics.Stilde_fix;
       }
     }
+    free(ind_vals);
+    free(i_vals);
+    free(j_vals);
+    free(k_vals);
   } // if n_avg
 
   const double rho_error     = (error_rho_denom==0) ? error_rho_numer : error_rho_numer/error_rho_denom;
