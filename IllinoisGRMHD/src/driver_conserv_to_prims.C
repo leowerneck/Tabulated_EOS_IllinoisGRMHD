@@ -6,6 +6,7 @@
 
 #include "IllinoisGRMHD_headers.h"
 #include "inlined_functions.h"
+#include "apply_tau_floor__enforce_limits_on_primitives_and_recompute_conservs.C"
 
 static inline int GRHayLMHD_local_avg(
       const cGH *restrict cctkGH,
@@ -315,10 +316,10 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   if(n_avg>0) {
     CCTK_VINFO("Con2Prim failed for %d points. Beginning averaging method...", n_avg);
     // int ind_vals[n_avg], i_vals[n_avg], j_vals[n_avg], k_vals[n_avg];
-    int *ind_vals = malloc(sizeof(int)*n_avg);
-    int *i_vals = malloc(sizeof(int)*n_avg);
-    int *j_vals = malloc(sizeof(int)*n_avg);
-    int *k_vals = malloc(sizeof(int)*n_avg);
+    int *ind_vals = (int *)malloc(sizeof(int)*n_avg);
+    int *i_vals   = (int *)malloc(sizeof(int)*n_avg);
+    int *j_vals   = (int *)malloc(sizeof(int)*n_avg);
+    int *k_vals   = (int *)malloc(sizeof(int)*n_avg);
     int counter = 0;
     int avg_weight = 1;
     for(int k=0; k<kmax; k++) {
