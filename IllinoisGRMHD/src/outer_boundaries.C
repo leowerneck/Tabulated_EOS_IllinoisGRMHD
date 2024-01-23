@@ -15,7 +15,6 @@
 #include "GRHayLib.h"
 #include "IllinoisGRMHD_headers.h"
 #include "inlined_functions.h"
-#include "apply_tau_floor__enforce_limits_on_primitives_and_recompute_conservs.C"
 
 void IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims);
 
