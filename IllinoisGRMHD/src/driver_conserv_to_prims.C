@@ -6,6 +6,7 @@
 
 #include "IllinoisGRMHD_headers.h"
 #include "inlined_functions.h"
+#include "apply_tau_floor__enforce_limits_on_primitives_and_recompute_conservs.C"
 
 static inline int GRHayLMHD_local_avg(
     const cGH *restrict cctkGH, const int i, const int j, const int k,
@@ -247,9 +248,6 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             ghl_enforce_primitive_limits_and_compute_u0(ghl_params, ghl_eos,
                                                         &ADM_metric, &prims);
 
-        // ghl_stress_energy Tmunu;
-        // ghl_compute_conservs_and_Tmunu(&ADM_metric, &metric_aux, &prims, &cons,
-        //                                &Tmunu);
         ghl_compute_conservs(&ADM_metric, &metric_aux, &prims, &cons);
 
         rho[index] = prims.rho;
@@ -269,23 +267,12 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         mhd_st_z[index] = cons.SD[2];
         S_star[index] = cons.entropy;
         Ye_star[index] = cons.Y_e;
-
-        // eTtt[index] = Tmunu.T4[0][0];
-        // eTtx[index] = Tmunu.T4[0][1];
-        // eTty[index] = Tmunu.T4[0][2];
-        // eTtz[index] = Tmunu.T4[0][3];
-        // eTxx[index] = Tmunu.T4[1][1];
-        // eTxy[index] = Tmunu.T4[1][2];
-        // eTxz[index] = Tmunu.T4[1][3];
-        // eTyy[index] = Tmunu.T4[2][2];
-        // eTyz[index] = Tmunu.T4[2][3];
-        // eTzz[index] = Tmunu.T4[3][3];
-
         needs_average[index] = 0;
 
         // Now we compute the difference between original & new conservatives,
         // for diagnostic purposes:
         error_rho_numer += fabs(cons.rho - cons_orig.rho);
+        CCTK_VINFO("Finished first loop");
         error_tau_numer += fabs(cons.tau - cons_orig.tau);
         error_Sx_numer += fabs(cons.SD[0] - cons_orig.SD[0]);
         error_Sy_numer += fabs(cons.SD[1] - cons_orig.SD[1]);
@@ -316,10 +303,18 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
     }
   }
 
+    int *ind_vals = NULL;
+    int *i_vals = NULL;
+    int *j_vals = NULL;
+    int *k_vals = NULL;
   if (n_avg > 0) {
     CCTK_VINFO("Con2Prim failed for %d points. Beginning averaging method...",
                n_avg);
-    int ind_vals[n_avg], i_vals[n_avg], j_vals[n_avg], k_vals[n_avg];
+    // int ind_vals[n_avg], i_vals[n_avg], j_vals[n_avg], k_vals[n_avg];
+    ind_vals = (int *)malloc(sizeof(int) * n_avg);
+    i_vals = (int *)malloc(sizeof(int) * n_avg);
+    j_vals = (int *)malloc(sizeof(int) * n_avg);
+    k_vals = (int *)malloc(sizeof(int) * n_avg);
     int counter = 0;
     int avg_weight = 1;
     for (int k = 0; k < kmax; k++) {
@@ -590,6 +585,10 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
       }
     }
   } // if n_avg
+  if(ind_vals) free(ind_vals);
+  if(i_vals) free(i_vals);
+  if(j_vals) free(j_vals);
+  if(k_vals) free(k_vals);
 
   const double rho_error = (error_rho_denom == 0)
                                ? error_rho_numer
