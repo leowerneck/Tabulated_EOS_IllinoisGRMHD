@@ -5,17 +5,14 @@
  * ( 1) Apply outer boundary conditions (BCs) on A_{\mu}
  * ( 2) Compute B^i from A_i everywhere, synchronize B^i
  * ( 3) Call con2prim to get primitives on interior pts
- * ( 4) Apply outer BCs on {press,rho,vx,vy,vz}.
+ * ( 4) Apply outer BCs on {P,rho,vx,vy,vz}.
  * ( 5) (optional) set conservatives on outer boundary.
  *******************************************************/
-
 #include "cctk.h"
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
 
+#include "GRHayLib.h"
 #include "IllinoisGRMHD_headers.h"
 #include "inlined_functions.h"
 #include "apply_tau_floor__enforce_limits_on_primitives_and_recompute_conservs.C"
@@ -230,4 +227,52 @@ void IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(const
   mhd_st_y[index]  = cons.SD[1];
   mhd_st_z[index]  = cons.SD[2];
   Ye_star[index]  = cons.Y_e;
+}
+
+#define IDX(i,j,k) CCTK_GFINDEX3D(cctkGH,(i),(j),(k))
+
+#define XMAX_OB_LINEAR_EXTRAP(FUNC,imax) for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) FUNC[IDX(imax,j,k)] = 2.0 * FUNC[IDX(imax-1,j,k)] - FUNC[IDX(imax-2,j,k)];
+#define YMAX_OB_LINEAR_EXTRAP(FUNC,jmax) for(int k=0;k<cctk_lsh[2];k++) for(int i=0;i<cctk_lsh[0];i++) FUNC[IDX(i,jmax,k)] = 2.0 * FUNC[IDX(i,jmax-1,k)] - FUNC[IDX(i,jmax-2,k)];
+#define ZMAX_OB_LINEAR_EXTRAP(FUNC,kmax) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) FUNC[IDX(i,j,kmax)] = 2.0 * FUNC[IDX(i,j,kmax-1)] - FUNC[IDX(i,j,kmax-2)];
+
+#define XMIN_OB_LINEAR_EXTRAP(FUNC,imin) for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) FUNC[IDX(imin,j,k)] = 2.0 * FUNC[IDX(imin+1,j,k)] - FUNC[IDX(imin+2,j,k)];
+#define YMIN_OB_LINEAR_EXTRAP(FUNC,jmin) for(int k=0;k<cctk_lsh[2];k++) for(int i=0;i<cctk_lsh[0];i++) FUNC[IDX(i,jmin,k)] = 2.0 * FUNC[IDX(i,jmin+1,k)] - FUNC[IDX(i,jmin+2,k)];
+#define ZMIN_OB_LINEAR_EXTRAP(FUNC,kmin) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) FUNC[IDX(i,j,kmin)] = 2.0 * FUNC[IDX(i,j,kmin+1)] - FUNC[IDX(i,j,kmin+2)];
+
+
+/*********************************************
+*  * Apply outer boundary conditions on A_{\mu}
+*   ********************************************/
+extern "C" void IllinoisGRMHD_outer_boundaries_on_A_mu(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_PARAMETERS;
+
+  if(CCTK_EQUALS(EM_BC,"frozen")) return;
+
+  bool Symmetry_none=false; if(CCTK_EQUALS(Symmetry,"none")) Symmetry_none=true;
+
+  int levelnumber = GetRefinementLevel(cctkGH);
+
+  // Don't apply approximate outer boundary conditions on initial data, which should be defined everywhere, or on levels != [coarsest level].
+  if(cctk_iteration==0 || levelnumber!=0) return;
+
+  if(cctk_nghostzones[0]!=cctk_nghostzones[1] || cctk_nghostzones[0]!=cctk_nghostzones[2])
+    CCTK_VERROR("ERROR: IllinoisGRMHD outer BC driver does not support unequal number of ghostzones in different directions!");
+  for(int which_bdry_pt=0;which_bdry_pt<cctk_nghostzones[0];which_bdry_pt++) {
+    int imax=cctk_lsh[0]-cctk_nghostzones[0]+which_bdry_pt; // for cctk_nghostzones==3, this goes {cctk_lsh-3,cctk_lsh-2,cctk_lsh-1}; outer bdry pt is at cctk_lsh-1
+    int jmax=cctk_lsh[1]-cctk_nghostzones[1]+which_bdry_pt;
+    int kmax=cctk_lsh[2]-cctk_nghostzones[2]+which_bdry_pt;
+
+    int imin=cctk_nghostzones[0]-which_bdry_pt-1; // for cctk_nghostzones==3, this goes {2,1,0}
+    int jmin=cctk_nghostzones[1]-which_bdry_pt-1;
+    int kmin=cctk_nghostzones[2]-which_bdry_pt-1;
+
+    if(cctk_bbox[1]) { XMAX_OB_LINEAR_EXTRAP(Ax,imax); XMAX_OB_LINEAR_EXTRAP(Ay,imax); XMAX_OB_LINEAR_EXTRAP(Az,imax); XMAX_OB_LINEAR_EXTRAP(psi6phi,imax); }
+    if(cctk_bbox[3]) { YMAX_OB_LINEAR_EXTRAP(Ax,jmax); YMAX_OB_LINEAR_EXTRAP(Ay,jmax); YMAX_OB_LINEAR_EXTRAP(Az,jmax); YMAX_OB_LINEAR_EXTRAP(psi6phi,jmax); }
+    if(cctk_bbox[5]) { ZMAX_OB_LINEAR_EXTRAP(Ax,kmax); ZMAX_OB_LINEAR_EXTRAP(Ay,kmax); ZMAX_OB_LINEAR_EXTRAP(Az,kmax); ZMAX_OB_LINEAR_EXTRAP(psi6phi,kmax); }
+
+    if(cctk_bbox[0]) {                    XMIN_OB_LINEAR_EXTRAP(Ax,imin); XMIN_OB_LINEAR_EXTRAP(Ay,imin); XMIN_OB_LINEAR_EXTRAP(Az,imin); XMIN_OB_LINEAR_EXTRAP(psi6phi,imin); }
+    if(cctk_bbox[2]) {                    YMIN_OB_LINEAR_EXTRAP(Ax,jmin); YMIN_OB_LINEAR_EXTRAP(Ay,jmin); YMIN_OB_LINEAR_EXTRAP(Az,jmin); YMIN_OB_LINEAR_EXTRAP(psi6phi,jmin); }
+    if((cctk_bbox[4]) && Symmetry_none) { ZMIN_OB_LINEAR_EXTRAP(Ax,kmin); ZMIN_OB_LINEAR_EXTRAP(Ay,kmin); ZMIN_OB_LINEAR_EXTRAP(Az,kmin); ZMIN_OB_LINEAR_EXTRAP(psi6phi,kmin); }
+  }
 }
