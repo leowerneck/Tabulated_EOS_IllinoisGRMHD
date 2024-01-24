@@ -16,6 +16,7 @@
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
 
+#include "GRHayLib.h"
 #include "IllinoisGRMHD_headers.h"
 #include "inlined_functions.h"
 
@@ -241,93 +242,44 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
            ((cctk_bbox[4]) && k<cctk_nghostzones[2] && CCTK_EQUALS(Symmetry,"none")) ||
            ((cctk_bbox[5]) && k>=cctk_lsh[2]-cctk_nghostzones[2])) {
           int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
-          int ww;
 
-          CCTK_REAL METRIC[NUMVARS_FOR_METRIC],dummy=-1e100; // Set dummy to insane value, to ensure it isn't being used.
-          ww=0;
-          //psi[index] = exp(phi[index]);
-          METRIC[ww] = phi_bssn[index];ww++;
-          METRIC[ww] = dummy;          ww++; // Don't need to set psi.
-          METRIC[ww] = gtxx[index];    ww++;
-          METRIC[ww] = gtxy[index];    ww++;
-          METRIC[ww] = gtxz[index];    ww++;
-          METRIC[ww] = gtyy[index];    ww++;
-          METRIC[ww] = gtyz[index];    ww++;
-          METRIC[ww] = gtzz[index];    ww++;
-          METRIC[ww] = lapm1[index];   ww++;
-          METRIC[ww] = betax[index];   ww++;
-          METRIC[ww] = betay[index];   ww++;
-          METRIC[ww] = betaz[index];   ww++;
-          METRIC[ww] = gtupxx[index];  ww++;
-          METRIC[ww] = gtupyy[index];  ww++;
-          METRIC[ww] = gtupzz[index];  ww++;
-          METRIC[ww] = gtupxy[index];  ww++;
-          METRIC[ww] = gtupxz[index];  ww++;
-          METRIC[ww] = gtupyz[index];  ww++;
+          ghl_metric_quantities ADM_metric;
+          ghl_enforce_detgtij_and_initialize_ADM_metric(
+              alp[index], betax[index], betay[index], betaz[index], gxx[index],
+              gxy[index], gxz[index], gyy[index], gyz[index], gzz[index],
+              &ADM_metric);
 
-          CCTK_REAL PRIMS[MAXNUMVARS];
-          PRIMS[RHOB         ] = rho[index];
-          PRIMS[PRESSURE     ] = press[index];
-          PRIMS[VX           ] = vx[index];
-          PRIMS[VY           ] = vy[index];
-          PRIMS[VZ           ] = vz[index];
-          PRIMS[BX_CENTER    ] = Bx[index];
-          PRIMS[BY_CENTER    ] = By[index];
-          PRIMS[BZ_CENTER    ] = Bz[index];
-          if( eos.is_Tabulated ) {
-            PRIMS[YEPRIM     ] = Y_e[index];
-            PRIMS[TEMPERATURE] = temperature[index];
-          }
+          ghl_ADM_aux_quantities metric_aux;
+          ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
-          struct output_stats stats;
-          CCTK_REAL CONSERVS[NUM_CONSERVS],TUPMUNU[10],TDNMUNU[10];
+          ghl_primitive_quantities prims;
+          ghl_initialize_primitives(rho[index], press[index], eps[index],
+                                    vx[index], vy[index], vz[index], 0.0, 0.0,
+                                    0.0, 0.0, Y_e[index], temperature[index],
+                                    &prims);
 
-          const int already_computed_physical_metric_and_inverse=0;
-          CCTK_REAL g4dn[4][4],g4up[4][4];
-          IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(already_computed_physical_metric_and_inverse,PRIMS,stats,eos,METRIC,g4dn,g4up, TUPMUNU,TDNMUNU,CONSERVS);
+          ghl_conservative_quantities cons;
+          const int speed_limited CCTK_ATTRIBUTE_UNUSED =
+              ghl_enforce_primitive_limits_and_compute_u0(ghl_params, ghl_eos,
+                                                          &ADM_metric, &prims);
 
-          rho            [index] = PRIMS[RHOB        ];
-          press                [index] = PRIMS[PRESSURE    ];
-          vx               [index] = PRIMS[VX          ];
-          vy               [index] = PRIMS[VY          ];
-          vz               [index] = PRIMS[VZ          ];
-          eps          [index] = PRIMS[EPSILON     ];
-          entropy      [index] = PRIMS[ENTROPY     ];
+          ghl_compute_conservs(&ADM_metric, &metric_aux, &prims, &cons);
 
-          rho_star         [index] = CONSERVS[RHOSTAR  ];
-          tau              [index] = CONSERVS[TAUENERGY];
-          mhd_st_x         [index] = CONSERVS[STILDEX  ];
-          mhd_st_y         [index] = CONSERVS[STILDEY  ];
-          mhd_st_z         [index] = CONSERVS[STILDEZ  ];
+          rho[index] = prims.rho;
+          press[index] = prims.press;
+          eps[index] = prims.eps;
+          vx[index] = prims.vU[0];
+          vy[index] = prims.vU[1];
+          vz[index] = prims.vU[2];
+          Y_e[index] = prims.Y_e;
+          temperature[index] = prims.temperature;
 
-          if( eos.evolve_entropy ) {
-            S_star         [index] = CONSERVS[ENTSTAR  ];
-          }
-
-          // Tabulated EOS
-          if( eos.is_Tabulated ) {
-            // Primitives
-            Y_e         [index] = PRIMS[YEPRIM      ];
-            temperature[index] = PRIMS[TEMPERATURE ];
-            // Conservatives
-            Ye_star        [index] = CONSERVS[YESTAR   ];
-          }
-
-          if(update_Tmunu) {
-            ww=0;
-            eTtt[index] = TDNMUNU[ww]; ww++;
-            eTtx[index] = TDNMUNU[ww]; ww++;
-            eTty[index] = TDNMUNU[ww]; ww++;
-            eTtz[index] = TDNMUNU[ww]; ww++;
-            eTxx[index] = TDNMUNU[ww]; ww++;
-            eTxy[index] = TDNMUNU[ww]; ww++;
-            eTxz[index] = TDNMUNU[ww]; ww++;
-            eTyy[index] = TDNMUNU[ww]; ww++;
-            eTyz[index] = TDNMUNU[ww]; ww++;
-            eTzz[index] = TDNMUNU[ww];
-          }
-          //if(i==5 && j==5 && k==5) CCTK_VInfo(CCTK_THORNSTRING,"%e %e %e %e",eTtt[index],eTtx[index],eTty[index],eTxy[index]);
-          //CCTK_VInfo(CCTK_THORNSTRING,"YAY: "); for(ww=0;ww<10;ww++) CCTK_VInfo(CCTK_THORNSTRING,"%e ",TDNMUNU[ww]); CCTK_VInfo(CCTK_THORNSTRING,"");
+          rho_star[index] = cons.rho;
+          tau[index] = cons.tau;
+          mhd_st_x[index] = cons.SD[0];
+          mhd_st_y[index] = cons.SD[1];
+          mhd_st_z[index] = cons.SD[2];
+          Ye_star[index] = cons.Y_e;
         }
       }
 }

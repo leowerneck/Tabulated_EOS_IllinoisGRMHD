@@ -272,7 +272,6 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         // Now we compute the difference between original & new conservatives,
         // for diagnostic purposes:
         error_rho_numer += fabs(cons.rho - cons_orig.rho);
-        CCTK_VINFO("Finished first loop");
         error_tau_numer += fabs(cons.tau - cons_orig.tau);
         error_Sx_numer += fabs(cons.SD[0] - cons_orig.SD[0]);
         error_Sy_numer += fabs(cons.SD[1] - cons_orig.SD[1]);
