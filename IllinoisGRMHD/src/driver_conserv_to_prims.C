@@ -5,8 +5,6 @@
 #include "Symmetry.h"
 
 #include "IllinoisGRMHD_headers.h"
-#include "inlined_functions.h"
-#include "apply_tau_floor__enforce_limits_on_primitives_and_recompute_conservs.C"
 
 static inline int GRHayLMHD_local_avg(
     const cGH *restrict cctkGH, const int i, const int j, const int k,
@@ -175,9 +173,9 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         // so using the previous timelevel as an initial guess would need to
         // be implemented here.
         ghl_primitive_quantities prims;
-        prims.BU[0] = Bx[index] * ONE_OVER_SQRT_4PI;
-        prims.BU[1] = By[index] * ONE_OVER_SQRT_4PI;
-        prims.BU[2] = Bz[index] * ONE_OVER_SQRT_4PI;
+        prims.BU[0] = 0.0;
+        prims.BU[1] = 0.0;
+        prims.BU[2] = 0.0;
 
         // Read in conservative variables from gridfunctions
         ghl_conservative_quantities cons, cons_orig;
@@ -351,9 +349,9 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
         ghl_primitive_quantities prims;
-        prims.BU[0] = Bx[index];
-        prims.BU[1] = By[index];
-        prims.BU[2] = Bz[index];
+        prims.BU[0] = 0.0;
+        prims.BU[1] = 0.0;
+        prims.BU[2] = 0.0;
 
         ghl_conservative_quantities cons, cons_orig;
         const int avg_fail = GRHayLMHD_local_avg(
@@ -490,9 +488,9 @@ void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
         ghl_primitive_quantities prims;
-        prims.BU[0] = Bx[index];
-        prims.BU[1] = By[index];
-        prims.BU[2] = Bz[index];
+        prims.BU[0] = 0.0;
+        prims.BU[1] = 0.0;
+        prims.BU[2] = 0.0;
 
         ghl_conservative_quantities cons, cons_orig;
         cons_orig.rho = rho_star[index];

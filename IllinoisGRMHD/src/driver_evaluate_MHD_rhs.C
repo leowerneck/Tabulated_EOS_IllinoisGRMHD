@@ -36,15 +36,8 @@
 
 
 #include "cctk.h"
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
-#include <sys/time.h>
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
-//#include "IllinoisGRMHD_headers.h" /* Generic #define's and function prototypes */
-//#include "driver_evaluate_MHD_rhs.h" /* Function prototypes for this file only */
-//#include "inlined_functions.h"
 #include "GRHayLib.h"
 
 // The inner two points of the interpolation function use

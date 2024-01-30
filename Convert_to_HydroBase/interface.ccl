@@ -3,16 +3,3 @@
 
 implements: Convert_to_HydroBase
 inherits: grid HydroBase ADMBase IllinoisGRMHD
-
-uses include header: IllinoisGRMHD_headers.h
-
-###############
-### WVU_EOS ###
-###############
-void FUNCTION WVU_EOS_P_and_eps_from_rho_Ye_T( CCTK_REAL IN rho, \
-                                               CCTK_REAL IN Ye,  \
-                                               CCTK_REAL IN T,   \
-                                               CCTK_REAL OUT P,  \
-                                               CCTK_REAL OUT eps )
-
-USES FUNCTION WVU_EOS_P_and_eps_from_rho_Ye_T

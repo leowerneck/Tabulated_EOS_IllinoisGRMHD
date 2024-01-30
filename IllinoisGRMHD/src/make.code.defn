@@ -1,42 +1,14 @@
 # Main make.code.defn file for thorn IllinoisGRMHD
 
 # Source files in this directory
-SRCS =  InitSymBound.C MoL_registration.C \
-    \
-    postpostinitial__set_symmetries__copy_timelevels.C \
-    \
-    convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij.C \
-    \
-    driver_evaluate_MHD_rhs.C \
-    compute_B_and_Bstagger_from_A.C \
-    driver_conserv_to_prims.C \
-    symmetry__set_gzs_staggered_gfs.C \
-    \
-    outer_boundaries.C \
-    \
-    reset_prims_to_atmosphere.cc\
-    \
-    EOS_get_key.cc \
-    EOS_initialize_parameters.cc \
-    EOS_Hybrid.cc \
-    EOS_Tabulated.cc \
-    EOS_floors_ceilings.cc \
-    \
-    con2prim_get_key.cc \
-    con2prim_select.cc \
-    con2prim_set_cons_and_prim_from_CONSERVS_and_PRIMS.cc \
-    con2prim_Noble2D.cc \
-    con2prim_Noble1D.cc \
-    con2prim_Noble1D_entropy.cc \
-    con2prim_Noble1D_entropy2.cc \
-    con2prim_Palenzuela1D.cc \
-    con2prim_CerdaDuran2D.cc \
-    con2prim_CerdaDuran3D.cc \
-    con2prim_Newman1D.cc \
-    con2prim_test_suite.cc \
-    con2prim_conservative_weighted_average.cc \
-    IllinoisGRMHD_parameter_check.cc \
-    compute_Tmunu.cc
+SRCS =  InitSymBound.C \
+        MoL_registration.C \
+        postpostinitial__set_symmetries__copy_timelevels.C \
+        driver_evaluate_MHD_rhs.C \
+        driver_conserv_to_prims.C \
+        symmetry__set_gzs_staggered_gfs.C \
+        outer_boundaries.C \
+        compute_Tmunu.cc
 
 # Subdirectories containing source files
 #SUBDIRS = ZelmaniLeak

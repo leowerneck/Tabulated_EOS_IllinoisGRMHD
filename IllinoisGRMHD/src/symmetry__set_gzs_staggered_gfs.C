@@ -1,8 +1,5 @@
 #include "cctk.h"
 #include "cctk_Parameters.h"
-#include <cstdio>
-#include <cstdlib>
-#include "IllinoisGRMHD_headers.h"
 
 void IllinoisGRMHD_set_symmetry_gzs_staggered(const cGH *cctkGH, const int *cctk_lsh,CCTK_REAL *X,CCTK_REAL *Y,CCTK_REAL *Z, CCTK_REAL *gridfunc,
                                               CCTK_REAL *gridfunc_syms,int stagger_x,int stagger_y,int stagger_z) {
@@ -10,7 +7,7 @@ void IllinoisGRMHD_set_symmetry_gzs_staggered(const cGH *cctkGH, const int *cctk
   DECLARE_CCTK_PARAMETERS;
 
   if(CCTK_EQUALS(Symmetry, "equatorial"))
-    CCTK_VError(VERR_DEF_PARAMS,"Warning: Symmetry==equatorial not supported! USE AT YOUR OWN RISK. You will need to comment this error message out.");
+    CCTK_ERROR("Warning: Symmetry==equatorial not supported! USE AT YOUR OWN RISK. You will need to comment this error message out.");
 
   // No symmetries -> return.
   if(CCTK_EQUALS(Symmetry, "none")) return;
@@ -22,7 +19,7 @@ void IllinoisGRMHD_set_symmetry_gzs_staggered(const cGH *cctkGH, const int *cctk
   int num_gzs=0;
   //FIXME: Might want to use cctk_nghostzones instead...
   while( (Z[CCTK_GFINDEX3D(cctkGH,0,0,num_gzs)]+z_offset) < -dz*0.1 && num_gzs<cctk_lsh[2]) num_gzs++;
-  if(num_gzs*2>=cctk_lsh[2]) CCTK_VError(VERR_DEF_PARAMS,"ERROR in symmetry__set_gzs_staggered_gfs.C");
+  if(num_gzs*2>=cctk_lsh[2]) CCTK_ERROR("ERROR in symmetry__set_gzs_staggered_gfs.C");
 
 #pragma omp parallel for
   for(int k=0;k<num_gzs;k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {

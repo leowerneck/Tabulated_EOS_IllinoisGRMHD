@@ -10,68 +10,17 @@
  *******************************************************/
 
 #include "cctk.h"
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
 
 #include "GRHayLib.h"
-#include "IllinoisGRMHD_headers.h"
-#include "inlined_functions.h"
 
 #define IDX(i,j,k) CCTK_GFINDEX3D(cctkGH,(i),(j),(k))
-
-#define XMAX_OB_LINEAR_EXTRAP(FUNC,imax) for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) FUNC[IDX(imax,j,k)] = 2.0 * FUNC[IDX(imax-1,j,k)] - FUNC[IDX(imax-2,j,k)];
-#define YMAX_OB_LINEAR_EXTRAP(FUNC,jmax) for(int k=0;k<cctk_lsh[2];k++) for(int i=0;i<cctk_lsh[0];i++) FUNC[IDX(i,jmax,k)] = 2.0 * FUNC[IDX(i,jmax-1,k)] - FUNC[IDX(i,jmax-2,k)];
-#define ZMAX_OB_LINEAR_EXTRAP(FUNC,kmax) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) FUNC[IDX(i,j,kmax)] = 2.0 * FUNC[IDX(i,j,kmax-1)] - FUNC[IDX(i,j,kmax-2)];
-
-#define XMIN_OB_LINEAR_EXTRAP(FUNC,imin) for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) FUNC[IDX(imin,j,k)] = 2.0 * FUNC[IDX(imin+1,j,k)] - FUNC[IDX(imin+2,j,k)];
-#define YMIN_OB_LINEAR_EXTRAP(FUNC,jmin) for(int k=0;k<cctk_lsh[2];k++) for(int i=0;i<cctk_lsh[0];i++) FUNC[IDX(i,jmin,k)] = 2.0 * FUNC[IDX(i,jmin+1,k)] - FUNC[IDX(i,jmin+2,k)];
-#define ZMIN_OB_LINEAR_EXTRAP(FUNC,kmin) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) FUNC[IDX(i,j,kmin)] = 2.0 * FUNC[IDX(i,j,kmin+1)] - FUNC[IDX(i,j,kmin+2)];
-
 
 /*********************************************
  * Apply outer boundary conditions on A_{\mu}
  ********************************************/
-extern "C" void IllinoisGRMHD_outer_boundaries_on_A_mu(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
-  DECLARE_CCTK_PARAMETERS;
-
-  if(CCTK_EQUALS(EM_BC,"frozen")) return;
-
-  bool Symmetry_none=false; if(CCTK_EQUALS(Symmetry,"none")) Symmetry_none=true;
-
-  int levelnumber = GetRefinementLevel(cctkGH);
-
-  IllinoisGRMHD_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij(cctkGH,cctk_lsh,  gxx,gxy,gxz,gyy,gyz,gzz,alp,
-                                                                gtxx,gtxy,gtxz,gtyy,gtyz,gtzz,
-                                                                gtupxx,gtupxy,gtupxz,gtupyy,gtupyz,gtupzz,
-                                                                phi_bssn,psi_bssn,lapm1);
-
-  // Don't apply approximate outer boundary conditions on initial data, which should be defined everywhere, or on levels != [coarsest level].
-  if(cctk_iteration==0 || levelnumber!=0) return;
-
-  if(cctk_nghostzones[0]!=cctk_nghostzones[1] || cctk_nghostzones[0]!=cctk_nghostzones[2])
-    CCTK_VError(VERR_DEF_PARAMS,"ERROR: IllinoisGRMHD outer BC driver does not support unequal number of ghostzones in different directions!");
-  for(int which_bdry_pt=0;which_bdry_pt<cctk_nghostzones[0];which_bdry_pt++) {
-    int imax=cctk_lsh[0]-cctk_nghostzones[0]+which_bdry_pt; // for cctk_nghostzones==3, this goes {cctk_lsh-3,cctk_lsh-2,cctk_lsh-1}; outer bdry pt is at cctk_lsh-1
-    int jmax=cctk_lsh[1]-cctk_nghostzones[1]+which_bdry_pt;
-    int kmax=cctk_lsh[2]-cctk_nghostzones[2]+which_bdry_pt;
-
-    int imin=cctk_nghostzones[0]-which_bdry_pt-1; // for cctk_nghostzones==3, this goes {2,1,0}
-    int jmin=cctk_nghostzones[1]-which_bdry_pt-1;
-    int kmin=cctk_nghostzones[2]-which_bdry_pt-1;
-
-    if(cctk_bbox[1]) { XMAX_OB_LINEAR_EXTRAP(Ax,imax); XMAX_OB_LINEAR_EXTRAP(Ay,imax); XMAX_OB_LINEAR_EXTRAP(Az,imax); XMAX_OB_LINEAR_EXTRAP(psi6phi,imax); }
-    if(cctk_bbox[3]) { YMAX_OB_LINEAR_EXTRAP(Ax,jmax); YMAX_OB_LINEAR_EXTRAP(Ay,jmax); YMAX_OB_LINEAR_EXTRAP(Az,jmax); YMAX_OB_LINEAR_EXTRAP(psi6phi,jmax); }
-    if(cctk_bbox[5]) { ZMAX_OB_LINEAR_EXTRAP(Ax,kmax); ZMAX_OB_LINEAR_EXTRAP(Ay,kmax); ZMAX_OB_LINEAR_EXTRAP(Az,kmax); ZMAX_OB_LINEAR_EXTRAP(psi6phi,kmax); }
-
-    if(cctk_bbox[0]) {                    XMIN_OB_LINEAR_EXTRAP(Ax,imin); XMIN_OB_LINEAR_EXTRAP(Ay,imin); XMIN_OB_LINEAR_EXTRAP(Az,imin); XMIN_OB_LINEAR_EXTRAP(psi6phi,imin); }
-    if(cctk_bbox[2]) {                    YMIN_OB_LINEAR_EXTRAP(Ax,jmin); YMIN_OB_LINEAR_EXTRAP(Ay,jmin); YMIN_OB_LINEAR_EXTRAP(Az,jmin); YMIN_OB_LINEAR_EXTRAP(psi6phi,jmin); }
-    if((cctk_bbox[4]) && Symmetry_none) { ZMIN_OB_LINEAR_EXTRAP(Ax,kmin); ZMIN_OB_LINEAR_EXTRAP(Ay,kmin); ZMIN_OB_LINEAR_EXTRAP(Az,kmin); ZMIN_OB_LINEAR_EXTRAP(psi6phi,kmin); }
-  }
-}
+extern "C" void IllinoisGRMHD_outer_boundaries_on_A_mu(CCTK_ARGUMENTS) {}
 
 
 #define XMAX_OB_SIMPLE_COPY(FUNC,imax) for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) FUNC[IDX(imax,j,k)] = FUNC[IDX(imax-1,j,k)];
@@ -91,8 +40,6 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_A_mu(CCTK_ARGUMENTS) {
 #define YMIN_INFLOW_CHECK(vy,jmin) for(int k=0;k<cctk_lsh[2];k++) for(int i=0;i<cctk_lsh[0];i++) if(vy[IDX(i,jmin,k)]>0.) vy[IDX(i,jmin,k)]=0.;
 #define ZMIN_INFLOW_CHECK(vz,kmin) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) if(vz[IDX(i,j,kmin)]>0.) vz[IDX(i,j,kmin)]=0.;
 
-
-
 /*******************************************************
  * Apply outer boundary conditions on {P,rho_b,vx,vy,vz}
  * It is better to apply BCs on primitives than conservs,
@@ -103,10 +50,6 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_A_mu(CCTK_ARGUMENTS) {
 extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
-
-  // Initialize EOS parameters
-  igm_eos_parameters eos;
-  initialize_igm_eos_parameters_from_input(igm_eos_key,cctk_time,eos);
 
   if(CCTK_EQUALS(Matter_BC,"frozen")) return;
 
@@ -119,14 +62,9 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
 
   int ENABLE=1;
 
-  IllinoisGRMHD_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij(cctkGH,cctk_lsh,  gxx,gxy,gxz,gyy,gyz,gzz,alp,
-                                                                gtxx,gtxy,gtxz,gtyy,gtyz,gtzz,
-                                                                gtupxx,gtupxy,gtupxz,gtupyy,gtupyz,gtupzz,
-                                                                phi_bssn,psi_bssn,lapm1);
-
   //if(levelnumber<=11110) {
   if(cctk_nghostzones[0]!=cctk_nghostzones[1] || cctk_nghostzones[0]!=cctk_nghostzones[2])
-    CCTK_VError(VERR_DEF_PARAMS,"ERROR: IllinoisGRMHD outer BC driver does not support unequal number of ghostzones in different directions!");
+    CCTK_ERROR("ERROR: IllinoisGRMHD outer BC driver does not support unequal number of ghostzones in different directions!");
   for(int which_bdry_pt=0;which_bdry_pt<cctk_nghostzones[0];which_bdry_pt++) {
     int imax=cctk_lsh[0]-cctk_nghostzones[0]+which_bdry_pt; // for cctk_nghostzones==3, this goes {cctk_lsh-3,cctk_lsh-2,cctk_lsh-1}; outer bdry pt is at cctk_lsh-1
     int jmax=cctk_lsh[1]-cctk_nghostzones[1]+which_bdry_pt;
@@ -147,7 +85,7 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       XMAX_OB_SIMPLE_COPY(vz,imax);
       XMAX_OB_SIMPLE_COPY(entropy,imax);
       XMAX_OB_SIMPLE_COPY(eps,imax);
-      if( eos.is_Tabulated ) {
+      if(CCTK_EQUALS(igm_eos_type, "Tabulated")) {
         XMAX_OB_SIMPLE_COPY(Y_e,imax);
         XMAX_OB_SIMPLE_COPY(temperature,imax);
       }
@@ -164,7 +102,7 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       XMIN_OB_SIMPLE_COPY(vz,imin);
       XMIN_OB_SIMPLE_COPY(entropy,imin);
       XMIN_OB_SIMPLE_COPY(eps,imin);
-      if( eos.is_Tabulated ) {
+      if(CCTK_EQUALS(igm_eos_type, "Tabulated")) {
         XMIN_OB_SIMPLE_COPY(Y_e,imin);
         XMIN_OB_SIMPLE_COPY(temperature,imin);
       }
@@ -181,7 +119,7 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       YMAX_OB_SIMPLE_COPY(vz,jmax);
       YMAX_OB_SIMPLE_COPY(entropy,jmax);
       YMAX_OB_SIMPLE_COPY(eps,jmax);
-      if( eos.is_Tabulated ) {
+      if(CCTK_EQUALS(igm_eos_type, "Tabulated")) {
         YMAX_OB_SIMPLE_COPY(Y_e,jmax);
         YMAX_OB_SIMPLE_COPY(temperature,jmax);
       }
@@ -195,7 +133,7 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       YMIN_OB_SIMPLE_COPY(vz,jmin);
       YMIN_OB_SIMPLE_COPY(entropy,jmin);
       YMIN_OB_SIMPLE_COPY(eps,jmin);
-      if( eos.is_Tabulated ) {
+      if(CCTK_EQUALS(igm_eos_type, "Tabulated")) {
         YMIN_OB_SIMPLE_COPY(Y_e,jmin);
         YMIN_OB_SIMPLE_COPY(temperature,jmin);
       }
@@ -212,7 +150,7 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       ZMAX_OB_SIMPLE_COPY(vz,kmax);
       ZMAX_OB_SIMPLE_COPY(entropy,kmax);
       ZMAX_OB_SIMPLE_COPY(eps,kmax);
-      if( eos.is_Tabulated ) {
+      if(CCTK_EQUALS(igm_eos_type, "Tabulated")) {
         ZMAX_OB_SIMPLE_COPY(Y_e,kmax);
         ZMAX_OB_SIMPLE_COPY(temperature,kmax);
       }
@@ -226,7 +164,7 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       ZMIN_OB_SIMPLE_COPY(vz,kmin);
       ZMIN_OB_SIMPLE_COPY(entropy,kmin);
       ZMIN_OB_SIMPLE_COPY(temperature,kmin);
-      if( eos.is_Tabulated ) {
+      if(CCTK_EQUALS(igm_eos_type, "Tabulated")) {
         ZMIN_OB_SIMPLE_COPY(Y_e,kmin);
         ZMIN_OB_SIMPLE_COPY(temperature,kmin);
       }

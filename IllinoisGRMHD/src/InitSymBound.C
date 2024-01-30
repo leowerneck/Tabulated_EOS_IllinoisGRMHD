@@ -17,10 +17,10 @@ extern "C" void IllinoisGRMHD_InitSymBound(CCTK_ARGUMENTS)
 
   if( ( CCTK_EQUALS(Matter_BC,"frozen") && !CCTK_EQUALS(EM_BC,"frozen") ) ||
       ( !CCTK_EQUALS(Matter_BC,"frozen") && CCTK_EQUALS(EM_BC,"frozen") ) )
-    CCTK_VError(VERR_DEF_PARAMS,"If Matter_BC or EM_BC is set to FROZEN, BOTH must be set to frozen!");
+    CCTK_VERROR("If Matter_BC or EM_BC is set to FROZEN, BOTH must be set to frozen!");
 
   if ((cctk_nghostzones[0]<3 || cctk_nghostzones[1]<3 || cctk_nghostzones[2]<3))
-    CCTK_VError(VERR_DEF_PARAMS,"ERROR: The version of PPM in this thorn requires 3 ghostzones. You only have (%d,%d,%d) ghostzones!",cctk_nghostzones[0],cctk_nghostzones[1],cctk_nghostzones[2]);
+    CCTK_VERROR("ERROR: The version of PPM in this thorn requires 3 ghostzones. You only have (%d,%d,%d) ghostzones!",cctk_nghostzones[0],cctk_nghostzones[1],cctk_nghostzones[2]);
 
   if(cctk_iteration==0) {
     CCTK_VInfo(CCTK_THORNSTRING,"Setting Symmetry = %s... at iteration = %d",Symmetry,cctk_iteration);
@@ -61,7 +61,7 @@ extern "C" void IllinoisGRMHD_InitSymBound(CCTK_ARGUMENTS)
       SetCartSymVN(cctkGH, sym,"IllinoisGRMHD::mhd_st_z");
       SetCartSymVN(cctkGH, sym,"IllinoisGRMHD::vz");
     } else {
-      CCTK_VError(VERR_DEF_PARAMS,"IllinoisGRMHD_initsymbound: Should not be here; picked an impossible symmetry.");
+      CCTK_ERROR("IllinoisGRMHD_initsymbound: Should not be here; picked an impossible symmetry.");
     }
   }
 }

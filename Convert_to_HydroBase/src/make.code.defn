@@ -2,7 +2,7 @@
 # $Header:$
 
 # Source files in this directory
-SRCS = Convert_to_HydroBase.C
+SRCS = Convert_to_HydroBase.c
 
 # Subdirectories containing source files
 SUBDIRS =
