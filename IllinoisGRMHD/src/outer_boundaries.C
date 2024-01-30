@@ -85,10 +85,8 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       XMAX_OB_SIMPLE_COPY(vz,imax);
       XMAX_OB_SIMPLE_COPY(entropy,imax);
       XMAX_OB_SIMPLE_COPY(eps,imax);
-      if(CCTK_EQUALS(igm_eos_type, "Tabulated")) {
-        XMAX_OB_SIMPLE_COPY(Y_e,imax);
-        XMAX_OB_SIMPLE_COPY(temperature,imax);
-      }
+      XMAX_OB_SIMPLE_COPY(Y_e,imax);
+      XMAX_OB_SIMPLE_COPY(temperature,imax);
       if(ENABLE) {
         XMAX_INFLOW_CHECK(vx,imax);
       }
@@ -102,10 +100,8 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       XMIN_OB_SIMPLE_COPY(vz,imin);
       XMIN_OB_SIMPLE_COPY(entropy,imin);
       XMIN_OB_SIMPLE_COPY(eps,imin);
-      if(CCTK_EQUALS(igm_eos_type, "Tabulated")) {
-        XMIN_OB_SIMPLE_COPY(Y_e,imin);
-        XMIN_OB_SIMPLE_COPY(temperature,imin);
-      }
+      XMIN_OB_SIMPLE_COPY(Y_e,imin);
+      XMIN_OB_SIMPLE_COPY(temperature,imin);
       if(ENABLE) XMIN_INFLOW_CHECK(vx,imin);
     }
 
@@ -119,10 +115,8 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       YMAX_OB_SIMPLE_COPY(vz,jmax);
       YMAX_OB_SIMPLE_COPY(entropy,jmax);
       YMAX_OB_SIMPLE_COPY(eps,jmax);
-      if(CCTK_EQUALS(igm_eos_type, "Tabulated")) {
-        YMAX_OB_SIMPLE_COPY(Y_e,jmax);
-        YMAX_OB_SIMPLE_COPY(temperature,jmax);
-      }
+      YMAX_OB_SIMPLE_COPY(Y_e,jmax);
+      YMAX_OB_SIMPLE_COPY(temperature,jmax);
       if(ENABLE) YMAX_INFLOW_CHECK(vy,jmax); }
     // j=jmin=outer boundary
     if(cctk_bbox[2]) {
@@ -133,10 +127,8 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       YMIN_OB_SIMPLE_COPY(vz,jmin);
       YMIN_OB_SIMPLE_COPY(entropy,jmin);
       YMIN_OB_SIMPLE_COPY(eps,jmin);
-      if(CCTK_EQUALS(igm_eos_type, "Tabulated")) {
-        YMIN_OB_SIMPLE_COPY(Y_e,jmin);
-        YMIN_OB_SIMPLE_COPY(temperature,jmin);
-      }
+      YMIN_OB_SIMPLE_COPY(Y_e,jmin);
+      YMIN_OB_SIMPLE_COPY(temperature,jmin);
       if(ENABLE) YMIN_INFLOW_CHECK(vy,jmin);
     }
 
@@ -150,10 +142,8 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       ZMAX_OB_SIMPLE_COPY(vz,kmax);
       ZMAX_OB_SIMPLE_COPY(entropy,kmax);
       ZMAX_OB_SIMPLE_COPY(eps,kmax);
-      if(CCTK_EQUALS(igm_eos_type, "Tabulated")) {
-        ZMAX_OB_SIMPLE_COPY(Y_e,kmax);
-        ZMAX_OB_SIMPLE_COPY(temperature,kmax);
-      }
+      ZMAX_OB_SIMPLE_COPY(Y_e,kmax);
+      ZMAX_OB_SIMPLE_COPY(temperature,kmax);
       if(ENABLE) ZMAX_INFLOW_CHECK(vz,kmax); }
     // k=kmin=outer boundary
     if((cctk_bbox[4]) && Symmetry_none) {
@@ -164,10 +154,8 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
       ZMIN_OB_SIMPLE_COPY(vz,kmin);
       ZMIN_OB_SIMPLE_COPY(entropy,kmin);
       ZMIN_OB_SIMPLE_COPY(temperature,kmin);
-      if(CCTK_EQUALS(igm_eos_type, "Tabulated")) {
-        ZMIN_OB_SIMPLE_COPY(Y_e,kmin);
-        ZMIN_OB_SIMPLE_COPY(temperature,kmin);
-      }
+      ZMIN_OB_SIMPLE_COPY(Y_e,kmin);
+      ZMIN_OB_SIMPLE_COPY(temperature,kmin);
       if(ENABLE) ZMIN_INFLOW_CHECK(vz,kmin); }
   }
 

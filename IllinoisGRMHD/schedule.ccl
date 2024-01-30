@@ -145,8 +145,8 @@ schedule IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_Con2Prim
 
 schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in IllinoisGRMHD_Con2Prim after IllinoisGRMHD_conserv_to_prims
 {
-# We must sync {P,rho_b,vx,vy,vz} here.
-SYNC: grmhd_primitives_allbutBi, HydroBase::rho, HydroBase::Y_e, HydroBase::temperature, HydroBase::press, HydroBase::eps, HydroBase::entropy
+  # We must sync {P,rho_b,vx,vy,vz} here.
+  SYNC: grmhd_primitives_allbutBi, HydroBase::rho, HydroBase::Y_e, HydroBase::temperature, HydroBase::press, HydroBase::eps, HydroBase::entropy
   LANG: C
 } "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
 

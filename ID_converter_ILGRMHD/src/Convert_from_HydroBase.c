@@ -16,9 +16,15 @@ void Convert_from_HydroBase(CCTK_ARGUMENTS) {
       for(int i=0; i<imax; i++) {
         const int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
 
+        Ax[index] = 0.0;
+        Ay[index] = 0.0;
+        Az[index] = 0.0;
+        psi6phi[index] = 0.0;
+
         const double ETvx = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,0)];
         const double ETvy = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1)];
         const double ETvz = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2)];
+
 
         // IllinoisGRMHD defines v^i = u^i/u^0.
 

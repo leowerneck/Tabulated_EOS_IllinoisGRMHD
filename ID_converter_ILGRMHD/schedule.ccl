@@ -9,8 +9,15 @@ schedule Convert_from_HydroBase IN IllinoisGRMHD_ID_Converter as first_initialda
    LANG:       C
    OPTIONS:    LOCAL
    # What the heck, let's synchronize everything!
-   SYNC: IllinoisGRMHD::grmhd_primitives_Bi, IllinoisGRMHD::grmhd_primitives_Bi_stagger, IllinoisGRMHD::grmhd_primitives_allbutBi, IllinoisGRMHD::em_Ax,IllinoisGRMHD::em_Ay,IllinoisGRMHD::em_Az,IllinoisGRMHD::em_psi6phi,IllinoisGRMHD::grmhd_conservatives,IllinoisGRMHD::BSSN_quantities,ADMBase::metric,ADMBase::lapse,ADMBase::shift,ADMBase::curv
+   SYNC: IllinoisGRMHD::grmhd_primitives_Bi, IllinoisGRMHD::grmhd_primitives_Bi_stagger, IllinoisGRMHD::grmhd_primitives_allbutBi, IllinoisGRMHD::em_Ax,IllinoisGRMHD::em_Ay,IllinoisGRMHD::em_Az,IllinoisGRMHD::em_psi6phi,IllinoisGRMHD::BSSN_quantities,ADMBase::metric,ADMBase::lapse,ADMBase::shift,ADMBase::curv
 } "Convert HydroBase initial data (ID) to ID that IllinoisGRMHD can read."
+
+schedule IllinoisGRMHD_Prim2Con IN IllinoisGRMHD_ID_Converter as second_initialdata after first_initialdata
+{
+  LANG: C
+  OPTIONS: LOCAL
+  SYNC: IllinoisGRMHD::grmhd_conservatives
+} "Computes conservatives from primitives"
 
 schedule IllinoisGRMHD_InitSymBound IN IllinoisGRMHD_ID_Converter as third_initialdata after second_initialdata
 {

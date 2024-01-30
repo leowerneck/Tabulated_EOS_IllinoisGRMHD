@@ -1,5 +1,5 @@
 # Main make.code.defn file for thorn ID_converter_ILGRMHD
 
 # Source files in this directory
-SRCS =  set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase_variables.C
+SRCS = Convert_from_HydroBase.c Prim2Con.c
 
