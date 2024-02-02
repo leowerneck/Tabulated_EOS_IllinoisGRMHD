@@ -8,7 +8,6 @@
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
 #include "Symmetry.h"
-#include "IllinoisGRMHD_headers.h"
 
 extern "C" void IllinoisGRMHD_InitSymBound(CCTK_ARGUMENTS)
 {

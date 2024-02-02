@@ -4,8 +4,6 @@
 #include "GRHayLib.h"
 #include "Symmetry.h"
 
-#include "IllinoisGRMHD_headers.h"
-
 static inline int GRHayLMHD_local_avg(
     const cGH *restrict cctkGH, const int i, const int j, const int k,
     const int weight, const CCTK_INT *restrict needs_average,
