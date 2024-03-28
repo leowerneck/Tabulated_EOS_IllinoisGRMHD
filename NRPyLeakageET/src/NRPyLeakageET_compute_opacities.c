@@ -19,7 +19,7 @@ void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS) {
 
   switch (constants_key) {
   case USE_NRPY_CONSTANTS:
-#pragma omp parallel
+#pragma omp parallel for
     for(int k=0;k<cctk_lsh[2];k++) {
       for(int j=0;j<cctk_lsh[1];j++) {
         for(int i=0;i<cctk_lsh[0];i++) {
@@ -99,7 +99,7 @@ void NRPyLeakageET_compute_opacities(CCTK_ARGUMENTS) {
     }
     break;
   case USE_HARM_CONSTANTS:
-#pragma omp parallel
+#pragma omp parallel for
     for(int k=0;k<cctk_lsh[2];k++) {
       for(int j=0;j<cctk_lsh[1];j++) {
         for(int i=0;i<cctk_lsh[0];i++) {
