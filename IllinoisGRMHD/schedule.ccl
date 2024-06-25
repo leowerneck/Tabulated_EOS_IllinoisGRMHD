@@ -92,8 +92,23 @@ schedule IllinoisGRMHD_driver_evaluate_MHD_rhs in MoL_CalcRHS as IllinoisGRMHD_R
 {
   LANG: C
 } "Evaluate RHSs of GR Hydro & GRMHD equations"
-####################
 
+#schedule group IllinoisGRMHD_RHS in MoL_CalcRHS as IllinoisGRMHD_RHS_eval after bssn_rhs after shift_rhs
+#{
+#} "Evaluate RHSs GRHD equations"
+#
+#schedule group IllinoisGRMHD_evaluate_sources_rhs in IllinoisGRMHD_RHS
+#{
+#} "Evaluate source terms in GRMHD RHSs"
+#
+#schedule group IllinoisGRMHD_evaluate_fluxes_rhs in IllinoisGRMHD_RHS after IllinoisGRMHD_evaluate_sources_rhs
+#{
+#} "Evaluate flux terms in GRMHD RHSs"
+#
+#schedule IllinoisGRMHD_evaluate_phitilde_and_A_gauge_rhs in IllinoisGRMHD_RHS after evaluate_fluxes_rhs
+#{
+#  LANG: C
+#} "Evaluate phitilde RHS and gauge contributions to A_i RHS"
 
 ############################################################
 # COMPUTE B FROM A & RE-SOLVE FOR PRIMITIVES
@@ -146,3 +161,43 @@ schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in AddToTmunu after 
   LANG: C
 } "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
 ##########################################################
+SCHEDULE Convert_to_HydroBase AT CCTK_INITIAL AFTER SetTmunu
+{
+  LANG: C
+} "Convert IllinoisGRMHD-native variables to HydroBase"
+
+SCHEDULE Convert_to_HydroBase AT CCTK_ANALYSIS BEFORE compute_bi_b2_Poyn_fluxET BEFORE particle_tracerET BEFORE VolumeIntegralGroup BEFORE convert_to_MHD_3velocity AFTER ML_BSSN_evolCalcGroup
+{
+  OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
+  LANG: C
+} "Convert IllinoisGRMHD-native variables to HydroBase"
+
+schedule group IllinoisGRMHD_ID_Converter at CCTK_INITIAL after HydroBase_Initial before Convert_to_HydroBase
+{
+} "Translate ET-generated, HydroBase-compatible initial data and convert into variables used by IllinoisGRMHD"
+
+schedule set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase_variables IN IllinoisGRMHD_ID_Converter as first_initialdata before TOV_Initial_Data
+{
+   LANG:       C
+   OPTIONS:    LOCAL
+   # What the heck, let's synchronize everything!
+   SYNC: IllinoisGRMHD::grmhd_primitives_Bi, IllinoisGRMHD::grmhd_primitives_Bi_stagger, IllinoisGRMHD::grmhd_primitives_allbutBi, IllinoisGRMHD::em_Ax,IllinoisGRMHD::em_Ay,IllinoisGRMHD::em_Az,IllinoisGRMHD::em_psi6phi,IllinoisGRMHD::grmhd_conservatives,IllinoisGRMHD::BSSN_quantities,ADMBase::metric,ADMBase::lapse,ADMBase::shift,ADMBase::curv
+} "Convert HydroBase initial data (ID) to ID that IllinoisGRMHD can read."
+
+schedule IllinoisGRMHD_InitSymBound IN IllinoisGRMHD_ID_Converter as third_initialdata after second_initialdata
+{
+  SYNC: IllinoisGRMHD::grmhd_conservatives,IllinoisGRMHD::em_Ax,IllinoisGRMHD::em_Ay,IllinoisGRMHD::em_Az,IllinoisGRMHD::em_psi6phi
+  LANG: C
+} "Schedule symmetries -- Actually just a placeholder function to ensure prolongation / processor syncs are done BEFORE the primitives solver."
+
+schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A IN IllinoisGRMHD_ID_Converter as fourth_initialdata after third_initialdata
+{
+  SYNC: IllinoisGRMHD::grmhd_primitives_Bi, IllinoisGRMHD::grmhd_primitives_Bi_stagger
+  LANG: C
+} "Compute B and B_stagger from A"
+
+schedule IllinoisGRMHD_conserv_to_prims IN IllinoisGRMHD_ID_Converter as fifth_initialdata after fourth_initialdata
+{
+  LANG: C
+} "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
+

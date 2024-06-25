@@ -292,3 +292,28 @@ int IGM_stencil "Width of the stencil"
 {
   0: :: "Must be positive"
 } 2
+
+INT Convert_to_HydroBase_every "How often to convert IllinoisGRMHD primitive variables to HydroBase (Valencia formulation) primitive variables? Needed for some ET-based diagnostics. NOT needed for pure IllinoisGRMHD runs."
+{
+ 0:* :: "zero (disable) or positive (every N iterations)"
+} 0
+
+INT random_seed "Random seed for random, generally roundoff-level perturbation on initial data. Seeds srand(), and rand() is used for the RNG."
+{
+ 0:99999999 :: "Anything unsigned goes."
+} 0
+
+REAL random_pert "Random perturbation atop data"
+{
+ *:* :: "Anything goes."
+} 0
+
+REAL ID_converter_ILGRMHD_pressure_depletion_factor "P -> (1-pressure_depletion)*P"
+{
+ 0.0:1.0 :: "0.0 -> 0% depletion, 0.5 -> 50% depletion, etc"
+} 0.0
+
+BOOLEAN pure_hydro_run "Set the vector potential and corresponding EM gauge quantity to zero"
+{
+} "no"
+
