@@ -50,6 +50,8 @@
 #define vely (&vel[1*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 #define velz (&vel[2*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 
+extern "C" void IllinoisGRMHD_evaluate_sources_rhs(CCTK_ARGUMENTS);
+
 extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
@@ -80,6 +82,28 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   igm_eos_parameters eos;
   initialize_igm_eos_parameters_from_input(igm_eos_key,cctk_time,eos);
 
+/********************************************************************/
+  const double *new_in_prims[MAXNUMVARS];
+  double *new_out_prims_r[MAXNUMVARS];
+  double *new_out_prims_l[MAXNUMVARS];
+  new_in_prims[BX_STAGGER]=Bx_stagger; new_out_prims_r[BX_STAGGER]=Bx_staggerr; new_out_prims_l[BX_STAGGER]=Bx_staggerl;
+  new_in_prims[BY_STAGGER]=By_stagger; new_out_prims_r[BY_STAGGER]=By_staggerr; new_out_prims_l[BY_STAGGER]=By_staggerl;
+  new_in_prims[BZ_STAGGER]=Bz_stagger; new_out_prims_r[BZ_STAGGER]=Bz_staggerr; new_out_prims_l[BZ_STAGGER]=Bz_staggerl;
+  new_in_prims[VXR       ]=vxr;        new_out_prims_r[VXR       ]=vxrr;        new_out_prims_l[VXR       ]=vxrl;
+  new_in_prims[VYR       ]=vyr;        new_out_prims_r[VYR       ]=vyrr;        new_out_prims_l[VYR       ]=vyrl;
+  new_in_prims[VZR       ]=vzr;        new_out_prims_r[VZR       ]=vzrr;        new_out_prims_l[VZR       ]=vzrl;
+  new_in_prims[VXL       ]=vxl;        new_out_prims_r[VXL       ]=vxlr;        new_out_prims_l[VXL       ]=vxll;
+  new_in_prims[VYL       ]=vyl;        new_out_prims_r[VYL       ]=vylr;        new_out_prims_l[VYL       ]=vyll;
+  new_in_prims[VZL       ]=vzl;        new_out_prims_r[VZL       ]=vzlr;        new_out_prims_l[VZL       ]=vzll;
+
+  const double *ghl_vel[3] = {vx, vy, vz};
+  const double *B_center[3] = {Bx, By, Bz};
+  double *vel_r[3] = {vxr, vyr, vzr};
+  double *vel_l[3] = {vxl, vyl, vzl};
+  const double *B_stagger[3] = {Bx_stagger, By_stagger, Bz_stagger};
+  double *cmin[3] = {cmin_x, cmin_y, cmin_z};
+  double *cmax[3] = {cmax_x, cmax_y, cmax_z};
+/********************************************************************/
 
   // in_prims,out_prims_r, and out_prims_l are arrays of pointers to the actual gridfunctions.
   gf_and_gz_struct in_prims[MAXNUMVARS],out_prims_r[MAXNUMVARS],out_prims_l[MAXNUMVARS];
@@ -182,6 +206,9 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 	s_sz        [index] = 0.0;
       }
 
+  // zzzzzzzzzz
+  IllinoisGRMHD_evaluate_sources_rhs(cctkGH);
+  // zzzzzzzzzz
   // Here, we:
   // 1) Compute tau_rhs extrinsic curvature terms, and
   // 2) Compute TUPmunu.

@@ -121,7 +121,7 @@ static void compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu( const igm_eos
              TUP[1][1]*KxxL + TUP[2][2]*KyyL + TUP[3][3]*KzzL +
              2.0*(TUP[1][2]*KxyL + TUP[1][3]*KxzL + TUP[2][3]*KyzL) );
 
-          tau_rhs[index] = tau_rhs_extrinsic_curvature_terms;
+          //tau_rhs[index] = tau_rhs_extrinsic_curvature_terms;
           s_tau  [index] = tau_rhs_extrinsic_curvature_terms;
         }
 

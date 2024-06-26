@@ -185,7 +185,7 @@ static void add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters 
 	  //   (Last part of Eq. 39 source term in http://arxiv.org/pdf/astro-ph/0503420.pdf)
 	  CCTK_REAL alpha_sqrtgamma = 2.0*half_alpha_sqrtgamma;
           CCTK_REAL tau_rhs_term    = alpha_sqrtgamma*(-(TUP[0][0]*METRIC[SHIFTX+(flux_dirn-1)] + TUP[0][flux_dirn])*lapse_deriv[flux_dirn]);
-	  tau_rhs[index]  += tau_rhs_term;
+	  //tau_rhs[index]  += tau_rhs_term;
           s_tau  [index]  += tau_rhs_term;
 
 	  // Eq 43 in http://arxiv.org/pdf/astro-ph/0503420.pdf:
