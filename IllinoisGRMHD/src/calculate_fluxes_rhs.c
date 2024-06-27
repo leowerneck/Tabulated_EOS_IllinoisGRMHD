@@ -199,7 +199,7 @@ void IllinoisGRMHD_calculate_flux_dir_rhs(
         st_y_flux [index] = cons_fluxes.SD[1];
         st_z_flux [index] = cons_fluxes.SD[2];
         //S_star_flux[index] = cons_fluxes.entropy;
-        //Ye_star_flux [index] = cons_fluxes.Y_e;
+        Ye_star_flux [index] = cons_fluxes.Y_e;
       }
     }
   }
@@ -219,7 +219,7 @@ void IllinoisGRMHD_calculate_flux_dir_rhs(
         st_y_rhs[index]  += dxi*(st_y_flux [index] - st_y_flux [indp1]);
         st_z_rhs[index]  += dxi*(st_z_flux [index] - st_z_flux [indp1]);
         //S_star_rhs[index] += dxi*(S_star_flux[index] - S_star_flux[indp1]);
-        //Ye_star_rhs[index]  += dxi*(Ye_star_flux [index] - Ye_star_flux [indp1]);
+        Ye_star_rhs[index]  += dxi*(Ye_star_flux [index] - Ye_star_flux [indp1]);
       }
     }
   }
