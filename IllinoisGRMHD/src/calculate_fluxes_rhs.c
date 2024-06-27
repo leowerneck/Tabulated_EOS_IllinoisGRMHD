@@ -195,9 +195,9 @@ void IllinoisGRMHD_calculate_flux_dir_rhs(
 
         rho_star_flux[index] = cons_fluxes.rho;
         tau_flux     [index] = cons_fluxes.tau;
-        //st_x_flux [index] = cons_fluxes.SD[0];
-        //st_y_flux [index] = cons_fluxes.SD[1];
-        //st_z_flux [index] = cons_fluxes.SD[2];
+        st_x_flux [index] = cons_fluxes.SD[0];
+        st_y_flux [index] = cons_fluxes.SD[1];
+        st_z_flux [index] = cons_fluxes.SD[2];
         //S_star_flux[index] = cons_fluxes.entropy;
         //Ye_star_flux [index] = cons_fluxes.Y_e;
       }
@@ -215,9 +215,9 @@ void IllinoisGRMHD_calculate_flux_dir_rhs(
 
         rho_star_rhs[index] += dxi*(rho_star_flux[index] - rho_star_flux[indp1]);
         tau_rhs[index]      += dxi*(tau_flux     [index] - tau_flux     [indp1]);
-        //st_x_rhs[index]  += dxi*(st_x_flux [index] - st_x_flux [indp1]);
-        //st_y_rhs[index]  += dxi*(st_y_flux [index] - st_y_flux [indp1]);
-        //st_z_rhs[index]  += dxi*(st_z_flux [index] - st_z_flux [indp1]);
+        st_x_rhs[index]  += dxi*(st_x_flux [index] - st_x_flux [indp1]);
+        st_y_rhs[index]  += dxi*(st_y_flux [index] - st_y_flux [indp1]);
+        st_z_rhs[index]  += dxi*(st_z_flux [index] - st_z_flux [indp1]);
         //S_star_rhs[index] += dxi*(S_star_flux[index] - S_star_flux[indp1]);
         //Ye_star_rhs[index]  += dxi*(Ye_star_flux [index] - Ye_star_flux [indp1]);
       }

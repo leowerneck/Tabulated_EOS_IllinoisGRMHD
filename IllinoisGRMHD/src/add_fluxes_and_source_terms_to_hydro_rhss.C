@@ -208,9 +208,9 @@ static void add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters 
 
 	//rho_star_rhs [index] += (rho_star_flux[index] - rho_star_flux[indexp1]) * dxi[flux_dirn];
 	//tau_rhs      [index] += (tau_flux     [index] - tau_flux     [indexp1]) * dxi[flux_dirn];
-	st_x_rhs     [index] += (st_x_flux    [index] - st_x_flux    [indexp1]) * dxi[flux_dirn];
-	st_y_rhs     [index] += (st_y_flux    [index] - st_y_flux    [indexp1]) * dxi[flux_dirn];
-	st_z_rhs     [index] += (st_z_flux    [index] - st_z_flux    [indexp1]) * dxi[flux_dirn];
+	//st_x_rhs     [index] += (st_x_flux    [index] - st_x_flux    [indexp1]) * dxi[flux_dirn];
+	//st_y_rhs     [index] += (st_y_flux    [index] - st_y_flux    [indexp1]) * dxi[flux_dirn];
+	//st_z_rhs     [index] += (st_z_flux    [index] - st_z_flux    [indexp1]) * dxi[flux_dirn];
         if( eos.is_Tabulated ) {
           Ye_star_rhs[index] += (Ye_star_flux [index] - Ye_star_flux [indexp1]) * dxi[flux_dirn];
         }
