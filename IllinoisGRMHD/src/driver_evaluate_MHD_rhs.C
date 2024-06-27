@@ -51,6 +51,15 @@
 #define velz (&vel[2*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 
 extern "C" void IllinoisGRMHD_evaluate_sources_rhs(CCTK_ARGUMENTS);
+extern "C" void IllinoisGRMHD_calculate_flux_dir_rhs(
+      const cGH *restrict cctkGH,
+      const int flux_dir,
+      const CCTK_REAL **B_center,
+      const CCTK_REAL *restrict B_stagger,
+      CCTK_REAL **vel_r,
+      CCTK_REAL **vel_l,
+      CCTK_REAL *restrict cmin,
+      CCTK_REAL *restrict cmax);
 
 extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
@@ -280,6 +289,11 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
                                             rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs,Ye_star_rhs,S_star_rhs,
                                             s_tau, s_sx, s_sy, s_sz);
 
+  // zzzzzzzzzz
+  IllinoisGRMHD_calculate_flux_dir_rhs(
+        cctkGH, flux_dirn-1, B_center, B_stagger[flux_dirn-1],
+        vel_r, vel_l, cmin[flux_dirn-1], cmax[flux_dirn-1]);
+  // zzzzzzzzzz
   // Note that we have already reconstructed vx and vy along the x-direction,
   //   at (i-1/2,j,k). That result is stored in v{x,y}{r,l}.  Bx_stagger data
   //   are defined at (i+1/2,j,k).
@@ -368,6 +382,11 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
                                             rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs,Ye_star_rhs,S_star_rhs,
                                             s_tau, s_sx, s_sy, s_sz);
 
+  // zzzzzzzzzz
+  IllinoisGRMHD_calculate_flux_dir_rhs(
+        cctkGH, flux_dirn-1, B_center, B_stagger[flux_dirn-1],
+        vel_r, vel_l, cmin[flux_dirn-1], cmax[flux_dirn-1]);
+  // zzzzzzzzzz
 
   // in_prims[{VYR,VYL,VZR,VZL}].gz_{lo,hi} ghostzones are not correct, so we fix
   //    this below.
@@ -451,6 +470,11 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
                                             rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs,Ye_star_rhs,S_star_rhs,
                                             s_tau, s_sx, s_sy, s_sz);
 
+  // zzzzzzzzzz
+  IllinoisGRMHD_calculate_flux_dir_rhs(
+        cctkGH, flux_dirn-1, B_center, B_stagger[flux_dirn-1],
+        vel_r, vel_l, cmin[flux_dirn-1], cmax[flux_dirn-1]);
+  // zzzzzzzzzz
   // in_prims[{VYR,VYL,VZR,VZL}].gz_{lo,hi} ghostzones are not set correcty.
   //    We fix this below.
   // [Note that this is a cheap operation, copying only 8 integers and a pointer.]
