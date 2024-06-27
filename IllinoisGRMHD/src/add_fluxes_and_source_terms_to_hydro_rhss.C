@@ -211,11 +211,11 @@ static void add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters 
 	//st_x_rhs     [index] += (st_x_flux    [index] - st_x_flux    [indexp1]) * dxi[flux_dirn];
 	//st_y_rhs     [index] += (st_y_flux    [index] - st_y_flux    [indexp1]) * dxi[flux_dirn];
 	//st_z_rhs     [index] += (st_z_flux    [index] - st_z_flux    [indexp1]) * dxi[flux_dirn];
-        //f( eos.is_Tabulated ) {
+        //if( eos.is_Tabulated ) {
         //  Ye_star_rhs[index] += (Ye_star_flux [index] - Ye_star_flux [indexp1]) * dxi[flux_dirn];
         //}
-        if( eos.evolve_entropy ) {
-          S_star_rhs [index] += (S_star_flux  [index] - S_star_flux  [indexp1]) * dxi[flux_dirn];
-        }
+        //if( eos.evolve_entropy ) {
+        //  S_star_rhs [index] += (S_star_flux  [index] - S_star_flux  [indexp1]) * dxi[flux_dirn];
+        //}
       }
 }
