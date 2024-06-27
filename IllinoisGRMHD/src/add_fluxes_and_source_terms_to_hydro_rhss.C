@@ -207,7 +207,7 @@ static void add_fluxes_and_source_terms_to_hydro_rhss( const igm_eos_parameters 
 	int indexp1 = CCTK_GFINDEX3D(cctkGH,i+kronecker_delta[flux_dirn][0],j+kronecker_delta[flux_dirn][1],k+kronecker_delta[flux_dirn][2]);
 
 	//rho_star_rhs [index] += (rho_star_flux[index] - rho_star_flux[indexp1]) * dxi[flux_dirn];
-	tau_rhs      [index] += (tau_flux     [index] - tau_flux     [indexp1]) * dxi[flux_dirn];
+	//tau_rhs      [index] += (tau_flux     [index] - tau_flux     [indexp1]) * dxi[flux_dirn];
 	st_x_rhs     [index] += (st_x_flux    [index] - st_x_flux    [indexp1]) * dxi[flux_dirn];
 	st_y_rhs     [index] += (st_y_flux    [index] - st_y_flux    [indexp1]) * dxi[flux_dirn];
 	st_z_rhs     [index] += (st_z_flux    [index] - st_z_flux    [indexp1]) * dxi[flux_dirn];
