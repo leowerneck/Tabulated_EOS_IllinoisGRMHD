@@ -120,7 +120,7 @@ schedule IllinoisGRMHD_InitSymBound in IllinoisGRMHD_PostPostInitial as Illinois
   LANG: C
 } "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
 
-schedule IllinoisGRMHD_outer_boundaries_on_A_mu in IllinoisGRMHD_PostPostInitial after IllinoisGRMHD_sync_conservatives
+schedule IllinoisGRMHD_A_i_outer_boundaries in IllinoisGRMHD_PostPostInitial after IllinoisGRMHD_sync_conservatives
 {
   LANG: C
   READS:  phitilde, Ax, Ay, Az
@@ -128,7 +128,7 @@ schedule IllinoisGRMHD_outer_boundaries_on_A_mu in IllinoisGRMHD_PostPostInitial
 } "Apply linear extrapolation BCs on A_{mu}, so that BCs are flat on B^i"
 
 # Easiest primitives to solve for: B^i
-schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_PostPostInitial after IllinoisGRMHD_outer_boundaries_on_A_mu
+schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_PostPostInitial after IllinoisGRMHD_A_i_outer_boundaries
 {
   # This is strictly a processor sync, as prolongation is disabled for all primitives & B^i's.
   SYNC: grmhd_B_center,grmhd_B_stagger # FIXME: Are both SYNC's necessary?
@@ -147,7 +147,7 @@ schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in IllinoisGRMHD_Pos
   SYNC: grmhd_velocities, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy
 } "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
 
-schedule IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels in IllinoisGRMHD_PostPostInitial after IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz
+schedule IllinoisGRMHD_set_gz_symmetries in IllinoisGRMHD_PostPostInitial after IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz
 {
   LANG: C
   READS:  GRID::coordinates
@@ -166,20 +166,20 @@ schedule group IllinoisGRMHD_Con2Prim in HydroBase_Con2Prim
 } "Compute primitive variables from conservatives"
 
 # Does MoL sync evolved variables after each substep? If so, no need for this
-schedule IllinoisGRMHD_InitSymBound in HydroBase_Boundaries as IllinoisGRMHD_sync_conservatives
+schedule IllinoisGRMHD_InitSymBound in IllinoisGRMHD_Con2Prim as IllinoisGRMHD_sync_conservatives
 {
   LANG: C
   SYNC: grmhd_conservatives, Ax, Ay, Az, phitilde
 } "Sync conservative variable ghost zones for c2p routine"
 
-schedule IllinoisGRMHD_outer_boundaries_on_A_mu in HydroBase_Boundaries after IllinoisGRMHD_sync_conservatives
+schedule IllinoisGRMHD_A_i_outer_boundaries in IllinoisGRMHD_Con2Prim after IllinoisGRMHD_sync_conservatives
 {
   LANG: C
   READS:  phitilde, Ax, Ay, Az
   WRITES: phitilde(boundary), Ax(boundary), Ay(boundary), Az(boundary)
 } "Apply linear extrapolation BCs on A_{mu}, so that BCs are flat on B^i"
 
-schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in HydroBase_Boundaries after outer_boundaries_on_A_mu
+schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_Con2Prim after IllinoisGRMHD_A_i_outer_boundaries
 {
   LANG: C
   READS:  GRID::coordinates
