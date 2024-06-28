@@ -12,7 +12,7 @@ USES INCLUDE HEADER: WVU_EOS_Tabulated_headers.hh
 #########################################################
 
 # Primitive variables
-CCTK_REAL grmhd_primitives_allbutBi type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
+CCTK_REAL grmhd_velocities type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
 {
   u0, vx, vy, vz, igm_c2p_mask
 } "Components of primitive three velocity v^i. Note that v^i is defined in ter"

@@ -24,16 +24,16 @@ void IllinoisGRMHD_InitSymBound(CCTK_ARGUMENTS)
 
     sym[0] = 1; sym[1] = 1; sym[2] = 1;
     SetCartSymGN(cctkGH, sym, "IllinoisGRMHD::grmhd_conservatives");
-    SetCartSymGN(cctkGH, sym, "IllinoisGRMHD::grmhd_primitives_allbutBi");
+    SetCartSymGN(cctkGH, sym, "IllinoisGRMHD::grmhd_velocities");
     SetCartSymGN(cctkGH, sym, "IllinoisGRMHD::grmhd_B_center");
     SetCartSymGN(cctkGH, sym, "IllinoisGRMHD::Ax");
     SetCartSymGN(cctkGH, sym, "IllinoisGRMHD::Ay");
     SetCartSymGN(cctkGH, sym, "IllinoisGRMHD::Az");
     SetCartSymGN(cctkGH, sym, "IllinoisGRMHD::phitilde");
-    if(ghl_params->evolve_entropy)
-      SetCartSymGN(cctkGH, sym, "IllinoisGRMHD::ent_star");
-    if(ghl_eos->eos_type == ghl_eos_tabulated)
-      SetCartSymGN(cctkGH, sym, "IllinoisGRMHD::Ye_star");
+    //if(ghl_params->evolve_entropy)
+    //  SetCartSymGN(cctkGH, sym, "IllinoisGRMHD::ent_star");
+    //if(ghl_eos->eos_type == ghl_eos_tabulated)
+    //  SetCartSymGN(cctkGH, sym, "IllinoisGRMHD::Ye_star");
 
     if(CCTK_EQUALS(Symmetry, "equatorial")) {
       sym[2] = -Sym_Bz;

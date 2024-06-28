@@ -5,7 +5,7 @@ STORAGE: HydroBase::Bvec[1], HydroBase::Avec[1], HydroBase::Aphi[1]
 STORAGE: BSSN_quantities
 
 STORAGE: grmhd_conservatives[3], Ax[3], Ay[3], Az[3], phitilde[3]
-STORAGE: grmhd_primitives_allbutBi, grmhd_B_center, grmhd_B_stagger
+STORAGE: grmhd_velocities, grmhd_B_center, grmhd_B_stagger
 STORAGE: grmhd_conservatives_rhs, EM_rhs
 STORAGE: grmhd_primitives_reconstructed_temps, grmhd_cmin_cmax_temps, failure_checker
 STORAGE: grmhd_flux_temps, con2prim_failed_flag
@@ -60,23 +60,15 @@ schedule group IllinoisGRMHD_Prim2Con2Prim in HydroBase_Prim2ConInitial
 } "Convert HydroBase initial data to IllinoisGRMHD variables"
 
 # Runs everywhere. Shouldn't need to sync
-#schedule convert_HydroBase_to_IllinoisGRMHD in IllinoisGRMHD_Prim2Con2Prim
-#{
-#  LANG: C
-#  READS:  ADMBase::lapse, ADMBase::shift
-#  READS:  HydroBase::vel, HydroBase::Avec, HydroBase::Aphi
-#  WRITES: grmhd_velocities(everywhere), phitilde(everywhere),
-#          Ax(everywhere), Ay(everywhere), Az(everywhere)
-#  SYNC: grmhd_velocities, Ax, Ay, Az, phitilde
-#} "Convert HydroBase initial data (ID) to IllinoisGRMHD variables"
-
-schedule set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase_variables IN IllinoisGRMHD_Prim2Con2Prim as first_initialdata before TOV_Initial_Data
+schedule convert_HydroBase_to_IllinoisGRMHD in IllinoisGRMHD_Prim2Con2Prim
 {
-   LANG:       C
-   OPTIONS:    LOCAL
-   # What the heck, let's synchronize everything!
-   SYNC: grmhd_B_center, grmhd_B_stagger, grmhd_primitives_allbutBi, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy, Ax,Ay,Az,phitilde,grmhd_conservatives,BSSN_quantities,ADMBase::metric,ADMBase::lapse,ADMBase::shift,ADMBase::curv
-} "Convert HydroBase initial data (ID) to ID that IllinoisGRMHD can read."
+  LANG: C
+  READS:  ADMBase::lapse, ADMBase::shift
+  READS:  HydroBase::vel, HydroBase::Avec, HydroBase::Aphi
+  WRITES: grmhd_velocities(everywhere), phitilde(everywhere),
+          Ax(everywhere), Ay(everywhere), Az(everywhere)
+  SYNC: grmhd_velocities, Ax, Ay, Az, phitilde
+} "Convert HydroBase initial data (ID) to IllinoisGRMHD variables"
 
 # Runs everywhere. Shouldn't need to sync
 schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_Prim2Con2Prim after (set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase_variables convert_HydroBase_to_IllinoisGRMHD)
@@ -107,7 +99,7 @@ if(Convert_to_HydroBase_every) {
   {
     LANG: C
     READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-            grmhd_primitives_allbutBi, grmhd_B_center
+            grmhd_velocities, grmhd_B_center
     WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere),
             HydroBase::Bvec(everywhere)
   } "Convert IllinoisGRMHD-native variables to HydroBase"
@@ -152,7 +144,7 @@ schedule IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_PostPostInitial after I
 schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in IllinoisGRMHD_PostPostInitial after IllinoisGRMHD_conserv_to_prims
 {
   LANG: C
-  SYNC: grmhd_primitives_allbutBi, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy
+  SYNC: grmhd_velocities, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy
 } "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
 
 schedule IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels in IllinoisGRMHD_PostPostInitial after IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz
@@ -208,7 +200,7 @@ schedule IllinoisGRMHD_conserv_to_prims in AddToTmunu after IllinoisGRMHD_comput
 schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in AddToTmunu after IllinoisGRMHD_conserv_to_prims
 {
   LANG: C
-  SYNC: grmhd_primitives_allbutBi, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy
+  SYNC: grmhd_velocities, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy
 } "Apply selected boundary conditions to the primitive variables"
 
 #########################################################
@@ -252,7 +244,7 @@ if(CCTK_IsThornActive("NRPyLeakageET"))
   {
     LANG: C
     READS:  ADMBase::lapse, ADMBase::shift,
-            grmhd_primitives_allbutBi
+            grmhd_velocities
     WRITES: HydroBase::vel(everywhere)
   } "Convert needed HydroBase variables for NRPyLeakage"
 }
@@ -275,7 +267,7 @@ if(Convert_to_HydroBase_every) {
     LANG: C
     OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
     READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-            grmhd_primitives_allbutBi, grmhd_B_center
+            grmhd_velocities, grmhd_B_center
     WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
   } "Convert IllinoisGRMHD-native variables to HydroBase"
 }
