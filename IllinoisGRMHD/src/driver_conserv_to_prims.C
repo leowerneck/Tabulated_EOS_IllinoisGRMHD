@@ -212,9 +212,9 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             // Read in conservative variables from gridfunctions
             CCTK_REAL CONSERVS[NUM_CONSERVS],CONSERVS_avg_neighbors[NUM_CONSERVS];
             CONSERVS[RHOSTAR  ] = rho_star[index];
-            CONSERVS[STILDEX  ] = mhd_st_x[index];
-            CONSERVS[STILDEY  ] = mhd_st_y[index];
-            CONSERVS[STILDEZ  ] = mhd_st_z[index];
+            CONSERVS[STILDEX  ] = Stildex[index];
+            CONSERVS[STILDEY  ] = Stildey[index];
+            CONSERVS[STILDEZ  ] = Stildez[index];
             CONSERVS[TAUENERGY] = tau     [index];
             CONSERVS[YESTAR   ] = Ye_star [index];
             CONSERVS[ENTSTAR  ] = S_star  [index];
@@ -224,7 +224,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
               // Average the conserved variables using the neighboring values
               int __attribute__((unused)) neighbors = con2prim_average_neighbor_conservatives(cctkGH,i,j,k,index,cctk_lsh,con2prim_failed_flag,
-                                                                                              rho_star,mhd_st_x,mhd_st_y,mhd_st_z,tau,Ye_star,S_star,
+                                                                                              rho_star,Stildex,Stildey,Stildez,tau,Ye_star,S_star,
                                                                                               CONSERVS_avg_neighbors);
 	      if( neighbors > 0 ) {
 		// We will attempt 4 fixes after the first attempt fails. These
@@ -318,9 +318,9 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             S_star_flux[index]      = CONSERVS[ENTSTAR  ];
 
             CCTK_REAL rho_star_orig = CONSERVS[RHOSTAR  ];
-            CCTK_REAL mhd_st_x_orig = CONSERVS[STILDEX  ];
-            CCTK_REAL mhd_st_y_orig = CONSERVS[STILDEY  ];
-            CCTK_REAL mhd_st_z_orig = CONSERVS[STILDEZ  ];
+            CCTK_REAL Stildex_orig = CONSERVS[STILDEX  ];
+            CCTK_REAL Stildey_orig = CONSERVS[STILDEY  ];
+            CCTK_REAL Stildez_orig = CONSERVS[STILDEZ  ];
             CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
             CCTK_REAL Ye_star_orig  = 0.0;
             CCTK_REAL S_star_orig   = 0.0;
@@ -382,11 +382,11 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                 con2prim_failed_flag[index] = 0;
                 if( eos.is_Hybrid ) {
                   CCTK_VInfo(CCTK_THORNSTRING,"Couldn't find root from: %e %e %e %e %e, rhob approx=%e, rho_b_atm=%e, Bx=%e, By=%e, Bz=%e, gij_phys=%e %e %e %e %e %e, alpha=%e",
-                             tau_orig,rho_star_orig,mhd_st_x_orig,mhd_st_y_orig,mhd_st_z_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
+                             tau_orig,rho_star_orig,Stildex_orig,Stildey_orig,Stildez_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
                 }
                 else if( eos.is_Tabulated ) {
                   CCTK_VInfo(CCTK_THORNSTRING,"Couldn't find root from: %e %e %e %e %e %e %e, rhob approx=%e, rho_b_atm=%e, Bx=%e, By=%e, Bz=%e, gij_phys=%e %e %e %e %e %e, alpha=%e",
-                             tau_orig,rho_star_orig,mhd_st_x_orig,mhd_st_y_orig,mhd_st_z_orig,Ye_star_orig,S_star_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
+                             tau_orig,rho_star_orig,Stildex_orig,Stildey_orig,Stildez_orig,Ye_star_orig,S_star_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
                 }
               }
               else {
@@ -405,9 +405,9 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(already_computed_physical_metric_and_inverse,PRIMS,stats,eos,METRIC,g4dn,g4up, TUPMUNU,TDNMUNU,CONSERVS);
 
               rho_star   [index] = CONSERVS[RHOSTAR  ];
-              mhd_st_x   [index] = CONSERVS[STILDEX  ];
-              mhd_st_y   [index] = CONSERVS[STILDEY  ];
-              mhd_st_z   [index] = CONSERVS[STILDEZ  ];
+              Stildex   [index] = CONSERVS[STILDEX  ];
+              Stildey   [index] = CONSERVS[STILDEY  ];
+              Stildez   [index] = CONSERVS[STILDEZ  ];
               tau        [index] = CONSERVS[TAUENERGY];
 
               // Set primitives, and/or provide a better guess.
@@ -449,8 +449,8 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
               //Now we compute the difference between original & new conservatives, for diagnostic purposes:
               error_int_numer += fabs(tau[index] - tau_orig) + fabs(rho_star[index] - rho_star_orig) +
-                fabs(mhd_st_x[index] - mhd_st_x_orig) + fabs(mhd_st_y[index] - mhd_st_y_orig) + fabs(mhd_st_z[index] - mhd_st_z_orig);
-              error_int_denom += tau_orig + rho_star_orig + fabs(mhd_st_x_orig) + fabs(mhd_st_y_orig) + fabs(mhd_st_z_orig);
+                fabs(Stildex[index] - Stildex_orig) + fabs(Stildey[index] - Stildey_orig) + fabs(Stildez[index] - Stildez_orig);
+              error_int_denom += tau_orig + rho_star_orig + fabs(Stildex_orig) + fabs(Stildey_orig) + fabs(Stildez_orig);
 
               if( eos.is_Tabulated ) {
                 error_int_numer += fabs(Ye_star[index] - Ye_star_orig);

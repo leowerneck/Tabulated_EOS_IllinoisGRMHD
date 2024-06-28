@@ -42,7 +42,7 @@ extern "C" void IllinoisGRMHD_RegisterVars(CCTK_ARGUMENTS)
   rhs = CCTK_GroupIndex("IllinoisGRMHD::em_psi6phi_rhs");
   ierr += MoLRegisterEvolvedGroup(group, rhs);
 
-  /* ALL OTHER EVOLVED VARIABLES (rho_star,tau,mhd_st_x,mhd_st_y,mhd_st_z) */
+  /* ALL OTHER EVOLVED VARIABLES (rho_star,tau,Stildex,Stildey,Stildez) */
   group = CCTK_GroupIndex("IllinoisGRMHD::grmhd_conservatives");
   rhs = CCTK_GroupIndex("IllinoisGRMHD::grmhd_conservatives_rhs");
   ierr += MoLRegisterEvolvedGroup(group, rhs);

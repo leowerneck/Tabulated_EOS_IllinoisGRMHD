@@ -42,9 +42,9 @@ int con2prim( const igm_eos_parameters eos,
   // U[2-4] =  stildei + rhostar
 
   CCTK_REAL rho_star_orig = CONSERVS[RHOSTAR  ];
-  CCTK_REAL mhd_st_x_orig = CONSERVS[STILDEX  ];
-  CCTK_REAL mhd_st_y_orig = CONSERVS[STILDEY  ];
-  CCTK_REAL mhd_st_z_orig = CONSERVS[STILDEZ  ];
+  CCTK_REAL Stildex_orig = CONSERVS[STILDEX  ];
+  CCTK_REAL Stildey_orig = CONSERVS[STILDEY  ];
+  CCTK_REAL Stildez_orig = CONSERVS[STILDEZ  ];
   // CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
   // CCTK_REAL Ye_star_orig  = CONSERVS[YESTAR   ];
   // CCTK_REAL S_star_orig   = CONSERVS[ENTSTAR  ];
@@ -122,7 +122,7 @@ int con2prim( const igm_eos_parameters eos,
         prim[UTCON3] = METRIC_PHYS[GUPXZ]*u_xl + METRIC_PHYS[GUPYZ]*u_yl + METRIC_PHYS[GUPZZ]*u_zl;
         if (check==1) {
           CCTK_VInfo(CCTK_THORNSTRING,"Font fix failed!");
-          CCTK_VInfo(CCTK_THORNSTRING,"i,j,k = %d %d %d, stats.failure_checker = %d x,y,z = %e %e %e , index=%d st_i = %e %e %e, rhostar = %e, Bi = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",i,j,k,stats.failure_checker,X[index],Y[index],Z[index],index,mhd_st_x_orig,mhd_st_y_orig,mhd_st_z_orig,rho_star_orig,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[PSI6]);
+          CCTK_VInfo(CCTK_THORNSTRING,"i,j,k = %d %d %d, stats.failure_checker = %d x,y,z = %e %e %e , index=%d st_i = %e %e %e, rhostar = %e, Bi = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",i,j,k,stats.failure_checker,X[index],Y[index],Z[index],index,Stildex_orig,Stildey_orig,Stildez_orig,rho_star_orig,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[PSI6]);
         }
       }
       stats.failure_checker+=font_fix_applied*10000;

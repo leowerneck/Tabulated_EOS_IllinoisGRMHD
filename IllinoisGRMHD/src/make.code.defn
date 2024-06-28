@@ -12,7 +12,6 @@ SRCS =  InitSymBound.C MoL_registration.C \
     evaluate_phitilde_and_A_gauge_rhs.c \
     compute_metric_derivs.c \
     calculate_fluxes_rhs.c \
-    driver_evaluate_MHD_rhs.C \
     compute_B_and_Bstagger_from_A.C \
     driver_conserv_to_prims.C \
     symmetry__set_gzs_staggered_gfs.C \
@@ -39,7 +38,6 @@ SRCS =  InitSymBound.C MoL_registration.C \
     con2prim_CerdaDuran2D.cc \
     con2prim_CerdaDuran3D.cc \
     con2prim_Newman1D.cc \
-    con2prim_test_suite.cc \
     con2prim_conservative_weighted_average.cc \
     IllinoisGRMHD_parameter_check.cc
 

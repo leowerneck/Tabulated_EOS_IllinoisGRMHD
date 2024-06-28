@@ -406,9 +406,9 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         eps    [index] = PRIMS[EPSILON     ];
 
         rho_star   [index] = CONSERVS[RHOSTAR  ];
-        mhd_st_x   [index] = CONSERVS[STILDEX  ];
-        mhd_st_y   [index] = CONSERVS[STILDEY  ];
-        mhd_st_z   [index] = CONSERVS[STILDEZ  ];
+        Stildex   [index] = CONSERVS[STILDEX  ];
+        Stildey   [index] = CONSERVS[STILDEY  ];
+        Stildez   [index] = CONSERVS[STILDEZ  ];
         tau        [index] = CONSERVS[TAUENERGY];
 
         if( eos.evolve_entropy ) {

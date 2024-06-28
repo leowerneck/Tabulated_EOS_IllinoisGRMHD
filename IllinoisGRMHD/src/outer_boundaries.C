@@ -296,9 +296,9 @@ extern "C" void IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENT
 
           rho_star         [index] = CONSERVS[RHOSTAR  ];
           tau              [index] = CONSERVS[TAUENERGY];
-          mhd_st_x         [index] = CONSERVS[STILDEX  ];
-          mhd_st_y         [index] = CONSERVS[STILDEY  ];
-          mhd_st_z         [index] = CONSERVS[STILDEZ  ];
+          Stildex         [index] = CONSERVS[STILDEX  ];
+          Stildey         [index] = CONSERVS[STILDEY  ];
+          Stildez         [index] = CONSERVS[STILDEZ  ];
 
           if( eos.evolve_entropy ) {
             S_star         [index] = CONSERVS[ENTSTAR  ];
