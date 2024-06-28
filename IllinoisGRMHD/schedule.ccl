@@ -1,7 +1,7 @@
 # Schedule for thorn IllinoisGRMHD
 
-
-
+# This should be done by HydroBase by setting initial_Bvec, initial_Avec, initial_Aphi
+STORAGE: HydroBase::Bvec[1], HydroBase::Avec[1], HydroBase::Aphi[1]
 STORAGE: BSSN_quantities
 
 STORAGE: grmhd_conservatives[3], Ax[3], Ay[3], Az[3], phitilde[3]
@@ -55,7 +55,7 @@ schedule IllinoisGRMHD_InitSymBound at BASEGRID
 # INITIAL DATA CONVERSION
 #########################################################
 # Fill IllinoisGRMHD grid functions using initial data from ADMBase and HydroBase
-schedule group IllinoisGRMHD_Prim2Con2Prim at CCTK_INITIAL after HydroBase_Initial before convert_IllinoisGRMHD_to_HydroBase
+schedule group IllinoisGRMHD_Prim2Con2Prim in HydroBase_Prim2ConInitial
 {
 } "Convert HydroBase initial data to IllinoisGRMHD variables"
 
@@ -67,21 +67,32 @@ schedule set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase
    SYNC: grmhd_B_center, grmhd_B_stagger, grmhd_primitives_allbutBi, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy, Ax,Ay,Az,phitilde,grmhd_conservatives,BSSN_quantities,ADMBase::metric,ADMBase::lapse,ADMBase::shift,ADMBase::curv
 } "Convert HydroBase initial data (ID) to ID that IllinoisGRMHD can read."
 
-schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A IN IllinoisGRMHD_Prim2Con2Prim as fourth_initialdata after third_initialdata
+# Runs everywhere. Shouldn't need to sync
+schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_Prim2Con2Prim as fourth_initialdata after third_initialdata
 {
   LANG: C
+  READS:  GRID::coordinates,
+          ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+          phitilde, Ax, Ay, Az
+  #Technically only writes Ai and phitilde in symmetry gz's
+  WRITES: phitilde(everywhere), Ax(everywhere), Ay(everywhere), Az(everywhere),
+          grmhd_B_center(everywhere), grmhd_B_stagger(everywhere)
   SYNC: grmhd_B_center, grmhd_B_stagger
 } "Compute B and B_stagger from A"
 
-schedule IllinoisGRMHD_conserv_to_prims IN IllinoisGRMHD_Prim2Con2Prim after fourth_initialdata
+schedule IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_Prim2Con2Prim after fourth_initialdata
 {
   LANG: C
 } "Compute primitive variables from conservatives"
 
 if(Convert_to_HydroBase_every) {
-  schedule convert_IllinoisGRMHD_to_HydroBase in IllinoisGRMHD_Prim2Con2Prim after IllinoisGRMHD_conservs_to_prims
+  schedule convert_IllinoisGRMHD_to_HydroBase in IllinoisGRMHD_Prim2Con2Prim after IllinoisGRMHD_conserv_to_prims
   {
     LANG: C
+    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+            grmhd_primitives_allbutBi, grmhd_B_center
+    WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere),
+            HydroBase::Bvec(everywhere)
   } "Convert IllinoisGRMHD-native variables to HydroBase"
 }
 
@@ -92,13 +103,20 @@ if(Convert_to_HydroBase_every) {
 
 schedule GROUP IllinoisGRMHD_PostPostInitial at CCTK_POSTPOSTINITIAL before MoL_PostStep after HydroBase_Con2Prim
 {
-} "HydroBase_Con2Prim in CCTK_POSTPOSTINITIAL sets conserv to prim then outer boundaries (OBs, which are technically disabled). The post OB SYNCs actually reprolongate the conservative variables, making cons and prims INCONSISTENT. So here we redo the con2prim, avoiding the SYNC afterward, then copy the result to other timelevels"
+} "HydroBase_Con2Prim in CCTK_PostPostInitial sets conserv to prim then outer boundaries (OBs, which are technically disabled). The post OB SYNCs actually reprolongate the conservative variables, making cons and prims INCONSISTENT. So here we redo the con2prim, avoiding the SYNC afterward, then copy the result to other timelevels"
 
 schedule IllinoisGRMHD_InitSymBound in IllinoisGRMHD_PostPostInitial as postid before compute_b
 {
   SYNC: grmhd_conservatives,Ax,Ay,Az,phitilde
   LANG: C
 } "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
+
+schedule IllinoisGRMHD_outer_boundaries_on_A_mu in IllinoisGRMHD_PostPostInitial after postid before compute_b
+{
+  LANG: C
+  READS:  phitilde, Ax, Ay, Az
+  WRITES: phitilde(boundary), Ax(boundary), Ay(boundary), Az(boundary)
+} "Apply linear extrapolation BCs on A_{mu}, so that BCs are flat on B^i"
 
 # Easiest primitives to solve for: B^i
 schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_PostPostInitial as compute_b after postid after empostid after lapsepostid
@@ -114,11 +132,21 @@ schedule IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_PostPostInitial after c
   LANG: C
 } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
 
+schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in IllinoisGRMHD_PostPostInitial after IllinoisGRMHD_conserv_to_prims
+{
+  LANG: C
+  SYNC: grmhd_primitives_allbutBi, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy
+} "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
+
 schedule IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels in IllinoisGRMHD_PostPostInitial as mhdpostid after compute_b after p2c
 {
   LANG: C
+  READS:  GRID::coordinates
+  READS: grmhd_B_center, grmhd_B_stagger, phitilde, Ax, Ay, Az
+  #Technically only writes B^i, A_i, and phitilde in symmetry gz's
+  WRITES: grmhd_B_center(boundary), grmhd_B_stagger(boundary),
+          phitilde(boundary), Ax(boundary), Ay(boundary), Az(boundary)
 } "Compute post-initialdata quantities"
-####################
 
 #########################################################
 # Con2Prim
@@ -126,36 +154,56 @@ schedule IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels in Illino
 
 schedule IllinoisGRMHD_InitSymBound in HydroBase_Boundaries as Boundary_SYNCs before compute_B_postrestrict
 {
-  SYNC: grmhd_conservatives,Ax,Ay,Az,phitilde
   LANG: C
-} "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
+  SYNC: grmhd_conservatives, Ax, Ay, Az, phitilde
+} "Sync conservative variable ghost zones for c2p routine"
 
 schedule IllinoisGRMHD_outer_boundaries_on_A_mu in HydroBase_Boundaries after Boundary_SYNCs before mhd_conserv2prims_postrestrict
 {
   LANG: C
-} "Apply linear extrapolation BCs on A_{mu}, so that BCs are flat on B^i."
+  READS:  phitilde, Ax, Ay, Az
+  WRITES: phitilde(boundary), Ax(boundary), Ay(boundary), Az(boundary)
+} "Apply linear extrapolation BCs on A_{mu}, so that BCs are flat on B^i"
 
-# Easiest primitives to solve for: B^i.
-# Note however that B^i depends on derivatives of A_{\mu}, so a SYNC is necessary on B^i.
 schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in HydroBase_Boundaries after outer_boundaries_on_A_mu
 {
-  # This is strictly a processor sync, as prolongation is disabled for all B^i's.
-  SYNC: grmhd_B_center,grmhd_B_stagger # FIXME: Are both SYNC's necessary?
   LANG: C
-} "Compute B and B_stagger from A,  SYNC: grmhd_B_center,grmhd_B_stagger"
+  READS:  GRID::coordinates
+  READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
+  READS:  phitilde, Ax, Ay, Az
+  #Technically only writes Ai and phitilde in symmetry gz's
+  WRITES: phitilde(everywhere), Ax(everywhere), Ay(everywhere), Az(everywhere),
+          grmhd_B_center(everywhere), grmhd_B_stagger(everywhere)
+  SYNC: grmhd_B_center,grmhd_B_stagger # FIXME: Are both SYNC's necessary?
+} "Compute B and B_stagger from A SYNC: grmhd_B_center, grmhd_B_stagger"
 
-# Nontrivial primitives solve, for P,rho_b,vx,vy,vz.
-schedule IllinoisGRMHD_conserv_to_prims in AddToTmunu after compute_B_and_Bstagger_from_A
+schedule IllinoisGRMHD_conserv_to_prims in AddToTmunu after IllinoisGRMHD_compute_B_and_Bstagger_from_A
 {
   LANG: C
-} "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
+} "Compute primitive variables from conservatives"
 
 schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in AddToTmunu after IllinoisGRMHD_conserv_to_prims
 {
-# We must sync {P,rho_b,vx,vy,vz} here.
-  SYNC: grmhd_primitives_allbutBi, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy
   LANG: C
-} "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
+  SYNC: grmhd_primitives_allbutBi, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy
+} "Apply selected boundary conditions to the primitive variables"
+
+#########################################################
+# Stress-energy Tensor
+#########################################################
+
+#if(update_Tmunu) {
+#  schedule IllinoisGRMHD_compute_Tmunu in AddToTmunu
+#  {
+#    LANG: C
+#    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+#            HydroBase::rho, HydroBase::press, HydroBase::eps,
+#            grmhd_velocities, u0, grmhd_B_center
+#    WRITES: TmunuBase::stress_energy_scalar(everywhere),
+#            TmunuBase::stress_energy_vector(everywhere),
+#            TmunuBase::stress_energy_tensor(everywhere)
+#  } "Compute stress-energy tensor"
+#}
 
 #########################################################
 # RHS EVALUATION
@@ -165,24 +213,46 @@ schedule group IllinoisGRMHD_RHS in MoL_CalcRHS as IllinoisGRMHD_RHS_eval
 {
 } "Evaluate RHSs GRHD equations"
 
-schedule IllinoisGRMHD_evaluate_sources_rhs in IllinoisGRMHD_RHS before IllinoisGRMHD_driver_evaluate_MHD_rhs
+schedule IllinoisGRMHD_evaluate_sources_rhs in IllinoisGRMHD_RHS
 {
   LANG: C
 } "Evaluate source terms in GRMHD RHSs"
 
-schedule IllinoisGRMHD_evaluate_fluxes_rhs in IllinoisGRMHD_RHS after IllinoisGRMHD_evaluate_sources_rhs after IllinoisGRMHD_driver_evaluate_MHD_rhs
+schedule IllinoisGRMHD_evaluate_fluxes_rhs in IllinoisGRMHD_RHS after IllinoisGRMHD_evaluate_sources_rhs
 {
   LANG: C
 } "Evaluate flux terms in GRMHD RHSs"
 
-############################################################
+if(CCTK_IsThornActive("NRPyLeakageET"))
+{
+  schedule convert_IllinoisGRMHD_to_HydroBase in IllinoisGRMHD_RHS after IllinoisGRMHD_evaluate_fluxes_rhs
+  {
+    LANG: C
+    READS:  ADMBase::lapse, ADMBase::shift,
+            grmhd_primitives_allbutBi
+    WRITES: HydroBase::vel(everywhere)
+  } "Convert needed HydroBase variables for NRPyLeakage"
+}
+
+schedule IllinoisGRMHD_evaluate_phitilde_and_A_gauge_rhs in IllinoisGRMHD_RHS 
+{
+  LANG: C
+  READS:  ADMBase::lapse, ADMBase::shift, ADMBase::metric,
+          phitilde, Ax, Ay, Az
+  WRITES: grmhd_primitives_reconstructed_temps, EM_rhs
+} "Evaluate phitilde RHS and gauge contributions to A_i RHS"
+
+#########################################################
 # Set HydroBase variables for analysis
-##########################################################
+#########################################################
 
 if(Convert_to_HydroBase_every) {
   schedule convert_IllinoisGRMHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
   {
     LANG: C
     OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
+    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+            grmhd_primitives_allbutBi, grmhd_B_center
+    WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
   } "Convert IllinoisGRMHD-native variables to HydroBase"
 }
