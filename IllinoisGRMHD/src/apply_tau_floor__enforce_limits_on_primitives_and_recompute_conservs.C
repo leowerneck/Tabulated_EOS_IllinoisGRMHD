@@ -267,7 +267,7 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
   // tauL = alpha^2 sqrt(gamma) T^{00} - CONSERVS[RHOSTAR]
   CONSERVS[TAUENERGY] =  METRIC_LAP_PSI4[LAPSE]*alpha_sqrt_gamma*(rho0_h_plus_b2*SQR(uUP[0]) + P_plus_half_b2*(-SQR(METRIC_LAP_PSI4[LAPSEINV])) - SQR(smallb[SMALLBT])) - CONSERVS[RHOSTAR];
   if( eos.evolve_entropy ) {
-    // Entropy equation evolves S_star = alpha * sqrt(gamma) * S * u^{0}
+    // Entropy equation evolves ent_star = alpha * sqrt(gamma) * S * u^{0}
     CONSERVS[ENTSTAR] = alpha_sqrt_gamma * PRIMS[ENTROPY] * uUP[0];
   }
   if( eos.is_Tabulated ) {

@@ -217,14 +217,14 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             CONSERVS[STILDEZ  ] = Stildez[index];
             CONSERVS[TAUENERGY] = tau     [index];
             CONSERVS[YESTAR   ] = Ye_star [index];
-            CONSERVS[ENTSTAR  ] = S_star  [index];
+            CONSERVS[ENTSTAR  ] = ent_star  [index];
 
             // Check if we need to perform the new conservative averaging fix
             if( c2p_fail_flag != 0 ) {
 
               // Average the conserved variables using the neighboring values
               int __attribute__((unused)) neighbors = con2prim_average_neighbor_conservatives(cctkGH,i,j,k,index,cctk_lsh,con2prim_failed_flag,
-                                                                                              rho_star,Stildex,Stildey,Stildez,tau,Ye_star,S_star,
+                                                                                              rho_star,Stildex,Stildey,Stildez,tau,Ye_star,ent_star,
                                                                                               CONSERVS_avg_neighbors);
 	      if( neighbors > 0 ) {
 		// We will attempt 4 fixes after the first attempt fails. These
@@ -310,12 +310,12 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
             // Here we use _flux variables as temp storage for original values of conservative variables.. This is used for debugging purposes only.
             rho_star_flux[index]    = CONSERVS[RHOSTAR  ];
-            st_x_flux[index]        = CONSERVS[STILDEX  ];
-            st_y_flux[index]        = CONSERVS[STILDEY  ];
-            st_z_flux[index]        = CONSERVS[STILDEZ  ];
+            Stildex_flux[index]        = CONSERVS[STILDEX  ];
+            Stildey_flux[index]        = CONSERVS[STILDEY  ];
+            Stildez_flux[index]        = CONSERVS[STILDEZ  ];
             tau_flux[index]         = CONSERVS[TAUENERGY];
             Ye_star_flux[index]     = CONSERVS[YESTAR   ];
-            S_star_flux[index]      = CONSERVS[ENTSTAR  ];
+            ent_star_flux[index]      = CONSERVS[ENTSTAR  ];
 
             CCTK_REAL rho_star_orig = CONSERVS[RHOSTAR  ];
             CCTK_REAL Stildex_orig = CONSERVS[STILDEX  ];
@@ -323,12 +323,12 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             CCTK_REAL Stildez_orig = CONSERVS[STILDEZ  ];
             CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
             CCTK_REAL Ye_star_orig  = 0.0;
-            CCTK_REAL S_star_orig   = 0.0;
+            CCTK_REAL ent_star_orig   = 0.0;
             if( eos.is_Tabulated) {
               Ye_star_orig          = CONSERVS[YESTAR   ];
             }
             if( eos.evolve_entropy ) {
-              S_star_orig           = CONSERVS[ENTSTAR  ];
+              ent_star_orig           = CONSERVS[ENTSTAR  ];
             }
 
             int check=0;
@@ -386,7 +386,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                 }
                 else if( eos.is_Tabulated ) {
                   CCTK_VInfo(CCTK_THORNSTRING,"Couldn't find root from: %e %e %e %e %e %e %e, rhob approx=%e, rho_b_atm=%e, Bx=%e, By=%e, Bz=%e, gij_phys=%e %e %e %e %e %e, alpha=%e",
-                             tau_orig,rho_star_orig,Stildex_orig,Stildey_orig,Stildez_orig,Ye_star_orig,S_star_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
+                             tau_orig,rho_star_orig,Stildex_orig,Stildey_orig,Stildez_orig,Ye_star_orig,ent_star_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
                 }
               }
               else {
@@ -430,7 +430,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
               // Entropy evolution quantities
               if( eos.evolve_entropy ) {
-                S_star[index]          = CONSERVS[ENTSTAR ];
+                ent_star[index]          = CONSERVS[ENTSTAR ];
               }
 
               if(update_Tmunu) {
@@ -606,11 +606,11 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
     // Original conservative variables (we used the flux gridfunctions to store these)
     myfile.write((char*)rho_star_flux,               (fullsize)*sizeof(CCTK_REAL));
     myfile.write((char*)tau_flux,                    (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)st_x_flux,                   (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)st_y_flux,                   (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)st_z_flux,                   (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)Stildex_flux,                   (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)Stildey_flux,                   (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)Stildez_flux,                   (fullsize)*sizeof(CCTK_REAL));
     myfile.write((char*)Ye_star_flux,                (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)S_star_flux,                 (fullsize)*sizeof(CCTK_REAL));
+    myfile.write((char*)ent_star_flux,                 (fullsize)*sizeof(CCTK_REAL));
 
     // Checker value
     myfile.write((char*)&checker,                             1*sizeof(int));

@@ -28,7 +28,7 @@ int con2prim_average_neighbor_conservatives( const cGH *restrict cctkGH,
 					     CCTK_REAL *restrict Stildez,
 					     CCTK_REAL *restrict tau,
 					     CCTK_REAL *restrict Ye_star,
-					     CCTK_REAL *restrict S_star,
+					     CCTK_REAL *restrict ent_star,
 					     CCTK_REAL *restrict CONSERVS_avg_neighbors ) {
 
   // Auxiliary variables
@@ -72,7 +72,7 @@ int con2prim_average_neighbor_conservatives( const cGH *restrict cctkGH,
             CONSERVS_avg_neighbors[STILDEZ  ] += Stildez[idx];
             CONSERVS_avg_neighbors[TAUENERGY] += tau     [idx];
             CONSERVS_avg_neighbors[YESTAR   ] += Ye_star [idx];
-            CONSERVS_avg_neighbors[ENTSTAR  ] += S_star  [idx];
+            CONSERVS_avg_neighbors[ENTSTAR  ] += ent_star  [idx];
             number_of_neighbors++;
 
           } // if( con2prim_failed_flag[idx] == 0 )

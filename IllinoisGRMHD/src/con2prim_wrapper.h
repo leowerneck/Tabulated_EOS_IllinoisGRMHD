@@ -47,7 +47,7 @@ int con2prim( const igm_eos_parameters eos,
   CCTK_REAL Stildez_orig = CONSERVS[STILDEZ  ];
   // CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
   // CCTK_REAL Ye_star_orig  = CONSERVS[YESTAR   ];
-  // CCTK_REAL S_star_orig   = CONSERVS[ENTSTAR  ];
+  // CCTK_REAL ent_star_orig   = CONSERVS[ENTSTAR  ];
 
 
   // Other ideas for setting the gamma speed limit

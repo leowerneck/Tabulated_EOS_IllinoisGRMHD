@@ -256,7 +256,7 @@ int con2prim_average_neighbor_conservatives( const cGH *restrict cctkGH,
 					     CCTK_REAL *restrict Stildez,
 					     CCTK_REAL *restrict tau,
 					     CCTK_REAL *restrict Ye_star,
-					     CCTK_REAL *restrict S_star,
+					     CCTK_REAL *restrict ent_star,
 					     CCTK_REAL *restrict CONSERVS_avg_neighbors );
 
 /********************************************************************************************/

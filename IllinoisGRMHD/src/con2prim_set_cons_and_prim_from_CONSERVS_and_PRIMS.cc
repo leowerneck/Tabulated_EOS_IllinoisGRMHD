@@ -95,7 +95,7 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
 
     // The entropy variable is given by
     //
-    // S_star / psi^{6} = alpha * psi^{6} * S * u^{0} / psi^{6}
+    // ent_star / psi^{6} = alpha * psi^{6} * S * u^{0} / psi^{6}
     //                  = ( alpha * u^{0} ) * S
     //                  = W * S
     cons[WS] = CONSERVS[ENTSTAR] * psim6;

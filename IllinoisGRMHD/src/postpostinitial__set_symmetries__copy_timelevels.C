@@ -99,8 +99,8 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
         }
 
         if( eos.evolve_entropy ) {
-          S_star_p[index]    = S_star[index];
-          S_star_p_p[index]  = S_star[index];
+          ent_star_p[index]    = ent_star[index];
+          ent_star_p_p[index]  = ent_star[index];
         }
       }
 }

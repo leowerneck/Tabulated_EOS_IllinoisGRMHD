@@ -413,7 +413,7 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
 
         if( eos.evolve_entropy ) {
           entropy[index] = PRIMS[ENTROPY     ];
-          S_star     [index] = CONSERVS[ENTSTAR  ];
+          ent_star     [index] = CONSERVS[ENTSTAR  ];
         }
 
         // Tabulated EOS

@@ -15,11 +15,11 @@ static inline void mhdflux( const igm_eos_parameters eos,
                             CCTK_REAL &cmin,
                             CCTK_REAL &rho_star_flux,
                             CCTK_REAL &tau_flux,
-                            CCTK_REAL &st_x_flux,
-                            CCTK_REAL &st_y_flux,
-                            CCTK_REAL &st_z_flux,
+                            CCTK_REAL &Stildex_flux,
+                            CCTK_REAL &Stildey_flux,
+                            CCTK_REAL &Stildez_flux,
                             CCTK_REAL &Ye_star_flux,
-                            CCTK_REAL &S_star_flux ) {
+                            CCTK_REAL &ent_star_flux ) {
 
   CCTK_REAL psi4 = FACEVAL_LAPSE_PSI4[PSI4];
   CCTK_REAL psi6 = FACEVAL_LAPSE_PSI4[PSI4]*FACEVAL_LAPSE_PSI4[PSI2];
@@ -122,13 +122,13 @@ static inline void mhdflux( const igm_eos_parameters eos,
   // Entropy flux = S_* v^m, where m is the current flux direction (the m index)
   //*********************************************************************
   if( eos.evolve_entropy ) {
-    CCTK_REAL S_star_r = alpha_sqrt_gamma*Ur[ENTROPY]*u0_r;
-    CCTK_REAL S_star_l = alpha_sqrt_gamma*Ul[ENTROPY]*u0_l;
-    Fr = S_star_r*Ur[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ur[VX] -> Ur[VY]
-    Fl = S_star_l*Ul[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ul[VX] -> Ul[VY]
+    CCTK_REAL ent_star_r = alpha_sqrt_gamma*Ur[ENTROPY]*u0_r;
+    CCTK_REAL ent_star_l = alpha_sqrt_gamma*Ul[ENTROPY]*u0_l;
+    Fr = ent_star_r*Ur[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ur[VX] -> Ur[VY]
+    Fl = ent_star_l*Ul[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ul[VX] -> Ul[VY]
 
-    // HLL step for S_star:
-    S_star_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(S_star_r-S_star_l) )/(cmaxL + cminL);
+    // HLL step for ent_star:
+    ent_star_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(ent_star_r-ent_star_l) )/(cmaxL + cminL);
   }
 
   //*********************************************************************
@@ -182,11 +182,11 @@ static inline void mhdflux( const igm_eos_parameters eos,
                           + P_plus_half_b2_l*kronecker_delta[flux_dirn][0] - smallbl[SMALLBX+offset]*smallb_lowerl[SMALLBX] );
 
   //        S_x =\alpha\sqrt{\gamma}( T^0_x )
-  CCTK_REAL st_x_r = alpha_sqrt_gamma*( rho0_h_plus_b2_r*u0_r*U_LOWERr[UX] - smallbr[SMALLBT]*smallb_lowerr[SMALLBX] );
-  CCTK_REAL st_x_l = alpha_sqrt_gamma*( rho0_h_plus_b2_l*u0_l*U_LOWERl[UX] - smallbl[SMALLBT]*smallb_lowerl[SMALLBX] );
+  CCTK_REAL Stildex_r = alpha_sqrt_gamma*( rho0_h_plus_b2_r*u0_r*U_LOWERr[UX] - smallbr[SMALLBT]*smallb_lowerr[SMALLBX] );
+  CCTK_REAL Stildex_l = alpha_sqrt_gamma*( rho0_h_plus_b2_l*u0_l*U_LOWERl[UX] - smallbl[SMALLBT]*smallb_lowerl[SMALLBX] );
 
   // HLL step for Sx:
-  st_x_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(st_x_r-st_x_l) )/(cmaxL + cminL);
+  Stildex_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(Stildex_r-Stildex_l) )/(cmaxL + cminL);
 
   /********** Flux for S_y **********/
   // [S_y flux] = \alpha \sqrt{\gamma} T^m_y, where m is the current flux direction (the m index)
@@ -198,11 +198,11 @@ static inline void mhdflux( const igm_eos_parameters eos,
                           - smallbl[SMALLBX+offset]*smallb_lowerl[SMALLBY] );
 
   //        S_y =\alpha\sqrt{\gamma}( T^0_y )
-  CCTK_REAL st_y_r = alpha_sqrt_gamma*( rho0_h_plus_b2_r*u0_r*U_LOWERr[UY] - smallbr[SMALLBT]*smallb_lowerr[SMALLBY] );
-  CCTK_REAL st_y_l = alpha_sqrt_gamma*( rho0_h_plus_b2_l*u0_l*U_LOWERl[UY] - smallbl[SMALLBT]*smallb_lowerl[SMALLBY] );
+  CCTK_REAL Stildey_r = alpha_sqrt_gamma*( rho0_h_plus_b2_r*u0_r*U_LOWERr[UY] - smallbr[SMALLBT]*smallb_lowerr[SMALLBY] );
+  CCTK_REAL Stildey_l = alpha_sqrt_gamma*( rho0_h_plus_b2_l*u0_l*U_LOWERl[UY] - smallbl[SMALLBT]*smallb_lowerl[SMALLBY] );
 
   // HLL step for Sy:
-  st_y_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(st_y_r-st_y_l) )/(cmaxL + cminL);
+  Stildey_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(Stildey_r-Stildey_l) )/(cmaxL + cminL);
 
   /********** Flux for S_z **********/
   // [S_z flux] = \alpha \sqrt{\gamma} T^m_z, where m is the current flux direction (the m index)
@@ -214,11 +214,11 @@ static inline void mhdflux( const igm_eos_parameters eos,
                           - smallbl[SMALLBX+offset]*smallb_lowerl[SMALLBZ] );
 
   //        S_z =\alpha\sqrt{\gamma}( T^0_z )
-  CCTK_REAL st_z_r = alpha_sqrt_gamma*( rho0_h_plus_b2_r*u0_r*U_LOWERr[UZ] - smallbr[SMALLBT]*smallb_lowerr[SMALLBZ] );
-  CCTK_REAL st_z_l = alpha_sqrt_gamma*( rho0_h_plus_b2_l*u0_l*U_LOWERl[UZ] - smallbl[SMALLBT]*smallb_lowerl[SMALLBZ] );
+  CCTK_REAL Stildez_r = alpha_sqrt_gamma*( rho0_h_plus_b2_r*u0_r*U_LOWERr[UZ] - smallbr[SMALLBT]*smallb_lowerr[SMALLBZ] );
+  CCTK_REAL Stildez_l = alpha_sqrt_gamma*( rho0_h_plus_b2_l*u0_l*U_LOWERl[UZ] - smallbl[SMALLBT]*smallb_lowerl[SMALLBZ] );
 
   // HLL step for Sz:
-  st_z_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(st_z_r-st_z_l) )/(cmaxL + cminL);
+  Stildez_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(Stildez_r-Stildez_l) )/(cmaxL + cminL);
 
   cmax = cmaxL;
   cmin = cminL;

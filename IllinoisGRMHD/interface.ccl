@@ -19,7 +19,7 @@ CCTK_REAL grmhd_primitives_allbutBi type = GF TAGS='InterpNumTimelevels=1 prolon
 
 CCTK_REAL grmhd_conservatives type = GF Timelevels=3 TAGS='prolongation="ENO"'
 {
-  rho_star, tau, Stildex, Stildey, Stildez, Ye_star, S_star
+  rho_star, tau, Stildex, Stildey, Stildez, Ye_star, ent_star
 } "Evolved hydrodynamic variables"
 
 # These variables are semi-staggered. Since their staggering and--by extension-
@@ -64,7 +64,7 @@ CCTK_REAL grmhd_B_center type = GF TAGS='InterpNumTimelevels=1 prolongation="non
 # RHS variables for MoL timestepping
 CCTK_REAL grmhd_conservatives_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
-  rho_star_rhs, tau_rhs, st_x_rhs, st_y_rhs, st_z_rhs, Ye_star_rhs, S_star_rhs
+  rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs, Ye_star_rhs, ent_star_rhs
 } "Right-hand side for evolved conservative variables"
 
 CCTK_INT con2prim_failed_flag type=GF Timelevels=1 tags='Prolongation="none" Checkpoint="no"'
@@ -87,7 +87,7 @@ CCTK_REAL grmhd_cmin_cmax_temps type = GF TAGS='prolongation="none" Checkpoint="
 #Temporary variables for flux computation
 CCTK_REAL grmhd_flux_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
-  rho_star_flux, tau_flux, st_x_flux, st_y_flux, st_z_flux, Ye_star_flux, S_star_flux
+  rho_star_flux, tau_flux, Stildex_flux, Stildey_flux, Stildez_flux, Ye_star_flux, ent_star_flux
 } "Flux variables for computing RHSs"
 
 # Temporary variables for reconstruction
