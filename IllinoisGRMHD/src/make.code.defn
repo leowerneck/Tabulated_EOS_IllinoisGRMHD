@@ -4,7 +4,6 @@
 SRCS =  InitSymBound.C MoL_registration.C \
     set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase_variables.C \
     postpostinitial__set_symmetries__copy_timelevels.C \
-    Convert_to_HydroBase.C \
     convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij.C \
     interpolate_metric_to_face.c \
     reconstruction_loop.c \
@@ -17,7 +16,7 @@ SRCS =  InitSymBound.C MoL_registration.C \
     symmetry__set_gzs_staggered_gfs.C \
     A_flux_rhs.c \
     outer_boundaries.C \
-    \
+    convert_IllinoisGRMHD_to_HydroBase.c \
     reset_prims_to_atmosphere.cc\
     \
     EOS_get_key.cc \
