@@ -198,16 +198,16 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             // Read in primitive variables from gridfunctions
             // FIXME: this seems wasteful as we won't use these values anyway
             CCTK_REAL PRIMS[MAXNUMVARS];
-            PRIMS[RHOB         ] = rho_b[index];
-            PRIMS[PRESSURE     ] = P[index];
+            PRIMS[RHOB         ] = rho[index];
+            PRIMS[PRESSURE     ] = press[index];
             PRIMS[VX           ] = vx[index];
             PRIMS[VY           ] = vy[index];
             PRIMS[VZ           ] = vz[index];
             PRIMS[BX_CENTER    ] = Bx[index];
             PRIMS[BY_CENTER    ] = By[index];
             PRIMS[BZ_CENTER    ] = Bz[index];
-            PRIMS[EPSILON      ] = igm_eps[index];
-            PRIMS[ENTROPY      ] = igm_entropy[index];
+            PRIMS[EPSILON      ] = eps[index];
+            PRIMS[ENTROPY      ] = entropy[index];
 
             // Read in conservative variables from gridfunctions
             CCTK_REAL CONSERVS[NUM_CONSERVS],CONSERVS_avg_neighbors[NUM_CONSERVS];
@@ -262,8 +262,8 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             // Tabulated EOS quantities
             if( eos.is_Tabulated ) {
               // Primitives
-              PRIMS[YEPRIM     ] = igm_Ye[index];
-              PRIMS[TEMPERATURE] = igm_temperature[index];
+              PRIMS[YEPRIM     ] = Y_e[index];
+              PRIMS[TEMPERATURE] = temperature[index];
             }
 
             CCTK_REAL shift_xL = METRIC_PHYS[GXX]*METRIC[SHIFTX] + METRIC_PHYS[GXY]*METRIC[SHIFTY] + METRIC_PHYS[GXZ]*METRIC[SHIFTZ];
@@ -411,19 +411,19 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               tau        [index] = CONSERVS[TAUENERGY];
 
               // Set primitives, and/or provide a better guess.
-              rho_b      [index] = PRIMS[RHOB        ];
-              P          [index] = PRIMS[PRESSURE    ];
+              rho      [index] = PRIMS[RHOB        ];
+              press          [index] = PRIMS[PRESSURE    ];
               vx         [index] = PRIMS[VX          ];
               vy         [index] = PRIMS[VY          ];
               vz         [index] = PRIMS[VZ          ];
-              igm_eps    [index] = PRIMS[EPSILON     ];
-              igm_entropy[index] = PRIMS[ENTROPY     ];
+              eps    [index] = PRIMS[EPSILON     ];
+              entropy[index] = PRIMS[ENTROPY     ];
 
               // Tabulated EOS quantities
               if( eos.is_Tabulated ) {
                 // Primitives
-                igm_Ye[index]          = PRIMS[YEPRIM     ];
-                igm_temperature[index] = PRIMS[TEMPERATURE];
+                Y_e[index]          = PRIMS[YEPRIM     ];
+                temperature[index] = PRIMS[TEMPERATURE];
                 // Conservatives
                 Ye_star[index]         = CONSERVS[YESTAR  ];
               }
@@ -616,17 +616,6 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
     myfile.write((char*)Bx,                          (fullsize)*sizeof(CCTK_REAL));
     myfile.write((char*)By,                          (fullsize)*sizeof(CCTK_REAL));
     myfile.write((char*)Bz,                          (fullsize)*sizeof(CCTK_REAL));
-
-    // Primitive variables
-    myfile.write((char*)rho_b,                       (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)P,                           (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)vx,                          (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)vy,                          (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)vz,                          (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)igm_Ye,                      (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)igm_temperature,             (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)igm_eps,                     (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)igm_entropy,                 (fullsize)*sizeof(CCTK_REAL));
 
     // Checker value
     myfile.write((char*)&checker,                             1*sizeof(int));

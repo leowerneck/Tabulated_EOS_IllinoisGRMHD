@@ -10,7 +10,6 @@ SRCS =  InitSymBound.C MoL_registration.C \
     reconstruction_loop.c \
     evaluate_sources_rhs.c \
     evaluate_phitilde_and_A_gauge_rhs.c \
-    evaluate_fluxes_rhs.c \
     compute_metric_derivs.c \
     calculate_fluxes_rhs.c \
     driver_evaluate_MHD_rhs.C \
@@ -45,3 +44,4 @@ SRCS =  InitSymBound.C MoL_registration.C \
 
 # Subdirectories containing source files
 #SUBDIRS = ZelmaniLeak
+    #evaluate_fluxes_rhs.c \

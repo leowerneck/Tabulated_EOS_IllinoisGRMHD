@@ -144,12 +144,12 @@ void IllinoisGRMHD_calculate_flux_dir_rhs(
           // Stencil from -3 to +2 reconstructs to e.g. i-1/2
           const int stencil  = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
           v_flux[ind]        = v_flux_dir[stencil]; // Could be smaller; doesn't use full stencil
-          rho_stencil[ind]   = rho_b[stencil];
-          press_stencil[ind] = P[stencil];
+          rho_stencil[ind]   = rho[stencil];
+          press_stencil[ind] = press[stencil];
           B1_stencil[ind]    = B_center[B_recon[1]][stencil];
           B2_stencil[ind]    = B_center[B_recon[2]][stencil];
-          ent_stencil[ind]   = igm_entropy[stencil];
-          Ye_stencil[ind]    = igm_Ye[stencil];
+          ent_stencil[ind]   = entropy[stencil];
+          Ye_stencil[ind]    = Y_e[stencil];
         }
 
         CCTK_REAL ftilde[2];
@@ -175,7 +175,7 @@ void IllinoisGRMHD_calculate_flux_dir_rhs(
         prims_l.vU[1] = vel_l[1][index];
         prims_l.vU[2] = vel_l[2][index];
 
-        prims_r.temperature = prims_l.temperature = igm_temperature[index];
+        prims_r.temperature = prims_l.temperature = temperature[index];
 
         int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r);
         speed_limited = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l);

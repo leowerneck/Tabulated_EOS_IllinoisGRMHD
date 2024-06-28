@@ -32,8 +32,8 @@ void Convert_to_HydroBase(CCTK_ARGUMENTS) {
         int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
         /* Note that we currently do not set Abar, Y_e, temperature, entropy, Avec[3], Aphi, Avec_stag[3], Aphi_stag */
         CCTK_REAL PRIMS[MAXNUMVARS];
-        PRIMS[RHOB         ] = rho_b[index];
-        PRIMS[PRESSURE     ] = P[index];
+        PRIMS[RHOB         ] = rho[index];
+        PRIMS[PRESSURE     ] = press[index];
         PRIMS[VX           ] = vx[index];
         PRIMS[VY           ] = vy[index];
         PRIMS[VZ           ] = vz[index];
@@ -41,11 +41,11 @@ void Convert_to_HydroBase(CCTK_ARGUMENTS) {
         PRIMS[BY_CENTER    ] = By[index];
         PRIMS[BZ_CENTER    ] = Bz[index];
         if( eos.is_Tabulated ) {
-          PRIMS[YEPRIM     ] = igm_Ye[index];
-          PRIMS[TEMPERATURE] = igm_temperature[index];
+          PRIMS[YEPRIM     ] = Y_e[index];
+          PRIMS[TEMPERATURE] = temperature[index];
         }
         if( eos.evolve_entropy ) {
-          PRIMS[ENTROPY    ] = igm_entropy[index];
+          PRIMS[ENTROPY    ] = entropy[index];
         }
 
         rho[index]           = PRIMS[RHOB       ];

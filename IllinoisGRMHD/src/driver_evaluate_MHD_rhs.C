@@ -122,8 +122,8 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   // The order here MATTERS, and must be consistent with the global variable declarations in
   //   evaluate_MHD_rhs_headers.h (look for RHOB=0, etc.)
   //   For example, in_prims[0] _must_ be rho_b.
-  in_prims[RHOB       ].gf=rho_b;           out_prims_r[RHOB       ].gf=rho_br;      out_prims_l[RHOB       ].gf=rho_bl;
-  in_prims[PRESSURE   ].gf=P;               out_prims_r[PRESSURE   ].gf=Pr;          out_prims_l[PRESSURE   ].gf=Pl;
+  in_prims[RHOB       ].gf=rho;           out_prims_r[RHOB       ].gf=rho_br;      out_prims_l[RHOB       ].gf=rho_bl;
+  in_prims[PRESSURE   ].gf=press;               out_prims_r[PRESSURE   ].gf=Pr;          out_prims_l[PRESSURE   ].gf=Pl;
   in_prims[VX         ].gf=vx;              out_prims_r[VX         ].gf=vxr;         out_prims_l[VX         ].gf=vxl;
   in_prims[VY         ].gf=vy;              out_prims_r[VY         ].gf=vyr;         out_prims_l[VY         ].gf=vyl;
   in_prims[VZ         ].gf=vz;              out_prims_r[VZ         ].gf=vzr;         out_prims_l[VZ         ].gf=vzl;
@@ -139,10 +139,10 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   in_prims[VXL        ].gf=vxl;             out_prims_r[VXL        ].gf=vxlr;        out_prims_l[VXL        ].gf=vxll;
   in_prims[VYL        ].gf=vyl;             out_prims_r[VYL        ].gf=vylr;        out_prims_l[VYL        ].gf=vyll;
   in_prims[VZL        ].gf=vzl;             out_prims_r[VZL        ].gf=vzlr;        out_prims_l[VZL        ].gf=vzll;
-  in_prims[YEPRIM     ].gf=igm_Ye;          out_prims_r[YEPRIM     ].gf=Yer;         out_prims_l[YEPRIM     ].gf=Yel;
-  in_prims[TEMPERATURE].gf=igm_temperature; out_prims_r[TEMPERATURE].gf=Tr;          out_prims_l[TEMPERATURE].gf=Tl;
-  in_prims[EPSILON    ].gf=igm_eps;         out_prims_r[EPSILON    ].gf=epsr;        out_prims_l[EPSILON    ].gf=epsl;
-  in_prims[ENTROPY    ].gf=igm_entropy;     out_prims_r[ENTROPY    ].gf=Sr;          out_prims_l[ENTROPY    ].gf=Sl;
+  in_prims[YEPRIM     ].gf=Y_e;          out_prims_r[YEPRIM     ].gf=Yer;         out_prims_l[YEPRIM     ].gf=Yel;
+  in_prims[TEMPERATURE].gf=temperature; out_prims_r[TEMPERATURE].gf=Tr;          out_prims_l[TEMPERATURE].gf=Tl;
+  in_prims[EPSILON    ].gf=eps;         out_prims_r[EPSILON    ].gf=epsr;        out_prims_l[EPSILON    ].gf=epsl;
+  in_prims[ENTROPY    ].gf=entropy;     out_prims_r[ENTROPY    ].gf=Sr;          out_prims_l[ENTROPY    ].gf=Sl;
 
   // Prims are defined AT ALL GRIDPOINTS, so we set the # of ghostzones to zero:
   for(int i=0;i<MAXNUMVARS;i++) for(int j=1;j<=3;j++) { in_prims[i].gz_lo[j]=0; in_prims[i].gz_hi[j]=0; }
