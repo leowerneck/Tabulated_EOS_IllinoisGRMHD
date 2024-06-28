@@ -17,12 +17,12 @@ void IllinoisGRMHD_evaluate_phitilde_and_A_gauge_rhs(CCTK_ARGUMENTS) {
   CCTK_REAL *sqrtg_Ay_interp = vyl;
   CCTK_REAL *sqrtg_Az_interp = vzl;
 
-  /* Compute \partial_t psi6phi = -\partial_i (  \alpha psi^6 A^i - psi6phi \beta^i)
+  /* Compute \partial_t phitilde = -\partial_i (  \alpha psi^6 A^i - phitilde \beta^i)
    *    (Eq 13 of http://arxiv.org/pdf/1110.4633.pdf), using Lorenz gauge.
-   * Note that the RHS consists of a shift advection term on psi6phi and
+   * Note that the RHS consists of a shift advection term on phitilde and
    *    a term depending on the vector potential.
-   * psi6phi is defined at (i+1/2,j+1/2,k+1/2), but instead of reconstructing
-   *    to compute the RHS of \partial_t psi6phi, we instead use standard
+   * phitilde is defined at (i+1/2,j+1/2,k+1/2), but instead of reconstructing
+   *    to compute the RHS of \partial_t phitilde, we instead use standard
    *    interpolations.
    */
 
@@ -46,7 +46,7 @@ void IllinoisGRMHD_evaluate_phitilde_and_A_gauge_rhs(CCTK_ARGUMENTS) {
       for(int i=imin-2; i<imax+2; i++) {
         const int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-        // First compute \partial_j \alpha \sqrt{\gamma} A^j (RHS of \partial_i psi6phi)
+        // First compute \partial_j \alpha \sqrt{\gamma} A^j (RHS of \partial_i phitilde)
         // FIXME: Would be much cheaper & easier to unstagger A_i, raise, then interpolate A^i.
         //        However, we keep it this way to be completely compatible with the original
         //        Illinois GRMHD thorn, called mhd_evolve.
@@ -101,7 +101,7 @@ void IllinoisGRMHD_evaluate_phitilde_and_A_gauge_rhs(CCTK_ARGUMENTS) {
 //          gauge_vars.A_z[iter1+1][0][iter2+1] = in_vars[A_ZI][CCTK_GFINDEX3D(cctkGH, i+iter2,     j-1, k+iter1)]; // { (0,1),    -1, (0,1)}
 //        }
 
-        ghl_interpolate_with_cell_centered_ADM(metric_stencil, Ax_stencil, Ay_stencil, Az_stencil, psi6phi[index], &interp_vars);
+        ghl_interpolate_with_cell_centered_ADM(metric_stencil, Ax_stencil, Ay_stencil, Az_stencil, phitilde[index], &interp_vars);
 
         alpha_interp[index] = interp_vars.alpha;
         sqrtg_Ax_interp[index] = interp_vars.sqrtg_Ai[0];
@@ -147,11 +147,11 @@ void IllinoisGRMHD_evaluate_phitilde_and_A_gauge_rhs(CCTK_ARGUMENTS) {
           betax_stencil[iter+2] = betax_interp[indexx];
           betay_stencil[iter+2] = betay_interp[indexy];
           betaz_stencil[iter+2] = betaz_interp[indexz];
-          phitilde_stencil[0][iter+2] = psi6phi[indexx];
-          phitilde_stencil[1][iter+2] = psi6phi[indexy];
-          phitilde_stencil[2][iter+2] = psi6phi[indexz];
+          phitilde_stencil[0][iter+2] = phitilde[indexx];
+          phitilde_stencil[1][iter+2] = phitilde[indexy];
+          phitilde_stencil[2][iter+2] = phitilde[indexz];
         }
-        psi6phi_rhs[index] = ghl_calculate_phitilde_rhs(dxi, ghl_params->Lorenz_damping_factor, alpha_interp[index], betax_stencil, betay_stencil, betaz_stencil, sqrtg_Ai_stencil, phitilde_stencil);
+        phitilde_rhs[index] = ghl_calculate_phitilde_rhs(dxi, ghl_params->Lorenz_damping_factor, alpha_interp[index], betax_stencil, betay_stencil, betaz_stencil, sqrtg_Ai_stencil, phitilde_stencil);
       }
     }
   }

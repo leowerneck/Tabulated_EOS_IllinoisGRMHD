@@ -142,7 +142,7 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         Ax[index] = Avec[CCTK_GFINDEX4D(cctkGH,i,j,k,0)];
         Ay[index] = Avec[CCTK_GFINDEX4D(cctkGH,i,j,k,1)];
         Az[index] = Avec[CCTK_GFINDEX4D(cctkGH,i,j,k,2)];
-        psi6phi[index] = Aphi[index];
+        phitilde[index] = Aphi[index];
 
         double ETvx = vel[CCTK_GFINDEX4D(cctkGH,i,j,k,0)];
         double ETvy = vel[CCTK_GFINDEX4D(cctkGH,i,j,k,1)];
@@ -192,7 +192,7 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         vy[index]     *=one_plus_pert;
         vz[index]     *=one_plus_pert;
 
-        psi6phi[index]*=one_plus_pert;
+        phitilde[index]*=one_plus_pert;
         Ax[index]     *=one_plus_pert;
         Ay[index]     *=one_plus_pert;
         Az[index]     *=one_plus_pert;
@@ -317,7 +317,7 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         indexim1 = CCTK_GFINDEX3D(cctkGH,shiftedim1,j,k);
         // Set Bx = 0.5 ( Bx_stagger + Bx_stagger_im1 )
         // "Grid" Bx_stagger(i,j,k) is actually Bx_stagger(i+1/2,j,k)
-        Bx[actual_index] = 0.5 * ( Bx_stagger[index] + Bx_stagger[indexim1] );
+        Bx_center[actual_index] = 0.5 * ( Bx_stagger[index] + Bx_stagger[indexim1] );
 
         /******/
         /* By */
@@ -326,7 +326,7 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         indexjm1 = CCTK_GFINDEX3D(cctkGH,i,shiftedjm1,k);
         // Set By = 0.5 ( By_stagger + By_stagger_im1 )
         // "Grid" By_stagger(i,j,k) is actually By_stagger(i,j+1/2,k)
-        By[actual_index] = 0.5 * ( By_stagger[index] + By_stagger[indexjm1] );
+        By_center[actual_index] = 0.5 * ( By_stagger[index] + By_stagger[indexjm1] );
 
         /******/
         /* Bz */
@@ -335,7 +335,7 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         indexkm1 = CCTK_GFINDEX3D(cctkGH,i,j,shiftedkm1);
         // Set Bz = 0.5 ( Bz_stagger + Bz_stagger_im1 )
         // "Grid" Bz_stagger(i,j,k) is actually Bz_stagger(i,j+1/2,k)
-        Bz[actual_index] = 0.5 * ( Bz_stagger[index] + Bz_stagger[indexkm1] );
+        Bz_center[actual_index] = 0.5 * ( Bz_stagger[index] + Bz_stagger[indexkm1] );
       }
 
   // Finally, enforce limits on primitives & compute conservative variables.
@@ -354,9 +354,9 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
         PRIMS[VX           ] = vx[index];
         PRIMS[VY           ] = vy[index];
         PRIMS[VZ           ] = vz[index];
-        PRIMS[BX_CENTER    ] = Bx[index];
-        PRIMS[BY_CENTER    ] = By[index];
-        PRIMS[BZ_CENTER    ] = Bz[index];
+        PRIMS[BX_CENTER    ] = Bx_center[index];
+        PRIMS[BY_CENTER    ] = By_center[index];
+        PRIMS[BZ_CENTER    ] = Bz_center[index];
         PRIMS[EPSILON      ] = eps[index];
         if( eos.evolve_entropy ) {
           PRIMS[ENTROPY      ] = entropy[index];

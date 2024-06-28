@@ -203,9 +203,9 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             PRIMS[VX           ] = vx[index];
             PRIMS[VY           ] = vy[index];
             PRIMS[VZ           ] = vz[index];
-            PRIMS[BX_CENTER    ] = Bx[index];
-            PRIMS[BY_CENTER    ] = By[index];
-            PRIMS[BZ_CENTER    ] = Bz[index];
+            PRIMS[BX_CENTER    ] = Bx_center[index];
+            PRIMS[BY_CENTER    ] = By_center[index];
+            PRIMS[BZ_CENTER    ] = Bz_center[index];
             PRIMS[EPSILON      ] = eps[index];
             PRIMS[ENTROPY      ] = entropy[index];
 
@@ -611,11 +611,6 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
     myfile.write((char*)st_z_flux,                   (fullsize)*sizeof(CCTK_REAL));
     myfile.write((char*)Ye_star_flux,                (fullsize)*sizeof(CCTK_REAL));
     myfile.write((char*)S_star_flux,                 (fullsize)*sizeof(CCTK_REAL));
-
-    // Magnetic fields
-    myfile.write((char*)Bx,                          (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)By,                          (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)Bz,                          (fullsize)*sizeof(CCTK_REAL));
 
     // Checker value
     myfile.write((char*)&checker,                             1*sizeof(int));

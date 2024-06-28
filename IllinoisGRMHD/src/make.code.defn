@@ -1,7 +1,7 @@
 # Main make.code.defn file for thorn IllinoisGRMHD
 
 # Source files in this directory
-SRCS =  InitSymBound.C MoL_registration.C \
+SRCS =  InitSymBound.c MoL_registration.c \
     set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase_variables.C \
     postpostinitial__set_symmetries__copy_timelevels.C \
     convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij.C \

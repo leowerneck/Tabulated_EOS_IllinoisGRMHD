@@ -67,7 +67,7 @@ void IllinoisGRMHD_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
   in_prims[VZL       ]=vzl;        out_prims_r[VZL       ]=vzlr;        out_prims_l[VZL       ]=vzll;
 
   const double *ghl_vel[3] = {vx, vy, vz};
-  const double *B_center[3] = {Bx, By, Bz};
+  const double *B_center[3] = {Bx_center, By_center, Bz_center};
   double *vel_r[3] = {vxr, vyr, vzr};
   double *vel_l[3] = {vxl, vyl, vzl};
   const double *B_stagger[3] = {Bx_stagger, By_stagger, Bz_stagger};

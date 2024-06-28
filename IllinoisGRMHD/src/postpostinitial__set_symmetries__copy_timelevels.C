@@ -36,21 +36,21 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
     // SET SYMMETRY GHOSTZONES ON ALL CONSERVATIVE AND PRIMIIVE VARIABLES!
     int ierr;
     ierr=CartSymGN(cctkGH,"IllinoisGRMHD::grmhd_conservatives"); if(ierr!=0) CCTK_VError(VERR_DEF_PARAMS,"Microsoft error code #1874109358120048. Grep it in the source code");
-    ierr=CartSymGN(cctkGH,"IllinoisGRMHD::grmhd_primitives_allbutBi"); if(ierr!=0) CCTK_VError(VERR_DEF_PARAMS,"Microsoft error code #1874109358120049. Grep it in the source code");
+    ierr=CartSymGN(cctkGH,"IllinoisGRMHD::grmhd_B_center"); if(ierr!=0) CCTK_VError(VERR_DEF_PARAMS,"Microsoft error code #1874109358120049. Grep it in the source code");
 
     // Finish up by setting symmetry ghostzones on Bx, By, Bz, and their staggered variants.
     CCTK_REAL gridfunc_syms_Bx[3] = {-1, 1,-Sym_Bz};
-    IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Bx        , gridfunc_syms_Bx,0,0,0);
+    IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Bx_center, gridfunc_syms_Bx,0,0,0);
     IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Bx_stagger, gridfunc_syms_Bx,1,0,0);
     CCTK_REAL gridfunc_syms_By[3] = { 1,-1,-Sym_Bz};
-    IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  By        , gridfunc_syms_Bx,0,0,0);
+    IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  By_center, gridfunc_syms_Bx,0,0,0);
     IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  By_stagger, gridfunc_syms_By,0,1,0);
     CCTK_REAL gridfunc_syms_Bz[3] = { 1, 1, Sym_Bz};
-    IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Bz        , gridfunc_syms_Bz,0,0,0);
+    IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Bz_center, gridfunc_syms_Bz,0,0,0);
     IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Bz_stagger, gridfunc_syms_Bz,0,0,1);
 
-    CCTK_REAL gridfunc_syms_psi6phi[3] = { 1, 1,      1};
-    IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,psi6phi     , gridfunc_syms_psi6phi,1,1,1);
+    CCTK_REAL gridfunc_syms_phitilde[3] = { 1, 1,      1};
+    IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,phitilde     , gridfunc_syms_phitilde,1,1,1);
     CCTK_REAL gridfunc_syms_Ax[3]      = {-1, 1, Sym_Bz};
     IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Ax        , gridfunc_syms_Ax,0,1,1);
     CCTK_REAL gridfunc_syms_Ay[3]      = { 1,-1, Sym_Bz};
@@ -77,7 +77,7 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
         Stildey_p[index]    = Stildey[index];
         Stildez_p[index]    = Stildez[index];
 
-        psi6phi_p[index]     = psi6phi[index];
+        phitilde_p[index]     = phitilde[index];
         Ax_p[index]          = Ax[index];
         Ay_p[index]          = Ay[index];
         Az_p[index]          = Az[index];
@@ -88,7 +88,7 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
         Stildey_p_p[index]  = Stildey[index];
         Stildez_p_p[index]  = Stildez[index];
 
-        psi6phi_p_p[index]   = psi6phi[index];
+        phitilde_p_p[index]   = phitilde[index];
         Ax_p_p[index]        = Ax[index];
         Ay_p_p[index]        = Ay[index];
         Az_p_p[index]        = Az[index];

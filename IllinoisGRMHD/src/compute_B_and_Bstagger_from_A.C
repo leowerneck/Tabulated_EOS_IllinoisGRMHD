@@ -27,8 +27,8 @@ extern "C" void IllinoisGRMHD_compute_B_and_Bstagger_from_A(CCTK_ARGUMENTS) {
   IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Ay        , gridfunc_syms_Ay,1,0,1);
   CCTK_REAL gridfunc_syms_Az[3]      = { 1, 1,-Sym_Bz};
   IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Az        , gridfunc_syms_Az,1,1,0);
-  CCTK_REAL gridfunc_syms_psi6phi[3] = { 1, 1,      1};
-  IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,psi6phi     , gridfunc_syms_psi6phi,1,1,1);
+  CCTK_REAL gridfunc_syms_phitilde[3] = { 1, 1,      1};
+  IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,phitilde     , gridfunc_syms_phitilde,1,1,1);
 
   LOOP_DEFINE_SIMPLE {
     int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
@@ -141,7 +141,7 @@ extern "C" void IllinoisGRMHD_compute_B_and_Bstagger_from_A(CCTK_ARGUMENTS) {
     indexim1 = CCTK_GFINDEX3D(cctkGH,shiftedim1,j,k);
     // Set Bx = 0.5 ( Bx_stagger + Bx_stagger_im1 )
     // "Grid" Bx_stagger(i,j,k) is actually Bx_stagger(i+1/2,j,k)
-    Bx[actual_index] = 0.5 * ( Bx_stagger[index] + Bx_stagger[indexim1] );
+    Bx_center[actual_index] = 0.5 * ( Bx_stagger[index] + Bx_stagger[indexim1] );
 
     /******/
     /* By */
@@ -150,7 +150,7 @@ extern "C" void IllinoisGRMHD_compute_B_and_Bstagger_from_A(CCTK_ARGUMENTS) {
     indexjm1 = CCTK_GFINDEX3D(cctkGH,i,shiftedjm1,k);
     // Set By = 0.5 ( By_stagger + By_stagger_im1 )
     // "Grid" By_stagger(i,j,k) is actually By_stagger(i,j+1/2,k)
-    By[actual_index] = 0.5 * ( By_stagger[index] + By_stagger[indexjm1] );
+    By_center[actual_index] = 0.5 * ( By_stagger[index] + By_stagger[indexjm1] );
 
     /******/
     /* Bz */
@@ -159,18 +159,18 @@ extern "C" void IllinoisGRMHD_compute_B_and_Bstagger_from_A(CCTK_ARGUMENTS) {
     indexkm1 = CCTK_GFINDEX3D(cctkGH,i,j,shiftedkm1);
     // Set Bz = 0.5 ( Bz_stagger + Bz_stagger_im1 )
     // "Grid" Bz_stagger(i,j,k) is actually Bz_stagger(i,j+1/2,k)
-    Bz[actual_index] = 0.5 * ( Bz_stagger[index] + Bz_stagger[indexkm1] );
+    Bz_center[actual_index] = 0.5 * ( Bz_stagger[index] + Bz_stagger[indexkm1] );
   }
 
   // Finish up by setting symmetry ghostzones on Bx, By, Bz, and their staggered variants.
   CCTK_REAL gridfunc_syms_Bx[3] = {-1, 1,-Sym_Bz};
-  IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Bx        , gridfunc_syms_Bx,0,0,0);
+  IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Bx_center, gridfunc_syms_Bx,0,0,0);
   IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Bx_stagger, gridfunc_syms_Bx,1,0,0);
   CCTK_REAL gridfunc_syms_By[3] = { 1,-1,-Sym_Bz};
-  IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  By        , gridfunc_syms_By,0,0,0);
+  IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  By_center , gridfunc_syms_By,0,0,0);
   IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  By_stagger, gridfunc_syms_By,0,1,0);
   CCTK_REAL gridfunc_syms_Bz[3] = { 1, 1, Sym_Bz};
-  IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Bz        , gridfunc_syms_Bz,0,0,0);
+  IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Bz_center , gridfunc_syms_Bz,0,0,0);
   IllinoisGRMHD_set_symmetry_gzs_staggered(cctkGH,cctk_lsh,x,y,z,  Bz_stagger, gridfunc_syms_Bz,0,0,1);
 }
 

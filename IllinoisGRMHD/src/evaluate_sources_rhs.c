@@ -24,7 +24,7 @@ void IllinoisGRMHD_evaluate_sources_rhs(CCTK_ARGUMENTS) {
         rho_star_rhs[index] = 0.0;
         S_star_rhs[index] = 0.0;
         Ye_star_rhs[index]  = 0.0;
-        psi6phi_rhs[index] = 0.0;
+        phitilde_rhs[index] = 0.0;
         Ax_rhs[index]       = 0.0;
         Ay_rhs[index]       = 0.0;
         Az_rhs[index]       = 0.0;
@@ -49,9 +49,9 @@ void IllinoisGRMHD_evaluate_sources_rhs(CCTK_ARGUMENTS) {
         prims.vU[0]       = vx[index];
         prims.vU[1]       = vy[index];
         prims.vU[2]       = vz[index];
-        prims.BU[0]       = Bx[index];
-        prims.BU[1]       = By[index];
-        prims.BU[2]       = Bz[index];
+        prims.BU[0]       = Bx_center[index];
+        prims.BU[1]       = By_center[index];
+        prims.BU[2]       = Bz_center[index];
         prims.entropy     = entropy[index];
         prims.Y_e         = Y_e[index];
         prims.temperature = temperature[index];

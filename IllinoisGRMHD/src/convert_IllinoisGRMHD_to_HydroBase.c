@@ -84,9 +84,9 @@ void convert_IllinoisGRMHD_to_HydroBase(CCTK_ARGUMENTS) {
 
         w_lorentz[index] = W;
 
-        Bvec[index4D0] = Bx[index]*mag_factor;
-        Bvec[index4D1] = By[index]*mag_factor;
-        Bvec[index4D2] = Bz[index]*mag_factor;
+        Bvec[index4D0] = Bx_center[index]*mag_factor;
+        Bvec[index4D1] = By_center[index]*mag_factor;
+        Bvec[index4D2] = Bz_center[index]*mag_factor;
       }
     }
   }

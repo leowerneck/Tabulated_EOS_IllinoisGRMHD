@@ -1,10 +1,11 @@
-# Scheduler setup for IllinoisGRMHD
+# Schedule for thorn IllinoisGRMHD
 
-STORAGE: ADMBase::metric[metric_timelevels], ADMBase::curv[metric_timelevels], ADMBase::lapse[lapse_timelevels], ADMBase::shift[shift_timelevels]
-STORAGE: IllinoisGRMHD::BSSN_quantities
 
-STORAGE: grmhd_conservatives[3],em_Ax[3],em_Ay[3],em_Az[3],em_psi6phi[3]
-STORAGE: grmhd_primitives_allbutBi,grmhd_primitives_Bi,grmhd_primitives_Bi_stagger,grmhd_primitives_reconstructed_temps,grmhd_conservatives_rhs,em_Ax_rhs,em_Ay_rhs,em_Az_rhs,em_psi6phi_rhs,grmhd_cmin_cmax_temps,grmhd_flux_temps,failure_checker,con2prim_failed_flag
+
+STORAGE: BSSN_quantities
+
+STORAGE: grmhd_conservatives[3], Ax[3], Ay[3], Az[3], phitilde[3]
+STORAGE: grmhd_primitives_allbutBi,grmhd_B_center,grmhd_B_stagger,grmhd_primitives_reconstructed_temps,grmhd_conservatives_rhs,EM_rhs,grmhd_cmin_cmax_temps,grmhd_flux_temps,failure_checker,con2prim_failed_flag
 
 ####################
 # NEW STUFF
@@ -52,7 +53,7 @@ schedule GROUP IllinoisGRMHD_PostPostInitial at CCTK_POSTPOSTINITIAL before MoL_
 
 schedule IllinoisGRMHD_InitSymBound in IllinoisGRMHD_PostPostInitial as postid before compute_b
 {
-  SYNC: grmhd_conservatives,em_Ax,em_Ay,em_Az,em_psi6phi
+  SYNC: grmhd_conservatives,Ax,Ay,Az,phitilde
   LANG: C
 } "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
 
@@ -60,9 +61,9 @@ schedule IllinoisGRMHD_InitSymBound in IllinoisGRMHD_PostPostInitial as postid b
 schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_PostPostInitial as compute_b after postid after empostid after lapsepostid
 {
   # This is strictly a processor sync, as prolongation is disabled for all primitives & B^i's.
-  SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger # FIXME: Are both SYNC's necessary?
+  SYNC: grmhd_B_center,grmhd_B_stagger # FIXME: Are both SYNC's necessary?
   LANG: C
-} "Compute B and B_stagger from A SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger"
+} "Compute B and B_stagger from A SYNC: grmhd_B_center,grmhd_B_stagger"
 
 # Nontrivial primitives solve, for P,rho_b,vx,vy,vz:
 schedule IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_PostPostInitial after compute_b
@@ -118,7 +119,7 @@ schedule IllinoisGRMHD_evaluate_fluxes_rhs in IllinoisGRMHD_RHS after IllinoisGR
 
 schedule IllinoisGRMHD_InitSymBound in HydroBase_Boundaries as Boundary_SYNCs before compute_B_postrestrict
 {
-  SYNC: grmhd_conservatives,em_Ax,em_Ay,em_Az,em_psi6phi
+  SYNC: grmhd_conservatives,Ax,Ay,Az,phitilde
   LANG: C
 } "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
 
@@ -132,9 +133,9 @@ schedule IllinoisGRMHD_outer_boundaries_on_A_mu in HydroBase_Boundaries after Bo
 schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in HydroBase_Boundaries after outer_boundaries_on_A_mu
 {
   # This is strictly a processor sync, as prolongation is disabled for all B^i's.
-  SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger # FIXME: Are both SYNC's necessary?
+  SYNC: grmhd_B_center,grmhd_B_stagger # FIXME: Are both SYNC's necessary?
   LANG: C
-} "Compute B and B_stagger from A,  SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger"
+} "Compute B and B_stagger from A,  SYNC: grmhd_B_center,grmhd_B_stagger"
 
 # Nontrivial primitives solve, for P,rho_b,vx,vy,vz.
 schedule IllinoisGRMHD_conserv_to_prims in AddToTmunu after compute_B_and_Bstagger_from_A
@@ -173,18 +174,18 @@ schedule set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase
    LANG:       C
    OPTIONS:    LOCAL
    # What the heck, let's synchronize everything!
-   SYNC: IllinoisGRMHD::grmhd_primitives_Bi, IllinoisGRMHD::grmhd_primitives_Bi_stagger, IllinoisGRMHD::grmhd_primitives_allbutBi, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy, IllinoisGRMHD::em_Ax,IllinoisGRMHD::em_Ay,IllinoisGRMHD::em_Az,IllinoisGRMHD::em_psi6phi,IllinoisGRMHD::grmhd_conservatives,IllinoisGRMHD::BSSN_quantities,ADMBase::metric,ADMBase::lapse,ADMBase::shift,ADMBase::curv
+   SYNC: grmhd_B_center, grmhd_B_stagger, grmhd_primitives_allbutBi, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy, Ax,Ay,Az,phitilde,grmhd_conservatives,BSSN_quantities,ADMBase::metric,ADMBase::lapse,ADMBase::shift,ADMBase::curv
 } "Convert HydroBase initial data (ID) to ID that IllinoisGRMHD can read."
 
 schedule IllinoisGRMHD_InitSymBound IN IllinoisGRMHD_ID_Converter as third_initialdata after second_initialdata
 {
-  SYNC: IllinoisGRMHD::grmhd_conservatives,IllinoisGRMHD::em_Ax,IllinoisGRMHD::em_Ay,IllinoisGRMHD::em_Az,IllinoisGRMHD::em_psi6phi
+  SYNC: grmhd_conservatives,Ax,Ay,Az,phitilde
   LANG: C
 } "Schedule symmetries -- Actually just a placeholder function to ensure prolongation / processor syncs are done BEFORE the primitives solver."
 
 schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A IN IllinoisGRMHD_ID_Converter as fourth_initialdata after third_initialdata
 {
-  SYNC: IllinoisGRMHD::grmhd_primitives_Bi, IllinoisGRMHD::grmhd_primitives_Bi_stagger
+  SYNC: grmhd_B_center, grmhd_B_stagger
   LANG: C
 } "Compute B and B_stagger from A"
 
