@@ -99,7 +99,15 @@ void IllinoisGRMHD_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij
     CCTK_REAL *restrict psi,
     CCTK_REAL *restrict lapm1 );
 
-void IllinoisGRMHD_set_symmetry_gzs_staggered(const cGH *cctkGH, const int *cctk_lsh,CCTK_REAL *X,CCTK_REAL *Y,CCTK_REAL *Z,  CCTK_REAL *gridfunc,
-                                              CCTK_REAL *gridfunc_syms,int stagger_x,int stagger_y,int stagger_z);
+extern "C" void IllinoisGRMHD_set_symmetry_gzs_staggered(
+      const cGH *cctkGH,
+      const CCTK_REAL *X,
+      const CCTK_REAL *Y,
+      const CCTK_REAL *Z,
+      CCTK_REAL *gridfunc,
+      const CCTK_REAL *gridfunc_syms,
+      const int stagger_x,  //TODO: unused
+      const int stagger_y,  //TODO: unused
+      const int stagger_z);
 
 #endif // ILLINOISGRMHD_HEADERS_H
