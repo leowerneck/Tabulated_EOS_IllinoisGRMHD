@@ -1,31 +1,34 @@
 # Main make.code.defn file for thorn IllinoisGRMHD
 
 # Source files in this directory
-SRCS =  InitSymBound.c MoL_registration.c \
+SRCS = \
+    A_flux_rhs.c \
+    interpolate_metric_to_face.c \
+    reconstruction_loop.c \
+    calculate_fluxes_rhs.c \
+    compute_B_and_Bstagger_from_A.C \
+    compute_metric_derivs.c \
+    convert_IllinoisGRMHD_to_HydroBase.c \
+    evaluate_fluxes_rhs.c \
+    evaluate_sources_rhs.c \
+    evaluate_phitilde_and_A_gauge_rhs.c \
+    InitSymBound.c \
+    MoL_registration.c \
+    specify_driver_BCs.c \
+    \
     set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase_variables.C \
     postpostinitial__set_symmetries__copy_timelevels.C \
     convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij.C \
-    interpolate_metric_to_face.c \
-    reconstruction_loop.c \
-    evaluate_sources_rhs.c \
-    evaluate_phitilde_and_A_gauge_rhs.c \
-    compute_metric_derivs.c \
-    calculate_fluxes_rhs.c \
-    compute_B_and_Bstagger_from_A.C \
-    driver_conserv_to_prims.C \
     symmetry__set_gzs_staggered_gfs.C \
-    A_flux_rhs.c \
     outer_boundaries.C \
-    convert_IllinoisGRMHD_to_HydroBase.c \
     reset_prims_to_atmosphere.cc\
-    \
+    driver_conserv_to_prims.C \
     EOS_get_key.cc \
     EOS_initialize_parameters.cc \
     EOS_Hybrid.cc \
     EOS_Tabulated.cc \
     EOS_floors_ceilings.cc \
     \
-    evaluate_fluxes_rhs.c \
     con2prim_get_key.cc \
     con2prim_select.cc \
     con2prim_set_cons_and_prim_from_CONSERVS_and_PRIMS.cc \
