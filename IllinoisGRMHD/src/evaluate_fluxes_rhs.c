@@ -103,14 +103,14 @@ void IllinoisGRMHD_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
   */
   {
     const int var_indices[1] = {BY_STAGGER};
-    IllinoisGRMHD_reconstruction_loop(cctkGH, flux_dir, 1, var_indices, P, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
+    IllinoisGRMHD_reconstruction_loop(cctkGH, flux_dir, 1, var_indices, press, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
   }
 
   flux_dir=1;
 
   {
     const int var_indices[6] = {VXR, VYR, VXL, VYL, BX_STAGGER, BZ_STAGGER};
-    IllinoisGRMHD_reconstruction_loop(cctkGH, flux_dir, 6, var_indices, P, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
+    IllinoisGRMHD_reconstruction_loop(cctkGH, flux_dir, 6, var_indices, press, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
   }
 
   /*
@@ -157,7 +157,7 @@ void IllinoisGRMHD_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
   */
   {
     const int var_indices[6] = {VYR, VZR, VYL, VZL, BX_STAGGER, BY_STAGGER};
-    IllinoisGRMHD_reconstruction_loop(cctkGH, flux_dir, 6, var_indices, P, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
+    IllinoisGRMHD_reconstruction_loop(cctkGH, flux_dir, 6, var_indices, press, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
   }
 
   /*
@@ -201,7 +201,7 @@ void IllinoisGRMHD_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
   */
   {
     const int var_indices[5] = {VXR, VZR, VXL, VZL, BZ_STAGGER};
-    IllinoisGRMHD_reconstruction_loop(cctkGH, flux_dir, 5, var_indices, P, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
+    IllinoisGRMHD_reconstruction_loop(cctkGH, flux_dir, 5, var_indices, press, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
   }
 
 

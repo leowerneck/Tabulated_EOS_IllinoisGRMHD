@@ -88,22 +88,24 @@ schedule IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels in Illino
 
 ####################
 # RHS EVALUATION
-schedule IllinoisGRMHD_driver_evaluate_MHD_rhs in IllinoisGRMHD_RHS
-{
-  LANG: C
-} "Evaluate RHSs of GR Hydro & GRMHD equations"
+#schedule IllinoisGRMHD_driver_evaluate_MHD_rhs in IllinoisGRMHD_RHS
+#{
+#  LANG: C
+#} "Evaluate RHSs of GR Hydro & GRMHD equations"
 
 schedule group IllinoisGRMHD_RHS in MoL_CalcRHS as IllinoisGRMHD_RHS_eval
 {
 } "Evaluate RHSs GRHD equations"
 
-#schedule group IllinoisGRMHD_evaluate_sources_rhs in IllinoisGRMHD_RHS before IllinoisGRMHD_driver_evaluate_MHD_rhs
-#{
-#} "Evaluate source terms in GRMHD RHSs"
-#
-#schedule group IllinoisGRMHD_evaluate_fluxes_rhs in IllinoisGRMHD_RHS after IllinoisGRMHD_evaluate_sources_rhs after IllinoisGRMHD_driver_evaluate_MHD_rhs
-#{
-#} "Evaluate flux terms in GRMHD RHSs"
+schedule IllinoisGRMHD_evaluate_sources_rhs in IllinoisGRMHD_RHS before IllinoisGRMHD_driver_evaluate_MHD_rhs
+{
+  LANG: C
+} "Evaluate source terms in GRMHD RHSs"
+
+schedule IllinoisGRMHD_evaluate_fluxes_rhs in IllinoisGRMHD_RHS after IllinoisGRMHD_evaluate_sources_rhs after IllinoisGRMHD_driver_evaluate_MHD_rhs
+{
+  LANG: C
+} "Evaluate flux terms in GRMHD RHSs"
 
 ############################################################
 # COMPUTE B FROM A & RE-SOLVE FOR PRIMITIVES

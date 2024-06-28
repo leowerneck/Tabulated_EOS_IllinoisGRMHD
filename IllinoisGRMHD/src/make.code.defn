@@ -27,6 +27,7 @@ SRCS =  InitSymBound.C MoL_registration.C \
     EOS_Tabulated.cc \
     EOS_floors_ceilings.cc \
     \
+    evaluate_fluxes_rhs.c \
     con2prim_get_key.cc \
     con2prim_select.cc \
     con2prim_set_cons_and_prim_from_CONSERVS_and_PRIMS.cc \
@@ -44,4 +45,3 @@ SRCS =  InitSymBound.C MoL_registration.C \
 
 # Subdirectories containing source files
 #SUBDIRS = ZelmaniLeak
-    #evaluate_fluxes_rhs.c \
