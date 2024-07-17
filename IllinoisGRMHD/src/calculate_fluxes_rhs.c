@@ -182,12 +182,12 @@ void IllinoisGRMHD_calculate_flux_dir_rhs(
 
         // We must now compute eps and T
         ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_r.rho, &prims_r.Y_e, &prims_r.press);
-        ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_r.rho, prims_r.Y_e, prims_r.press,
-                                           &prims_r.eps, &prims_r.temperature);
+        ghl_tabulated_compute_eps_S_T_from_P(ghl_eos, prims_r.rho, prims_r.Y_e, prims_r.press,
+                                           &prims_r.eps, &prims_r.entropy, &prims_r.temperature);
 
         ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_l.rho, &prims_l.Y_e, &prims_l.press);
-        ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_l.rho, prims_l.Y_e, prims_l.press,
-                                           &prims_l.eps, &prims_l.temperature);
+        ghl_tabulated_compute_eps_S_T_from_P(ghl_eos, prims_l.rho, prims_l.Y_e, prims_l.press,
+                                           &prims_l.eps, &prims_l.entropy, &prims_l.temperature);
 
         ghl_conservative_quantities cons_fluxes;
         calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin[index], &cmax[index]);
