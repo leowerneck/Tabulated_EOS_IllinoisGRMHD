@@ -25,6 +25,9 @@ enum recon_indices{
 #define B_in  2.0/3.0
 #define COMPUTE_DERIV(Varm2,Varm1,Varp1,Varp2) (B_in*(Varp1 - Varm1) + B_out*(Varp2 - Varm2))
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 void IllinoisGRMHD_interpolate_metric_to_face(
       const cGH *cctkGH,
       const int i, const int j, const int k,
@@ -98,5 +101,8 @@ void IllinoisGRMHD_A_flux_rhs(
       /*const*/ CCTK_REAL **cmax,
       CCTK_REAL *restrict A_rhs);
 
+#ifdef __cplusplus
+}
+#endif
 /****************************************************************/
 #endif // GRHAYLMHD_H_

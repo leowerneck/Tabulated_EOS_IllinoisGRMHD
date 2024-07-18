@@ -1,41 +1,11 @@
-/* We evolve forward in time a set of functions called the
- *  "conservative variables", and any time the conserv's
- *  are updated, we must solve for the primitive variables
- *  (rho, pressure, velocities) using a Newton-Raphson
- *  technique, before reconstructing & evaluating the RHSs
- *  of the MHD equations again.
- *
- * This file contains the driver routine for this Newton-
- *  Raphson solver. Truncation errors in conservative
- *  variables can lead to no physical solutions in
- *  primitive variables. We correct for these errors here
- *  through a number of tricks described in the appendices
- *  of http://arxiv.org/pdf/1112.0568.pdf.
- *
- * This is a wrapper for the 2d solver of Noble et al. See
- *  harm_utoprim_2d.c for references and copyright notice
- *  for that solver. This wrapper was primarily written by
- *  Zachariah Etienne & Yuk Tung Liu, in 2011-2013.
- *
- * For optimal compatibility, this wrapper is licensed under
- *  the GPL v2 or any later version.
- *
- * Note that this code assumes a simple gamma law for the
- *  moment, though it would be easy to extend to a piecewise
- *  polytrope. */
-
-// Standard #include's
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <cmath>
 #include <ctime>
 #include <cstdlib>
+#include "IllinoisGRMHD.h"
 
-
-#ifdef ENABLE_STANDALONE_IGM_C2P_SOLVER
-#include "standalone_conserv_to_prims_main_function.h"
-#else
 #include "cctk.h"
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
@@ -52,7 +22,6 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
   // We use proper C++ here, for file I/O later.
   using namespace std;
-#endif
 
   /**********************************
    * Piecewise Polytropic EOS Patch *
@@ -197,7 +166,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
             // Read in primitive variables from gridfunctions
             // FIXME: this seems wasteful as we won't use these values anyway
-            CCTK_REAL PRIMS[MAXNUMVARS];
+            CCTK_REAL PRIMS[old_MAXNUMVARS];
             PRIMS[RHOB         ] = rho[index];
             PRIMS[PRESSURE     ] = press[index];
             PRIMS[VX           ] = vx[index];
@@ -493,8 +462,6 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
   } // while( num_of_conservative_averagings_needed > 0 )
 
-  // fclose(c2pmaskfile);
-
   if(CCTK_Equals(verbose, "essential") || CCTK_Equals(verbose, "essential+iteration output")) {
     CCTK_VInfo(CCTK_THORNSTRING,"C2P: Lev: %d NumPts= %d | Fixes: BU: %d %d %d Font= %d VL= %d rho*= %d AVG= %d ATM= %d | Failures: %d InHoriz= %d / %d | Error: %.3e, ErrDenom: %.3e",
                (int)GetRefinementLevel(cctkGH),pointcount,
@@ -512,118 +479,6 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
       CCTK_VWARN(CCTK_WARN_ALERT,"Found NAN during con2prim driver, but not at finest level. Proceeding with caution...");
     }
   }
-
-  // Very useful con2prim debugger. If the primitives (con2prim) solver fails, this will output all data needed to
-  //     debug where and why the solver failed. Strongly suggested for experimenting with new fixes.
-  if( ( (conserv_to_prims_debug==1) && (error_int_numer/error_int_denom > 0.05) ) ||
-      ( atm_resets != 0 ) ) {
-
-    ofstream myfile;
-    char filename[100];
-    srand(time(NULL));
-    sprintf(filename,"primitives_debug-%e.dat",error_int_numer/error_int_denom);
-    //Alternative, for debugging purposes as well:
-    //srand(time(NULL));
-    //sprintf(filename,"primitives_debug-%d.dat",rand());
-    myfile.open (filename, ios::out | ios::binary);
-    //myfile.open ("data.bin", ios::out | ios::binary);
-
-    // This checker value will be printed last, and will
-    // allow us to make sure we have read the dump file
-    // correctly when debugging it.
-    int checker=1063;
-
-    // Grid information
-    int fullsize=cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2];
-    myfile.write((char*)cctk_lsh,                             3*sizeof(int));
-    myfile.write((char*)x,                           (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)y,                           (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)z,                           (fullsize)*sizeof(CCTK_REAL));
-
-    // IllinoisGRMHD parameters
-    myfile.write((char*)&GAMMA_SPEED_LIMIT,                   1*sizeof(CCTK_REAL));
-    myfile.write((char*)&rho_b_max,                           1*sizeof(CCTK_REAL));
-    myfile.write((char*)&rho_b_atm,                           1*sizeof(CCTK_REAL));
-    myfile.write((char*)&tau_atm,                             1*sizeof(CCTK_REAL));
-    myfile.write((char*)&Psi6threshold,                       1*sizeof(CCTK_REAL));
-    myfile.write((char*)&update_Tmunu,                        1*sizeof(bool));
-    myfile.write((char*)&neos,                                1*sizeof(int));
-    myfile.write((char*)&Gamma_th,                            1*sizeof(CCTK_REAL));
-    myfile.write((char*)&K_ppoly_tab0,                        1*sizeof(CCTK_REAL));
-    myfile.write((char*)Gamma_ppoly_tab_in,                neos*sizeof(CCTK_REAL));
-    myfile.write((char*)rho_ppoly_tab_in,              (neos-1)*sizeof(CCTK_REAL));
-    myfile.write((char*)&igm_Ye_atm,                          1*sizeof(CCTK_REAL));
-    myfile.write((char*)&igm_T_atm,                           1*sizeof(CCTK_REAL));
-    myfile.write((char*)&igm_eos_table_ceiling_safety_factor, 1*sizeof(CCTK_REAL));
-    myfile.write((char*)&igm_eos_table_floor_safety_factor,   1*sizeof(CCTK_REAL));
-    myfile.write((char*)&igm_eos_root_finding_precision,      1*sizeof(CCTK_REAL));
-    myfile.write((char*)&igm_eos_root_finding_precision,      1*sizeof(CCTK_REAL));
-    myfile.write((char*)&igm_evolve_temperature,              1*sizeof(bool));
-    myfile.write((char*)&igm_evolve_entropy,                  1*sizeof(bool));
-
-    // Failure checker gridfunction
-    myfile.write((char*)failure_checker,             (fullsize)*sizeof(CCTK_REAL));
-
-    // Energy momentum tensor
-    myfile.write((char*)eTtt,                        (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)eTtx,                        (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)eTty,                        (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)eTtz,                        (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)eTxx,                        (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)eTxy,                        (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)eTxz,                        (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)eTyy,                        (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)eTyz,                        (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)eTzz,                        (fullsize)*sizeof(CCTK_REAL));
-
-    // Metric quantities
-    myfile.write((char*)alp,                         (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gxx,                         (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gxy,                         (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gxz,                         (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gyy,                         (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gyz,                         (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gzz,                         (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)psi_bssn,                    (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)phi_bssn,                    (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtxx,                        (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtxy,                        (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtxz,                        (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtyy,                        (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtyz,                        (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtzz,                        (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtupxx,                      (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtupxy,                      (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtupxz,                      (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtupyy,                      (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtupyz,                      (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)gtupzz,                      (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)lapm1,                       (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)betax,                       (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)betay,                       (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)betaz,                       (fullsize)*sizeof(CCTK_REAL));
-
-    // Original conservative variables (we used the flux gridfunctions to store these)
-    myfile.write((char*)rho_star_flux,               (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)tau_flux,                    (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)Stildex_flux,                   (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)Stildey_flux,                   (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)Stildez_flux,                   (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)Ye_star_flux,                (fullsize)*sizeof(CCTK_REAL));
-    myfile.write((char*)ent_star_flux,                 (fullsize)*sizeof(CCTK_REAL));
-
-    // Checker value
-    myfile.write((char*)&checker,                             1*sizeof(int));
-
-    // All done! Close the file.
-    myfile.close();
-    CCTK_VInfo(CCTK_THORNSTRING,"Finished writing %s",filename);
-  }
-
-#ifdef ENABLE_STANDALONE_IGM_C2P_SOLVER
-  return 0; // int main() requires an integer be returned
-#endif
-
 }
 
 #include "harm_u2p_util.h"

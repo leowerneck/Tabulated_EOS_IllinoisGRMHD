@@ -21,12 +21,10 @@ SRCS = \
     MoL_registration.c \
     prims_to_conservs.c \
     specify_driver_BCs.c \
-    set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase_variables.C \
     postpostinitial__set_symmetries__copy_timelevels.C \
     convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij.C \
     symmetry_gzs_staggered.c \
     set_gz_symmetries.c \
-    outer_boundaries.C \
     reset_prims_to_atmosphere.cc\
     driver_conserv_to_prims.C \
     EOS_get_key.cc \

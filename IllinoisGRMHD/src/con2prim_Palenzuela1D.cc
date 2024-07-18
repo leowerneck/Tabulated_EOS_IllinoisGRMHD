@@ -85,12 +85,12 @@ inline int check_depsdT_condition( const igm_eos_parameters eos,
 
   // printf("depsdT = %e (%e)\n",depsdT,eos.depsdT_threshold);
 
-  int con2prim_key = None;
+  int con2prim_key = old_None;
   if( eos.evolve_entropy && (depsdT < eos.depsdT_threshold) ) {
-    con2prim_key = Palenzuela1D_entropy;
+    con2prim_key = old_Palenzuela1D_entropy;
   }
   else {
-    con2prim_key = Palenzuela1D;
+    con2prim_key = old_Palenzuela1D;
   }
 
   // printf("con2prim_key = %d\n",con2prim_key);
@@ -168,15 +168,15 @@ int con2prim_Palenzuela1D( const igm_eos_parameters eos,
   // Now proceed as usual. In this first function call,
   // we allow the entropy to be used (if needed).
   const CCTK_REAL tolerance = 1e-10;
-  stats.which_routine       = None;
+  stats.which_routine       = old_None;
   stats.c2p_failed          = true;
   palenzuela( eos, S_squared,BdotS,B_squared, con, prim, SU, tolerance, stats );
 
-  if( (stats.c2p_failed == true) && (stats.which_routine == Palenzuela1D_entropy) ) {
+  if( (stats.c2p_failed == true) && (stats.which_routine == old_Palenzuela1D_entropy) ) {
     printf("Entropy routine failed\n");
     // If the entropy con2prim failed, then try again
     // using the standard Palenzuela1D con2prim
-    stats.which_routine = Palenzuela1D;
+    stats.which_routine = old_Palenzuela1D;
     palenzuela( eos, S_squared,BdotS,B_squared, con, prim, SU, tolerance, stats );
   }
 
@@ -224,19 +224,19 @@ void palenzuela( const igm_eos_parameters eos,
   // initial guess for temperature
   double temp_guess=prim[TEMP];
 
-  if( stats.which_routine == None ) {
+  if( stats.which_routine == old_None ) {
     // Now check if we will need the entropy equation
     const int xlow_entropy_key = check_depsdT_condition(eos,param,temp_guess,xlow);
     const int xup_entropy_key  = check_depsdT_condition(eos,param,temp_guess,xup);
 
-    if( (xlow_entropy_key == Palenzuela1D_entropy) ||
-        (xup_entropy_key  == Palenzuela1D_entropy) ) {
+    if( (xlow_entropy_key == old_Palenzuela1D_entropy) ||
+        (xup_entropy_key  == old_Palenzuela1D_entropy) ) {
       // If any of the two needs the entropy, use it.
-      stats.which_routine = Palenzuela1D_entropy;
+      stats.which_routine = old_Palenzuela1D_entropy;
     }
     else {
       // Otherwise use the standard Palenzuela algorithm.
-      stats.which_routine = Palenzuela1D;
+      stats.which_routine = old_Palenzuela1D;
     }
   }
 
@@ -278,7 +278,7 @@ void calc_prim( const igm_eos_parameters eos,
   double eps     = 0.0;
   double ent     = 0.0;
   if( eos.evolve_T ) {
-    if( stats.which_routine == Palenzuela1D ) {
+    if( stats.which_routine == old_Palenzuela1D ) {
       // Default Palenzuela con2prim: get Hydro quantities from (rho,Ye,eps)
       eps = W - 1.0 + (1.0-W*W)*x/W + W*(q - s + t*t/(2*x*x) + s/(2*W*W)  );
       enforce_table_bounds_rho_Ye_eps( eos,&rho,&ye,&eps );
@@ -344,7 +344,7 @@ double func_root( const igm_eos_parameters eos,
   double ent     = 0.0;
 
   if( eos.evolve_T ) {
-    if( stats.which_routine == Palenzuela1D ) {
+    if( stats.which_routine == old_Palenzuela1D ) {
       // Default Palenzuela con2prim: get Hydro quantities from (rho,Ye,eps)
       eps = W - 1.0 + (1.0-W*W)*x/W + W*(q - s + t*t/(2*x*x) + s/(2*W*W)  );
       enforce_table_bounds_rho_Ye_eps( eos,&rho,&ye,&eps );

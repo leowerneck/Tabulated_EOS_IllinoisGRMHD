@@ -45,16 +45,16 @@
 #define HARM_PRIMITIVES_HEADERS_H_
 
 // These are used to select the con2prim main and backup routines
-static const int None                 = -1;
-static const int Noble2D              =  0;
-static const int Noble1D              =  1;
-static const int Noble1D_entropy      =  2;
-static const int Noble1D_entropy2     =  3;
-static const int CerdaDuran2D         =  4;
-static const int CerdaDuran3D         =  5;
-static const int Palenzuela1D         =  6;
-static const int Palenzuela1D_entropy =  7;
-static const int Newman1D             =  8;
+static const int old_None                 = -1;
+static const int old_Noble2D              =  0;
+static const int old_Noble1D              =  1;
+static const int old_Noble1D_entropy      =  2;
+static const int old_Noble1D_entropy2     =  3;
+static const int old_CerdaDuran2D         =  4;
+static const int old_CerdaDuran3D         =  5;
+static const int old_Palenzuela1D         =  6;
+static const int old_Palenzuela1D_entropy =  7;
+static const int old_Newman1D             =  8;
 
 static const int NPR =8;
 static const int NDIM=4;
