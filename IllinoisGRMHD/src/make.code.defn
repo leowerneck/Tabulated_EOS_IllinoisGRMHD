@@ -16,6 +16,7 @@ SRCS = \
     evaluate_fluxes_rhs.c \
     evaluate_sources_rhs.c \
     evaluate_phitilde_and_A_gauge_rhs.c \
+    hydro_outer_boundaries.c \
     InitSymBound.c \
     MoL_registration.c \
     prims_to_conservs.c \

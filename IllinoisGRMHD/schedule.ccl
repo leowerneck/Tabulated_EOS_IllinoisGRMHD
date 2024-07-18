@@ -110,44 +110,7 @@ if(Convert_to_HydroBase_every) {
 # it is still incomplete)
 #########################################################
 
-schedule GROUP IllinoisGRMHD_PostPostInitial at CCTK_PostPostInitial before MoL_PostStep after HydroBase_Con2Prim
-{
-} "HydroBase_Con2Prim in CCTK_PostPostInitial sets conserv to prim then outer boundaries (OBs, which are technically disabled). The post OB SYNCs actually reprolongate the conservative variables, making cons and prims INCONSISTENT. So here we redo the con2prim, avoiding the SYNC afterward, then copy the result to other timelevels"
-
-schedule IllinoisGRMHD_InitSymBound in IllinoisGRMHD_PostPostInitial as IllinoisGRMHD_sync_conservatives
-{
-  SYNC: grmhd_conservatives,Ax,Ay,Az,phitilde
-  LANG: C
-} "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
-
-schedule IllinoisGRMHD_A_i_outer_boundaries in IllinoisGRMHD_PostPostInitial after IllinoisGRMHD_sync_conservatives
-{
-  LANG: C
-  READS:  phitilde, Ax, Ay, Az
-  WRITES: phitilde(boundary), Ax(boundary), Ay(boundary), Az(boundary)
-} "Apply linear extrapolation BCs on A_{mu}, so that BCs are flat on B^i"
-
-# Easiest primitives to solve for: B^i
-schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_PostPostInitial after IllinoisGRMHD_A_i_outer_boundaries
-{
-  # This is strictly a processor sync, as prolongation is disabled for all primitives & B^i's.
-  SYNC: grmhd_B_center,grmhd_B_stagger # FIXME: Are both SYNC's necessary?
-  LANG: C
-} "Compute B and B_stagger from A SYNC: grmhd_B_center,grmhd_B_stagger"
-
-# Nontrivial primitives solve, for P,rho_b,vx,vy,vz:
-schedule IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_PostPostInitial after IllinoisGRMHD_compute_B_and_Bstagger_from_A
-{
-  LANG: C
-} "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
-
-schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in IllinoisGRMHD_PostPostInitial after IllinoisGRMHD_conserv_to_prims
-{
-  LANG: C
-  SYNC: grmhd_velocities, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy
-} "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
-
-schedule IllinoisGRMHD_set_gz_symmetries in IllinoisGRMHD_PostPostInitial after IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz
+schedule IllinoisGRMHD_set_gz_symmetries at CCTK_PostPostInitial after Con2Prim
 {
   LANG: C
   READS:  GRID::coordinates
@@ -197,7 +160,7 @@ schedule IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_Con2Prim after Illinois
 } "Compute primitive variables from conservatives"
 
 # Runs everywhere. Shouldn't need to sync
-schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in IllinoisGRMHD_Con2Prim after IllinoisGRMHD_conserv_to_prims
+schedule IllinoisGRMHD_hydro_outer_boundaries in IllinoisGRMHD_Con2Prim after IllinoisGRMHD_conserv_to_prims
 {
   LANG: C
   SYNC: grmhd_velocities, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy
