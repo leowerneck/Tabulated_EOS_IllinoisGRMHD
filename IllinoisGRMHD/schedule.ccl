@@ -71,7 +71,7 @@ schedule convert_HydroBase_to_IllinoisGRMHD in IllinoisGRMHD_Prim2Con2Prim
 } "Convert HydroBase initial data (ID) to IllinoisGRMHD variables"
 
 # Runs everywhere. Shouldn't need to sync
-schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_Prim2Con2Prim after (set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_ADMBase_variables convert_HydroBase_to_IllinoisGRMHD)
+schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_Prim2Con2Prim after convert_HydroBase_to_IllinoisGRMHD
 {
   LANG: C
   READS:  GRID::coordinates,
@@ -191,13 +191,13 @@ schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_Con2Prim a
   SYNC: grmhd_B_center, grmhd_B_stagger # FIXME: Are both SYNC's necessary?
 } "Compute B and B_stagger from A SYNC: grmhd_B_center, grmhd_B_stagger"
 
-schedule IllinoisGRMHD_conserv_to_prims in AddToTmunu after IllinoisGRMHD_compute_B_and_Bstagger_from_A
+schedule IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_Con2Prim after IllinoisGRMHD_compute_B_and_Bstagger_from_A
 {
   LANG: C
 } "Compute primitive variables from conservatives"
 
 # Runs everywhere. Shouldn't need to sync
-schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in AddToTmunu after IllinoisGRMHD_conserv_to_prims
+schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in IllinoisGRMHD_Con2Prim after IllinoisGRMHD_conserv_to_prims
 {
   LANG: C
   SYNC: grmhd_velocities, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy
@@ -207,18 +207,18 @@ schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in AddToTmunu after 
 # Stress-energy Tensor
 #########################################################
 
-#if(update_Tmunu) {
-#  schedule IllinoisGRMHD_compute_Tmunu in AddToTmunu
-#  {
-#    LANG: C
-#    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-#            HydroBase::rho, HydroBase::press, HydroBase::eps,
-#            grmhd_velocities, u0, grmhd_B_center
-#    WRITES: TmunuBase::stress_energy_scalar(everywhere),
-#            TmunuBase::stress_energy_vector(everywhere),
-#            TmunuBase::stress_energy_tensor(everywhere)
-#  } "Compute stress-energy tensor"
-#}
+if(update_Tmunu) {
+  schedule IllinoisGRMHD_compute_Tmunu in AddToTmunu
+  {
+    LANG: C
+    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+            HydroBase::rho, HydroBase::press, HydroBase::eps,
+            grmhd_velocities, u0, grmhd_B_center
+    WRITES: TmunuBase::stress_energy_scalar(everywhere),
+            TmunuBase::stress_energy_vector(everywhere),
+            TmunuBase::stress_energy_tensor(everywhere)
+  } "Compute stress-energy tensor"
+}
 
 #########################################################
 # RHS EVALUATION
