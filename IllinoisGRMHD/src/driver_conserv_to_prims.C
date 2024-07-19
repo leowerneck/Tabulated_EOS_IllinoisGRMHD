@@ -121,6 +121,18 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
           int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
           int c2p_fail_flag = con2prim_failed_flag[index];
 
+          ghl_metric_quantities ADM_metric;
+          ghl_enforce_detgtij_and_initialize_ADM_metric(
+                alp[index],
+                betax[index], betay[index], betaz[index],
+                gxx[index], gxy[index], gxz[index],
+                gyy[index], gyz[index], gzz[index],
+                &ADM_metric);
+
+          ghl_ADM_aux_quantities metric_aux;
+          ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
+
+
           // Only attempt a primitive recovery if this is the first
           // attempt at doing so or if the previous attempt failed.
           if( (loop_count == 0) || (c2p_fail_flag != 0) ) {
@@ -368,53 +380,32 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               //--------------------------------------------------
               //---------- Primitive recovery succeeded ----------
               //--------------------------------------------------
-              // Enforce limits on primitive variables and recompute conservatives.
-              static const int already_computed_physical_metric_and_inverse=1;
-              CCTK_REAL TUPMUNU[10],TDNMUNU[10];
-              IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(already_computed_physical_metric_and_inverse,PRIMS,stats,eos,METRIC,g4dn,g4up, TUPMUNU,TDNMUNU,CONSERVS);
 
-              rho_star   [index] = CONSERVS[RHOSTAR  ];
-              Stildex   [index] = CONSERVS[STILDEX  ];
-              Stildey   [index] = CONSERVS[STILDEY  ];
-              Stildez   [index] = CONSERVS[STILDEZ  ];
-              tau        [index] = CONSERVS[TAUENERGY];
+              ghl_primitive_quantities prims;
+              prims.rho         = PRIMS[RHOB        ];
+              prims.press       = PRIMS[PRESSURE    ];
+              prims.BU[0]       = Bx_center[index];
+              prims.BU[1]       = By_center[index];
+              prims.BU[2]       = Bz_center[index];
+              prims.vU[0]       = PRIMS[VX          ];
+              prims.vU[1]       = PRIMS[VY          ];
+              prims.vU[2]       = PRIMS[VZ          ];
+              prims.entropy     = PRIMS[ENTROPY     ];
+              prims.Y_e         = PRIMS[YEPRIM     ];
+              prims.temperature = PRIMS[TEMPERATURE];
+              const int speed_limited = ghl_enforce_primitive_limits_and_compute_u0(
+                    ghl_params, ghl_eos, &ADM_metric, &prims);
 
-              // Set primitives, and/or provide a better guess.
-              rho      [index] = PRIMS[RHOB        ];
-              press          [index] = PRIMS[PRESSURE    ];
-              vx         [index] = PRIMS[VX          ];
-              vy         [index] = PRIMS[VY          ];
-              vz         [index] = PRIMS[VZ          ];
-              eps    [index] = PRIMS[EPSILON     ];
-              entropy[index] = PRIMS[ENTROPY     ];
-
-              // Tabulated EOS quantities
-              if( eos.is_Tabulated ) {
-                // Primitives
-                Y_e[index]          = PRIMS[YEPRIM     ];
-                temperature[index] = PRIMS[TEMPERATURE];
-                // Conservatives
-                Ye_star[index]         = CONSERVS[YESTAR  ];
-              }
-
-              // Entropy evolution quantities
-              if( eos.evolve_entropy ) {
-                ent_star[index]          = CONSERVS[ENTSTAR ];
-              }
-
-              if(update_Tmunu) {
-                int ww=0;
-                eTtt[index] = TDNMUNU[ww++];
-                eTtx[index] = TDNMUNU[ww++];
-                eTty[index] = TDNMUNU[ww++];
-                eTtz[index] = TDNMUNU[ww++];
-                eTxx[index] = TDNMUNU[ww++];
-                eTxy[index] = TDNMUNU[ww++];
-                eTxz[index] = TDNMUNU[ww++];
-                eTyy[index] = TDNMUNU[ww++];
-                eTyz[index] = TDNMUNU[ww++];
-                eTzz[index] = TDNMUNU[ww  ];
-              }
+              rho[index]         = prims.rho;
+              press[index]       = prims.press;
+              eps[index]         = prims.eps;
+              u0[index]          = prims.u0;
+              vx[index]          = prims.vU[0];
+              vy[index]          = prims.vU[1];
+              vz[index]          = prims.vU[2];
+              entropy[index]     = prims.entropy;
+              Y_e[index]         = prims.Y_e;
+              temperature[index] = prims.temperature;
 
               //Now we compute the difference between original & new conservatives, for diagnostic purposes:
               error_int_numer += fabs(tau[index] - tau_orig) + fabs(rho_star[index] - rho_star_orig) +
@@ -462,6 +453,106 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
   } // while( num_of_conservative_averagings_needed > 0 )
 
+  CCTK_REAL error_rho_numer = 0;
+  CCTK_REAL error_tau_numer = 0;
+  CCTK_REAL error_Sx_numer = 0;
+  CCTK_REAL error_Sy_numer = 0;
+  CCTK_REAL error_Sz_numer = 0;
+  CCTK_REAL error_ent_numer = 0;
+  CCTK_REAL error_Ye_numer = 0;
+
+  CCTK_REAL error_rho_denom = 0;
+  CCTK_REAL error_tau_denom = 0;
+  CCTK_REAL error_Sx_denom = 0;
+  CCTK_REAL error_Sy_denom = 0;
+  CCTK_REAL error_Sz_denom = 0;
+  CCTK_REAL error_ent_denom = 0;
+  CCTK_REAL error_Ye_denom = 0;
+
+#pragma omp parallel for reduction(+:                                   \
+      error_rho_numer, error_tau_numer, error_Sx_numer, error_Sy_numer, \
+      error_Sz_numer, error_rho_denom, error_tau_denom, error_Sx_denom, \
+      error_Sy_denom, error_Sz_denom, error_ent_numer, error_ent_denom, \
+      error_Ye_numer, error_Ye_denom) \
+      schedule(static)
+  for(int k=0; k<kmax; k++) {
+    for(int j=0; j<jmax; j++) {
+      for(int i=0; i<imax; i++) {
+        const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
+
+        ghl_metric_quantities ADM_metric;
+        ghl_enforce_detgtij_and_initialize_ADM_metric(
+              alp[index],
+              betax[index], betay[index], betaz[index],
+              gxx[index], gxy[index], gxz[index],
+              gyy[index], gyz[index], gzz[index],
+              &ADM_metric);
+
+        ghl_ADM_aux_quantities metric_aux;
+        ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
+
+        ghl_primitive_quantities prims;
+        prims.rho         = rho[index];
+        prims.press       = press[index];
+        prims.eps         = eps[index];
+        prims.u0          = u0[index];
+        prims.vU[0]       = vx[index];
+        prims.vU[1]       = vy[index];
+        prims.vU[2]       = vz[index];
+        prims.BU[0]       = Bx_center[index];
+        prims.BU[1]       = By_center[index];
+        prims.BU[2]       = Bz_center[index];
+        prims.entropy     = entropy[index];
+        prims.Y_e         = Y_e[index];
+        prims.temperature = temperature[index];
+
+        ghl_conservative_quantities cons, cons_orig;
+        cons_orig.rho     = rho_star[index];
+        cons_orig.tau     = tau[index];
+        cons_orig.SD[0]   = Stildex[index];
+        cons_orig.SD[1]   = Stildey[index];
+        cons_orig.SD[2]   = Stildez[index];
+        cons_orig.entropy = ent_star[index];
+        cons_orig.Y_e     = Ye_star[index];
+
+        ghl_compute_conservs(&ADM_metric, &metric_aux, &prims, &cons);
+
+        rho_star[index] = cons.rho;
+        tau[index]      = cons.tau;
+        Stildex[index]  = cons.SD[0];
+        Stildey[index]  = cons.SD[1];
+        Stildez[index]  = cons.SD[2];
+        ent_star[index] = cons.entropy;
+        Ye_star[index]  = cons.Y_e;
+
+        // for diagnostic purposes:
+        error_rho_numer += fabs(cons.rho - cons_orig.rho);
+        error_tau_numer += fabs(cons.tau - cons_orig.tau);
+        error_Sx_numer  += fabs(cons.SD[0] - cons_orig.SD[0]);
+        error_Sy_numer  += fabs(cons.SD[1] - cons_orig.SD[1]);
+        error_Sz_numer  += fabs(cons.SD[2] - cons_orig.SD[2]);
+        error_ent_numer += fabs(cons.entropy - cons_orig.entropy);
+        error_Ye_numer  += fabs(cons.Y_e - cons_orig.Y_e);
+        error_rho_denom += cons_orig.rho;
+        error_tau_denom += cons_orig.tau;
+        error_Sx_denom  += fabs(cons_orig.SD[0]);
+        error_Sy_denom  += fabs(cons_orig.SD[1]);
+        error_Sz_denom  += fabs(cons_orig.SD[2]);
+        error_ent_denom += cons_orig.entropy;
+        error_Ye_denom  += cons_orig.Y_e;
+      }
+    }
+  }
+
+  /*
+    Failure checker decoder:
+       1: atmosphere reset when rho_star < 0
+      10: Limiting velocity u~ after C2P/Font Fix or v in ghl_enforce_primitive_limits_and_compute_u0
+     100: Both C2P and Font Fix failed
+      1k: backups used
+     10k: tau~ was reset in ghl_apply_conservative_limits
+    100k: S~ was reset in ghl_apply_conservative_limits
+  */
   if(CCTK_Equals(verbose, "essential") || CCTK_Equals(verbose, "essential+iteration output")) {
     CCTK_VInfo(CCTK_THORNSTRING,"C2P: Lev: %d NumPts= %d | Fixes: BU: %d %d %d Font= %d VL= %d rho*= %d AVG= %d ATM= %d | Failures: %d InHoriz= %d / %d | Error: %.3e, ErrDenom: %.3e",
                (int)GetRefinementLevel(cctkGH),pointcount,
