@@ -166,46 +166,6 @@ int con2prim_select( const igm_eos_parameters eos,
                      CCTK_REAL *restrict prim,
                      output_stats& stats);
 
-int con2prim_CerdaDuran2D( const igm_eos_parameters eos,
-                           const CCTK_REAL *restrict adm_quantities,
-                           const CCTK_REAL *restrict con,
-                           CCTK_REAL *restrict prim,
-                           output_stats& stats );
-
-int con2prim_CerdaDuran3D( const igm_eos_parameters eos,
-                           const CCTK_REAL *restrict adm_quantities,
-                           const CCTK_REAL *restrict con,
-                           CCTK_REAL *restrict prim,
-                           output_stats& stats );
-
-int con2prim_Noble2D( const igm_eos_parameters eos,
-                      const CCTK_REAL g4dn[4][4],
-                      const CCTK_REAL g4up[4][4],
-                      const CCTK_REAL *restrict cons,
-                      CCTK_REAL *restrict prim,
-                      output_stats& stats );
-
-int con2prim_Noble1D( const igm_eos_parameters eos,
-                      const CCTK_REAL g4dn[4][4],
-                      const CCTK_REAL g4up[4][4],
-                      const CCTK_REAL *restrict cons,
-                      CCTK_REAL *restrict prim,
-                      output_stats& stats );
-
-int con2prim_Noble1D_entropy( const igm_eos_parameters eos,
-                              const CCTK_REAL g4dn[4][4],
-                              const CCTK_REAL g4up[4][4],
-                              const CCTK_REAL *restrict cons,
-                              CCTK_REAL *restrict prim,
-                              output_stats& stats );
-
-int con2prim_Noble1D_entropy2( const igm_eos_parameters eos,
-                               const CCTK_REAL g4dn[4][4],
-                               const CCTK_REAL g4up[4][4],
-                               const CCTK_REAL *restrict cons,
-                               CCTK_REAL *restrict prim,
-                               output_stats& stats );
-
 int con2prim_Palenzuela1D( const igm_eos_parameters eos,
                            const CCTK_REAL *restrict adm_quantities,
                            const CCTK_REAL *restrict cons,
@@ -218,10 +178,6 @@ int con2prim_Newman1D( const igm_eos_parameters eos,
                        CCTK_REAL *restrict prim,
                        output_stats& stats );
 
-int font_fix__hybrid_EOS( const igm_eos_parameters eos,
-                          const CCTK_REAL *restrict METRIC_PHYS,const CCTK_REAL *restrict METRIC_LAP_PSI4,
-                          const CCTK_REAL *restrict CONSERVS,const CCTK_REAL *restrict PRIMS,
-                          CCTK_REAL &u_x, CCTK_REAL &u_y, CCTK_REAL &u_z );
 void eigenvalues_3by3_real_sym_matrix(CCTK_REAL & lam1, CCTK_REAL & lam2, CCTK_REAL & lam3,
                                       CCTK_REAL M11, CCTK_REAL M12, CCTK_REAL M13, CCTK_REAL M22, CCTK_REAL M23, CCTK_REAL M33);
 
@@ -242,22 +198,6 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
                                        const CCTK_REAL *restrict CONSERVS,
                                        const CCTK_REAL *restrict cons,
                                        CCTK_REAL *restrict prim );
-
-int con2prim_average_neighbor_conservatives( const cGH *restrict cctkGH,
-					     const CCTK_INT i,
-					     const CCTK_INT j,
-					     const CCTK_INT k,
-					     const CCTK_INT index,
-					     const CCTK_INT *restrict cctk_lsh,
-					     const CCTK_INT *restrict con2prim_failed_flag,
-					     CCTK_REAL *restrict rho_star,
-					     CCTK_REAL *restrict Stildex,
-					     CCTK_REAL *restrict Stildey,
-					     CCTK_REAL *restrict Stildez,
-					     CCTK_REAL *restrict tau,
-					     CCTK_REAL *restrict Ye_star,
-					     CCTK_REAL *restrict ent_star,
-					     CCTK_REAL *restrict CONSERVS_avg_neighbors );
 
 /********************************************************************************************/
 

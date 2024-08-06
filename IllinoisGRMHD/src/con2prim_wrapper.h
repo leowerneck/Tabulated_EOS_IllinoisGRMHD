@@ -8,56 +8,11 @@ int con2prim( const igm_eos_parameters eos,
 
   DECLARE_CCTK_PARAMETERS;
 
-  // declare some variables for HARM.
   CCTK_REAL cons[numcons];
   CCTK_REAL prim[numprims];
 
-  /*
-    -- Driver for new prim. var. solver.  The driver just translates
-    between the two sets of definitions for U and P.  The user may
-    wish to alter the translation as they see fit.
-
-
-    //        /     rho u^t     \                           //
-    //    U = | T^t_t + rho u^t | * sqrt(-det(g_{\mu\nu}))  //
-    //        |     T^t_i       |                           //
-    //        \      B^i        /                           //
-    //                                                      //
-    //        /     rho     \                               //
-    //    P = |     uu      |                               //
-    //        | \tilde{u}^i |                               //
-    //        \     B^i     /                               //
-
-    (above equations have been fixed by Yuk Tung & Zach)
-  */
-
-  // U[NPR]    = conserved variables (current values on input/output);
-  // g4dn[NDIM][NDIM] = covariant form of the 4-metric ;
-  // g4up[NDIM][NDIM] = contravariant form of the 4-metric ;
-  // gdet             = sqrt( - determinant of the 4-metric) ;
-  // prim[NPR] = primitive variables (guess on input, calculated values on
-  //                     output if there are no problems);
-
-  // U[1]   =
-  // U[2-4] =  stildei + rhostar
-
   CCTK_REAL rho_star_orig = CONSERVS[RHOSTAR  ];
-  CCTK_REAL Stildex_orig = CONSERVS[STILDEX  ];
-  CCTK_REAL Stildey_orig = CONSERVS[STILDEY  ];
-  CCTK_REAL Stildez_orig = CONSERVS[STILDEZ  ];
-  // CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
-  // CCTK_REAL Ye_star_orig  = CONSERVS[YESTAR   ];
-  // CCTK_REAL ent_star_orig   = CONSERVS[ENTSTAR  ];
 
-
-  // Other ideas for setting the gamma speed limit
-  //CCTK_REAL GAMMA_SPEED_LIMIT = 100.0;
-  //if(METRIC_LAP_PSI4[PSI6]>Psi6threshold) GAMMA_SPEED_LIMIT=500.0;
-  //if(METRIC_LAP_PSI4[PSI6]>Psi6threshold) GAMMA_SPEED_LIMIT=100.0;
-
-  //FIXME: Only works if poisoning is turned on. Otherwise will access unknown memory. This trick alone speeds up the whole code (Cowling) by 2%.
-  //int startguess=0;
-  //if(robust_isnan(PRIMS[VX])) startguess=1;
   int startguess=1;
 
   CCTK_REAL u0L=1.0;
@@ -105,31 +60,6 @@ int con2prim( const igm_eos_parameters eos,
     }
     /*************************************************************/
 
-    int font_fix_applied=0;
-    if( eos.is_Hybrid ) {
-    // Use the new Font fix subroutine
-      if(check!=0) {
-        font_fix_applied=1;
-        CCTK_REAL u_xl=1e100, u_yl=1e100, u_zl=1e100; // Set to insane values to ensure they are overwritten.
-        /************************
-         * New Font fix routine *
-         ************************/
-        check = font_fix__hybrid_EOS(eos,METRIC_PHYS,METRIC_LAP_PSI4,CONSERVS,PRIMS, u_xl,u_yl,u_zl);
-
-        //Translate to HARM primitive now:
-        prim[UTCON1] = METRIC_PHYS[GUPXX]*u_xl + METRIC_PHYS[GUPXY]*u_yl + METRIC_PHYS[GUPXZ]*u_zl;
-        prim[UTCON2] = METRIC_PHYS[GUPXY]*u_xl + METRIC_PHYS[GUPYY]*u_yl + METRIC_PHYS[GUPYZ]*u_zl;
-        prim[UTCON3] = METRIC_PHYS[GUPXZ]*u_xl + METRIC_PHYS[GUPYZ]*u_yl + METRIC_PHYS[GUPZZ]*u_zl;
-        if (check==1) {
-          CCTK_VInfo(CCTK_THORNSTRING,"Font fix failed!");
-          CCTK_VInfo(CCTK_THORNSTRING,"i,j,k = %d %d %d, stats.failure_checker = %d x,y,z = %e %e %e , index=%d st_i = %e %e %e, rhostar = %e, Bi = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",i,j,k,stats.failure_checker,X[index],Y[index],Z[index],index,Stildex_orig,Stildey_orig,Stildez_orig,rho_star_orig,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[PSI6]);
-        }
-      }
-      stats.failure_checker+=font_fix_applied*10000;
-      stats.font_fixed=font_fix_applied;
-    /*************************************************************/
-    }
-
     if(check==0) {
       //Now that we have found some solution, we first limit velocity:
       //FIXME: Probably want to use exactly the same velocity limiter function here as in mhdflux.C
@@ -160,35 +90,6 @@ int con2prim( const igm_eos_parameters eos,
         stats.vel_limited=1;
         stats.failure_checker+=1000;
       } //Finished limiting velocity
-
-
-      //The Font fix only sets the velocities.  Here we set the pressure & density HARM primitives.
-      if( eos.is_Hybrid ) {
-        if(font_fix_applied==1) {
-          prim[RHO] = rho_star_orig/(METRIC_LAP_PSI4[LAPSE]*u0L*METRIC_LAP_PSI4[PSI6]);
-          //Next set P = P_cold:
-          CCTK_REAL P_cold;
-
-          /**********************************
-           * Piecewise Polytropic EOS Patch *
-           *  Finding Gamma_ppoly_tab and K_ppoly_tab *
-           **********************************/
-          /* Here we use our newly implemented
-           * find_polytropic_K_and_Gamma() function
-           * to determine the relevant polytropic
-           * Gamma and K parameters to be used
-           * within this function.
-           */
-          int polytropic_index = find_polytropic_K_and_Gamma_index(eos,prim[RHO]);
-          K_ppoly_tab     = eos.K_ppoly_tab[polytropic_index];
-          Gamma_ppoly_tab = eos.Gamma_ppoly_tab[polytropic_index];
-
-          // After that, we compute P_cold
-          P_cold = K_ppoly_tab*pow(prim[RHO],Gamma_ppoly_tab);
-
-          prim[UU] = P_cold/(Gamma_ppoly_tab-1.0);
-        } //Finished setting remaining primitives if there was a Font fix.
-      }
 
       // Check for NAN!
       if( robust_isnan(prim[RHO]*prim[TEMP]*prim[YE]*prim[PRESS]*prim[EPS]*prim[ENT]*utx_new*uty_new*utz_new*u0L) ) {
@@ -235,4 +136,3 @@ int con2prim( const igm_eos_parameters eos,
 }
 
 #include "eigen.C"
-#include "font_fix_hybrid_EOS.C"

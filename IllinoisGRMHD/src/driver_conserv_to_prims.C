@@ -20,92 +20,65 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
-  // We use proper C++ here, for file I/O later.
   using namespace std;
-
-  /**********************************
-   * Piecewise Polytropic EOS Patch *
-   *   Setting up the EOS struct    *
-   **********************************/
-  /*
-   * The short piece of code below takes care
-   * of initializing the EOS parameters.
-   * Please refer to the "inlined_functions.h"
-   * source file for the documentation on the
-   * function.
-   */
   igm_eos_parameters eos;
   initialize_igm_eos_parameters_from_input(igm_eos_key,cctk_time,eos);
 
-  // These BSSN-based variables are not evolved, and so are not defined anywhere that the grid has moved.
-  // Here we convert ADM variables (from ADMBase) to the BSSN-based variables expected by this routine.
   IllinoisGRMHD_convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij(cctkGH,cctk_lsh,  gxx,gxy,gxz,gyy,gyz,gzz,alp,
                                                                 gtxx,gtxy,gtxz,gtyy,gtyz,gtzz,
                                                                 gtupxx,gtupxy,gtupxz,gtupyy,gtupyz,gtupzz,
                                                                 phi_bssn,psi_bssn,lapm1);
 
+  const int imax=cctk_lsh[0];
+  const int jmax=cctk_lsh[1];
+  const int kmax=cctk_lsh[2];
 
-#ifndef ENABLE_STANDALONE_IGM_C2P_SOLVER
-  if(CCTK_EQUALS(Symmetry,"equatorial")) {
+  if(CCTK_EQUALS(Symmetry, "equatorial")) {
     // SET SYMMETRY GHOSTZONES ON ALL CONSERVATIVE VARIABLES!
-    int ierr=0;
-    ierr+=CartSymGN(cctkGH,"IllinoisGRMHD::grmhd_conservatives");
+    int ierr = 0;
+    ierr += CartSymGN(cctkGH, "IllinoisGRMHD::grmhd_conservatives");
     // FIXME: UGLY. Filling metric ghostzones is needed for, e.g., Cowling runs.
-    ierr+=CartSymGN(cctkGH,"lapse::lapse_vars");
-    ierr+=CartSymGN(cctkGH,"bssn::BSSN_vars");
-    ierr+=CartSymGN(cctkGH,"bssn::BSSN_AH");
-    ierr+=CartSymGN(cctkGH,"shift::shift_vars");
-    if(ierr!=0) CCTK_VError(VERR_DEF_PARAMS,"IllinoisGRMHD ERROR (grep for it, foo!)  :(");
+    ierr += CartSymGN(cctkGH, "lapse::lapse_vars");
+    ierr += CartSymGN(cctkGH, "bssn::BSSN_vars");
+    ierr += CartSymGN(cctkGH, "bssn::BSSN_AH");
+    ierr += CartSymGN(cctkGH, "shift::shift_vars");
+    if(ierr!=0)
+      CCTK_VError(VERR_DEF_PARAMS,"IllinoisGRMHD ERROR (grep for it, foo!)  :(");
   }
-#endif
 
+  // Diagnostic variables.
+  int failures = 0;
+  int vel_limited_ptcount = 0;
+  int rho_star_fix_applied = 0;
+  int failures_inhoriz = 0;
+  int pointcount_inhoriz = 0;
+  int backup0 = 0;
+  int backup1 = 0;
+  int backup2 = 0;
+  int n_iter = 0;
+  int pointcount_avg = 0;
 
-  //Start the timer, so we can benchmark the primitives solver during evolution.
-  //  Slower solver -> harder to find roots -> things may be going crazy!
-  //FIXME: Replace this timing benchmark with something more meaningful, like the avg # of Newton-Raphson iterations per gridpoint!
-  /*
-    struct timeval start, end;
-    long mtime, seconds, useconds;
-    gettimeofday(&start, NULL);
-  */
-
-  int failures=0,font_fixes=0,vel_limited_ptcount=0,atm_resets=0,rho_star_fix_applied=0;
+  int font_fixes=0, atm_resets=0;
+  int backup3 = 0;
   int pointcount=0;
-  int failures_inhoriz=0;
-  int pointcount_inhoriz=0;
-  int backup1=0,backup2=0,backup3=0;
 
   CCTK_REAL error_int_numer=0,error_int_denom=0;
 
-  int imin=0,imax=cctk_lsh[0];
-  int jmin=0,jmax=cctk_lsh[1];
-  int kmin=0,kmax=cctk_lsh[2];
-
-  // Whenever we get a conservative-to-primitive major failure, i.e. all
-  // the routines and backups failed to recover the primitives from the
-  // input conservatives, we will introduce a new fix, in which we will
-  // reset the conservative variables at the given point by a weighted
-  // average of the conservative variables at the neighboring points.
-  // After that, the con2prim attempt will be retried. This mask allows
-  // us to flag points in which the averaging procedure must be performed.
-  int npoints = cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2];
-
-  // We now add an integer to count the number of
-  // points in which the averaging fix is required.
-  // We initialize it to a nonzero value so that
-  // the while condition below is triggered at least
-  // once.
-  int cons_avgs = 0;
-  int loop_count = 0;
   int nan_found = 0;
 
 #pragma omp parallel for reduction(+:failures,vel_limited_ptcount,font_fixes,pointcount,failures_inhoriz,pointcount_inhoriz,error_int_numer,error_int_denom,rho_star_fix_applied,atm_resets,backup1,backup2,backup3,nan_found) schedule(static)
-  for(int k=kmin;k<kmax;k++) {
-    for(int j=jmin;j<jmax;j++) {
-      for(int i=imin;i<imax;i++) {
+  for(int k=0; k<kmax; k++) {
+    for(int j=0; j<jmax; j++) {
+      for(int i=0; i<imax; i++) {
+        const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-        int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+        CCTK_REAL local_failure_checker = 0;
 
+        ghl_con2prim_diagnostics diagnostics;
+        ghl_initialize_diagnostics(&diagnostics);
+
+        // Read in ADM metric quantities from gridfunctions and
+        // set auxiliary and ADM metric quantities
         ghl_metric_quantities ADM_metric;
         ghl_enforce_detgtij_and_initialize_ADM_metric(
               alp[index],
@@ -116,6 +89,25 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
         ghl_ADM_aux_quantities metric_aux;
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
+
+        // Read in primitive variables from gridfunctions
+        // The code has only ever been tested using the default GRHayL guess,
+        // so using the previous timelevel as an initial guess would need to
+        // be implemented here.
+        ghl_primitive_quantities prims;
+        prims.BU[0] = Bx_center[index];
+        prims.BU[1] = By_center[index];
+        prims.BU[2] = Bz_center[index];
+
+        // Read in conservative variables from gridfunctions
+        ghl_conservative_quantities cons, cons_undens;
+        cons.rho     = rho_star[index];
+        cons.tau     = tau[index];
+        cons.SD[0]   = Stildex[index];
+        cons.SD[1]   = Stildey[index];
+        cons.SD[2]   = Stildez[index];
+        cons.entropy = ent_star[index];
+        cons.Y_e     = Ye_star[index];
 
         // Read in BSSN metric quantities from gridfunctions
         CCTK_REAL METRIC[NUMVARS_FOR_METRIC];
@@ -169,6 +161,8 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         PRIMS[BZ_CENTER    ] = Bz_center[index];
         PRIMS[EPSILON      ] = eps[index];
         PRIMS[ENTROPY      ] = entropy[index];
+        PRIMS[YEPRIM     ] = Y_e[index];
+        PRIMS[TEMPERATURE] = temperature[index];
 
         // Read in conservative variables from gridfunctions
         CCTK_REAL CONSERVS[NUM_CONSERVS],CONSERVS_avg_neighbors[NUM_CONSERVS];
@@ -179,13 +173,6 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         CONSERVS[TAUENERGY] = tau     [index];
         CONSERVS[YESTAR   ] = Ye_star [index];
         CONSERVS[ENTSTAR  ] = ent_star  [index];
-
-        // Tabulated EOS quantities
-        if( eos.is_Tabulated ) {
-          // Primitives
-          PRIMS[YEPRIM     ] = Y_e[index];
-          PRIMS[TEMPERATURE] = temperature[index];
-        }
 
         CCTK_REAL shift_xL = METRIC_PHYS[GXX]*METRIC[SHIFTX] + METRIC_PHYS[GXY]*METRIC[SHIFTY] + METRIC_PHYS[GXZ]*METRIC[SHIFTZ];
         CCTK_REAL shift_yL = METRIC_PHYS[GXY]*METRIC[SHIFTX] + METRIC_PHYS[GYY]*METRIC[SHIFTY] + METRIC_PHYS[GYZ]*METRIC[SHIFTZ];
@@ -243,14 +230,8 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         CCTK_REAL Stildey_orig = CONSERVS[STILDEY  ];
         CCTK_REAL Stildez_orig = CONSERVS[STILDEZ  ];
         CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
-        CCTK_REAL Ye_star_orig  = 0.0;
-        CCTK_REAL ent_star_orig   = 0.0;
-        if( eos.is_Tabulated) {
-          Ye_star_orig          = CONSERVS[YESTAR   ];
-        }
-        if( eos.evolve_entropy ) {
-          ent_star_orig           = CONSERVS[ENTSTAR  ];
-        }
+        CCTK_REAL Ye_star_orig  = CONSERVS[YESTAR   ];
+        CCTK_REAL ent_star_orig = CONSERVS[ENTSTAR  ];
 
         int check=0;
         struct output_stats stats;
@@ -268,23 +249,23 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         stats.dx[2]          = CCTK_DELTA_SPACE(2);
         stats.nan_found      = 0;
         if(CONSERVS[RHOSTAR]>0.0) {
-          // Apply the tau floor
-          if( eos.is_Hybrid ) {
-            apply_tau_floor(index,Psi6threshold,PRIMS,METRIC,METRIC_PHYS,METRIC_LAP_PSI4,stats,eos,  CONSERVS);
-          }
-
-          for(int ii=0;ii<3;ii++) {
-            check = con2prim(eos,
-                             index,i,j,k,x,y,z,
-                             METRIC,METRIC_PHYS,METRIC_LAP_PSI4,g4dn,g4up,
-                             CONSERVS,PRIMS,
-                             stats);
-            if(check==0) ii=4;
-            else stats.failure_checker+=100000;
-          }
+          //for(int ii=0;ii<3;ii++) {
+            //check = con2prim(eos,
+          //                   index,i,j,k,x,y,z,
+          //                   METRIC,METRIC_PHYS,METRIC_LAP_PSI4,g4dn,g4up,
+          //                   CONSERVS,PRIMS,
+          //                   stats);
+         //   if(check==0) ii=4;
+          //  else stats.failure_checker+=100000;
+          //}
+          ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);
+          check = ghl_con2prim_multi_method(
+                ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+                &cons_undens, &prims, &diagnostics);
         } else {
           stats.failure_checker+=1;
-          reset_prims_to_atmosphere( eos, PRIMS );
+          //reset_prims_to_atmosphere( eos, PRIMS );
+          ghl_set_prims_to_constant_atm(ghl_eos, &prims);
           rho_star_fix_applied++;
         }
 
@@ -294,84 +275,68 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
           //--------------------------------------------------
           // Increment the failure flag
           // Sigh, reset to atmosphere
-          reset_prims_to_atmosphere( eos, PRIMS );
+          //reset_prims_to_atmosphere( eos, PRIMS );
+          ghl_set_prims_to_constant_atm(ghl_eos, &prims);
           atm_resets++;
           // Then flag this point as a "success"
           check = 0;
-          con2prim_failed_flag[index] = 0;
-          if( eos.is_Hybrid ) {
-            CCTK_VInfo(CCTK_THORNSTRING,"Couldn't find root from: %e %e %e %e %e, rhob approx=%e, rho_b_atm=%e, Bx=%e, By=%e, Bz=%e, gij_phys=%e %e %e %e %e %e, alpha=%e",
-                       tau_orig,rho_star_orig,Stildex_orig,Stildey_orig,Stildez_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
-          }
-          else if( eos.is_Tabulated ) {
-            CCTK_VInfo(CCTK_THORNSTRING,"Couldn't find root from: %e %e %e %e %e %e %e, rhob approx=%e, rho_b_atm=%e, Bx=%e, By=%e, Bz=%e, gij_phys=%e %e %e %e %e %e, alpha=%e",
-                       tau_orig,rho_star_orig,Stildex_orig,Stildey_orig,Stildez_orig,Ye_star_orig,ent_star_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
+          CCTK_VInfo(CCTK_THORNSTRING,"Couldn't find root from: %e %e %e %e %e %e %e, rhob approx=%e, rho_b_atm=%e, Bx=%e, By=%e, Bz=%e, gij_phys=%e %e %e %e %e %e, alpha=%e",
+                     tau_orig,rho_star_orig,Stildex_orig,Stildey_orig,Stildez_orig,Ye_star_orig,ent_star_orig,rho_star_orig/METRIC_LAP_PSI4[PSI6],eos.rho_atm,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[LAPSE]);
+        }
+        /***************************************************************/
+
+        //--------------------------------------------------
+        //---------- Primitive recovery succeeded ----------
+        //--------------------------------------------------
+
+        prims.rho         = PRIMS[RHOB        ];
+        prims.press       = PRIMS[PRESSURE    ];
+        prims.vU[0]       = PRIMS[VX          ];
+        prims.vU[1]       = PRIMS[VY          ];
+        prims.vU[2]       = PRIMS[VZ          ];
+        prims.entropy     = PRIMS[ENTROPY     ];
+        prims.Y_e         = PRIMS[YEPRIM     ];
+        prims.temperature = PRIMS[TEMPERATURE];
+
+        // Enforce limits on primitive variables and recompute conservatives.
+        const int speed_limited = ghl_enforce_primitive_limits_and_compute_u0(
+              ghl_params, ghl_eos, &ADM_metric, &prims);
+
+        rho[index]         = prims.rho;
+        press[index]       = prims.press;
+        eps[index]         = prims.eps;
+        u0[index]          = prims.u0;
+        vx[index]          = prims.vU[0];
+        vy[index]          = prims.vU[1];
+        vz[index]          = prims.vU[2];
+        entropy[index]     = prims.entropy;
+        Y_e[index]         = prims.Y_e;
+        temperature[index] = prims.temperature;
+
+        error_int_numer += fabs(tau[index] - tau_orig) + fabs(rho_star[index] - rho_star_orig) +
+          fabs(Stildex[index] - Stildex_orig) + fabs(Stildey[index] - Stildey_orig) + fabs(Stildez[index] - Stildez_orig);
+        error_int_denom += tau_orig + rho_star_orig + fabs(Stildex_orig) + fabs(Stildey_orig) + fabs(Stildez_orig);
+        error_int_numer += fabs(Ye_star[index] - Ye_star_orig);
+        error_int_denom += Ye_star_orig;
+
+        if(stats.atm_reset==1) {
+          atm_resets++;
+          stats.which_routine = -1;
+        }
+        if(stats.backup[0]==1) backup1++;
+        if(stats.backup[1]==1) backup2++;
+        if(stats.backup[2]==1) backup3++;
+        if(stats.nan_found==1) { CCTK_VWARN(CCTK_WARN_ALERT,"Found NAN while imposing speed limit"); nan_found++; }
+        vel_limited_ptcount+=stats.vel_limited;
+        if(check!=0) {
+          failures++;
+          if(exp(METRIC[PHI]*6.0)>Psi6threshold) {
+            failures_inhoriz++;
+            pointcount_inhoriz++;
           }
         }
-
-        if( check == 0 ) {
-          //--------------------------------------------------
-          //---------- Primitive recovery succeeded ----------
-          //--------------------------------------------------
-
-          ghl_primitive_quantities prims;
-          prims.rho         = PRIMS[RHOB        ];
-          prims.press       = PRIMS[PRESSURE    ];
-          prims.BU[0]       = Bx_center[index];
-          prims.BU[1]       = By_center[index];
-          prims.BU[2]       = Bz_center[index];
-          prims.vU[0]       = PRIMS[VX          ];
-          prims.vU[1]       = PRIMS[VY          ];
-          prims.vU[2]       = PRIMS[VZ          ];
-          prims.entropy     = PRIMS[ENTROPY     ];
-          prims.Y_e         = PRIMS[YEPRIM     ];
-          prims.temperature = PRIMS[TEMPERATURE];
-          const int speed_limited = ghl_enforce_primitive_limits_and_compute_u0(
-                ghl_params, ghl_eos, &ADM_metric, &prims);
-
-          rho[index]         = prims.rho;
-          press[index]       = prims.press;
-          eps[index]         = prims.eps;
-          u0[index]          = prims.u0;
-          vx[index]          = prims.vU[0];
-          vy[index]          = prims.vU[1];
-          vz[index]          = prims.vU[2];
-          entropy[index]     = prims.entropy;
-          Y_e[index]         = prims.Y_e;
-          temperature[index] = prims.temperature;
-
-          //Now we compute the difference between original & new conservatives, for diagnostic purposes:
-          error_int_numer += fabs(tau[index] - tau_orig) + fabs(rho_star[index] - rho_star_orig) +
-            fabs(Stildex[index] - Stildex_orig) + fabs(Stildey[index] - Stildey_orig) + fabs(Stildez[index] - Stildez_orig);
-          error_int_denom += tau_orig + rho_star_orig + fabs(Stildex_orig) + fabs(Stildey_orig) + fabs(Stildez_orig);
-
-          if( eos.is_Tabulated ) {
-            error_int_numer += fabs(Ye_star[index] - Ye_star_orig);
-            error_int_denom += Ye_star_orig;
-          }
-
-          if(stats.atm_reset==1) {
-            atm_resets++;
-            stats.which_routine = -1;
-          }
-          igm_c2p_mask[index] = stats.which_routine;
-          if(stats.backup[0]==1) backup1++;
-          if(stats.backup[1]==1) backup2++;
-          if(stats.backup[2]==1) backup3++;
-          if(stats.font_fixed==1) font_fixes++;
-          if(stats.nan_found==1) { CCTK_VWARN(CCTK_WARN_ALERT,"Found NAN while imposing speed limit"); nan_found++; }
-          vel_limited_ptcount+=stats.vel_limited;
-          if(check!=0) {
-            failures++;
-            if(exp(METRIC[PHI]*6.0)>Psi6threshold) {
-              failures_inhoriz++;
-              pointcount_inhoriz++;
-            }
-          }
-          pointcount++;
-          /***************************************************************************************************************************/
-          failure_checker[index] = stats.failure_checker;
-        }
+        pointcount++;
+        failure_checker[index] = stats.failure_checker;
       } // for(int i=imin;i<imax;i++)
     } // for(int j=jmin;j<jmax;j++)
   } // for(int k=kmin;k<kmax;k++)
@@ -477,10 +442,10 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
     100k: S~ was reset in ghl_apply_conservative_limits
   */
   if(CCTK_Equals(verbose, "essential") || CCTK_Equals(verbose, "essential+iteration output")) {
-    CCTK_VInfo(CCTK_THORNSTRING,"C2P: Lev: %d NumPts= %d | Fixes: BU: %d %d %d Font= %d VL= %d rho*= %d AVG= %d ATM= %d | Failures: %d InHoriz= %d / %d | Error: %.3e, ErrDenom: %.3e",
+    CCTK_VInfo(CCTK_THORNSTRING,"C2P: Lev: %d NumPts= %d | Fixes: BU: %d %d %d Font= %d VL= %d rho*= %d ATM= %d | Failures: %d InHoriz= %d / %d | Error: %.3e, ErrDenom: %.3e",
                (int)GetRefinementLevel(cctkGH),pointcount,
                backup1,backup2,backup3,
-               font_fixes,vel_limited_ptcount,rho_star_fix_applied,cons_avgs,atm_resets,
+               font_fixes,vel_limited_ptcount,rho_star_fix_applied,atm_resets,
                failures,
                failures_inhoriz,pointcount_inhoriz,
                error_int_numer/error_int_denom,error_int_denom);

@@ -90,7 +90,7 @@ inline int check_depsdT_condition( const igm_eos_parameters eos,
     con2prim_key = old_Palenzuela1D_entropy;
   }
   else {
-    con2prim_key = old_Palenzuela1D;
+    con2prim_key = old_Palenzuela1D_entropy;
   }
 
   // printf("con2prim_key = %d\n",con2prim_key);
@@ -172,13 +172,13 @@ int con2prim_Palenzuela1D( const igm_eos_parameters eos,
   stats.c2p_failed          = true;
   palenzuela( eos, S_squared,BdotS,B_squared, con, prim, SU, tolerance, stats );
 
-  if( (stats.c2p_failed == true) && (stats.which_routine == old_Palenzuela1D_entropy) ) {
-    printf("Entropy routine failed\n");
-    // If the entropy con2prim failed, then try again
-    // using the standard Palenzuela1D con2prim
-    stats.which_routine = old_Palenzuela1D;
-    palenzuela( eos, S_squared,BdotS,B_squared, con, prim, SU, tolerance, stats );
-  }
+  //if( (stats.c2p_failed == true) && (stats.which_routine == old_Palenzuela1D_entropy) ) {
+  //  printf("Entropy routine failed\n");
+  //  // If the entropy con2prim failed, then try again
+  //  // using the standard Palenzuela1D con2prim
+  //  stats.which_routine = old_Palenzuela1D;
+  //  palenzuela( eos, S_squared,BdotS,B_squared, con, prim, SU, tolerance, stats );
+  //}
 
   return stats.c2p_failed;
 

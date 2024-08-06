@@ -67,8 +67,6 @@ CCTK_REAL grmhd_conservatives_rhs type = GF TAGS='prolongation="none" Checkpoint
   rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs, Ye_star_rhs, ent_star_rhs
 } "Right-hand side for evolved conservative variables"
 
-CCTK_INT con2prim_failed_flag type=GF Timelevels=1 tags='Prolongation="none" Checkpoint="no"'
-
 CCTK_REAL EM_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
   Ax_rhs, Ay_rhs, Az_rhs, phitilde_rhs

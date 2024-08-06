@@ -8,7 +8,7 @@ STORAGE: grmhd_conservatives[3], Ax[3], Ay[3], Az[3], phitilde[3]
 STORAGE: grmhd_velocities, grmhd_B_center, grmhd_B_stagger
 STORAGE: grmhd_conservatives_rhs, EM_rhs
 STORAGE: grmhd_primitives_reconstructed_temps, grmhd_cmin_cmax_temps, failure_checker
-STORAGE: grmhd_flux_temps, con2prim_failed_flag
+STORAGE: grmhd_flux_temps
 
 ####################
 # NEW STUFF

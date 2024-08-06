@@ -21,7 +21,6 @@ SRCS = \
     MoL_registration.c \
     prims_to_conservs.c \
     specify_driver_BCs.c \
-    postpostinitial__set_symmetries__copy_timelevels.C \
     convert_ADM_to_BSSN__enforce_detgtij_eq_1__and_compute_gtupij.C \
     symmetry_gzs_staggered.c \
     set_gz_symmetries.c \
@@ -36,15 +35,8 @@ SRCS = \
     con2prim_get_key.cc \
     con2prim_select.cc \
     con2prim_set_cons_and_prim_from_CONSERVS_and_PRIMS.cc \
-    con2prim_Noble2D.cc \
-    con2prim_Noble1D.cc \
-    con2prim_Noble1D_entropy.cc \
-    con2prim_Noble1D_entropy2.cc \
     con2prim_Palenzuela1D.cc \
-    con2prim_CerdaDuran2D.cc \
-    con2prim_CerdaDuran3D.cc \
     con2prim_Newman1D.cc \
-    con2prim_conservative_weighted_average.cc \
     IllinoisGRMHD_parameter_check.cc
 
 # Subdirectories containing source files
