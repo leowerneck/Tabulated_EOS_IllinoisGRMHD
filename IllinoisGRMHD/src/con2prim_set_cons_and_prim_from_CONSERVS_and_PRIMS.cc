@@ -89,10 +89,10 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   //----------------------------------------
   //--------------- Entropy ----------------
   //----------------------------------------
-  if( (c2p_key == Noble1D_entropy ) ||
-      (c2p_key == Noble1D_entropy2) ||
-      (c2p_key == Palenzuela1D    ) ||
-      (c2p_key == Newman1D        ) ) {
+  if( (c2p_key == igm_Noble1D_entropy ) ||
+      (c2p_key == igm_Noble1D_entropy2) ||
+      (c2p_key == igm_Palenzuela1D    ) ||
+      (c2p_key == igm_Newman1D        ) ) {
 
     // The entropy variable is given by
     //
@@ -126,12 +126,12 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   CCTK_REAL vyL              = PRIMS[VY      ];
   CCTK_REAL vzL              = PRIMS[VZ      ];
   // First the Noble et al. con2prim guesses, which are the more complicated ones
-  if( (c2p_key == Noble2D         ) ||
-      (c2p_key == Noble1D         ) ||
-      (c2p_key == Noble1D_entropy ) ||
-      (c2p_key == Noble1D_entropy2) ||
-      (c2p_key == CerdaDuran2D    ) ||
-      (c2p_key == CerdaDuran3D    ) ) {
+  if( (c2p_key == igm_Noble2D         ) ||
+      (c2p_key == igm_Noble1D         ) ||
+      (c2p_key == igm_Noble1D_entropy ) ||
+      (c2p_key == igm_Noble1D_entropy2) ||
+      (c2p_key == igm_CerdaDuran2D    ) ||
+      (c2p_key == igm_CerdaDuran3D    ) ) {
 
     if(which_guess==1) {
       //Use a different initial guess:

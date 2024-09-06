@@ -350,7 +350,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             stats.backup[1]      = 0;
             stats.backup[2]      = 0;
             stats.c2p_failed     = 0;
-            stats.which_routine  = None;
+            stats.which_routine  = igm_None;
             stats.dx[0]          = CCTK_DELTA_SPACE(0);
             stats.dx[1]          = CCTK_DELTA_SPACE(1);
             stats.dx[2]          = CCTK_DELTA_SPACE(2);

@@ -74,7 +74,7 @@ int con2prim( const igm_eos_parameters eos,
     /************* Conservative-to-primitive recovery ************/
     int check = con2prim_select(eos,eos.c2p_routine,METRIC_PHYS,g4dn,g4up,cons,prim,stats);
 
-    if( (check != 0) && (eos.c2p_backup[0] != None) ) {
+    if( (check != 0) && (eos.c2p_backup[0] != igm_None) ) {
       // Backup 1 triggered
       stats.backup[0] = 1;
       // Recompute guesses
@@ -83,7 +83,7 @@ int con2prim( const igm_eos_parameters eos,
       // Backup routine #1
       check = con2prim_select(eos,eos.c2p_backup[0],METRIC_PHYS,g4dn,g4up,cons,prim,stats);
 
-      if( (check != 0) && (eos.c2p_backup[1] != None) ) {
+      if( (check != 0) && (eos.c2p_backup[1] != igm_None) ) {
         // Backup 1 triggered
         stats.backup[1] = 1;
         // Recompute guesses
@@ -92,7 +92,7 @@ int con2prim( const igm_eos_parameters eos,
         // Backup routine #2
         check = con2prim_select(eos,eos.c2p_backup[1],METRIC_PHYS,g4dn,g4up,cons,prim,stats);
 
-        if( (check != 0) && (eos.c2p_backup[2] != None) ) {
+        if( (check != 0) && (eos.c2p_backup[2] != igm_None) ) {
           // Backup 1 triggered
           stats.backup[2] = 1;
           // Recompute guesses

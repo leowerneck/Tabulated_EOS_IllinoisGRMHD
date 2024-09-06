@@ -78,7 +78,7 @@ int con2prim_Newman1D( const igm_eos_parameters eos,
 
   const CCTK_REAL tol_x = 1e-10;
   bool c2p_failed = false;
-  CCTK_INT got_temp_from = None;
+  CCTK_INT got_temp_from = igm_None;
   newman(eos,tol_x,S_squared,BdotS,B_squared,SU,con,prim,got_temp_from,c2p_failed);
 
   if( c2p_failed && ( got_temp_from == entropyvar ) ) {
@@ -118,7 +118,7 @@ void newman( const igm_eos_parameters eos,
   CCTK_REAL depsdT = 0.0;
   bool use_entropy = false;
 
-  if( got_temp_from == None ) {
+  if( got_temp_from == igm_None ) {
 
     // Only need to compute depsdT if we are not sure whether or not to use the entropy
     enforce_table_bounds_rho_Ye_T( eos,&xrho,&xye,&xtemp );
