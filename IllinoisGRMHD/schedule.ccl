@@ -73,10 +73,17 @@ schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_PostPostIn
   LANG: C
 } "Compute B and B_stagger from A SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger"
 
-# Nontrivial primitives solve, for P,rho_b,vx,vy,vz:
-schedule IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_PostPostInitial after compute_b
+schedule IllinoisGRMHD_tabulated_entropy_conservs_to_prims in IllinoisGRMHD_conserv_to_prims
 {
   LANG: C
+} "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
+schedule IllinoisGRMHD_compute_Tmunu in IllinoisGRMHD_conserv_to_prims after IllinoisGRMHD_tabulated_entropy_conservs_to_prims
+{
+  LANG: C
+} "Compute Tmunu"
+# Nontrivial primitives solve, for P,rho_b,vx,vy,vz:
+schedule group IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_PostPostInitial after compute_b
+{
 } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
 
 # Copy data to other timelevels.
@@ -134,9 +141,8 @@ schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in HydroBase_Boundaries aft
 } "Compute B and B_stagger from A,  SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger"
 
 # Nontrivial primitives solve, for P,rho_b,vx,vy,vz.
-schedule IllinoisGRMHD_conserv_to_prims in AddToTmunu after compute_B_and_Bstagger_from_A
+schedule group IllinoisGRMHD_conserv_to_prims in AddToTmunu after compute_B_and_Bstagger_from_A
 {
-  LANG: C
 } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
 
 schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in AddToTmunu after IllinoisGRMHD_conserv_to_prims
