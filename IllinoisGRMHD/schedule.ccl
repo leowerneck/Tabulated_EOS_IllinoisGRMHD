@@ -88,10 +88,28 @@ schedule IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels in Illino
 
 ####################
 # RHS EVALUATION
-schedule IllinoisGRMHD_driver_evaluate_MHD_rhs in MoL_CalcRHS as IllinoisGRMHD_RHS_eval after bssn_rhs after shift_rhs
+#schedule IllinoisGRMHD_driver_evaluate_MHD_rhs in MoL_CalcRHS as IllinoisGRMHD_RHS_eval after bssn_rhs after shift_rhs
+#{
+#  LANG: C
+#} "Evaluate RHSs of GR Hydro & GRMHD equations"
+schedule group IllinoisGRMHD_RHS_eval in MoL_CalcRHS after bssn_rhs after shift_rhs
+{
+} "Evaluate RHSs of GR Hydro & GRMHD equations"
+
+schedule IllinoisGRMHD_tabulated_entropy_evaluate_sources_rhs in IllinoisGRMHD_RHS_eval
 {
   LANG: C
-} "Evaluate RHSs of GR Hydro & GRMHD equations"
+} "Evaluate source terms in GRMHD RHSs"
+
+schedule IllinoisGRMHD_tabulated_entropy_evaluate_fluxes_rhs in IllinoisGRMHD_RHS_eval after IllinoisGRMHD_tabulated_entropy_evaluate_sources_rhs
+{
+  LANG: C
+} "Evaluate flux terms in GRMHD RHSs"
+
+schedule IllinoisGRMHD_evaluate_phitilde_and_A_gauge_rhs in IllinoisGRMHD_RHS_eval after IllinoisGRMHD_tabulated_entropy_evaluate_fluxes_rhs
+{
+  LANG: C
+} "Evaluate phitilde RHS and gauge contributions to A_i RHS"
 ####################
 
 
