@@ -2,6 +2,16 @@
 
 # Source files in this directory
 SRCS =  InitSymBound.C MoL_registration.C \
+    ghl_A_flux_rhs.c \
+    ghl_compute_metric_derivs.c \
+    ghl_compute_Tmunu.c \
+    ghl_conservs_to_prims.c \
+    ghl_calc_fluxes.c \
+    ghl_eval_fluxes.c \
+    ghl_evaluate_phitilde_and_A_gauge_rhs.c \
+    ghl_eval_sources.c \
+    ghl_interpolate_metric_to_face.c \
+    ghl_reconstruction_loop.c \
     \
     postpostinitial__set_symmetries__copy_timelevels.C \
     \
