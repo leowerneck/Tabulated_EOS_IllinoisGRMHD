@@ -130,7 +130,9 @@ extern "C" void IllinoisGRMHD_con2prim_test_suit(CCTK_ARGUMENTS) {
   assert(nt == 50);
   assert(nye == 50);
 
-  int failures = 0;
+  int routines[2] = { igm_Palenzuela1D, igm_Newman1D };
+  const char *methodnames[2] = { "Palenzuela1D", "Newman1D" };
+  int fails[2]    = { 0, 0 };
   for(int k = 0; k < nye; k++) {
     for(int j = 0; j < nt; j++) {
       for(int i = 0; i < nrho; i++) {
@@ -146,8 +148,8 @@ extern "C" void IllinoisGRMHD_con2prim_test_suit(CCTK_ARGUMENTS) {
           CCTK_VERROR("Failed to read AUX metric at index %d, %d, %d", i, j, k);
         }
 
-        ghl_primitive_quantities ghl_prims_orig;
-        if(fread(&ghl_prims_orig, sizeof(ghl_prims_orig), 1, fp) != 1) {
+        ghl_primitive_quantities ghl_prims;
+        if(fread(&ghl_prims, sizeof(ghl_prims), 1, fp) != 1) {
           fclose(fp);
           CCTK_VERROR("Failed to read prims at index %d, %d, %d", i, j, k);
         }
@@ -177,6 +179,9 @@ extern "C" void IllinoisGRMHD_con2prim_test_suit(CCTK_ARGUMENTS) {
         metric_phys[GUPYY] = metric[GUPYY] * metric_aux[PSIM4];
         metric_phys[GUPYZ] = metric[GUPYZ] * metric_aux[PSIM4];
         metric_phys[GUPZZ] = metric[GUPZZ] * metric_aux[PSIM4];
+
+        CCTK_REAL igm_prims[MAXNUMVARS];
+        ghl_prims_to_igm(&ghl_prims, igm_prims);
 
         CCTK_REAL igm_cons[NUM_CONSERVS];
         ghl_cons_to_igm(&ghl_cons, igm_cons);
@@ -212,19 +217,39 @@ extern "C" void IllinoisGRMHD_con2prim_test_suit(CCTK_ARGUMENTS) {
         g4up[2][2]              = metric_phys[GUPYY] - metric[SHIFTY] * metric[SHIFTY] * alpha_inv_squared;
         g4up[2][3] = g4up[3][2] = metric_phys[GUPYZ] - metric[SHIFTY] * metric[SHIFTZ] * alpha_inv_squared;
         g4up[3][3]              = metric_phys[GUPZZ] - metric[SHIFTZ] * metric[SHIFTZ] * alpha_inv_squared;
+
+        struct output_stats stats = {};
+        stats.which_routine       = igm_None;
+        stats.dx[0]               = CCTK_DELTA_SPACE(0);
+        stats.dx[1]               = CCTK_DELTA_SPACE(1);
+        stats.dx[2]               = CCTK_DELTA_SPACE(2);
+
+        for(int n = 0; n < 2; n++) {
+          CCTK_REAL c2p_cons[numcons];
+          set_cons_from_PRIMS_and_CONSERVS(eos, eos.c2p_routine, metric, metric_aux, igm_prims, igm_cons, c2p_cons);
+
+          CCTK_REAL c2p_prims[numprims];
+          set_prim_from_PRIMS_and_CONSERVS(
+                eos, eos.c2p_routine, 1, metric, metric_aux, igm_prims, igm_cons, c2p_cons, c2p_prims);
+
+          if(con2prim_select(eos, routines[n], metric_phys, g4dn, g4up, c2p_cons, c2p_prims, stats)) {
+            fails[n]++;
+          }
+        }
       }
     }
   }
   fclose(fp);
 
-  const int ntotal = nrho * nye * nt;
+  const int npts = nrho * nt * nye;
+  CCTK_VINFO("Failure rates:");
+  for(int n = 0; n < 2; n++) {
+    const char *name = methodnames[n];
+    const int failcount = fails[n];
+    const double pct = ((double)failcount) / ((double)npts) * 100;
+    CCTK_VINFO("    %-20s : %06d/%06d : %5.1lf%%", name, failcount, npts, pct);
+  }
 
-  // CCTK_VINFO("Completed test for routine %s", routine);
-  CCTK_VINFO("Final report:");
-  CCTK_VINFO("    Number of recovery attempts: %d", ntotal);
-  CCTK_VINFO("    Number of failed recoveries: %d", failures);
-  CCTK_VINFO("    Recovery failure rate      : %.2lf%%", ((CCTK_REAL)failures) / ((CCTK_REAL)ntotal) * 100.0);
-
-  CCTK_VINFO("All done! Terminating the run.");
+  CCTK_VINFO("All done!");
   exit(0);
 }
