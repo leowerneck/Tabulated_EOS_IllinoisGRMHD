@@ -27,56 +27,56 @@ static inline CCTK_REAL relative_error(const CCTK_REAL a, const CCTK_REAL b) {
   }
 }
 
-static inline void ghl_adm_to_igm_bssn(const ghl_metric_quantities *ADM_metric, CCTK_REAL *METRIC) {
-  const double phi   = (1.0 / 12.0) * log(ADM_metric->detgamma);
+static inline void ghl_adm_to_igm_bssn(const ghl_metric_quantities *ghl_adm, CCTK_REAL *igm_bssn) {
+  const double phi   = (1.0 / 12.0) * log(ghl_adm->detgamma);
   const double psi   = exp(phi);
   const double psi4  = pow(psi, 4.0);
   const double psim4 = 1.0 / psi4;
-  METRIC[PHI]        = phi;
-  METRIC[LAPM1]      = ADM_metric->lapse - 1.0;
-  METRIC[SHIFTX]     = ADM_metric->betaU[0];
-  METRIC[SHIFTY]     = ADM_metric->betaU[1];
-  METRIC[SHIFTZ]     = ADM_metric->betaU[2];
-  METRIC[GXX]        = ADM_metric->gammaDD[0][0] * psim4;
-  METRIC[GXY]        = ADM_metric->gammaDD[0][1] * psim4;
-  METRIC[GXZ]        = ADM_metric->gammaDD[0][2] * psim4;
-  METRIC[GYY]        = ADM_metric->gammaDD[1][1] * psim4;
-  METRIC[GYZ]        = ADM_metric->gammaDD[1][2] * psim4;
-  METRIC[GZZ]        = ADM_metric->gammaDD[2][2] * psim4;
-  METRIC[GUPXX]      = ADM_metric->gammaUU[0][0] * psi4;
-  METRIC[GUPYY]      = ADM_metric->gammaUU[0][1] * psi4;
-  METRIC[GUPZZ]      = ADM_metric->gammaUU[0][2] * psi4;
-  METRIC[GUPXY]      = ADM_metric->gammaUU[1][1] * psi4;
-  METRIC[GUPXZ]      = ADM_metric->gammaUU[1][2] * psi4;
-  METRIC[GUPYZ]      = ADM_metric->gammaUU[2][2] * psi4;
+  igm_bssn[PHI]      = phi;
+  igm_bssn[LAPM1]    = ghl_adm->lapse - 1.0;
+  igm_bssn[SHIFTX]   = ghl_adm->betaU[0];
+  igm_bssn[SHIFTY]   = ghl_adm->betaU[1];
+  igm_bssn[SHIFTZ]   = ghl_adm->betaU[2];
+  igm_bssn[GXX]      = ghl_adm->gammaDD[0][0] * psim4;
+  igm_bssn[GXY]      = ghl_adm->gammaDD[0][1] * psim4;
+  igm_bssn[GXZ]      = ghl_adm->gammaDD[0][2] * psim4;
+  igm_bssn[GYY]      = ghl_adm->gammaDD[1][1] * psim4;
+  igm_bssn[GYZ]      = ghl_adm->gammaDD[1][2] * psim4;
+  igm_bssn[GZZ]      = ghl_adm->gammaDD[2][2] * psim4;
+  igm_bssn[GUPXX]    = ghl_adm->gammaUU[0][0] * psi4;
+  igm_bssn[GUPYY]    = ghl_adm->gammaUU[0][1] * psi4;
+  igm_bssn[GUPZZ]    = ghl_adm->gammaUU[0][2] * psi4;
+  igm_bssn[GUPXY]    = ghl_adm->gammaUU[1][1] * psi4;
+  igm_bssn[GUPXZ]    = ghl_adm->gammaUU[1][2] * psi4;
+  igm_bssn[GUPYZ]    = ghl_adm->gammaUU[2][2] * psi4;
 }
 
-static inline void ghl_prims_to_igm(const ghl_primitive_quantities *prims, CCTK_REAL *PRIMS) {
-  PRIMS[RHOB]        = prims->rho;
-  PRIMS[YEPRIM]      = prims->Y_e;
-  PRIMS[TEMPERATURE] = prims->temperature;
-  PRIMS[PRESSURE]    = prims->press;
-  PRIMS[EPSILON]     = prims->eps;
-  PRIMS[VX]          = prims->vU[0];
-  PRIMS[VY]          = prims->vU[1];
-  PRIMS[VZ]          = prims->vU[2];
-  PRIMS[BX_CENTER]   = prims->BU[0];
-  PRIMS[BY_CENTER]   = prims->BU[1];
-  PRIMS[BZ_CENTER]   = prims->BU[2];
+static inline void ghl_prims_to_igm(const ghl_primitive_quantities *ghl_prims, CCTK_REAL *igm_prims) {
+  igm_prims[RHOB]        = ghl_prims->rho;
+  igm_prims[YEPRIM]      = ghl_prims->Y_e;
+  igm_prims[TEMPERATURE] = ghl_prims->temperature;
+  igm_prims[PRESSURE]    = ghl_prims->press;
+  igm_prims[EPSILON]     = ghl_prims->eps;
+  igm_prims[VX]          = ghl_prims->vU[0];
+  igm_prims[VY]          = ghl_prims->vU[1];
+  igm_prims[VZ]          = ghl_prims->vU[2];
+  igm_prims[BX_CENTER]   = ghl_prims->BU[0];
+  igm_prims[BY_CENTER]   = ghl_prims->BU[1];
+  igm_prims[BZ_CENTER]   = ghl_prims->BU[2];
 }
 
-static inline void igm_prims_to_ghl(const CCTK_REAL *PRIMS, ghl_primitive_quantities *prims) {
-  prims->rho         = PRIMS[RHOB];
-  prims->Y_e         = PRIMS[YEPRIM];
-  prims->temperature = PRIMS[TEMPERATURE];
-  prims->press       = PRIMS[PRESSURE];
-  prims->eps         = PRIMS[EPSILON];
-  prims->vU[0]       = PRIMS[VX];
-  prims->vU[1]       = PRIMS[VY];
-  prims->vU[2]       = PRIMS[VZ];
-  prims->BU[0]       = PRIMS[BX_CENTER];
-  prims->BU[1]       = PRIMS[BY_CENTER];
-  prims->BU[2]       = PRIMS[BZ_CENTER];
+static inline void igm_prims_to_ghl(const CCTK_REAL *igm_prims, ghl_primitive_quantities *ghl_prims) {
+  ghl_prims->rho         = igm_prims[RHOB];
+  ghl_prims->Y_e         = igm_prims[YEPRIM];
+  ghl_prims->temperature = igm_prims[TEMPERATURE];
+  ghl_prims->press       = igm_prims[PRESSURE];
+  ghl_prims->eps         = igm_prims[EPSILON];
+  ghl_prims->vU[0]       = igm_prims[VX];
+  ghl_prims->vU[1]       = igm_prims[VY];
+  ghl_prims->vU[2]       = igm_prims[VZ];
+  ghl_prims->BU[0]       = igm_prims[BX_CENTER];
+  ghl_prims->BU[1]       = igm_prims[BY_CENTER];
+  ghl_prims->BU[2]       = igm_prims[BZ_CENTER];
 }
 
 static inline void ghl_cons_to_igm(const ghl_conservative_quantities *ghl_cons, CCTK_REAL *igm_cons) {
@@ -107,9 +107,10 @@ extern "C" void IllinoisGRMHD_con2prim_test_suit(CCTK_ARGUMENTS) {
   igm_eos_parameters eos;
   initialize_igm_eos_parameters_from_input(igm_eos_key, cctk_time, eos);
 
-  FILE *fp = fopen(con2prim_test_input_file_filename, "rb");
+  const char *filename = "ghl_unit_test_con2prim_tabulated.bin";
+  FILE *fp             = fopen(filename, "rb");
   if(fp == NULL) {
-    CCTK_VERROR("Could not open input file %s", con2prim_test_input_file_filename);
+    CCTK_VERROR("Could not open input file %s", filename);
   }
 
   int nrho, nt, nye;
@@ -134,92 +135,89 @@ extern "C" void IllinoisGRMHD_con2prim_test_suit(CCTK_ARGUMENTS) {
     for(int j = 0; j < nt; j++) {
       for(int i = 0; i < nrho; i++) {
         ghl_metric_quantities ghl_ADM_metric;
-        if(fread(&ADM_metric, sizeof(ghl_ADM_metric), 1, fp) != 1) {
+        if(fread(&ghl_ADM_metric, sizeof(ghl_ADM_metric), 1, fp) != 1) {
           fclose(fp);
           CCTK_VERROR("Failed to read ADM metric at index %d, %d, %d", i, j, k);
         }
 
         ghl_ADM_aux_quantities ghl_AUX_metric;
-        if(fread(&AUX_metric, sizeof(ghl_AUX_metric), 1, fp) != 1) {
+        if(fread(&ghl_AUX_metric, sizeof(ghl_AUX_metric), 1, fp) != 1) {
           fclose(fp);
           CCTK_VERROR("Failed to read AUX metric at index %d, %d, %d", i, j, k);
         }
 
         ghl_primitive_quantities ghl_prims_orig;
-        if(fread(&prims_orig, sizeof(ghl_prims_orig), 1, fp) != 1) {
+        if(fread(&ghl_prims_orig, sizeof(ghl_prims_orig), 1, fp) != 1) {
           fclose(fp);
           CCTK_VERROR("Failed to read prims at index %d, %d, %d", i, j, k);
         }
 
         ghl_conservative_quantities ghl_cons;
-        if(fread(&cons, sizeof(ghl_cons), 1, fp) != 1) {
+        if(fread(&ghl_cons, sizeof(ghl_cons), 1, fp) != 1) {
           fclose(fp);
           CCTK_VERROR("Failed to read cons at index %d, %d, %d", i, j, k);
         }
 
         CCTK_REAL metric[NUMVARS_FOR_METRIC];
-        ghl_adm_to_igm_bssn(ghl_ADM_metric, metric);
+        ghl_adm_to_igm_bssn(&ghl_ADM_metric, metric);
 
         CCTK_REAL metric_aux[NUMVARS_METRIC_AUX];
         SET_LAPSE_PSI4(metric_aux, metric);
 
-        CCTK_REAL METRIC_PHYS[NUMVARS_FOR_METRIC];
-        METRIC_PHYS[GXX]   = METRIC[GXX] * METRIC_LAP_PSI4[PSI4];
-        METRIC_PHYS[GXY]   = METRIC[GXY] * METRIC_LAP_PSI4[PSI4];
-        METRIC_PHYS[GXZ]   = METRIC[GXZ] * METRIC_LAP_PSI4[PSI4];
-        METRIC_PHYS[GYY]   = METRIC[GYY] * METRIC_LAP_PSI4[PSI4];
-        METRIC_PHYS[GYZ]   = METRIC[GYZ] * METRIC_LAP_PSI4[PSI4];
-        METRIC_PHYS[GZZ]   = METRIC[GZZ] * METRIC_LAP_PSI4[PSI4];
-        METRIC_PHYS[GUPXX] = METRIC[GUPXX] * METRIC_LAP_PSI4[PSIM4];
-        METRIC_PHYS[GUPXY] = METRIC[GUPXY] * METRIC_LAP_PSI4[PSIM4];
-        METRIC_PHYS[GUPXZ] = METRIC[GUPXZ] * METRIC_LAP_PSI4[PSIM4];
-        METRIC_PHYS[GUPYY] = METRIC[GUPYY] * METRIC_LAP_PSI4[PSIM4];
-        METRIC_PHYS[GUPYZ] = METRIC[GUPYZ] * METRIC_LAP_PSI4[PSIM4];
-        METRIC_PHYS[GUPZZ] = METRIC[GUPZZ] * METRIC_LAP_PSI4[PSIM4];
+        CCTK_REAL metric_phys[NUMVARS_FOR_METRIC];
+        metric_phys[GXX]   = metric[GXX] * metric_aux[PSI4];
+        metric_phys[GXY]   = metric[GXY] * metric_aux[PSI4];
+        metric_phys[GXZ]   = metric[GXZ] * metric_aux[PSI4];
+        metric_phys[GYY]   = metric[GYY] * metric_aux[PSI4];
+        metric_phys[GYZ]   = metric[GYZ] * metric_aux[PSI4];
+        metric_phys[GZZ]   = metric[GZZ] * metric_aux[PSI4];
+        metric_phys[GUPXX] = metric[GUPXX] * metric_aux[PSIM4];
+        metric_phys[GUPXY] = metric[GUPXY] * metric_aux[PSIM4];
+        metric_phys[GUPXZ] = metric[GUPXZ] * metric_aux[PSIM4];
+        metric_phys[GUPYY] = metric[GUPYY] * metric_aux[PSIM4];
+        metric_phys[GUPYZ] = metric[GUPYZ] * metric_aux[PSIM4];
+        metric_phys[GUPZZ] = metric[GUPZZ] * metric_aux[PSIM4];
 
-        CCTK_REAL cons[NUM_CONSERVS];
-        ghl_cons_to_igm(ghl_cons, cons);
+        CCTK_REAL igm_cons[NUM_CONSERVS];
+        ghl_cons_to_igm(&ghl_cons, igm_cons);
+
+        CCTK_REAL shift_xL = metric_phys[GXX] * metric[SHIFTX] + metric_phys[GXY] * metric[SHIFTY]
+                             + metric_phys[GXZ] * metric[SHIFTZ];
+        CCTK_REAL shift_yL = metric_phys[GXY] * metric[SHIFTX] + metric_phys[GYY] * metric[SHIFTY]
+                             + metric_phys[GYZ] * metric[SHIFTZ];
+        CCTK_REAL shift_zL = metric_phys[GXZ] * metric[SHIFTX] + metric_phys[GYZ] * metric[SHIFTY]
+                             + metric_phys[GZZ] * metric[SHIFTZ];
+        CCTK_REAL beta2L = shift_xL * metric[SHIFTX] + shift_yL * metric[SHIFTY] + shift_zL * metric[SHIFTZ];
 
         CCTK_REAL g4dn[4][4], g4up[4][4];
-        g4dn[0][0] = -SQR(METRIC_LAP_PSI4[LAPSE]) + beta2L;
-        g4dn[0][1] = g4dn[1][0] = shift_xL;
-        g4dn[0][2] = g4dn[2][0] = shift_yL;
-        g4dn[0][3] = g4dn[3][0] = shift_zL;
-        g4dn[1][1]              = METRIC_PHYS[GXX];
-        g4dn[1][2] = g4dn[2][1] = METRIC_PHYS[GXY];
-        g4dn[1][3] = g4dn[3][1] = METRIC_PHYS[GXZ];
-        g4dn[2][2]              = METRIC_PHYS[GYY];
-        g4dn[2][3] = g4dn[3][2] = METRIC_PHYS[GYZ];
-        g4dn[3][3]              = METRIC_PHYS[GZZ];
+        g4dn[0][0] = -SQR(metric_aux[LAPSE]) + beta2L;
+        g4dn[0][1] = g4dn[1][0] = metric[SHIFTX];
+        g4dn[0][2] = g4dn[2][0] = metric[SHIFTY];
+        g4dn[0][3] = g4dn[3][0] = metric[SHIFTZ];
+        g4dn[1][1]              = metric_phys[GXX];
+        g4dn[1][2] = g4dn[2][1] = metric_phys[GXY];
+        g4dn[1][3] = g4dn[3][1] = metric_phys[GXZ];
+        g4dn[2][2]              = metric_phys[GYY];
+        g4dn[2][3] = g4dn[3][2] = metric_phys[GYZ];
+        g4dn[3][3]              = metric_phys[GZZ];
 
-        CCTK_REAL alpha_inv_squared = SQR(METRIC_LAP_PSI4[LAPSEINV]);
+        CCTK_REAL alpha_inv_squared = SQR(metric_aux[LAPSEINV]);
         g4up[0][0]                  = -1.0 * alpha_inv_squared;
-        g4up[0][1] = g4up[1][0] = METRIC[SHIFTX] * alpha_inv_squared;
-        g4up[0][2] = g4up[2][0] = METRIC[SHIFTY] * alpha_inv_squared;
-        g4up[0][3] = g4up[3][0] = METRIC[SHIFTZ] * alpha_inv_squared;
-        g4up[1][1]              = METRIC_PHYS[GUPXX] - METRIC[SHIFTX] * METRIC[SHIFTX] * alpha_inv_squared;
-        g4up[1][2] = g4up[2][1] = METRIC_PHYS[GUPXY] - METRIC[SHIFTX] * METRIC[SHIFTY] * alpha_inv_squared;
-        g4up[1][3] = g4up[3][1] = METRIC_PHYS[GUPXZ] - METRIC[SHIFTX] * METRIC[SHIFTZ] * alpha_inv_squared;
-        g4up[2][2]              = METRIC_PHYS[GUPYY] - METRIC[SHIFTY] * METRIC[SHIFTY] * alpha_inv_squared;
-        g4up[2][3] = g4up[3][2] = METRIC_PHYS[GUPYZ] - METRIC[SHIFTY] * METRIC[SHIFTZ] * alpha_inv_squared;
-        g4up[3][3]              = METRIC_PHYS[GUPZZ] - METRIC[SHIFTZ] * METRIC[SHIFTZ] * alpha_inv_squared;
-
-        // for(int n = 0; n < 4; n++) {
-        //   params.main_routine = methods[n];
-        //   CCTK_REAL prims[MAXNUMVARS];
-        //
-        //   ghl_primitive_quantities prims;
-        //   if(ghl_con2prim_tabulated_multi_method(
-        //            &params, &eos, &ADM_metric, &AUX_metric, &cons_undens, &prims, &diagnostics)) {
-        //     fails[n]++;
-        //   }
-        // }
+        g4up[0][1] = g4up[1][0] = metric[SHIFTX] * alpha_inv_squared;
+        g4up[0][2] = g4up[2][0] = metric[SHIFTY] * alpha_inv_squared;
+        g4up[0][3] = g4up[3][0] = metric[SHIFTZ] * alpha_inv_squared;
+        g4up[1][1]              = metric_phys[GUPXX] - metric[SHIFTX] * metric[SHIFTX] * alpha_inv_squared;
+        g4up[1][2] = g4up[2][1] = metric_phys[GUPXY] - metric[SHIFTX] * metric[SHIFTY] * alpha_inv_squared;
+        g4up[1][3] = g4up[3][1] = metric_phys[GUPXZ] - metric[SHIFTX] * metric[SHIFTZ] * alpha_inv_squared;
+        g4up[2][2]              = metric_phys[GUPYY] - metric[SHIFTY] * metric[SHIFTY] * alpha_inv_squared;
+        g4up[2][3] = g4up[3][2] = metric_phys[GUPYZ] - metric[SHIFTY] * metric[SHIFTZ] * alpha_inv_squared;
+        g4up[3][3]              = metric_phys[GUPZZ] - metric[SHIFTZ] * metric[SHIFTZ] * alpha_inv_squared;
       }
     }
   }
   fclose(fp);
 
-  const int ntotal = npoints * npoints * npoints;
+  const int ntotal = nrho * nye * nt;
 
   // CCTK_VINFO("Completed test for routine %s", routine);
   CCTK_VINFO("Final report:");
@@ -228,5 +226,5 @@ extern "C" void IllinoisGRMHD_con2prim_test_suit(CCTK_ARGUMENTS) {
   CCTK_VINFO("    Recovery failure rate      : %.2lf%%", ((CCTK_REAL)failures) / ((CCTK_REAL)ntotal) * 100.0);
 
   CCTK_VINFO("All done! Terminating the run.");
-  exit(1);
+  exit(0);
 }
