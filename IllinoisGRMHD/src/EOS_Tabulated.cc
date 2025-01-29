@@ -79,8 +79,7 @@ void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,i
     eos.PPM_reconstructed_var = ENTROPY;
   }
   else {
-    CCTK_VError(VERR_DEF_PARAMS,
-                "PPM reconstruction of variable \"%s\" not supported with Tabulated EOS. "
+    CCTK_VERROR("PPM reconstruction of variable \"%s\" not supported with Tabulated EOS. "
                 "Can only reconstruct: pressure, epsilon, entropy. ABORTING!",
                 igm_PPM_reconstructed_variable);
   }

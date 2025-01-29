@@ -85,7 +85,7 @@ int con2prim_average_neighbor_conservatives( const cGH *restrict cctkGH,
   // If not enough neighbors can be found, this mean that we have
   // many con2prim failures clustered in a region of the grid.
   // Probably best to just terminate the run.
-  // if( number_of_neighbors < 1 ) CCTK_VError(VERR_DEF_PARAMS,"Could not find enough neighbors to perform the conservative average: %d. ABORTING!",number_of_neighbors);
+  // if( number_of_neighbors < 1 ) CCTK_VERROR("Could not find enough neighbors to perform the conservative average: %d. ABORTING!",number_of_neighbors);
   if( number_of_neighbors < 1 ) {
     CCTK_VInfo(CCTK_THORNSTRING,"Could not find enough neighbors to perform the conservative average: %d. Attempting an ATM reset...",number_of_neighbors);
     return number_of_neighbors;

@@ -86,7 +86,7 @@ extern "C" void IllinoisGRMHD_conserv_to_prims(CCTK_ARGUMENTS) {
     ierr+=CartSymGN(cctkGH,"bssn::BSSN_vars");
     ierr+=CartSymGN(cctkGH,"bssn::BSSN_AH");
     ierr+=CartSymGN(cctkGH,"shift::shift_vars");
-    if(ierr!=0) CCTK_VError(VERR_DEF_PARAMS,"IllinoisGRMHD ERROR (grep for it, foo!)  :(");
+    if(ierr!=0) CCTK_VERROR("IllinoisGRMHD ERROR (grep for it, foo!)  :(");
   }
 #endif
 

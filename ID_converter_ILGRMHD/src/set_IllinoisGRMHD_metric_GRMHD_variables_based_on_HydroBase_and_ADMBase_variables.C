@@ -23,7 +23,7 @@ extern "C" void set_IllinoisGRMHD_metric_GRMHD_variables_based_on_HydroBase_and_
   DECLARE_CCTK_PARAMETERS;
 
   if(rho_b_atm > 1e199) {
-    CCTK_VError(VERR_DEF_PARAMS, "You MUST set rho_b_atm to some reasonable value in your param.ccl file.\n");
+    CCTK_VERROR( "You MUST set rho_b_atm to some reasonable value in your param.ccl file.\n");
   }
 
   // Convert ADM variables (from ADMBase) to the BSSN-based variables expected by this routine.

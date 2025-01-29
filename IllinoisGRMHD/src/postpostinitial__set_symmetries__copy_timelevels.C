@@ -35,8 +35,8 @@ extern "C" void IllinoisGRMHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CC
   if(CCTK_EQUALS(Symmetry,"equatorial")) {
     // SET SYMMETRY GHOSTZONES ON ALL CONSERVATIVE AND PRIMIIVE VARIABLES!
     int ierr;
-    ierr=CartSymGN(cctkGH,"IllinoisGRMHD::grmhd_conservatives"); if(ierr!=0) CCTK_VError(VERR_DEF_PARAMS,"Microsoft error code #1874109358120048. Grep it in the source code");
-    ierr=CartSymGN(cctkGH,"IllinoisGRMHD::grmhd_primitives_allbutBi"); if(ierr!=0) CCTK_VError(VERR_DEF_PARAMS,"Microsoft error code #1874109358120049. Grep it in the source code");
+    ierr=CartSymGN(cctkGH,"IllinoisGRMHD::grmhd_conservatives"); if(ierr!=0) CCTK_VERROR("Microsoft error code #1874109358120048. Grep it in the source code");
+    ierr=CartSymGN(cctkGH,"IllinoisGRMHD::grmhd_primitives_allbutBi"); if(ierr!=0) CCTK_VERROR("Microsoft error code #1874109358120049. Grep it in the source code");
 
     // Finish up by setting symmetry ghostzones on Bx, By, Bz, and their staggered variants.
     CCTK_REAL gridfunc_syms_Bx[3] = {-1, 1,-Sym_Bz};

@@ -19,7 +19,7 @@
 // FIXME: try without index_arr being defined in all directions.
 #define SET_INDEX_ARRAYS(IMIN,IMAX,flux_dirn)                           \
   int max_shift=(MAXNUMINDICES/2);                                      \
-  /* DEBUGGING ONLY:  if(IMIN<-max_shift || IMAX>max_shift) CCTK_VError(VERR_DEF_PARAMS,"FIX MAXNUMINDICES!"); */ \
+  /* DEBUGGING ONLY:  if(IMIN<-max_shift || IMAX>max_shift) CCTK_VERROR("FIX MAXNUMINDICES!"); */ \
   int index_arr[4][MAXNUMINDICES];                                      \
   for(int idx=IMIN;idx<=IMAX;idx++) {                                   \
     index_arr[flux_dirn][idx+max_shift]=                                \

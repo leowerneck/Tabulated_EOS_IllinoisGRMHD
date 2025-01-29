@@ -23,14 +23,14 @@ void IllinoisGRMHD_con2prim_check( const igm_eos_parameters eos,
         !CCTK_EQUALS(which_con2prim,"Noble1D"        ) &&
         !CCTK_EQUALS(which_con2prim,"Noble1D_entropy") &&
         !CCTK_EQUALS(which_con2prim,"Noble1D_entropy2") ) {
-      CCTK_VError(VERR_DEF_PARAMS,
+      CCTK_VERROR(
                   "Hybrid EOS only supports the following con2prim routines: "
                   "Noble2D, Noble1D, Noble1D_entropy, and Noble1D_entropy2. ABORTING.");
     }
     else if( (eos.evolve_entropy == false) &&
              ( CCTK_EQUALS(which_con2prim,"Noble1D_entropy" ) ||
                CCTK_EQUALS(which_con2prim,"Noble1D_entropy2") ) ) {
-      CCTK_VError(VERR_DEF_PARAMS,
+      CCTK_VERROR(
                   "Routines Noble1D_entropy and Noble1D_entropy2 require enabling entropy evolution. "
                   "Please set igm_evolve_entropy=\"yes\" in the parameter file. ABORTING.");
     }
@@ -45,7 +45,7 @@ void IllinoisGRMHD_con2prim_check( const igm_eos_parameters eos,
         !CCTK_EQUALS(which_con2prim,"CerdaDuran2D" ) &&
         !CCTK_EQUALS(which_con2prim,"CerdaDuran3D" ) &&
         !CCTK_EQUALS(which_con2prim,"Newman1D"     ) ) {
-      CCTK_VError(VERR_DEF_PARAMS,
+      CCTK_VERROR(
                   "Tabulated EOS only supports the following con2prim routines:"
                   "Palenzuela1D, Newman1D, Noble2D, Noble1D, CerdaDuran2D, and CerdaDuran3D. ABORTING.");
     }
@@ -77,22 +77,22 @@ void IllinoisGRMHD_parameter_check(CCTK_ARGUMENTS) {
   // ------------------------------------
   if( eos.is_Hybrid ) {
     // Check if Gamma_th has been set
-    if( Gamma_th == -1 ) CCTK_VError(VERR_DEF_PARAMS,"You must set Gamma_th in the parameter file. ABORTING.");
+    if( Gamma_th == -1 ) CCTK_VERROR("You must set Gamma_th in the parameter file. ABORTING.");
 
     // Check if K_ppoly_tab0 has been set
-    if( K_ppoly_tab0 == -1 ) CCTK_VError(VERR_DEF_PARAMS,"You must set K_ppoly_tab0 in the parameter file. ABORTING.");
+    if( K_ppoly_tab0 == -1 ) CCTK_VERROR("You must set K_ppoly_tab0 in the parameter file. ABORTING.");
 
     // Check if rho_ppoly_tab have been set
     for(int i=0;i<neos-1;i++) {
       if( rho_ppoly_tab_in[i] == -1 ) {
-        CCTK_VError(VERR_DEF_PARAMS,"neos was set to %d, but rho_ppoly_tab_in[%d] was not set. You must specify %d values of rho_ppoly_tab_in. ABORTING.",neos,i,neos-1);
+        CCTK_VERROR("neos was set to %d, but rho_ppoly_tab_in[%d] was not set. You must specify %d values of rho_ppoly_tab_in. ABORTING.",neos,i,neos-1);
       }
     }
 
     // Check if Gamma_ppoly_tab have been set
     for(int i=0;i<neos;i++) {
       if( Gamma_ppoly_tab_in[i] == -1 ) {
-        CCTK_VError(VERR_DEF_PARAMS,"neos was set to %d, but Gamma_ppoly_tab_in[%d] was not set. You must specify %d values of Gamma_ppoly_tab_in. ABORTING.",neos,i,neos);
+        CCTK_VERROR("neos was set to %d, but Gamma_ppoly_tab_in[%d] was not set. You must specify %d values of Gamma_ppoly_tab_in. ABORTING.",neos,i,neos);
       }
     }
 

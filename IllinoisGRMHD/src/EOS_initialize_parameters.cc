@@ -48,7 +48,7 @@ void initialize_igm_eos_parameters_from_input( const CCTK_INT* igm_eos_key,const
     initialize_Tabulated_EOS_parameters_from_input(cctk_time,eos);
   }
   else {
-    CCTK_VError(VERR_DEF_PARAMS,"Unknown EOS key: %d. ABORTING!",eos.key);
+    CCTK_VERROR("Unknown EOS key: %d. ABORTING!",eos.key);
   }
 
 }

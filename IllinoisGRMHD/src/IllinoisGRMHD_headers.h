@@ -2,12 +2,14 @@
 #ifndef ILLINOISGRMHD_HEADERS_H_
 #define ILLINOISGRMHD_HEADERS_H_
 
+#undef MIN
+#undef MAX
+#undef SQR
+
 #define MIN(a,b) ( ((a) < (b)) ? (a) : (b) )
 #define MAX(a,b) ( ((a) > (b)) ? (a) : (b) )
 #define SQR(x) ((x) * (x))
 #define ONE_OVER_SQRT_4PI 0.282094791773878143474039725780
-
-#define VERR_DEF_PARAMS __LINE__, __FILE__, CCTK_THORNSTRING
 
 // The order here MATTERS, as we assume that GUPXX+1=GUPYY, etc.
 static const int PHI=0,PSI=1,GXX=2,GXY=3,GXZ=4,GYY=5,GYZ=6,GZZ=7,

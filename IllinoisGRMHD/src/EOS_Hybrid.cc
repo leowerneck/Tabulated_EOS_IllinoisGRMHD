@@ -48,7 +48,7 @@ void initialize_Hybrid_EOS_parameters_from_input(igm_eos_parameters &eos) {
     eos.PPM_reconstructed_var = ENTROPY;
   }
   else {
-    CCTK_VError(VERR_DEF_PARAMS,
+    CCTK_VERROR(
                 "PPM reconstruction of variable \"%s\" not supported with Hybrid EOS. "
                 "Can only reconstruct: pressure, entropy. ABORTING!",
                 igm_PPM_reconstructed_variable);
