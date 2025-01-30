@@ -55,6 +55,7 @@ static const int igm_CerdaDuran3D         = 5;
 static const int igm_Palenzuela1D         = 6;
 static const int igm_Palenzuela1D_entropy = 7;
 static const int igm_Newman1D             = 8;
+static const int igm_Newman1D_entropy             = 9;
 
 static const int NPR  = 8;
 static const int NDIM = 4;
@@ -232,7 +233,21 @@ int con2prim_Palenzuela1D(
       CCTK_REAL *restrict prim,
       output_stats &stats);
 
+int con2prim_Palenzuela1D_entropy(
+      const igm_eos_parameters eos,
+      const CCTK_REAL *restrict adm_quantities,
+      const CCTK_REAL *restrict cons,
+      CCTK_REAL *restrict prim,
+      output_stats &stats);
+
 int con2prim_Newman1D(
+      const igm_eos_parameters eos,
+      const CCTK_REAL *restrict adm_quantities,
+      const CCTK_REAL *restrict con,
+      CCTK_REAL *restrict prim,
+      output_stats &stats);
+
+int con2prim_Newman1D_entropy(
       const igm_eos_parameters eos,
       const CCTK_REAL *restrict adm_quantities,
       const CCTK_REAL *restrict con,

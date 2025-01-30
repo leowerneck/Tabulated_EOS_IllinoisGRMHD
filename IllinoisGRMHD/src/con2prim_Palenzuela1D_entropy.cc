@@ -71,7 +71,7 @@ static double func_root(
 // -> S_{i} = \tilde{S}_{i} / sqrt(gamma)
 //
 // From the input quantities, we compute B_{i} and S^{i}
-int con2prim_Palenzuela1D(
+int con2prim_Palenzuela1D_entropy(
       const igm_eos_parameters eos,
       const CCTK_REAL *restrict adm_quantities,
       const CCTK_REAL *restrict con,
@@ -145,7 +145,7 @@ int con2prim_Palenzuela1D(
   }
 
   const CCTK_REAL tolerance = 1e-10;
-  stats.which_routine       = igm_Palenzuela1D;
+  stats.which_routine       = igm_Palenzuela1D_entropy;
   stats.c2p_failed          = true;
   palenzuela(eos, S_squared, BdotS, B_squared, con, prim, SU, tolerance, stats);
 
@@ -188,9 +188,8 @@ static void palenzuela(
   //
 
   // bracket for x
-  double xlow = 1.0 + param[par_q] - param[par_s];
-  double xup  = 2.0 + 2.0 * param[par_q] - param[par_s];
-
+  double xlow       = 1.0 + param[par_q] - param[par_s];
+  double xup        = 2.0 + 2.0 * param[par_q] - param[par_s];
   // initial guess for temperature
   double temp_guess = prim[TEMP];
 

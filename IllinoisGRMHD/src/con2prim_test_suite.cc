@@ -130,9 +130,10 @@ extern "C" void IllinoisGRMHD_con2prim_test_suit(CCTK_ARGUMENTS) {
   assert(nt == 50);
   assert(nye == 50);
 
-  int routines[2] = { igm_Palenzuela1D, igm_Newman1D };
-  const char *methodnames[2] = { "Palenzuela1D", "Newman1D" };
-  int fails[2]    = { 0, 0 };
+  int num_routines           = 4;
+  int routines[4]            = { igm_Palenzuela1D, igm_Palenzuela1D_entropy, igm_Newman1D, igm_Newman1D_entropy };
+  const char *methodnames[4] = { "Palenzuela1D", "Palenzuela1D_entropy", "Newman1D", "Newman1D_entropy" };
+  int fails[4]               = { 0, 0, 0 };
   for(int k = 0; k < nye; k++) {
     for(int j = 0; j < nt; j++) {
       for(int i = 0; i < nrho; i++) {
@@ -224,13 +225,13 @@ extern "C" void IllinoisGRMHD_con2prim_test_suit(CCTK_ARGUMENTS) {
         stats.dx[1]               = CCTK_DELTA_SPACE(1);
         stats.dx[2]               = CCTK_DELTA_SPACE(2);
 
-        for(int n = 0; n < 2; n++) {
+        for(int n = 0; n < num_routines; n++) {
           CCTK_REAL c2p_cons[numcons];
           set_cons_from_PRIMS_and_CONSERVS(eos, eos.c2p_routine, metric, metric_aux, igm_prims, igm_cons, c2p_cons);
 
           CCTK_REAL c2p_prims[numprims];
           set_prim_from_PRIMS_and_CONSERVS(
-                eos, eos.c2p_routine, 1, metric, metric_aux, igm_prims, igm_cons, c2p_cons, c2p_prims);
+                eos, eos.c2p_routine, 0, metric, metric_aux, igm_prims, igm_cons, c2p_cons, c2p_prims);
 
           if(con2prim_select(eos, routines[n], metric_phys, g4dn, g4up, c2p_cons, c2p_prims, stats)) {
             fails[n]++;
@@ -243,10 +244,10 @@ extern "C" void IllinoisGRMHD_con2prim_test_suit(CCTK_ARGUMENTS) {
 
   const int npts = nrho * nt * nye;
   CCTK_VINFO("Failure rates:");
-  for(int n = 0; n < 2; n++) {
-    const char *name = methodnames[n];
+  for(int n = 0; n < num_routines; n++) {
+    const char *name    = methodnames[n];
     const int failcount = fails[n];
-    const double pct = ((double)failcount) / ((double)npts) * 100;
+    const double pct    = ((double)failcount) / ((double)npts) * 100;
     CCTK_VINFO("    %-20s : %06d/%06d : %5.1lf%%", name, failcount, npts, pct);
   }
 

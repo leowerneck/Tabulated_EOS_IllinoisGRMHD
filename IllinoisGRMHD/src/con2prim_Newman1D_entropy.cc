@@ -10,7 +10,7 @@
 static const CCTK_INT senergyvar = 0;
 static const CCTK_INT entropyvar = 1;
 
-static bool newman_energy(
+static bool newman_entropy(
       const igm_eos_parameters eos,
       const CCTK_REAL tol_x,
       const CCTK_REAL S_squared,
@@ -20,7 +20,7 @@ static bool newman_energy(
       const CCTK_REAL *restrict con,
       CCTK_REAL *restrict prim);
 
-int con2prim_Newman1D(
+int con2prim_Newman1D_entropy(
       const igm_eos_parameters eos,
       const CCTK_REAL *restrict adm_quantities,
       const CCTK_REAL *restrict con,
@@ -94,10 +94,10 @@ int con2prim_Newman1D(
   }
 
   const CCTK_REAL tol_x = 1e-10;
-  return newman_energy(eos, tol_x, S_squared, BdotS, B_squared, SU, con, prim);
+  return newman_entropy(eos, tol_x, S_squared, BdotS, B_squared, SU, con, prim);
 }
 
-static bool newman_energy(
+static bool newman_entropy(
       const igm_eos_parameters eos,
       const CCTK_REAL tol_x,
       const CCTK_REAL S_squared,
@@ -129,11 +129,6 @@ static bool newman_energy(
   CCTK_REAL AtR;
   int AtStep = 0;
   AtP[0]     = xprs;
-
-  // Leo mod: compute auxiliary variables so we can find eps
-  const CCTK_REAL q = con[TAU] / con[DD];
-  const CCTK_REAL s = B_squared / con[DD];
-  const CCTK_REAL t = BdotS / (pow(con[DD], 1.5));
 
   // d = 0.5( S^{2}*B^{2} - (B.S)^{2} ) (eq. 5.7 in Newman & Hamlin 2014)
   const CCTK_REAL d = fmax(0.5 * (S_squared * B_squared - BdotS * BdotS), 0.0);
@@ -190,22 +185,11 @@ static bool newman_energy(
     prim[RHO]      = con[DD] / W; // rho[s] = tildeD[s]/(sqrtDetg[s]*W[s]);
     prim[WLORENTZ] = W;
 
-    // If using the specific internal energy, remember that
-    //
-    // z = rho * h * W^{2} = D * h * W
-    //
-    // and therefore:
-    //
-    // x = h * W = z / D
-    const CCTK_REAL x = z / con[DD];
-
-    // Now use the Palenzuela formula:
-    //
-    // eps = - 1.0 + x(1-W^{2})/W + W( 1 + q - s + 0.5*( s/W^{2} + t^{2}/x^{2} ) )
-    xeps = -1.0 + (1.0 - W * W) * x / W + W * (1.0 + q - s + 0.5 * (s / (W * W) + (t * t) / (x * x)));
-    // Then compute P, S, and T using (rho,Ye,eps)
-    enforce_table_bounds_rho_Ye_eps(eos, &xrho, &xye, &xeps);
-    WVU_EOS_P_S_and_T_from_rho_Ye_eps(xrho, xye, xeps, &xprs, &xent, &xtemp);
+    // If using the entropy, compute S = (WS)/W
+    xent = con[WS] / W;
+    // Then compute P, eps, and T using (rho,Ye,S)
+    enforce_table_bounds_rho_Ye_S(eos, &xrho, &xye, &xent);
+    WVU_EOS_P_eps_and_T_from_rho_Ye_S(xrho, xye, xent, &xprs, &xeps, &xtemp);
 
     prim[EPS] = xeps;
 
@@ -267,23 +251,11 @@ static bool newman_energy(
   prim[YE]  = xye;
   prim[ENT] = 0.0;
 
-  // If using the specific internal energy, remember that
-  //
-  // z = rho * h * W^{2} = D * h * W
-  //
-  // and therefore:
-  //
-  // x = h * W = z / D
-  const CCTK_REAL x = z / con[DD];
-
-  // Now use the Palenzuela formula:
-  //
-  // eps = - 1.0 + x(1-W^{2})/W + W( 1 + q - s + 0.5*( s/W^{2} + t^{2}/x^{2} ) )
-  prim[EPS]  = -1.0 + (1.0 - W * W) * x / W + W * (1.0 + q - s + 0.5 * (s / (W * W) + (t * t) / (x * x)));
-  // Then compute P, S, and T using (rho,Ye,eps)
-  prim[TEMP] = eos.T_atm;
-  enforce_table_bounds_rho_Ye_eps(eos, &prim[RHO], &prim[YE], &prim[EPS]);
-  WVU_EOS_P_S_and_T_from_rho_Ye_eps(prim[RHO], prim[YE], prim[EPS], &prim[PRESS], &prim[ENT], &prim[TEMP]);
+  // If using the entropy, compute S = (WS)/W
+  prim[ENT] = con[WS] / W;
+  // Then compute P, eps, and T using (rho,Ye,S)
+  enforce_table_bounds_rho_Ye_S(eos, &prim[RHO], &prim[YE], &prim[ENT]);
+  WVU_EOS_P_eps_and_T_from_rho_Ye_S(prim[RHO], prim[YE], prim[ENT], &prim[PRESS], &prim[EPS], &prim[TEMP]);
 
   return false;
 }
