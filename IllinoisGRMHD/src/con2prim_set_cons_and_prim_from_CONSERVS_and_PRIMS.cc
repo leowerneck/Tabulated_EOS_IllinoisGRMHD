@@ -200,13 +200,7 @@ void set_prim_from_PRIMS_and_CONSERVS(
   }
 
   if(eos.is_Tabulated) {
-    // This one is very simple! The only guess required is the temperature
-    if(which_guess == 1) {
-      prim[TEMP] = eos.T_max;
-    }
-    else {
-      prim[TEMP] = eos.T_atm;
-    }
-    prim[YE] = CONSERVS[YESTAR] / CONSERVS[RHOSTAR];
+    prim[YE]   = CONSERVS[YESTAR] / CONSERVS[RHOSTAR];
+    prim[TEMP] = which_guess == 1 ? eos.T_max : eos.T_atm;
   }
 }

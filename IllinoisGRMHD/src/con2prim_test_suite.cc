@@ -51,6 +51,19 @@ static inline void ghl_adm_to_igm_bssn(const ghl_metric_quantities *ghl_adm, CCT
   igm_bssn[GUPYZ]    = ghl_adm->gammaUU[2][2] * psi4;
 }
 
+typedef struct {
+  CCTK_REAL g4DD[4][4], g4UU[4][4];
+} igm_aux_metric;
+
+static inline void ghl_metric_aux_to_igm(const ghl_ADM_aux_quantities *ghl_aux, igm_aux_metric *igm_aux) {
+  for(int mu = 0; mu < 4; mu++) {
+    for(int nu = 0; nu < 4; nu++) {
+      igm_aux->g4DD[mu][nu] = ghl_aux->g4DD[mu][nu];
+      igm_aux->g4UU[mu][nu] = ghl_aux->g4UU[mu][nu];
+    }
+  }
+}
+
 static inline void ghl_prims_to_igm(const ghl_primitive_quantities *ghl_prims, CCTK_REAL *igm_prims) {
   igm_prims[RHOB]        = ghl_prims->rho;
   igm_prims[YEPRIM]      = ghl_prims->Y_e;
@@ -106,6 +119,7 @@ extern "C" void IllinoisGRMHD_con2prim_test_suit(CCTK_ARGUMENTS) {
 
   igm_eos_parameters eos;
   initialize_igm_eos_parameters_from_input(igm_eos_key, cctk_time, eos);
+  eos.T_max = 100;
 
   const char *filename = "ghl_unit_test_con2prim_tabulated.bin";
   FILE *fp             = fopen(filename, "rb");
@@ -133,7 +147,7 @@ extern "C" void IllinoisGRMHD_con2prim_test_suit(CCTK_ARGUMENTS) {
   int num_routines           = 4;
   int routines[4]            = { igm_Palenzuela1D, igm_Palenzuela1D_entropy, igm_Newman1D, igm_Newman1D_entropy };
   const char *methodnames[4] = { "Palenzuela1D", "Palenzuela1D_entropy", "Newman1D", "Newman1D_entropy" };
-  int fails[4]               = { 0, 0, 0 };
+  int fails[4]               = { 0, 0, 0, 0 };
   for(int k = 0; k < nye; k++) {
     for(int j = 0; j < nt; j++) {
       for(int i = 0; i < nrho; i++) {
@@ -187,37 +201,8 @@ extern "C" void IllinoisGRMHD_con2prim_test_suit(CCTK_ARGUMENTS) {
         CCTK_REAL igm_cons[NUM_CONSERVS];
         ghl_cons_to_igm(&ghl_cons, igm_cons);
 
-        CCTK_REAL shift_xL = metric_phys[GXX] * metric[SHIFTX] + metric_phys[GXY] * metric[SHIFTY]
-                             + metric_phys[GXZ] * metric[SHIFTZ];
-        CCTK_REAL shift_yL = metric_phys[GXY] * metric[SHIFTX] + metric_phys[GYY] * metric[SHIFTY]
-                             + metric_phys[GYZ] * metric[SHIFTZ];
-        CCTK_REAL shift_zL = metric_phys[GXZ] * metric[SHIFTX] + metric_phys[GYZ] * metric[SHIFTY]
-                             + metric_phys[GZZ] * metric[SHIFTZ];
-        CCTK_REAL beta2L = shift_xL * metric[SHIFTX] + shift_yL * metric[SHIFTY] + shift_zL * metric[SHIFTZ];
-
-        CCTK_REAL g4dn[4][4], g4up[4][4];
-        g4dn[0][0] = -SQR(metric_aux[LAPSE]) + beta2L;
-        g4dn[0][1] = g4dn[1][0] = metric[SHIFTX];
-        g4dn[0][2] = g4dn[2][0] = metric[SHIFTY];
-        g4dn[0][3] = g4dn[3][0] = metric[SHIFTZ];
-        g4dn[1][1]              = metric_phys[GXX];
-        g4dn[1][2] = g4dn[2][1] = metric_phys[GXY];
-        g4dn[1][3] = g4dn[3][1] = metric_phys[GXZ];
-        g4dn[2][2]              = metric_phys[GYY];
-        g4dn[2][3] = g4dn[3][2] = metric_phys[GYZ];
-        g4dn[3][3]              = metric_phys[GZZ];
-
-        CCTK_REAL alpha_inv_squared = SQR(metric_aux[LAPSEINV]);
-        g4up[0][0]                  = -1.0 * alpha_inv_squared;
-        g4up[0][1] = g4up[1][0] = metric[SHIFTX] * alpha_inv_squared;
-        g4up[0][2] = g4up[2][0] = metric[SHIFTY] * alpha_inv_squared;
-        g4up[0][3] = g4up[3][0] = metric[SHIFTZ] * alpha_inv_squared;
-        g4up[1][1]              = metric_phys[GUPXX] - metric[SHIFTX] * metric[SHIFTX] * alpha_inv_squared;
-        g4up[1][2] = g4up[2][1] = metric_phys[GUPXY] - metric[SHIFTX] * metric[SHIFTY] * alpha_inv_squared;
-        g4up[1][3] = g4up[3][1] = metric_phys[GUPXZ] - metric[SHIFTX] * metric[SHIFTZ] * alpha_inv_squared;
-        g4up[2][2]              = metric_phys[GUPYY] - metric[SHIFTY] * metric[SHIFTY] * alpha_inv_squared;
-        g4up[2][3] = g4up[3][2] = metric_phys[GUPYZ] - metric[SHIFTY] * metric[SHIFTZ] * alpha_inv_squared;
-        g4up[3][3]              = metric_phys[GUPZZ] - metric[SHIFTZ] * metric[SHIFTZ] * alpha_inv_squared;
+        igm_aux_metric igm_aux;
+        ghl_metric_aux_to_igm(&ghl_AUX_metric, &igm_aux);
 
         struct output_stats stats = {};
         stats.which_routine       = igm_None;
@@ -233,7 +218,7 @@ extern "C" void IllinoisGRMHD_con2prim_test_suit(CCTK_ARGUMENTS) {
           set_prim_from_PRIMS_and_CONSERVS(
                 eos, eos.c2p_routine, 0, metric, metric_aux, igm_prims, igm_cons, c2p_cons, c2p_prims);
 
-          if(con2prim_select(eos, routines[n], metric_phys, g4dn, g4up, c2p_cons, c2p_prims, stats)) {
+          if(con2prim_select(eos, routines[n], metric_phys, igm_aux.g4DD, igm_aux.g4UU, c2p_cons, c2p_prims, stats)) {
             fails[n]++;
           }
         }
@@ -241,6 +226,8 @@ extern "C" void IllinoisGRMHD_con2prim_test_suit(CCTK_ARGUMENTS) {
     }
   }
   fclose(fp);
+
+  CCTK_VINFO("T_max = %g", eos.T_max);
 
   const int npts = nrho * nt * nye;
   CCTK_VINFO("Failure rates:");
