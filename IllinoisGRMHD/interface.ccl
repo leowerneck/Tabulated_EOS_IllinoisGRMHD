@@ -34,14 +34,20 @@ CCTK_REAL grmhd_fluxes type=GF TAGS='prolongation="none" checkpoint="no"'
     rho_flux, tau_flux, S_x_flux, S_y_flux, S_z_flux, Y_e_flux, ent_flux
 } "GRMHD fluxes"
 
+# Auxiliary velocity variables
+CCTK_REAL grmhd_velocities type=GF TAGS='prolongation="none" interpnumtimelevels=1'
+{
+    vx, vy, vz
+} "Fluid three-velocity, defined as u^i / u^0"
+
 CCTK_REAL grmhd_B_center type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
 {
   Bx_center, By_center, Bz_center
 } "B-field components defined at vertices."
 
-cctk_real grmhd_primitives_Bi_stagger type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
+cctk_real grmhd_B_stagger type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
 {
-  Bx_stagger,By_stagger,Bz_stagger
+  Bx_stagger, By_stagger, Bz_stagger
 } "B-field components defined at staggered points [Bx_stagger at (i+1/2,j,k),By_stagger at (i,j+1/2,k),Bz_stagger at (i,j,k+1/2)]."
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
