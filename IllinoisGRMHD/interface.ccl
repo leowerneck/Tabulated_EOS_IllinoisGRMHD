@@ -10,61 +10,35 @@ USES INCLUDE HEADER: WVU_EOS_Tabulated_headers.hh
 
 public:
 
-#vvvvvvvv EVOLVED VARIABLES vvvvvvvv#
-cctk_real grmhd_conservatives type = GF Timelevels=3 TAGS='prolongation="ENO"'
+# Evolved variables
+CCTK_REAL grmhd_conservatives type=GF Timelevels=3 TAGS='prolongation="ENO"'
 {
-  rho_star,tau,mhd_st_x,mhd_st_y,mhd_st_z,Ye_star,S_star  # Note that st = Stilde, as mhd_st_i = \tilde{S}_i.
-} "Evolved mhd variables"
+    rho_tilde, tau_tilde, S_x_tilde, S_y_tilde, S_z_tilde, Y_e_tilde, ent_tilde
+} "Evolved MHD variables"
 
-# These variables are semi-staggered:
-# Ax is defined on the semi-staggered grid (i,j+1/2,k+1/2)
-# WARNING: WILL NOT WORK PROPERLY WITHOUT SEMI-STAGGERED PROLONGATION/RESTRICTION:
-cctk_real em_Ax type = GF Timelevels=3 tags='Prolongation="STAGGER011"'
-{
-  Ax
-} "x-component of the vector potential, evolved when constrained_transport_scheme==3"
+CCTK_REAL Phi_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER111"' "Staggered electric (scalar) potential"
+CCTK_REAL A_x_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER011"' "Staggered x-component of magnetic (vector) potential"
+CCTK_REAL A_y_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER101"' "Staggered y-component of magnetic (vector) potential"
+CCTK_REAL A_z_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER110"' "Staggered z-component of magnetic (vector) potential"
 
-# Ay is defined on the semi-staggered grid (i+1/2,j,k+1/2)
-# WARNING: WILL NOT WORK PROPERLY WITHOUT SEMI-STAGGERED PROLONGATION/RESTRICTION:
-cctk_real em_Ay type = GF Timelevels=3 tags='Prolongation="STAGGER101"'
+# Right-hand side variables
+CCTK_REAL grmhd_rhss type=GF TAGS='prolongation="none" checkpoint="no"'
 {
-  Ay
-} "y-component of the vector potential, evolved when constrained_transport_scheme==3"
-# WARNING: WILL NOT WORK PROPERLY WITHOUT SEMI-STAGGERED PROLONGATION/RESTRICTION:
+    rho_rhs, tau_rhs, S_x_rhs, S_y_rhs, S_z_rhs, Y_e_rhs, ent_rhs,
+    A_x_rhs, A_y_rhs, A_z_rhs, Phi_rhs
+} "GRMHD right-hand sides"
 
-# Az is defined on the semi-staggered grid (i+1/2,j+1/2,k)
-cctk_real em_Az type = GF Timelevels=3 tags='Prolongation="STAGGER110"'
+# Flux variables
+CCTK_REAL grmhd_fluxes type=GF TAGS='prolongation="none" checkpoint="no"'
 {
-  Az
-} "z-component of the vector potential, evolved when constrained_transport_scheme==3"
+    rho_flux, tau_flux, S_x_flux, S_y_flux, S_z_flux, Y_e_flux, ent_flux
+} "GRMHD fluxes"
 
-# psi6phi is defined on the staggered grid (i+1/2,j+1/2,k+1/2)
-# WARNING: WILL NOT WORK PROPERLY WITHOUT FULLY-STAGGERED PROLONGATION/RESTRICTION:
-#
-cctk_real em_psi6phi type = GF Timelevels=3 tags='Prolongation="STAGGER111"'
+CCTK_REAL grmhd_B_center type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
 {
-  psi6phi
-} "sqrt{gamma} Phi, where Phi is the em scalar potential"
-  #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
-
-CCTK_INT con2prim_failed_flag type=GF Timelevels=1 tags='Prolongation="none" Checkpoint="no"'
-
-CCTK_REAL Tmunu_source_terms type=GF Timelevels=1 tags='Prolongation="none" Checkpoint="no"'
-{
-  s_tau, s_sx, s_sy, s_sz
-} "Non-flux terms on conservatives right-hand sides"
-
-#vvvvvvv PRIMITIVE VARIABLES vvvvvvv#
-# TODO: split into groups with well defined symmetry properties: (rho_b, P, u0), (vx,vy,vz)
-cctk_real grmhd_primitives_allbutBi type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
-{
-  rho_b,P,vx,vy,vz,igm_Ye,igm_temperature,igm_eps,igm_entropy,igm_c2p_mask
-} "Primitive variables density, pressure, and components of three velocity v^i. Note that v^i is defined in terms of 4-velocity as: v^i = u^i/u^0. Note that this definition differs from the Valencia formalism."
-# It is useful to split Bi from Bi_stagger, since we're generally only interested in outputting Bi for diagnostics
-cctk_real grmhd_primitives_Bi type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
-{
-  Bx,By,Bz
+  Bx_center, By_center, Bz_center
 } "B-field components defined at vertices."
+
 cctk_real grmhd_primitives_Bi_stagger type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
 {
   Bx_stagger,By_stagger,Bz_stagger
@@ -97,30 +71,6 @@ cctk_real grmhd_primitives_reconstructed_temps type = GF TAGS='prolongation="non
 } "Temporary variables used for primitives reconstruction"
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
-#vvvvvvv RHS VARIABLES vvvvvvv#
-cctk_real grmhd_conservatives_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
-{
-  rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs,Ye_star_rhs,S_star_rhs
-} "Storage for the right-hand side of the partial_t rho_star, partial_t tau, and partial_t tilde{S}_i equations. Needed for MoL timestepping."
-
-cctk_real em_Ax_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
-{
-  Ax_rhs
-} "Storage for the right-hand side of the partial_t A_x equation. Needed for MoL timestepping."
-cctk_real em_Ay_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
-{
-  Ay_rhs
-} "Storage for the right-hand side of the partial_t A_y equation. Needed for MoL timestepping."
-cctk_real em_Az_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
-{
-  Az_rhs
-} "Storage for the right-hand side of the partial_t A_z equation. Needed for MoL timestepping."
-cctk_real em_psi6phi_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
-{
-  psi6phi_rhs
-} "Storage for the right-hand side of the partial_t (psi^6 Phi) equation. Needed for MoL timestepping."
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
-
 #vvvvvvv TEMPORARY VARIABLES USEFUL FOR A-FIELD EVOLUTION vvvvvvv#
 cctk_real grmhd_cmin_cmax_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
@@ -129,13 +79,6 @@ cctk_real grmhd_cmin_cmax_temps type = GF TAGS='prolongation="none" Checkpoint="
   cmin_z,cmax_z
 } "Store min and max characteristic speeds in all three directions."
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
-
-#vvvvvvv TEMPORARY VARIABLES USEFUL FOR FLUX COMPUTATION vvvvvvv#
-cctk_real grmhd_flux_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
-{
-  rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,Ye_star_flux,S_star_flux
-} "Temporary variables for storing the flux terms of tilde{S}_i."
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
 #vvvvvvv T^{\mu \nu}, stored to avoid expensive recomputation vvvvvvv#
 cctk_real TUPmunu type = GF TAGS='prolongation="none" Checkpoint="no"'
