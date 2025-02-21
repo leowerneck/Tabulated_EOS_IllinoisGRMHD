@@ -106,7 +106,7 @@ static inline void compute_v02( const igm_eos_parameters eos,
                                 CCTK_REAL *restrict smallb,
                                 CCTK_REAL *restrict PRIMS,
                                 CCTK_REAL &v02L) {
-  // Check rho_b
+  // Check rho
   if(PRIMS[RHOB]<=0) { v02L=1.0; return; }
   // Compute v_A = Alfven speed = sqrt( b^2/(rho0 h + b^2) )
   CCTK_REAL v_A_squared = smallb[SMALLB2]/(smallb[SMALLB2] + PRIMS[RHOB]*(h));
@@ -188,7 +188,7 @@ inline int font_fix__rhob_loop( const int maxits, const CCTK_REAL tol,
       /* Update rhob using eq. (A62) in Etienne et al. (2011)
        *          https://arxiv.org/pdf/1112.0568.pdf
        * .---------------------------------------------------------------------------.
-       * | rhob = rho_star * Psi^{-6} / sqrt( 1 + S_fluid^{2}/( (rho_star*h)^{2} ) ) |
+       * | rhob = rho_tilde * Psi^{-6} / sqrt( 1 + S_fluid^{2}/( (rho_tilde*h)^{2} ) ) |
        * .---------------------------------------------------------------------------.
        */
       rhob1 = CONSERVS[RHOSTAR]*Psim6/sqrt(1.0+Sf20/SQR(CONSERVS[RHOSTAR]*h));
@@ -213,7 +213,7 @@ inline int font_fix__rhob_loop( const int maxits, const CCTK_REAL tol,
     /* Set W based on eq. (A60) in Etienne et al. (2011)
      *       https://arxiv.org/pdf/1112.0568.pdf
      * .-------------------------------------------------------.
-     * | W = psi^{-6} * sqrt( S_fluid^{2} + (rho_star*h)^{2} ) |
+     * | W = psi^{-6} * sqrt( S_fluid^{2} + (rho_tilde*h)^{2} ) |
      * .-------------------------------------------------------.
      */
     W = sqrt( Sf20 + SQR(CONSERVS[RHOSTAR]*h))*Psim6;

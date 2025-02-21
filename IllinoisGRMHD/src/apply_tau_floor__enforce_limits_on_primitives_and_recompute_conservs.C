@@ -4,9 +4,9 @@ void eigenvalues_3by3_real_sym_matrix(CCTK_REAL & lam1, CCTK_REAL & lam2, CCTK_R
 static inline int apply_tau_floor(const int index,const CCTK_REAL Psi6threshold,CCTK_REAL *PRIMS,CCTK_REAL *METRIC,CCTK_REAL *METRIC_PHYS,CCTK_REAL *METRIC_LAP_PSI4,output_stats &stats,igm_eos_parameters &eos,  CCTK_REAL *CONSERVS) {
 
 
-  //First apply the rho_star floor:
+  //First apply the rho_tilde floor:
 
-  //rho_star = alpha u0 Psi6 rho_b, alpha u0 > 1, so if rho_star < Psi6 rho_b_atm, then we are GUARANTEED that we can reset to atmosphere.
+  //rho_tilde = alpha u0 Psi6 rho, alpha u0 > 1, so if rho_tilde < Psi6 rho_b_atm, then we are GUARANTEED that we can reset to atmosphere.
   //if(CONSERVS[RHOSTAR] < 1e4*METRIC_LAP_PSI4[PSI6]*rho_b_atm) {
   //if(CONSERVS[RHOSTAR] < 2*METRIC_LAP_PSI4[PSI6]*rho_b_atm) {
 
@@ -157,7 +157,7 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
   //
   // This function will apply floors and ceilings and recompute:
   //
-  // rho_b
+  // rho
   // P
   // eps
   // S  (if evolving the entropy)
@@ -174,7 +174,7 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
   for(int ii=0;ii<3;ii++) uUP[UX+ii] = uUP[0]*PRIMS[VX+ii];
 
   // Useful debugging tool, part 2: can be used to track fixes:
-  //if(P_orig!=U[PRESSURE] || rho_b_orig!=U[RHOB] || vx_orig!=U[VX] || vy_orig!=U[VY] || vz_orig!=U[VZ]) {
+  //if(P_orig!=U[PRESSURE] || rho_orig!=U[RHOB] || vx_orig!=U[VX] || vy_orig!=U[VY] || vz_orig!=U[VZ]) {
 
   /***************************************************************/
   // COMPUTE TUPMUNU, TDNMUNU, AND  CONSERVATIVES FROM PRIMITIVES
@@ -267,11 +267,11 @@ void IllinoisGRMHD_enforce_limits_on_primitives_and_recompute_conservs(const int
   // tauL = alpha^2 sqrt(gamma) T^{00} - CONSERVS[RHOSTAR]
   CONSERVS[TAUENERGY] =  METRIC_LAP_PSI4[LAPSE]*alpha_sqrt_gamma*(rho0_h_plus_b2*SQR(uUP[0]) + P_plus_half_b2*(-SQR(METRIC_LAP_PSI4[LAPSEINV])) - SQR(smallb[SMALLBT])) - CONSERVS[RHOSTAR];
   if( eos.evolve_entropy ) {
-    // Entropy equation evolves S_star = alpha * sqrt(gamma) * S * u^{0}
+    // Entropy equation evolves ent_tilde = alpha * sqrt(gamma) * S * u^{0}
     CONSERVS[ENTSTAR] = alpha_sqrt_gamma * PRIMS[ENTROPY] * uUP[0];
   }
   if( eos.is_Tabulated ) {
-    // Tabulated EOS evolves Y_e_star = alpha * sqrt(gamma) * rho_b * Y_e * u^{0} = rho_star * Y_e
+    // Tabulated EOS evolves Y_e_star = alpha * sqrt(gamma) * rho * Y_e * u^{0} = rho_tilde * Y_e
     CONSERVS[YESTAR ] = CONSERVS[RHOSTAR] * PRIMS[YEPRIM];
   }
 }

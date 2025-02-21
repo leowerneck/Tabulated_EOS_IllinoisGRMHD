@@ -23,7 +23,7 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   // the standard conservative variables (D,tau,S_{i}). In
   // other words, we have the relationships:
   //
-  // rho_star   = sqrt(gamma) *  D
+  // rho_tilde   = sqrt(gamma) *  D
   // tilde(tau) = sqrt(gamma) * tau
   // tilde(S)_i = sqrt(gamma) * S_i
   //
@@ -34,7 +34,7 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   // energy variable u which is related to IllinoisGRMHD's
   // conservatives via the relation:
   //
-  // u = -alpha*tau - (alpha-1)*rho_star + beta^{i}tilde(S)_{i}
+  // u = -alpha*tau - (alpha-1)*rho_tilde + beta^{i}tilde(S)_{i}
   //
   // The magnetic fields in IllinoisGRMHD also need to be
   // rescaled by a factor of sqrt(4pi). In the case of
@@ -95,7 +95,7 @@ void set_cons_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
 
     // The entropy variable is given by
     //
-    // S_star / psi^{6} = alpha * psi^{6} * S * u^{0} / psi^{6}
+    // ent_tilde / psi^{6} = alpha * psi^{6} * S * u^{0} / psi^{6}
     //                  = ( alpha * u^{0} ) * S
     //                  = W * S
     cons[WS] = CONSERVS[ENTSTAR] * psim6;
@@ -119,7 +119,7 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
   CCTK_REAL K_ppoly_tab      = 0.0;
   CCTK_REAL Gamma_ppoly_tab  = 0.0;
   CCTK_REAL u0L              = 1.0;
-  CCTK_REAL rho_b_oldL       = PRIMS[RHOB    ];
+  CCTK_REAL rho_oldL       = PRIMS[RHOB    ];
   CCTK_REAL P_oldL           = PRIMS[PRESSURE];
   CCTK_REAL vxL              = PRIMS[VX      ];
   CCTK_REAL vyL              = PRIMS[VY      ];
@@ -134,7 +134,7 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
 
     if(which_guess==1) {
       //Use a different initial guess:
-      rho_b_oldL = CONSERVS[RHOSTAR]/METRIC_LAP_PSI4[PSI6];
+      rho_oldL = CONSERVS[RHOSTAR]/METRIC_LAP_PSI4[PSI6];
 
       /**********************************
        * Piecewise Polytropic EOS Patch *
@@ -146,12 +146,12 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
        * Gamma and K parameters to be used
        * within this function.
        */
-      polytropic_index = find_polytropic_K_and_Gamma_index(eos,rho_b_oldL);
+      polytropic_index = find_polytropic_K_and_Gamma_index(eos,rho_oldL);
       K_ppoly_tab     = eos.K_ppoly_tab[polytropic_index];
       Gamma_ppoly_tab = eos.Gamma_ppoly_tab[polytropic_index];
 
       // After that, we compute P_cold
-      P_oldL = K_ppoly_tab*pow(rho_b_oldL,Gamma_ppoly_tab);
+      P_oldL = K_ppoly_tab*pow(rho_oldL,Gamma_ppoly_tab);
 
       u0L = METRIC_LAP_PSI4[LAPSEINV];
       vxL = -METRIC[SHIFTX];
@@ -161,7 +161,7 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
 
     if(which_guess==2) {
       //Use atmosphere as initial guess:
-      rho_b_oldL = 100.0*eos.rho_atm;
+      rho_oldL = 100.0*eos.rho_b_atm;
 
       /**********************************
        * Piecewise Polytropic EOS Patch *
@@ -173,12 +173,12 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
        * Gamma and K parameters to be used
        * within this function.
        */
-      polytropic_index = find_polytropic_K_and_Gamma_index(eos,rho_b_oldL);
+      polytropic_index = find_polytropic_K_and_Gamma_index(eos,rho_oldL);
       K_ppoly_tab     = eos.K_ppoly_tab[polytropic_index];
       Gamma_ppoly_tab = eos.Gamma_ppoly_tab[polytropic_index];
 
       // After that, we compute P_cold
-      P_oldL = K_ppoly_tab*pow(rho_b_oldL,Gamma_ppoly_tab);
+      P_oldL = K_ppoly_tab*pow(rho_oldL,Gamma_ppoly_tab);
 
       u0L = METRIC_LAP_PSI4[LAPSEINV];
       vxL = -METRIC[SHIFTX];
@@ -191,7 +191,7 @@ void set_prim_from_PRIMS_and_CONSERVS( const igm_eos_parameters eos,
     CCTK_REAL utyL = u0L*(vyL + METRIC[SHIFTY]);
     CCTK_REAL utzL = u0L*(vzL + METRIC[SHIFTZ]);
 
-    prim[RHO     ] = rho_b_oldL;
+    prim[RHO     ] = rho_oldL;
     prim[UU      ] = uL;
     prim[UTCON1  ] = utxL;
     prim[UTCON2  ] = utyL;

@@ -61,18 +61,20 @@ cctk_real BSSN_quantities type = GF TAGS='prolongation="none" Checkpoint="no"'
 private:
 
 #vvvvvvv DIAGNOSTIC GRIDFUNCTIONS vvvvvvv#
-cctk_real diagnostic_gfs type = GF TAGS='prolongation="none" Checkpoint="no"'
+CCTK_REAL diagnostic_gfs type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
-  failure_checker
+  failure_checker, 
 } "Gridfunction to track conservative-to-primitives solver fixes. Beware that this gridfunction is overwritten at each RK substep."
+
+CCTK_INT con2prim_failed_flag type = GF TAGS='prolongation="none" Checkpoint="no"' "Gridfunction to track conservative-to-primitives solver fixes. Beware that this gridfunction is overwritten at each RK substep."
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
 #vvvvvvv TEMPORARY VARIABLES FOR RECONSTRUCTION vvvvvvv#
 cctk_real grmhd_primitives_reconstructed_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
   ftilde_gf,temporary,
-  rho_br,Pr,vxr,vyr,vzr,Bxr,Byr,Bzr,Bx_staggerr,By_staggerr,Bz_staggerr,Yer,Tr,epsr,Sr,
-  rho_bl,Pl,vxl,vyl,vzl,Bxl,Byl,Bzl,Bx_staggerl,By_staggerl,Bz_staggerl,Yel,Tl,epsl,Sl,
+  rhor,Pr,vxr,vyr,vzr,Bxr,Byr,Bzr,Bx_staggerr,By_staggerr,Bz_staggerr,Yer,Tr,epsr,entr,
+  rhol,Pl,vxl,vyl,vzl,Bxl,Byl,Bzl,Bx_staggerl,By_staggerl,Bz_staggerl,Yel,Tl,epsl,entl,
   vxrr,vxrl,vyrr,vyrl,vzrr,vzrl,vxlr,vxll,vylr,vyll,vzlr,vzll
 } "Temporary variables used for primitives reconstruction"
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#

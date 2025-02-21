@@ -41,13 +41,13 @@ int con2prim( const igm_eos_parameters eos,
   // U[1]   =
   // U[2-4] =  stildei + rhostar
 
-  CCTK_REAL rho_star_orig = CONSERVS[RHOSTAR  ];
-  CCTK_REAL mhd_st_x_orig = CONSERVS[STILDEX  ];
-  CCTK_REAL mhd_st_y_orig = CONSERVS[STILDEY  ];
-  CCTK_REAL mhd_st_z_orig = CONSERVS[STILDEZ  ];
+  CCTK_REAL rho_tilde_orig = CONSERVS[RHOSTAR  ];
+  CCTK_REAL S_x_orig = CONSERVS[STILDEX  ];
+  CCTK_REAL S_y_orig = CONSERVS[STILDEY  ];
+  CCTK_REAL S_z_orig = CONSERVS[STILDEZ  ];
   // CCTK_REAL tau_orig      = CONSERVS[TAUENERGY];
-  // CCTK_REAL Ye_star_orig  = CONSERVS[YESTAR   ];
-  // CCTK_REAL S_star_orig   = CONSERVS[ENTSTAR  ];
+  // CCTK_REAL Y_e_tilde_orig  = CONSERVS[YESTAR   ];
+  // CCTK_REAL ent_tilde_orig   = CONSERVS[ENTSTAR  ];
 
 
   // Other ideas for setting the gamma speed limit
@@ -122,7 +122,7 @@ int con2prim( const igm_eos_parameters eos,
         prim[UTCON3] = METRIC_PHYS[GUPXZ]*u_xl + METRIC_PHYS[GUPYZ]*u_yl + METRIC_PHYS[GUPZZ]*u_zl;
         if (check==1) {
           CCTK_VInfo(CCTK_THORNSTRING,"Font fix failed!");
-          CCTK_VInfo(CCTK_THORNSTRING,"i,j,k = %d %d %d, stats.failure_checker = %d x,y,z = %e %e %e , index=%d st_i = %e %e %e, rhostar = %e, Bi = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",i,j,k,stats.failure_checker,X[index],Y[index],Z[index],index,mhd_st_x_orig,mhd_st_y_orig,mhd_st_z_orig,rho_star_orig,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[PSI6]);
+          CCTK_VInfo(CCTK_THORNSTRING,"i,j,k = %d %d %d, stats.failure_checker = %d x,y,z = %e %e %e , index=%d st_i = %e %e %e, rhostar = %e, Bi = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",i,j,k,stats.failure_checker,X[index],Y[index],Z[index],index,S_x_orig,S_y_orig,S_z_orig,rho_tilde_orig,PRIMS[BX_CENTER],PRIMS[BY_CENTER],PRIMS[BZ_CENTER],METRIC_PHYS[GXX],METRIC_PHYS[GXY],METRIC_PHYS[GXZ],METRIC_PHYS[GYY],METRIC_PHYS[GYZ],METRIC_PHYS[GZZ],METRIC_LAP_PSI4[PSI6]);
         }
       }
       stats.failure_checker+=font_fix_applied*10000;
@@ -154,9 +154,9 @@ int con2prim( const igm_eos_parameters eos,
         utz_new *= fac;
         gijuiuj = gijuiuj * SQR(fac);
         au0m1 = gijuiuj/( 1.0+sqrt(1.0+gijuiuj) );
-        // Reset rho_b and u0
+        // Reset rho and u0
         u0L = (au0m1+1.0)*METRIC_LAP_PSI4[LAPSEINV];
-        prim[RHO] =  rho_star_orig/(METRIC_LAP_PSI4[LAPSE]*u0L*METRIC_LAP_PSI4[PSI6]);
+        prim[RHO] =  rho_tilde_orig/(METRIC_LAP_PSI4[LAPSE]*u0L*METRIC_LAP_PSI4[PSI6]);
         stats.vel_limited=1;
         stats.failure_checker+=1000;
       } //Finished limiting velocity
@@ -165,7 +165,7 @@ int con2prim( const igm_eos_parameters eos,
       //The Font fix only sets the velocities.  Here we set the pressure & density HARM primitives.
       if( eos.is_Hybrid ) {
         if(font_fix_applied==1) {
-          prim[RHO] = rho_star_orig/(METRIC_LAP_PSI4[LAPSE]*u0L*METRIC_LAP_PSI4[PSI6]);
+          prim[RHO] = rho_tilde_orig/(METRIC_LAP_PSI4[LAPSE]*u0L*METRIC_LAP_PSI4[PSI6]);
           //Next set P = P_cold:
           CCTK_REAL P_cold;
 
@@ -206,7 +206,7 @@ int con2prim( const igm_eos_parameters eos,
       }
       else {
 
-	/* Set rho_b */
+	/* Set rho */
 	PRIMS[RHOB] = prim[RHO];
 
 	if( eos.is_Hybrid ) {

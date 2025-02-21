@@ -88,15 +88,16 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   /* SET POINTERS TO GRMHD GRIDFUNCTIONS */
   // The order here MATTERS, and must be consistent with the global variable declarations in
   //   evaluate_MHD_rhs_headers.h (look for RHOB=0, etc.)
-  //   For example, in_prims[0] _must_ be rho_b.
-  in_prims[RHOB       ].gf=rho_b;           out_prims_r[RHOB       ].gf=rho_br;      out_prims_l[RHOB       ].gf=rho_bl;
-  in_prims[PRESSURE   ].gf=P;               out_prims_r[PRESSURE   ].gf=Pr;          out_prims_l[PRESSURE   ].gf=Pl;
+  //   For example, in_prims[0] _must_ be rho.
+  // clang-format off
+  in_prims[RHOB       ].gf=rho;             out_prims_r[RHOB       ].gf=rhor;        out_prims_l[RHOB       ].gf=rhol;
+  in_prims[PRESSURE   ].gf=press;           out_prims_r[PRESSURE   ].gf=Pr;          out_prims_l[PRESSURE   ].gf=Pl;
   in_prims[VX         ].gf=vx;              out_prims_r[VX         ].gf=vxr;         out_prims_l[VX         ].gf=vxl;
   in_prims[VY         ].gf=vy;              out_prims_r[VY         ].gf=vyr;         out_prims_l[VY         ].gf=vyl;
   in_prims[VZ         ].gf=vz;              out_prims_r[VZ         ].gf=vzr;         out_prims_l[VZ         ].gf=vzl;
-  in_prims[BX_CENTER  ].gf=Bx;              out_prims_r[BX_CENTER  ].gf=Bxr;         out_prims_l[BX_CENTER  ].gf=Bxl;
-  in_prims[BY_CENTER  ].gf=By;              out_prims_r[BY_CENTER  ].gf=Byr;         out_prims_l[BY_CENTER  ].gf=Byl;
-  in_prims[BZ_CENTER  ].gf=Bz;              out_prims_r[BZ_CENTER  ].gf=Bzr;         out_prims_l[BZ_CENTER  ].gf=Bzl;
+  in_prims[BX_CENTER  ].gf=Bx_center;       out_prims_r[BX_CENTER  ].gf=Bxr;         out_prims_l[BX_CENTER  ].gf=Bxl;
+  in_prims[BY_CENTER  ].gf=By_center;       out_prims_r[BY_CENTER  ].gf=Byr;         out_prims_l[BY_CENTER  ].gf=Byl;
+  in_prims[BZ_CENTER  ].gf=Bz_center;       out_prims_r[BZ_CENTER  ].gf=Bzr;         out_prims_l[BZ_CENTER  ].gf=Bzl;
   in_prims[BX_STAGGER ].gf=Bx_stagger;      out_prims_r[BX_STAGGER ].gf=Bx_staggerr; out_prims_l[BX_STAGGER ].gf=Bx_staggerl;
   in_prims[BY_STAGGER ].gf=By_stagger;      out_prims_r[BY_STAGGER ].gf=By_staggerr; out_prims_l[BY_STAGGER ].gf=By_staggerl;
   in_prims[BZ_STAGGER ].gf=Bz_stagger;      out_prims_r[BZ_STAGGER ].gf=Bz_staggerr; out_prims_l[BZ_STAGGER ].gf=Bz_staggerl;
@@ -106,10 +107,11 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   in_prims[VXL        ].gf=vxl;             out_prims_r[VXL        ].gf=vxlr;        out_prims_l[VXL        ].gf=vxll;
   in_prims[VYL        ].gf=vyl;             out_prims_r[VYL        ].gf=vylr;        out_prims_l[VYL        ].gf=vyll;
   in_prims[VZL        ].gf=vzl;             out_prims_r[VZL        ].gf=vzlr;        out_prims_l[VZL        ].gf=vzll;
-  in_prims[YEPRIM     ].gf=igm_Ye;          out_prims_r[YEPRIM     ].gf=Yer;         out_prims_l[YEPRIM     ].gf=Yel;
-  in_prims[TEMPERATURE].gf=igm_temperature; out_prims_r[TEMPERATURE].gf=Tr;          out_prims_l[TEMPERATURE].gf=Tl;
-  in_prims[EPSILON    ].gf=igm_eps;         out_prims_r[EPSILON    ].gf=epsr;        out_prims_l[EPSILON    ].gf=epsl;
-  in_prims[ENTROPY    ].gf=igm_entropy;     out_prims_r[ENTROPY    ].gf=Sr;          out_prims_l[ENTROPY    ].gf=Sl;
+  in_prims[YEPRIM     ].gf=Y_e;             out_prims_r[YEPRIM     ].gf=Yer;         out_prims_l[YEPRIM     ].gf=Yel;
+  in_prims[TEMPERATURE].gf=temperature;     out_prims_r[TEMPERATURE].gf=Tr;          out_prims_l[TEMPERATURE].gf=Tl;
+  in_prims[EPSILON    ].gf=eps;             out_prims_r[EPSILON    ].gf=epsr;        out_prims_l[EPSILON    ].gf=epsl;
+  in_prims[ENTROPY    ].gf=entropy;         out_prims_r[ENTROPY    ].gf=entr;        out_prims_l[ENTROPY    ].gf=entl;
+  // clang-format on
 
   // Prims are defined AT ALL GRIDPOINTS, so we set the # of ghostzones to zero:
   for(int i=0;i<MAXNUMVARS;i++) for(int j=1;j<=3;j++) { in_prims[i].gz_lo[j]=0; in_prims[i].gz_hi[j]=0; }
@@ -158,28 +160,23 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   TUPmunu[ww]=TUPzz; ww++;
 
 
-  // 1) First initialize {rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs} to zero
+  // 1) First initialize {rho_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs} to zero
 #pragma omp parallel for
   for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
         int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
-        Ax_rhs      [index] = 0.0;
-        Ay_rhs      [index] = 0.0;
-        Az_rhs      [index] = 0.0;
-        psi6phi_rhs [index] = 0.0;
+        A_x_rhs      [index] = 0.0;
+        A_y_rhs      [index] = 0.0;
+        A_z_rhs      [index] = 0.0;
+        Phi_rhs [index] = 0.0;
 
-        rho_star_rhs[index] = 0.0;
-        st_x_rhs    [index] = 0.0;
-        st_y_rhs    [index] = 0.0;
-        st_z_rhs    [index] = 0.0;
+        rho_rhs[index] = 0.0;
+        S_x_rhs    [index] = 0.0;
+        S_y_rhs    [index] = 0.0;
+        S_z_rhs    [index] = 0.0;
         tau_rhs     [index] = 0.0;
 
-        Ye_star_rhs [index] = 0.0;
-        S_star_rhs  [index] = 0.0;
-
-	s_tau       [index] = 0.0;
-	s_sx        [index] = 0.0;
-	s_sy        [index] = 0.0;
-	s_sz        [index] = 0.0;
+        Y_e_rhs [index] = 0.0;
+        ent_rhs  [index] = 0.0;
       }
 
   // Here, we:
@@ -189,7 +186,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   compute_tau_rhs_extrinsic_curvature_terms_and_TUPmunu(eos,cctkGH,cctk_lsh,cctk_nghostzones,dX,metric,in_prims,TUPmunu,
                                                         gtupxy,gtupxz,gtupyz,
                                                         kxx,kxy,kxz,kyy,kyz,kzz,
-                                                        tau_rhs, s_tau);
+                                                        tau_rhs);
 
   int flux_dirn;
   flux_dirn=1;
@@ -200,14 +197,14 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 
 
   /* There are two stories going on here:
-   * 1) Computation of \partial_x on RHS of \partial_t {rho_star,tau,mhd_st_{x,y,z}},
+   * 1) Computation of \partial_x on RHS of \partial_t {rho_tilde,tau,S_{x,y,z}},
    *    via PPM reconstruction onto (i-1/2,j,k), so that
    *    \partial_x F = [ F(i+1/2,j,k) - F(i-1/2,j,k) ] / dx
    * 2) Computation of \partial_t A_i, where A_i are *staggered* gridfunctions,
    *    where A_x is defined at (i,j+1/2,k+1/2), A_y at (i+1/2,j,k+1/2), etc.
    *    Ai_rhs = \partial_t A_i = \epsilon_{ijk} \psi^{6} v^j B^k,
    *    where \epsilon_{ijk} is the flat-space antisymmetric operator.
-   * 2A) Az_rhs is defined at (i+1/2,j+1/2,k), and it depends on {Bx,By,vx,vy},
+   * 2A) A_z_rhs is defined at (i+1/2,j+1/2,k), and it depends on {Bx,By,vx,vy},
    *     so the trick is to reconstruct {Bx,By,vx,vy} cleverly to get to these
    *     staggered points. For example:
    * 2Aa) vx and vy are at (i,j,k), and we reconstruct them to (i-1/2,j,k) below. After
@@ -242,16 +239,15 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
         int index=CCTK_GFINDEX3D(cctkGH,i,j,k), indexim1=CCTK_GFINDEX3D(cctkGH,i-1+(i==0),j,k); /* indexim1=0 when i=0 */
         out_prims_r[BX_CENTER].gf[index]=out_prims_l[BX_CENTER].gf[index]=in_prims[BX_STAGGER].gf[indexim1]; }
-  // Then add fluxes to RHS for hydro variables {rho_b,P,vx,vy,vz}:
+  // Then add fluxes to RHS for hydro variables {rho,P,vx,vy,vz}:
   // This function is housed in the file: "add_fluxes_and_source_terms_to_hydro_rhss.C"
   add_fluxes_and_source_terms_to_hydro_rhss(eos,flux_dirn,cctkGH,cctk_lsh,cctk_nghostzones,dX,
                                             metric,TUPmunu,
                                             num_prims_to_reconstruct,
                                             in_prims,out_prims_r,out_prims_l,
                                             cmax_x,cmin_x,
-                                            rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,Ye_star_flux,S_star_flux,
-                                            rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs,Ye_star_rhs,S_star_rhs,
-                                            s_tau, s_sx, s_sy, s_sz);
+                                            rho_flux,tau_flux,S_x_flux,S_y_flux,S_z_flux,Y_e_flux,ent_flux,
+                                            rho_rhs ,tau_rhs ,S_x_rhs ,S_y_rhs ,S_z_rhs ,Y_e_rhs,ent_rhs);
 
   // Note that we have already reconstructed vx and vy along the x-direction,
   //   at (i-1/2,j,k). That result is stored in v{x,y}{r,l}.  Bx_stagger data
@@ -271,21 +267,21 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   in_prims[VYL]=out_prims_l[VY];
 
   /* There are two stories going on here:
-   * 1) Computation of \partial_y on RHS of \partial_t {rho_star,tau,mhd_st_{x,y,z}},
+   * 1) Computation of \partial_y on RHS of \partial_t {rho_tilde,tau,S_{x,y,z}},
    *    via PPM reconstruction onto (i,j-1/2,k), so that
    *    \partial_y F = [ F(i,j+1/2,k) - F(i,j-1/2,k) ] / dy
    * 2) Computation of \partial_t A_i, where A_i are *staggered* gridfunctions,
    *    where A_x is defined at (i,j+1/2,k+1/2), A_y at (i+1/2,j,k+1/2), etc.
    *    Ai_rhs = \partial_t A_i = \epsilon_{ijk} \psi^{6} v^j B^k,
    *    where \epsilon_{ijk} is the flat-space antisymmetric operator.
-   * 2A) Az_rhs is defined at (i+1/2,j+1/2,k), and it depends on {Bx,By,vx,vy},
+   * 2A) A_z_rhs is defined at (i+1/2,j+1/2,k), and it depends on {Bx,By,vx,vy},
    *     so the trick is to reconstruct {Bx,By,vx,vy} cleverly to get to these
    *     staggered points. For example:
    * 2Aa) VXR = [right-face of vx reconstructed along x-direction above] is at (i-1/2,j,k),
    *      and we reconstruct it to (i-1/2,j-1/2,k) below. Similarly for {VXL,VYR,VYL}
    * 2Ab) Bx_stagger is at (i+1/2,j,k), and we reconstruct to (i+1/2,j-1/2,k) below
-   * 2Ac) By_stagger is at (i-1/2,j+1/2,k) already for Az_rhs, from the previous step.
-   * 2B) Ax_rhs is defined at (i,j+1/2,k+1/2), and it depends on {By,Bz,vy,vz}.
+   * 2Ac) By_stagger is at (i-1/2,j+1/2,k) already for A_z_rhs, from the previous step.
+   * 2B) A_x_rhs is defined at (i,j+1/2,k+1/2), and it depends on {By,Bz,vy,vz}.
    *     Again the trick is to reconstruct these onto these staggered points.
    * 2Ba) Bz_stagger is at (i,j,k+1/2), and we reconstruct to (i,j-1/2,k+1/2) below */
   ww=0;
@@ -330,16 +326,15 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) {
         int index=CCTK_GFINDEX3D(cctkGH,i,j,k), indexjm1=CCTK_GFINDEX3D(cctkGH,i,j-1+(j==0),k); /* indexjm1=0 when j=0 */
         out_prims_r[BY_CENTER].gf[index]=out_prims_l[BY_CENTER].gf[index]=in_prims[BY_STAGGER].gf[indexjm1]; }
-  // Then add fluxes to RHS for hydro variables {rho_b,P,vx,vy,vz}:
+  // Then add fluxes to RHS for hydro variables {rho,P,vx,vy,vz}:
   // This function is housed in the file: "add_fluxes_and_source_terms_to_hydro_rhss.C"
   add_fluxes_and_source_terms_to_hydro_rhss(eos,flux_dirn,cctkGH,cctk_lsh,cctk_nghostzones,dX,
                                             metric,TUPmunu,
                                             num_prims_to_reconstruct,
                                             in_prims,out_prims_r,out_prims_l,
                                             cmax_y,cmin_y,
-                                            rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,Ye_star_flux,S_star_flux,
-                                            rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs,Ye_star_rhs,S_star_rhs,
-                                            s_tau, s_sx, s_sy, s_sz);
+                                            rho_flux,tau_flux,S_x_flux,S_y_flux,S_z_flux,Y_e_flux,ent_flux,
+                                            rho_rhs ,tau_rhs ,S_x_rhs ,S_y_rhs ,S_z_rhs ,Y_e_rhs,ent_rhs);
 
   /*****************************************
    * COMPUTING RHS OF A_z, BOOKKEEPING NOTE:
@@ -368,7 +363,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 
 
   int A_directionz=3;
-  A_i_rhs_no_gauge_terms(A_directionz,cctkGH,cctk_lsh,cctk_nghostzones,out_prims_r,out_prims_l,temporary,cmax_x,cmin_x,cmax_y,cmin_y, Az_rhs);
+  A_i_rhs_no_gauge_terms(A_directionz,cctkGH,cctk_lsh,cctk_nghostzones,out_prims_r,out_prims_l,temporary,cmax_x,cmin_x,cmax_y,cmin_y, A_z_rhs);
 
 
   // in_prims[{VYR,VYL,VZR,VZL}].gz_{lo,hi} ghostzones are not correct, so we fix
@@ -386,15 +381,15 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 
   /* There are two stories going on here:
    * 1) Single reconstruction to (i,j,k-1/2) for {rho,P,vx,vy,vz,Bx,By,Bz} to compute
-   *    z-dir'n advection terms in \partial_t {rho_star,tau,mhd_st_{x,y,z}} at (i,j,k)
+   *    z-dir'n advection terms in \partial_t {rho_tilde,tau,S_{x,y,z}} at (i,j,k)
    * 2) Multiple reconstructions for *staggered* gridfunctions A_i:
    *    Ai_rhs = \partial_t A_i = \epsilon_{ijk} \psi^{6} v^j B^k,
    *    where \epsilon_{ijk} is the flat-space antisymmetric operator.
-   * 2A) Ax_rhs is defined at (i,j+1/2,k+1/2), depends on v{y,z} and B{y,z}
+   * 2A) A_x_rhs is defined at (i,j+1/2,k+1/2), depends on v{y,z} and B{y,z}
    * 2Aa) v{y,z}{r,l} are at (i,j-1/2,k), so we reconstruct here to (i,j-1/2,k-1/2)
    * 2Ab) Bz_stagger{r,l} are at (i,j-1/2,k+1/2) already.
    * 2Ac) By_stagger is at (i,j+1/2,k), and below we reconstruct its value at (i,j+1/2,k-1/2)
-   * 2B) Ay_rhs is defined at (i+1/2,j,k+1/2), depends on v{z,x} and B{z,x}.
+   * 2B) A_y_rhs is defined at (i+1/2,j,k+1/2), depends on v{z,x} and B{z,x}.
    * 2Ba) v{x,z} are reconstructed to (i,j,k-1/2). Later we'll reconstruct again to (i-1/2,j,k-1/2).
    * 2Bb) Bz_stagger is at (i,j,k+1/2). Later we will reconstruct to (i-1/2,j,k+1/2).
    * 2Bc) Bx_stagger is at (i+1/2,j,k), and below we reconstruct its value at (i+1/2,j,k-1/2)
@@ -442,16 +437,15 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
         int index=CCTK_GFINDEX3D(cctkGH,i,j,k), indexkm1=CCTK_GFINDEX3D(cctkGH,i,j,k-1+(k==0)); /* indexkm1=0 when k=0 */
         out_prims_r[BZ_CENTER].gf[index]=out_prims_l[BZ_CENTER].gf[index]=in_prims[BZ_STAGGER].gf[indexkm1]; }
 
-  // Then add fluxes to RHS for hydro variables {rho_b,P,vx,vy,vz}:
+  // Then add fluxes to RHS for hydro variables {rho,P,vx,vy,vz}:
   // This function is housed in the file: "add_fluxes_and_source_terms_to_hydro_rhss.C"
   add_fluxes_and_source_terms_to_hydro_rhss(eos,flux_dirn,cctkGH,cctk_lsh,cctk_nghostzones,dX,
                                             metric,TUPmunu,
                                             num_prims_to_reconstruct,
                                             in_prims,out_prims_r,out_prims_l,
                                             cmax_z,cmin_z,
-                                            rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,Ye_star_flux,S_star_flux,
-                                            rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs,Ye_star_rhs,S_star_rhs,
-                                            s_tau, s_sx, s_sy, s_sz);
+                                            rho_flux,tau_flux,S_x_flux,S_y_flux,S_z_flux,Y_e_flux,ent_flux,
+                                            rho_rhs ,tau_rhs ,S_x_rhs ,S_y_rhs ,S_z_rhs ,Y_e_rhs,ent_rhs);
 
   // in_prims[{VYR,VYL,VZR,VZL}].gz_{lo,hi} ghostzones are not set correcty.
   //    We fix this below.
@@ -491,7 +485,7 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 
 
   int A_directionx=1;
-  A_i_rhs_no_gauge_terms(A_directionx,cctkGH,cctk_lsh,cctk_nghostzones,out_prims_r,out_prims_l,temporary,cmax_y,cmin_y,cmax_z,cmin_z, Ax_rhs);
+  A_i_rhs_no_gauge_terms(A_directionx,cctkGH,cctk_lsh,cctk_nghostzones,out_prims_r,out_prims_l,temporary,cmax_y,cmin_y,cmax_z,cmin_z, A_x_rhs);
 
 
   // We reprise flux_dirn=1 to finish up computations of Ai_rhs's!
@@ -538,10 +532,10 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 
 
   int A_directiony=2;
-  A_i_rhs_no_gauge_terms(A_directiony,cctkGH,cctk_lsh,cctk_nghostzones,out_prims_r,out_prims_l,temporary,cmax_z,cmin_z,cmax_x,cmin_x, Ay_rhs);
+  A_i_rhs_no_gauge_terms(A_directiony,cctkGH,cctk_lsh,cctk_nghostzones,out_prims_r,out_prims_l,temporary,cmax_z,cmin_z,cmax_x,cmin_x, A_y_rhs);
 
 
-  // Next compute psi6phi_rhs, and add gauge terms to A_i_rhs terms!
+  // Next compute Phi_rhs, and add gauge terms to A_i_rhs terms!
   //   Note that in the following function, we don't bother with reconstruction, instead interpolating.
   // We need A^i, but only have A_i. So we add gtupij to the list of input variables.
   CCTK_REAL *interp_vars[MAXNUMINTERP];
@@ -557,15 +551,15 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   interp_vars[ww]=gtupzz;  ww++;
   interp_vars[ww]=psi_bssn;ww++;
   interp_vars[ww]=lapm1;   ww++;
-  interp_vars[ww]=Ax;      ww++;
-  interp_vars[ww]=Ay;      ww++;
-  interp_vars[ww]=Az;      ww++;
+  interp_vars[ww]=A_x_tilde;      ww++;
+  interp_vars[ww]=A_y_tilde;      ww++;
+  interp_vars[ww]=A_z_tilde;      ww++;
   int max_num_interp_variables=ww;
   if(max_num_interp_variables>MAXNUMINTERP) {CCTK_VError(VERR_DEF_PARAMS,"Error: Didn't allocate enough space for interp_vars[]."); }
   // We are FINISHED with v{x,y,z}{r,l} and P{r,l} so we use these 8 gridfunctions' worth of space as temp storage.
-  Lorenz_psi6phi_rhs__add_gauge_terms_to_A_i_rhs(cctkGH,cctk_lsh,cctk_nghostzones,dX,interp_vars,psi6phi,
+  Lorenz_Phi_rhs__add_gauge_terms_to_A_i_rhs(cctkGH,cctk_lsh,cctk_nghostzones,dX,interp_vars,Phi_tilde,
                                                  vxr,vyr,vzr,vxl,vyl,vzl,Pr,Pl,
-                                                 psi6phi_rhs,Ax_rhs,Ay_rhs,Az_rhs);
+                                                 Phi_rhs,A_x_rhs,A_y_rhs,A_z_rhs);
 
   if( CCTK_IsThornActive("NRPyLeakageET") ) {
     // Convert rho, Y_e, T, and velocities to HydroBase
@@ -581,9 +575,9 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
           const CCTK_REAL betaxL       = betax[index];
           const CCTK_REAL betayL       = betay[index];
           const CCTK_REAL betazL       = betaz[index];
-          const CCTK_REAL rhoL         = rho_b[index];
-          const CCTK_REAL Y_eL         = igm_Ye[index];
-          const CCTK_REAL temperatureL = igm_temperature[index];
+          const CCTK_REAL rhoL         = rho[index];
+          const CCTK_REAL Y_eL         = Y_e[index];
+          const CCTK_REAL temperatureL = temperature[index];
           const CCTK_REAL vxL          = vx[index];
           const CCTK_REAL vyL          = vy[index];
           const CCTK_REAL vzL          = vz[index];
@@ -609,13 +603,13 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   //st_x_rhs[index]=0.0;
   //st_y_rhs[index]=0.0;
   //st_z_rhs[index]=0.0;
-  //rho_star_rhs[index]=0.0;
+  //rho_tilde_rhs[index]=0.0;
   //tau_rhs[index]=0.0;
 
-  psi6phi_rhs[index] = 0.0;
-  Ax_rhs[index] = 0.0;
-  Ay_rhs[index] = 0.0;
-  Az_rhs[index] = 0.0;
+  Phi_rhs[index] = 0.0;
+  A_x_rhs[index] = 0.0;
+  A_y_rhs[index] = 0.0;
+  A_z_rhs[index] = 0.0;
   }
   */
 }
@@ -629,4 +623,4 @@ extern "C" void IllinoisGRMHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
 #include "add_fluxes_and_source_terms_to_hydro_rhss.C"
 #include "mhdflux.C"
 #include "A_i_rhs_no_gauge_terms.C"
-#include "Lorenz_psi6phi_rhs__add_gauge_terms_to_A_i_rhs.C"
+#include "Lorenz_Phi_rhs__add_gauge_terms_to_A_i_rhs.C"

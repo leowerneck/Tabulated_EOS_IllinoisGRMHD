@@ -178,16 +178,16 @@ int main(int argc, const char *argv[]) {
   myfile.read((char*)lapm1, (fullsize)*sizeof(CCTK_REAL));
 
   CCTK_REAL *tau = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
-  CCTK_REAL *mhd_st_x = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
-  CCTK_REAL *mhd_st_y = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
-  CCTK_REAL *mhd_st_z = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
+  CCTK_REAL *S_x = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
+  CCTK_REAL *S_y = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
+  CCTK_REAL *S_z = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
   myfile.read((char*)tau,      (fullsize)*sizeof(CCTK_REAL));
-  myfile.read((char*)mhd_st_x, (fullsize)*sizeof(CCTK_REAL));
-  myfile.read((char*)mhd_st_y, (fullsize)*sizeof(CCTK_REAL));
-  myfile.read((char*)mhd_st_z, (fullsize)*sizeof(CCTK_REAL));
+  myfile.read((char*)S_x, (fullsize)*sizeof(CCTK_REAL));
+  myfile.read((char*)S_y, (fullsize)*sizeof(CCTK_REAL));
+  myfile.read((char*)S_z, (fullsize)*sizeof(CCTK_REAL));
 
-  CCTK_REAL *rho_star = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
-  myfile.read((char*)rho_star, (fullsize)*sizeof(CCTK_REAL));
+  CCTK_REAL *rho_tilde = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
+  myfile.read((char*)rho_tilde, (fullsize)*sizeof(CCTK_REAL));
 
   CCTK_REAL *Bx = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
   CCTK_REAL *By = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
@@ -205,9 +205,9 @@ int main(int argc, const char *argv[]) {
   myfile.read((char*)vz,   (fullsize)*sizeof(CCTK_REAL));
 
   CCTK_REAL *P = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
-  CCTK_REAL *rho_b = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
+  CCTK_REAL *rho = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
   myfile.read((char*)P,    (fullsize)*sizeof(CCTK_REAL));
-  myfile.read((char*)rho_b,(fullsize)*sizeof(CCTK_REAL));
+  myfile.read((char*)rho,(fullsize)*sizeof(CCTK_REAL));
 
   //int checker=1063;
   int checker;
@@ -220,7 +220,7 @@ int main(int argc, const char *argv[]) {
   myfile.close();
 
   // HERE WE USE _flux variables as temp storage for original values of conservative variables.. This is used for debugging purposes only.
-  CCTK_REAL *rho_star_flux = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
+  CCTK_REAL *rho_tilde_flux = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
   CCTK_REAL *st_x_flux = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
   CCTK_REAL *st_y_flux = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);
   CCTK_REAL *st_z_flux = (CCTK_REAL *)malloc(sizeof(CCTK_REAL)*fullsize);

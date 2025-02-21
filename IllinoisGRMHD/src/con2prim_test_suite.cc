@@ -68,21 +68,21 @@ void IllinoisGRMHD_con2prim_test_suit( CCTK_ARGUMENTS ) {
   //       W       = 2
   // log10(Pmag/P) = -5
   //
-  // rho will vary between rho_min and rho_max (uniformly in log space)
+  // rho will vary between rho_b_min and rho_b_max (uniformly in log space)
   //  T  will vary between  T_min  and  T_max  (uniformly in log space)
 
   // Number of points in the discretization of rho and T
   const CCTK_INT npoints       = igm_con2prim_standalone_npoints;
 
-  const CCTK_REAL test_rho_min = igm_con2prim_standalone_rho_min;
-  const CCTK_REAL test_rho_max = igm_con2prim_standalone_rho_max;
+  const CCTK_REAL test_rho_b_min = igm_con2prim_standalone_rho_b_min;
+  const CCTK_REAL test_rho_b_max = igm_con2prim_standalone_rho_b_max;
 
   const CCTK_REAL test_T_min   = igm_con2prim_standalone_T_min;
   const CCTK_REAL test_T_max   = igm_con2prim_standalone_T_max;
 
   // Compute the density step size
-  const CCTK_REAL lrmin        = log(test_rho_min);
-  const CCTK_REAL lrmax        = log(test_rho_max);
+  const CCTK_REAL lrmin        = log(test_rho_b_min);
+  const CCTK_REAL lrmax        = log(test_rho_b_max);
   const CCTK_REAL dlr          = (lrmax - lrmin)/(npoints-1);
 
   // Compute the temperature step size

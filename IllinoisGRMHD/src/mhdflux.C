@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Compute the flux for advecting rho_star, tau (Font's energy variable),
+// Compute the flux for advecting rho_tilde, tau (Font's energy variable),
 //  and S_i .
 //-----------------------------------------------------------------------------
 static inline void mhdflux( const igm_eos_parameters eos,
@@ -13,13 +13,13 @@ static inline void mhdflux( const igm_eos_parameters eos,
                             CCTK_REAL *restrict FACEVAL_LAPSE_PSI4,
                             CCTK_REAL &cmax,
                             CCTK_REAL &cmin,
-                            CCTK_REAL &rho_star_flux,
+                            CCTK_REAL &rho_tilde_flux,
                             CCTK_REAL &tau_flux,
                             CCTK_REAL &st_x_flux,
                             CCTK_REAL &st_y_flux,
                             CCTK_REAL &st_z_flux,
-                            CCTK_REAL &Ye_star_flux,
-                            CCTK_REAL &S_star_flux ) {
+                            CCTK_REAL &Y_e_flux,
+                            CCTK_REAL &ent_flux ) {
 
   CCTK_REAL psi4 = FACEVAL_LAPSE_PSI4[PSI4];
   CCTK_REAL psi6 = FACEVAL_LAPSE_PSI4[PSI4]*FACEVAL_LAPSE_PSI4[PSI2];
@@ -97,38 +97,38 @@ static inline void mhdflux( const igm_eos_parameters eos,
   //*********************************************************************
   // density flux = \rho_* v^m, where m is the current flux direction (the m index)
   //*********************************************************************
-  CCTK_REAL rho_star_r = alpha_sqrt_gamma*Ur[RHOB]*u0_r;
-  CCTK_REAL rho_star_l = alpha_sqrt_gamma*Ul[RHOB]*u0_l;
-  CCTK_REAL Fr = rho_star_r*Ur[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ur[VX] -> Ur[VY]
-  CCTK_REAL Fl = rho_star_l*Ul[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ul[VX] -> Ul[VY]
+  CCTK_REAL rho_tilde_r = alpha_sqrt_gamma*Ur[RHOB]*u0_r;
+  CCTK_REAL rho_tilde_l = alpha_sqrt_gamma*Ul[RHOB]*u0_l;
+  CCTK_REAL Fr = rho_tilde_r*Ur[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ur[VX] -> Ur[VY]
+  CCTK_REAL Fl = rho_tilde_l*Ul[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ul[VX] -> Ul[VY]
 
-  // HLL step for rho_star:
-  rho_star_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(rho_star_r-rho_star_l) )/(cmaxL + cminL);
+  // HLL step for rho_tilde:
+  rho_tilde_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(rho_tilde_r-rho_tilde_l) )/(cmaxL + cminL);
 
   //*********************************************************************
   // Electron fraction flux = Ye_* v^m, where m is the current flux direction (the m index)
   //*********************************************************************
   if( eos.is_Tabulated ) {
-    CCTK_REAL Ye_star_r = rho_star_r * Ur[YEPRIM];
-    CCTK_REAL Ye_star_l = rho_star_l * Ul[YEPRIM];
-    Fr = Ye_star_r*Ur[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ur[VX] -> Ur[VY]
-    Fl = Ye_star_l*Ul[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ul[VX] -> Ul[VY]
+    CCTK_REAL Y_e_tilde_r = rho_tilde_r * Ur[YEPRIM];
+    CCTK_REAL Y_e_tilde_l = rho_tilde_l * Ul[YEPRIM];
+    Fr = Y_e_tilde_r*Ur[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ur[VX] -> Ur[VY]
+    Fl = Y_e_tilde_l*Ul[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ul[VX] -> Ul[VY]
 
-    // HLL step for Ye_star:
-    Ye_star_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(Ye_star_r-Ye_star_l) )/(cmaxL + cminL);
+    // HLL step for Y_e_tilde:
+    Y_e_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(Y_e_tilde_r-Y_e_tilde_l) )/(cmaxL + cminL);
   }
 
   //*********************************************************************
   // Entropy flux = S_* v^m, where m is the current flux direction (the m index)
   //*********************************************************************
   if( eos.evolve_entropy ) {
-    CCTK_REAL S_star_r = alpha_sqrt_gamma*Ur[ENTROPY]*u0_r;
-    CCTK_REAL S_star_l = alpha_sqrt_gamma*Ul[ENTROPY]*u0_l;
-    Fr = S_star_r*Ur[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ur[VX] -> Ur[VY]
-    Fl = S_star_l*Ul[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ul[VX] -> Ul[VY]
+    CCTK_REAL ent_tilde_r = alpha_sqrt_gamma*Ur[ENTROPY]*u0_r;
+    CCTK_REAL ent_tilde_l = alpha_sqrt_gamma*Ul[ENTROPY]*u0_l;
+    Fr = ent_tilde_r*Ur[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ur[VX] -> Ur[VY]
+    Fl = ent_tilde_l*Ul[VX+offset]; // flux_dirn = 2, so offset = 1, implies Ul[VX] -> Ul[VY]
 
-    // HLL step for S_star:
-    S_star_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(S_star_r-S_star_l) )/(cmaxL + cminL);
+    // HLL step for ent_tilde:
+    ent_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(ent_tilde_r-ent_tilde_l) )/(cmaxL + cminL);
   }
 
   //*********************************************************************
@@ -144,20 +144,20 @@ static inline void mhdflux( const igm_eos_parameters eos,
   CCTK_REAL P_plus_half_b2_r = (Ur[PRESSURE]+0.5*smallbr[SMALLB2]);
   // Then compute T^{0m} and the flux:
   CCTK_REAL TUP0m_r = rho0_h_plus_b2_r*SQR(u0_r)*Ur[VX+offset] + P_plus_half_b2_r*g4uptm - smallbr[SMALLBT]*smallbr[SMALLBX+offset];
-  Fr = alpha_squared_sqrt_gamma * TUP0m_r - rho_star_r * Ur[VX+offset];
+  Fr = alpha_squared_sqrt_gamma * TUP0m_r - rho_tilde_r * Ur[VX+offset];
   // Finally compute tau
   CCTK_REAL TUP00_r = rho0_h_plus_b2_r*u0_r*u0_r + P_plus_half_b2_r*g4uptt - smallbr[SMALLBT]*smallbr[SMALLBT];
-  CCTK_REAL tau_r = alpha_squared_sqrt_gamma * TUP00_r - rho_star_r;
+  CCTK_REAL tau_r = alpha_squared_sqrt_gamma * TUP00_r - rho_tilde_r;
   /********** LEFT FACE *************/
   // Compute a couple useful hydro quantities:
   CCTK_REAL rho0_h_plus_b2_l = (Ul[RHOB]*h_l + smallbl[SMALLB2]);
   CCTK_REAL P_plus_half_b2_l = (Ul[PRESSURE]+0.5*smallbl[SMALLB2]);
   // Then compute T^{0m} and the flux:
   CCTK_REAL TUP0m_l = rho0_h_plus_b2_l*SQR(u0_l)*Ul[VX+offset] + P_plus_half_b2_l*g4uptm - smallbl[SMALLBT]*smallbl[SMALLBX+offset];
-  Fl = alpha_squared_sqrt_gamma * TUP0m_l - rho_star_l * Ul[VX+offset];
+  Fl = alpha_squared_sqrt_gamma * TUP0m_l - rho_tilde_l * Ul[VX+offset];
   // Finally compute tau
   CCTK_REAL TUP00_l = rho0_h_plus_b2_l*u0_l*u0_l + P_plus_half_b2_l*g4uptt - smallbl[SMALLBT]*smallbl[SMALLBT];
-  CCTK_REAL tau_l = alpha_squared_sqrt_gamma * TUP00_l - rho_star_l;
+  CCTK_REAL tau_l = alpha_squared_sqrt_gamma * TUP00_l - rho_tilde_l;
 
   // HLL step for tau:
   tau_flux = (cminL*Fr + cmaxL*Fl - cminL*cmaxL*(tau_r-tau_l) )/(cmaxL + cminL);

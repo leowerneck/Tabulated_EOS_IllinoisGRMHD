@@ -44,7 +44,7 @@ typedef struct _igm_eos_parameters_ {
   // Whether or not to evolve the entropy
   bool evolve_T,evolve_entropy;
   // Baryonic density parameters
-  CCTK_REAL rho_atm, rho_min, rho_max;
+  CCTK_REAL rho_b_atm, rho_b_min, rho_b_max;
   // Atmospheric tau
   CCTK_REAL tau_atm;
   // Maximum Lorentz factor

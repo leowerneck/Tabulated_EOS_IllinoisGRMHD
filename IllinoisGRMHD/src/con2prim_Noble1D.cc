@@ -456,7 +456,7 @@ void func_1d_orig(CCTK_REAL x[], CCTK_REAL dx[], CCTK_REAL resid[],
   //     gamma_sq       = harm_aux.gamma * harm_aux.gamma;
   //   }
 
-  //   const CCTK_REAL rho = MAX(harm_aux.D / harm_aux.gamma,eos.rho_min);
+  //   const CCTK_REAL rho = MAX(harm_aux.D / harm_aux.gamma,eos.rho_b_min);
   //   const CCTK_REAL xye = harm_aux.ye;
   //   const CCTK_REAL h   = fabs(W /(rho*gamma_sq)); // W := rho*h*gamma^{2}
   //   const CCTK_REAL ent = harm_aux.gamma_times_S / harm_aux.gamma;

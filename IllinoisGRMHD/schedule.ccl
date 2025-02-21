@@ -18,11 +18,12 @@ STORAGE: grmhd_fluxes
 STORAGE: grmhd_cmin_cmax_temps
 STORAGE: TUPmunu
 STORAGE: diagnostic_gfs
+STORAGE: con2prim_failed_flag
 #>>>>>>>>>>>>>><<<<<<<<<<<<<<<
 
 ####################
 # NEW STUFF
-schedule IllinoisGRMHD_EOS_get_key at BASEGRID after EOS_OMNI_get_energy_shift before IllinoisGRMHD_con2prim_test_suit
+schedule IllinoisGRMHD_EOS_get_key at BASEGRID after EOS_OMNI_get_energy_shift
 {
   LANG: C
   OPTIONS: GLOBAL
@@ -37,14 +38,6 @@ schedule IllinoisGRMHD_parameter_check at BASEGRID after IllinoisGRMHD_EOS_get_k
   LANG: C
   OPTIONS: GLOBAL
 } "Check input parameters"
-
-# Con2prim standalone test suite
-if( igm_con2prim_standalone ) {
-  schedule IllinoisGRMHD_con2prim_test_suit at CCTK_BASEGRID after EOS_OMNI_get_energy_shift
-  {
-    LANG: C
-  } "Performs a con2prim standalone test"
-}
 
 ####################
 # RUN INITIALLY ONLY
@@ -86,7 +79,7 @@ schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_PostPostIn
   LANG: C
 } "Compute B and B_stagger from A SYNC: grmhd_B_center,grmhd_B_stagger"
 
-# Nontrivial primitives solve, for P,rho_b,vx,vy,vz:
+# Nontrivial primitives solve, for P,rho,vx,vy,vz:
 schedule IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_PostPostInitial after compute_b
 {
   LANG: C
@@ -118,8 +111,8 @@ schedule IllinoisGRMHD_driver_evaluate_MHD_rhs in MoL_CalcRHS as IllinoisGRMHD_R
 # ( 0) Synchronize (prolongate/restrict) all evolved variables
 # ( 1) Apply outer boundary conditions (BCs) on A_{\mu}
 # ( 2) Compute B^i from A_i everywhere, synchronize (processor sync) B^i
-# ( 3) Call con2prim to get consistent primitives {P,rho_b,vx,vy,vz} and conservatives at all points (if no restriction, really only need interior)
-# ( 4) Apply outer BCs on {P,rho_b,vx,vy,vz}, recompute conservatives.
+# ( 3) Call con2prim to get consistent primitives {P,rho,vx,vy,vz} and conservatives at all points (if no restriction, really only need interior)
+# ( 4) Apply outer BCs on {P,rho,vx,vy,vz}, recompute conservatives.
 
 # (B) AMR GRID REFINEMENT BOUNDARY STEPS:
 # Same as steps 0,2,3 above. Just need if() statements in steps 1,4 to prevent "outer boundaries" being updated
@@ -146,18 +139,18 @@ schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in HydroBase_Boundaries aft
   LANG: C
 } "Compute B and B_stagger from A, SYNC: grmhd_B_center,grmhd_B_stagger"
 
-# Nontrivial primitives solve, for P,rho_b,vx,vy,vz.
+# Nontrivial primitives solve, for P,rho,vx,vy,vz.
 schedule IllinoisGRMHD_conserv_to_prims in AddToTmunu after compute_B_and_Bstagger_from_A
 {
   LANG: C
 } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
 
-schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in AddToTmunu after IllinoisGRMHD_conserv_to_prims
+schedule IllinoisGRMHD_outer_boundaries_on_P_rho_vx_vy_vz in AddToTmunu after IllinoisGRMHD_conserv_to_prims
 {
-# We must sync {P,rho_b,vx,vy,vz} here.
+# We must sync {P,rho,vx,vy,vz} here.
   SYNC: HydroBase::rho, HydroBase::Y_e, HydroBase::temperature,
         HydroBase::press, HydroBase::eps, HydroBase::entropy,
         grmhd_velocities
   LANG: C
-} "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
+} "Apply outflow-only, flat BCs on {P,rho,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
 ##########################################################

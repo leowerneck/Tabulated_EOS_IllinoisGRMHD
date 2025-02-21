@@ -34,7 +34,7 @@ void NR_2D_WT( const igm_eos_parameters eos,
 //
 // This routine expects 8 conservs as input:
 //
-// -> D     = rho_star      / sqrt(gamma) = W * rho (W is the Lorentz factor)
+// -> D     = rho_tilde      / sqrt(gamma) = W * rho (W is the Lorentz factor)
 // -> DYe   = Ye_Star       / sqrt(gamma)
 // -> B^{i} = \tilde{B}^{i} / sqrt(gamma) / sqrt(4pi)
 // -> S_{i} = \tilde{S}_{i} / sqrt(gamma)
@@ -136,7 +136,7 @@ void calc_WT_max( const igm_eos_parameters eos,
   // Note that in setting the IllinoisGRMHD EOS parameters, we
   // already impose a safety factor on the table floors and
   // ceilings, so we don't need to use the prefactors of 95%
-  if(rhomax > eos.rho_max) rhomax = eos.rho_max;
+  if(rhomax > eos.rho_b_max) rhomax = eos.rho_b_max;
   if(epsmax > eos.eps_max) epsmax = eos.eps_max;
 
   // Now compute P max and T max

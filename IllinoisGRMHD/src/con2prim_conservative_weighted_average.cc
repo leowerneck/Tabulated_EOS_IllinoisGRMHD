@@ -22,13 +22,13 @@ int con2prim_average_neighbor_conservatives( const cGH *restrict cctkGH,
 					     const CCTK_INT index,
 					     const CCTK_INT *restrict cctk_lsh,
 					     const CCTK_INT *restrict con2prim_failed_flag,
-					     CCTK_REAL *restrict rho_star,
-					     CCTK_REAL *restrict mhd_st_x,
-					     CCTK_REAL *restrict mhd_st_y,
-					     CCTK_REAL *restrict mhd_st_z,
+					     CCTK_REAL *restrict rho_tilde,
+					     CCTK_REAL *restrict S_x,
+					     CCTK_REAL *restrict S_y,
+					     CCTK_REAL *restrict S_z,
 					     CCTK_REAL *restrict tau,
-					     CCTK_REAL *restrict Ye_star,
-					     CCTK_REAL *restrict S_star,
+					     CCTK_REAL *restrict Y_e_tilde,
+					     CCTK_REAL *restrict ent_tilde,
 					     CCTK_REAL *restrict CONSERVS_avg_neighbors ) {
 
   // Auxiliary variables
@@ -66,13 +66,13 @@ int con2prim_average_neighbor_conservatives( const cGH *restrict cctkGH,
           // Only count if con2prim succeeded at neighbor point
           if( con2prim_failed_flag[idx] == 0 ) {
 
-            CONSERVS_avg_neighbors[RHOSTAR  ] += rho_star[idx];
-            CONSERVS_avg_neighbors[STILDEX  ] += mhd_st_x[idx];
-            CONSERVS_avg_neighbors[STILDEY  ] += mhd_st_y[idx];
-            CONSERVS_avg_neighbors[STILDEZ  ] += mhd_st_z[idx];
+            CONSERVS_avg_neighbors[RHOSTAR  ] += rho_tilde[idx];
+            CONSERVS_avg_neighbors[STILDEX  ] += S_x[idx];
+            CONSERVS_avg_neighbors[STILDEY  ] += S_y[idx];
+            CONSERVS_avg_neighbors[STILDEZ  ] += S_z[idx];
             CONSERVS_avg_neighbors[TAUENERGY] += tau     [idx];
-            CONSERVS_avg_neighbors[YESTAR   ] += Ye_star [idx];
-            CONSERVS_avg_neighbors[ENTSTAR  ] += S_star  [idx];
+            CONSERVS_avg_neighbors[YESTAR   ] += Y_e_tilde [idx];
+            CONSERVS_avg_neighbors[ENTSTAR  ] += ent_tilde  [idx];
             number_of_neighbors++;
 
           } // if( con2prim_failed_flag[idx] == 0 )

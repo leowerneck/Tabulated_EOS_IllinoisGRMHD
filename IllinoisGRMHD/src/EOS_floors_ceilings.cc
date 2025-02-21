@@ -16,7 +16,7 @@ void apply_floors_and_ceilings_to_prims__recompute_prims( const igm_eos_paramete
   DECLARE_CCTK_PARAMETERS;
 
   // The density floor and ceiling is always applied
-  PRIMS[RHOB] = MIN(MAX(PRIMS[RHOB],eos.rho_atm),eos.rho_max);
+  PRIMS[RHOB] = MIN(MAX(PRIMS[RHOB],eos.rho_b_atm),eos.rho_b_max);
 
   // Hybrid EOS specific floors and ceilings
   if( eos.is_Hybrid ) {
@@ -35,7 +35,7 @@ void apply_floors_and_ceilings_to_prims__recompute_prims( const igm_eos_paramete
     // Now apply floors and ceilings to P
     if(PRIMS[PRESSURE]<P_min) PRIMS[PRESSURE] = P_min;
     // Finally, perform the last check
-    if((PRIMS[RHOB] < 100.0*eos.rho_atm || Psi6 > Psi6threshold) && PRIMS[PRESSURE]>P_max) {
+    if((PRIMS[RHOB] < 100.0*eos.rho_b_atm || Psi6 > Psi6threshold) && PRIMS[PRESSURE]>P_max) {
       PRIMS[PRESSURE] = P_max;
     }
     // Now compute eps

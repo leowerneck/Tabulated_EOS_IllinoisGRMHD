@@ -126,7 +126,7 @@ int font_fix__hybrid_EOS( const igm_eos_parameters eos,
   /* Then compute gamma_v using equation (A19) in
    * Etienne et al. (2011) [https://arxiv.org/pdf/1112.0568.pdf]
    * .-----------------------------------------.
-   * | gamma_v = psi^{-6} * (rho_star / rho_b) |
+   * | gamma_v = psi^{-6} * (rho_tilde / rho) |
    * .-----------------------------------------.
    */
   CCTK_REAL gammav = CONSERVS[RHOSTAR]*Psim6/rhob;

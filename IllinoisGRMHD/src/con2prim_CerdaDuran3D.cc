@@ -54,7 +54,7 @@ static inline CCTK_REAL compute_W_from_cons( const igm_eos_parameters eos,
 //
 // This routine expects 8 conservs as input:
 //
-// -> D     = rho_star      / sqrt(gamma) = W * rho (W is the Lorentz factor)
+// -> D     = rho_tilde      / sqrt(gamma) = W * rho (W is the Lorentz factor)
 // -> DYe   = Ye_Star       / sqrt(gamma)
 // -> B^{i} = \tilde{B}^{i} / sqrt(gamma) / sqrt(4pi)
 // -> S_{i} = \tilde{S}_{i} / sqrt(gamma)
@@ -353,7 +353,7 @@ void NR_3D_WZT( const igm_eos_parameters eos,
   CCTK_REAL error[3];    // error vector abs(dx/x)
 
   x_lowlim[0] = 1.0;
-  x_lowlim[1] = eos.rho_min;
+  x_lowlim[1] = eos.rho_b_min;
   x_lowlim[2] = eos.T_atm;//exp( ( log(eos.T_max)+log(eos.T_min) )/2.0 );
 
   // set initial guess for Newton-Raphson state vector x = (W, T)

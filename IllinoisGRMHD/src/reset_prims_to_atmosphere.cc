@@ -9,7 +9,7 @@ void reset_prims_to_atmosphere( const igm_eos_parameters eos,
   // Velocities are set to zero. Keeping it
   // inside a single function ensures that
   // resets are consistent throughout the code.
-  PRIMS[RHOB         ] = eos.rho_atm;
+  PRIMS[RHOB         ] = eos.rho_b_atm;
   PRIMS[PRESSURE     ] = eos.P_atm;
   PRIMS[EPSILON      ] = eos.eps_atm;
   PRIMS[ENTROPY      ] = eos.S_atm;

@@ -104,7 +104,7 @@ inline int check_depsdT_condition( const igm_eos_parameters eos,
 //
 // This routine expects 8 conservs as input:
 //
-// -> D     = rho_star      / sqrt(gamma) = W * rho (W is the Lorentz factor)
+// -> D     = rho_tilde      / sqrt(gamma) = W * rho (W is the Lorentz factor)
 // -> DYe   = Ye_Star       / sqrt(gamma)
 // -> B^{i} = \tilde{B}^{i} / sqrt(gamma) / sqrt(4pi)
 // -> S_{i} = \tilde{S}_{i} / sqrt(gamma)

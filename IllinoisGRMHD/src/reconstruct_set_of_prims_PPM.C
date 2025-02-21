@@ -24,10 +24,10 @@ static inline CCTK_REAL slope_limit(CCTK_REAL dU,CCTK_REAL dUp1);
 static inline void steepen_rho(const igm_eos_parameters eos,
                                CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES],
                                CCTK_REAL slope_lim_dU[MAXNUMVARS][MAXNUMINDICES],
-                               CCTK_REAL *restrict rho_br_ppm,
-                               CCTK_REAL *restrict rho_bl_ppm);
+                               CCTK_REAL *restrict rhor_ppm,
+                               CCTK_REAL *restrict rhol_ppm);
 
-static inline void compute_P_cold__Gamma_cold(CCTK_REAL rho_b,const igm_eos_parameters eos,   CCTK_REAL &P_cold,CCTK_REAL &Gamma_cold);
+static inline void compute_P_cold__Gamma_cold(CCTK_REAL rho,const igm_eos_parameters eos,   CCTK_REAL &P_cold,CCTK_REAL &Gamma_cold);
 static inline void monotonize(CCTK_REAL U,CCTK_REAL &Ur,CCTK_REAL &Ul);
 
 
@@ -76,7 +76,7 @@ static void reconstruct_set_of_prims_PPM( const igm_eos_parameters eos,
       /* *** LOOP 1b: DO COMPUTATION *** */
       /* First, compute simple dU = U(i) - U(i-1), where direction of i
        *         is given by flux_dirn, and U is a primitive variable:
-       *         {rho_b,P,vx,vy,vz,Bx,By,Bz}. */
+       *         {rho,P,vx,vy,vz,Bx,By,Bz}. */
       // Note that for Ur and Ul at i, we must compute dU(i-1),dU(i),dU(i+1),
       //         and dU(i+2)
       dU[whichvar][MINUS1] = U[whichvar][MINUS1]- U[whichvar][MINUS2];
@@ -100,8 +100,8 @@ static void reconstruct_set_of_prims_PPM( const igm_eos_parameters eos,
       Ul[whichvar][PLUS0] = 0.5*(U[whichvar][PLUS0] + U[whichvar][MINUS1]) + (1.0/6.0)*(slope_lim_dU[whichvar][MINUS1] - slope_lim_dU[whichvar][PLUS0]);
 
       /* *** LOOP 1c: WRITE OUTPUT *** */
-      // Store right face values to {rho_br,Pr,vxr,vyr,vzr,Bxr,Byr,Bzr},
-      //    and left face values to {rho_bl,Pl,vxl,vyl,vzl,Bxl,Byl,Bzl}
+      // Store right face values to {rhor,Pr,vxr,vyr,vzr,Bxr,Byr,Bzr},
+      //    and left face values to {rhol,Pl,vxl,vyl,vzl,Bxl,Byl,Bzl}
       out_prims_r[whichvar].gf[index_arr[flux_dirn][PLUS0]] = Ur[whichvar][PLUS0];
       out_prims_l[whichvar].gf[index_arr[flux_dirn][PLUS0]] = Ul[whichvar][PLUS0];
     }
@@ -255,15 +255,15 @@ static inline CCTK_REAL slope_limit(CCTK_REAL dU,CCTK_REAL dUp1) {
 static inline void steepen_rho(const igm_eos_parameters eos,
                                CCTK_REAL U[MAXNUMVARS][MAXNUMINDICES],
                                CCTK_REAL slope_lim_dU[MAXNUMVARS][MAXNUMINDICES],
-                               CCTK_REAL *restrict rho_br_ppm,
-                               CCTK_REAL *restrict rho_bl_ppm) {
+                               CCTK_REAL *restrict rhor_ppm,
+                               CCTK_REAL *restrict rhol_ppm) {
 
   
 
   // Next compute centered differences d RHOB and d^2 RHOB
-  CCTK_REAL d1rho_b     = 0.5*(U[RHOB][PLUS1] - U[RHOB][MINUS1]);
-  CCTK_REAL d2rho_b_m1  = U[RHOB][PLUS0] - 2.0*U[RHOB][MINUS1] + U[RHOB][MINUS2];
-  CCTK_REAL d2rho_b_p1  = U[RHOB][PLUS2] - 2.0*U[RHOB][PLUS1]  + U[RHOB][PLUS0];
+  CCTK_REAL d1rho     = 0.5*(U[RHOB][PLUS1] - U[RHOB][MINUS1]);
+  CCTK_REAL d2rho_m1  = U[RHOB][PLUS0] - 2.0*U[RHOB][MINUS1] + U[RHOB][MINUS2];
+  CCTK_REAL d2rho_p1  = U[RHOB][PLUS2] - 2.0*U[RHOB][PLUS1]  + U[RHOB][PLUS0];
 
   // This value of Gamma was chosen for compatibility
   // with the Spritz code when tabulated EOS is selected
@@ -279,28 +279,28 @@ static inline void steepen_rho(const igm_eos_parameters eos,
   CCTK_REAL contact_discontinuity_check = Gamma*K0*fabs(U[RHOB][PLUS1]-U[RHOB][MINUS1])*
     MIN(U[PRESSURE][PLUS1],U[PRESSURE][MINUS1])
     -fabs(U[PRESSURE][PLUS1]-U[PRESSURE][MINUS1])*MIN(U[RHOB][PLUS1],U[RHOB][MINUS1]);
-  CCTK_REAL second_deriv_check = -d2rho_b_p1*d2rho_b_m1;
-  CCTK_REAL relative_change_check = fabs(2.0*d1rho_b) - PPM_EPSILON*MIN(U[RHOB][PLUS1],U[RHOB][MINUS1]);
+  CCTK_REAL second_deriv_check = -d2rho_p1*d2rho_m1;
+  CCTK_REAL relative_change_check = fabs(2.0*d1rho) - PPM_EPSILON*MIN(U[RHOB][PLUS1],U[RHOB][MINUS1]);
 
   if(contact_discontinuity_check >= 0.0 && second_deriv_check >= 0.0
      && relative_change_check >= 0.0) {
 
     CCTK_REAL eta_tilde=0.0;
-    if (fabs(d1rho_b) > 0.0) {
-      eta_tilde = -(1.0/6.0)*(d2rho_b_p1-d2rho_b_m1)/(2.0*d1rho_b);
+    if (fabs(d1rho) > 0.0) {
+      eta_tilde = -(1.0/6.0)*(d2rho_p1-d2rho_m1)/(2.0*d1rho);
     }
     CCTK_REAL eta = MAX(0.0,MIN(ETA1*(eta_tilde - ETA2),1.0));
 
     // Next compute Urp1 and Ul for RHOB, using the MC prescription:
     // Ur_p1 = U_p1   - 0.5*slope_lim_dU_p1
-    CCTK_REAL rho_br_mc_p1 = U[RHOB][PLUS1] - 0.5*slope_lim_dU[RHOB][PLUS1];
+    CCTK_REAL rhor_mc_p1 = U[RHOB][PLUS1] - 0.5*slope_lim_dU[RHOB][PLUS1];
     // Ul = U_m1 + 0.5*slope_lim_dU_m1
     // Based on this line of code, Ur[index] = a_j - \delta_m a_j / 2. (cf. Eq. 65 in Marti & Muller's "PPM Method for 1D Relativistic Hydro." paper)
-    //    So: Ur[indexp1] = a_{j+1} - \delta_m a_{j+1} / 2. This is why we have rho_br_mc[indexp1]
-    CCTK_REAL rho_bl_mc    = U[RHOB][MINUS1] + 0.5*slope_lim_dU[RHOB][MINUS1];
+    //    So: Ur[indexp1] = a_{j+1} - \delta_m a_{j+1} / 2. This is why we have rhor_mc[indexp1]
+    CCTK_REAL rhol_mc    = U[RHOB][MINUS1] + 0.5*slope_lim_dU[RHOB][MINUS1];
 
-    rho_bl_ppm[PLUS0] = rho_bl_ppm[PLUS0]*(1.0-eta) + rho_bl_mc*eta;
-    rho_br_ppm[PLUS0] = rho_br_ppm[PLUS0]*(1.0-eta) + rho_br_mc_p1*eta;
+    rhol_ppm[PLUS0] = rhol_ppm[PLUS0]*(1.0-eta) + rhol_mc*eta;
+    rhor_ppm[PLUS0] = rhor_ppm[PLUS0]*(1.0-eta) + rhor_mc_p1*eta;
 
   }
 }
@@ -329,20 +329,20 @@ static inline void monotonize(CCTK_REAL U,CCTK_REAL &Ur,CCTK_REAL &Ul) {
 }
 
 
-static inline void compute_P_cold__Gamma_cold(CCTK_REAL rho_b,const igm_eos_parameters eos,   CCTK_REAL &P_cold,CCTK_REAL &Gamma_cold) {
+static inline void compute_P_cold__Gamma_cold(CCTK_REAL rho,const igm_eos_parameters eos,   CCTK_REAL &P_cold,CCTK_REAL &Gamma_cold) {
   // This code handles equations of state of the form defined
   // in Eqs 13-16 in http://arxiv.org/pdf/0802.0200.pdf
 
-  // Default in case rho_b == 0.0
-  if(rho_b==0.0) { P_cold = 0.0; Gamma_cold = eos.Gamma_ppoly_tab[0]; return; }
+  // Default in case rho == 0.0
+  if(rho==0.0) { P_cold = 0.0; Gamma_cold = eos.Gamma_ppoly_tab[0]; return; }
 
   /***********************************
    * Piecewise Polytropic EOS Patch  *
    * Computing P_cold and Gamma_cold *
    ***********************************/
-  int polytropic_index = find_polytropic_K_and_Gamma_index(eos,rho_b);
+  int polytropic_index = find_polytropic_K_and_Gamma_index(eos,rho);
   Gamma_cold = eos.Gamma_ppoly_tab[polytropic_index];
-  P_cold     = eos.K_ppoly_tab[polytropic_index]*pow(rho_b,Gamma_cold);
+  P_cold     = eos.K_ppoly_tab[polytropic_index]*pow(rho,Gamma_cold);
 
 }
 

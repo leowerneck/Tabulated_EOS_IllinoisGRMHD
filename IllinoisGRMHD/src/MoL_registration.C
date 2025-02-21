@@ -22,27 +22,27 @@ extern "C" void IllinoisGRMHD_RegisterVars(CCTK_ARGUMENTS)
 
   // Register evolution & RHS gridfunction groups
 
-  /* Ax and Ax_rhs */
-  group = CCTK_GroupIndex("IllinoisGRMHD::em_Ax");
-  rhs = CCTK_GroupIndex("IllinoisGRMHD::em_Ax_rhs");
+  /* A_x_tilde and A_x_rhs */
+  group = CCTK_GroupIndex("IllinoisGRMHD::em_A_x_tilde");
+  rhs = CCTK_GroupIndex("IllinoisGRMHD::em_A_x_rhs");
   ierr += MoLRegisterEvolvedGroup(group, rhs);
 
-  /* Ay and Ay_rhs */
-  group = CCTK_GroupIndex("IllinoisGRMHD::em_Ay");
-  rhs = CCTK_GroupIndex("IllinoisGRMHD::em_Ay_rhs");
+  /* A_y_tilde and A_y_rhs */
+  group = CCTK_GroupIndex("IllinoisGRMHD::em_A_y_tilde");
+  rhs = CCTK_GroupIndex("IllinoisGRMHD::em_A_y_rhs");
   ierr += MoLRegisterEvolvedGroup(group, rhs);
 
-  /* Az and Az_rhs */
-  group = CCTK_GroupIndex("IllinoisGRMHD::em_Az");
-  rhs = CCTK_GroupIndex("IllinoisGRMHD::em_Az_rhs");
+  /* A_z_tilde and A_z_rhs */
+  group = CCTK_GroupIndex("IllinoisGRMHD::em_A_z_tilde");
+  rhs = CCTK_GroupIndex("IllinoisGRMHD::em_A_z_rhs");
   ierr += MoLRegisterEvolvedGroup(group, rhs);
 
-  /* psi6phi and psi6phi_rhs */
-  group = CCTK_GroupIndex("IllinoisGRMHD::em_psi6phi");
-  rhs = CCTK_GroupIndex("IllinoisGRMHD::em_psi6phi_rhs");
+  /* Phi_tilde and Phi_rhs */
+  group = CCTK_GroupIndex("IllinoisGRMHD::em_Phi_tilde");
+  rhs = CCTK_GroupIndex("IllinoisGRMHD::em_Phi_rhs");
   ierr += MoLRegisterEvolvedGroup(group, rhs);
 
-  /* ALL OTHER EVOLVED VARIABLES (rho_star,tau,mhd_st_x,mhd_st_y,mhd_st_z) */
+  /* ALL OTHER EVOLVED VARIABLES (rho_tilde,tau,S_x,S_y,S_z) */
   group = CCTK_GroupIndex("IllinoisGRMHD::grmhd_conservatives");
   rhs = CCTK_GroupIndex("IllinoisGRMHD::grmhd_conservatives_rhs");
   ierr += MoLRegisterEvolvedGroup(group, rhs);

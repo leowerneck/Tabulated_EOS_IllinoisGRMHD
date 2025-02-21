@@ -73,11 +73,11 @@ void initialize_Hybrid_EOS_parameters_from_input(igm_eos_parameters &eos) {
   CCTK_REAL P_atm,eps_atm;
   compute_P_cold__eps_cold(eos,rho_b_atm,P_atm,eps_atm);
   // Set atmospheric values
-  eos.rho_atm = rho_b_atm;
+  eos.rho_b_atm = rho_b_atm;
   eos.P_atm   = P_atm;
   eos.eps_atm = eps_atm;
   // eos.tau_atm = tau_atm;
-  eos.tau_atm = eos.rho_atm * eos.eps_atm;
+  eos.tau_atm = eos.rho_b_atm * eos.eps_atm;
   // --------------------------------------
 
   // -------------- Ceilings --------------
@@ -85,14 +85,14 @@ void initialize_Hybrid_EOS_parameters_from_input(igm_eos_parameters &eos) {
   CCTK_REAL P_max,eps_max;
   compute_P_cold__eps_cold(eos,rho_b_max,P_max,eps_max);
   // Set maximum values
-  eos.rho_max = rho_b_max;
+  eos.rho_b_max = rho_b_max;
   eos.P_max   = P_max;
   eos.eps_max = eps_max;
   // --------------------------------------
 
   // --------------- Floors ---------------
   // We'll choose these as the atmospheric values
-  eos.rho_min = eos.rho_atm;
+  eos.rho_b_min = eos.rho_b_atm;
   eos.P_min   = eos.P_atm;
   eos.eps_min = eos.eps_atm;
   // --------------------------------------
@@ -441,7 +441,7 @@ void compute_P_cold__eps_cold__dPcold_drho__eps_th__h__Gamma_cold(CCTK_REAL *U, 
   compute_P_cold__eps_cold(eos,U[RHOB], P_cold,eps_cold);
   CCTK_REAL Gamma_ppoly_tab = eos.Gamma_ppoly_tab[polytropic_index];
 
-  // Set auxiliary variable rho_b^{-1}
+  // Set auxiliary variable rho^{-1}
   CCTK_REAL U_RHOB_inv = 1.0/U[RHOB];
 
   // Next compute dP/drho = Gamma * P / rho

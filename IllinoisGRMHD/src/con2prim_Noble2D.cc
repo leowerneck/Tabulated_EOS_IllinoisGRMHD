@@ -600,7 +600,7 @@ void func_vsq(igm_eos_parameters eos, harm_aux_vars_struct& harm_aux, CCTK_REAL 
   //     gamma_sq       = harm_aux.gamma * harm_aux.gamma;
   //   }
 
-  //   const CCTK_REAL rho = MAX(harm_aux.D / harm_aux.gamma,eos.rho_min);
+  //   const CCTK_REAL rho = MAX(harm_aux.D / harm_aux.gamma,eos.rho_b_min);
   //   const CCTK_REAL xye = harm_aux.ye;
   //   const CCTK_REAL h   = fabs(W /(rho*gamma_sq)); // W := rho*h*gamma^{2}
   //   const CCTK_REAL ent = harm_aux.gamma_times_S / harm_aux.gamma;
@@ -695,12 +695,12 @@ CCTK_REAL pressure_W_vsq(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCT
   CCTK_REAL inv_gammasq = 1.0 - vsq;
   CCTK_REAL inv_gamma   = sqrt(inv_gammasq);
 
-  // Compute rho_b = D / gamma
-  CCTK_REAL rho_b = D*inv_gamma;
+  // Compute rho = D / gamma
+  CCTK_REAL rho = D*inv_gamma;
 
   // Compute P_cold and eps_cold
   CCTK_REAL P_cold, eps_cold;
-  compute_P_cold__eps_cold(eos,rho_b, P_cold,eps_cold);
+  compute_P_cold__eps_cold(eos,rho, P_cold,eps_cold);
 
   // Compute p = P_{cold} + P_{th}
   return( ( P_cold + (eos.Gamma_th - 1.0)*( W*inv_gammasq - D*inv_gamma*( 1.0 + eps_cold ) ) )/eos.Gamma_th );
@@ -734,14 +734,14 @@ CCTK_REAL dpdvsq_calc(igm_eos_parameters eos, CCTK_REAL W, CCTK_REAL vsq, CCTK_R
 
   // Set gamma and rho
   CCTK_REAL gamma = 1.0/sqrt(1.0 - vsq);
-  CCTK_REAL rho_b = D/gamma;
+  CCTK_REAL rho = D/gamma;
 
   // Compute P_cold and eps_cold
   CCTK_REAL P_cold, eps_cold;
-  compute_P_cold__eps_cold(eos,rho_b, P_cold,eps_cold);
+  compute_P_cold__eps_cold(eos,rho, P_cold,eps_cold);
 
   // Set basic polytropic quantities
-  int polytropic_index = find_polytropic_K_and_Gamma_index(eos,rho_b);
+  int polytropic_index = find_polytropic_K_and_Gamma_index(eos,rho);
   CCTK_REAL Gamma_ppoly_tab = eos.Gamma_ppoly_tab[polytropic_index];
 
 

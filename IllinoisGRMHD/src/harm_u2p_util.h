@@ -116,10 +116,10 @@ static inline CCTK_REAL pressure_rho0_u(const igm_eos_parameters eos, const CCTK
   CCTK_REAL P_cold, eps_cold;
   compute_P_cold__eps_cold(eos,rho0, P_cold,eps_cold);
 
-  /* Compute the pressure as a function of rho_b (rho0) and
-   * u = rho_b * eps, using our hybrid EOS:
+  /* Compute the pressure as a function of rho (rho0) and
+   * u = rho * eps, using our hybrid EOS:
    * .-------------------------------------------------------------.
-   * | p(rho_b,u) = P_cold + (Gamma_th - 1)*(u - rho_b * eps_cold) |
+   * | p(rho,u) = P_cold + (Gamma_th - 1)*(u - rho * eps_cold) |
    * .-------------------------------------------------------------.
    */
   return( P_cold + (eos.Gamma_th - 1.0)*(u - rho0*eps_cold) );
@@ -138,10 +138,10 @@ static inline CCTK_REAL pressure_rho0_w(const igm_eos_parameters eos, const CCTK
   CCTK_REAL P_cold, eps_cold;
   compute_P_cold__eps_cold(eos,rho0, P_cold,eps_cold);
 
-  /* Compute the pressure as a function of rho_b (rho0) and
-   * w = u + rho_b + p, using our hybrid EOS:
+  /* Compute the pressure as a function of rho (rho0) and
+   * w = u + rho + p, using our hybrid EOS:
    *  ----------------------------------------------------------------------------
-   * | p(rho_b,w) = ( P_cold + (Gamma_th-1)*( w - rho_b*(1+eps_cold) ) )/Gamma_th |
+   * | p(rho,w) = ( P_cold + (Gamma_th-1)*( w - rho*(1+eps_cold) ) )/Gamma_th |
    *  ----------------------------------------------------------------------------
    */
   return( (P_cold + (eos.Gamma_th-1.0)*( w - rho0*(1.0+eps_cold) ) )/eos.Gamma_th );

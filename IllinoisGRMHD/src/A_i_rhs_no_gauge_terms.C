@@ -27,29 +27,29 @@ static void A_i_rhs_no_gauge_terms( const int A_dirn,
   CCTK_REAL *B2r=out_prims_r[BX_STAGGER+v2_offset].gf, *B2l=out_prims_l[BX_STAGGER+v2_offset].gf;
 
   /**** V DEPENDENCIES ****/
-  /* In the case of Ax_rhs, we need v{y,z}{r,l} at (i,j+1/2,k+1/2).
+  /* In the case of A_x_rhs, we need v{y,z}{r,l} at (i,j+1/2,k+1/2).
    *    However, v{y,z}{r,l}{r,l} are defined at (i,j-1/2,k-1/2), so
    *    v{y,z}{r,l} at (i,j+1/2,k+1/2) is stored at v{y,z}{r,l}{r,l}(i,j+1,k+1).
-   * In the case of Ay_rhs, we need v{x,z}{r,l} at (i+1/2,j,k+1/2).
+   * In the case of A_y_rhs, we need v{x,z}{r,l} at (i+1/2,j,k+1/2).
    *    However, v{x,z}{r,l}{r,l} are defined at (i-1/2,j,k-1/2), so
    *    v{x,z}{r,l} at (i+1/2,j,k+1/2) is stored at v{x,z}{r,l}{r,l}(i+1,j,k+1).
-   * In the case of Az_rhs, we need v{x,y}{r,l} at (i+1/2,j+1/2,k).
+   * In the case of A_z_rhs, we need v{x,y}{r,l} at (i+1/2,j+1/2,k).
    *    However, v{x,y}{r,l}{r,l} are defined at (i-1/2,j-1/2,k), so
    *    v{x,y}{r,l} at (i+1/2,j+1/2,k) is stored at v{x,y}{r,l}{r,l}(i+1,j+1,k). */
   static const int vs_ijk_offset[4][3] = { {0,0,0} , {0,1,1} , {1,0,1} , {1,1,0} };
 
   /**** B DEPENDENCIES ****/
-  /* In the case of Ax_rhs, we need B{y,z}{r,l} at (i,j+1/2,k+1/2).
+  /* In the case of A_x_rhs, we need B{y,z}{r,l} at (i,j+1/2,k+1/2).
    *    However, By_stagger{r,l} is defined at (i,j+1/2,k-1/2), and
    *             Bz_stagger{r,l} is defined at (i,j-1/2,k+1/2), so
    *             By_stagger{r,l} at (i,j+1/2,k+1/2) is stored at By_stagger{r,l}(i,j,k+1), and
    *             Bz_stagger{r,l} at (i,j+1/2,k+1/2) is stored at Bz_stagger{r,l}(i,j+1,k).
-   * In the case of Ay_rhs, we need B{z,x}_stagger{r,l} at (i+1/2,j,k+1/2).
+   * In the case of A_y_rhs, we need B{z,x}_stagger{r,l} at (i+1/2,j,k+1/2).
    *    However, Bz_stagger{r,l} is defined at (i-1/2,j,k+1/2), and
    *             Bx_stagger{r,l} is defined at (i+1/2,j,k-1/2), so
    *             Bz_stagger{r,l} at (i+1/2,j,k+1/2) is stored at Bz_stagger{r,l}(i+1,j,k), and
    *             Bx_stagger{r,l} at (i+1/2,j,k+1/2) is stored at Bx_stagger{r,l}(i,j,k+1).
-   * In the case of Az_rhs, we need B{x,y}_stagger{r,l} at (i+1/2,j+1/2,k).
+   * In the case of A_z_rhs, we need B{x,y}_stagger{r,l} at (i+1/2,j+1/2,k).
    *    However, Bx_stagger{r,l} is defined at (i+1/2,j-1/2,k), and
    *             By_stagger{r,l} is defined at (i-1/2,j+1/2,k), so
    *             Bx_stagger{r,l} at (i+1/2,j+1/2,k) is stored at Bx_stagger{r,l}(i,j+1,k), and
@@ -66,7 +66,7 @@ static void A_i_rhs_no_gauge_terms( const int A_dirn,
         int index_B1=CCTK_GFINDEX3D(cctkGH,i+B1_ijk_offset[A_dirn][0],j+B1_ijk_offset[A_dirn][1],k+B1_ijk_offset[A_dirn][2]);
         int index_B2=CCTK_GFINDEX3D(cctkGH,i+B2_ijk_offset[A_dirn][0],j+B2_ijk_offset[A_dirn][1],k+B2_ijk_offset[A_dirn][2]);
 
-        // Stores 1/sqrt(gamma)==exp(6 phi) at (i+1/2,j+1/2,k) for Az, (i+1/2,j,k+1/2) for Ay, and (i,j+1/2,k+1/2) for Az.
+        // Stores 1/sqrt(gamma)==exp(6 phi) at (i+1/2,j+1/2,k) for A_z_tilde, (i+1/2,j,k+1/2) for A_y_tilde, and (i,j+1/2,k+1/2) for A_z_tilde.
         CCTK_REAL psi6_interped=exp(6.0*(phi_interped[index]));
 
         CCTK_REAL B1lL = B1l[index_B1];

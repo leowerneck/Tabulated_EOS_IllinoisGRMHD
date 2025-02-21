@@ -100,22 +100,22 @@ void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,i
 
   // --------- Atmospheric values ---------
   // Atmospheric rho
-  eos.rho_atm = rho_b_atm;
+  eos.rho_b_atm = rho_b_atm;
   // Atmospheric electron fraction
   eos.Ye_atm  = igm_Ye_atm;
   // Atmospheric temperature fraction
   eos.T_atm   = igm_T_atm;
   // Compute P, eps, and S in the atmosphere
   if( eos.evolve_entropy ) {
-    WVU_EOS_P_eps_and_S_from_rho_Ye_T( eos.rho_atm,eos.Ye_atm,eos.T_atm,
+    WVU_EOS_P_eps_and_S_from_rho_Ye_T( eos.rho_b_atm,eos.Ye_atm,eos.T_atm,
                                        &eos.P_atm,&eos.eps_atm,&eos.S_atm );
   }
   else {
-    WVU_EOS_P_and_eps_from_rho_Ye_T( eos.rho_atm,eos.Ye_atm,eos.T_atm,
+    WVU_EOS_P_and_eps_from_rho_Ye_T( eos.rho_b_atm,eos.Ye_atm,eos.T_atm,
                                      &eos.P_atm,&eos.eps_atm );
   }
   // Atmospheric tau
-  eos.tau_atm = eos.rho_atm * eos.eps_atm;
+  eos.tau_atm = eos.rho_b_atm * eos.eps_atm;
   // --------------------------------------
 
   // -------------- Ceilings --------------
@@ -130,7 +130,7 @@ void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,i
   // Finally, get the maximum entropy
   const CCTK_REAL eos_entmax = get_EOS_table_max( table_key_entropy );
   // Now set the EOS struct variables
-  eos.rho_max = MIN(rho_b_max,eos_rhomax  * igm_eos_table_ceiling_safety_factor);
+  eos.rho_b_max = MIN(rho_b_max,eos_rhomax  * igm_eos_table_ceiling_safety_factor);
   eos.Ye_max  = eos_yemax   * igm_eos_table_ceiling_safety_factor;
   eos.T_max   = MIN(igm_T_max,eos_tempmax * igm_eos_table_ceiling_safety_factor);
   eos.P_max   = eos_prsmax  * igm_eos_table_ceiling_safety_factor;
@@ -150,7 +150,7 @@ void initialize_Tabulated_EOS_parameters_from_input( const CCTK_REAL cctk_time,i
   // Finally, get the minimum entropy
   const CCTK_REAL eos_entmin = get_EOS_table_min( table_key_entropy );
   // Now set the EOS struct variables
-  eos.rho_min = eos_rhomin  * igm_eos_table_floor_safety_factor;
+  eos.rho_b_min = eos_rhomin  * igm_eos_table_floor_safety_factor;
   eos.Ye_min  = eos_yemin   * igm_eos_table_floor_safety_factor;
   eos.T_min   = eos_tempmin * igm_eos_table_floor_safety_factor;
   eos.P_min   = eos_prsmin  * igm_eos_table_floor_safety_factor;
@@ -249,7 +249,7 @@ void enforce_table_bounds_rho_Ye_T( const igm_eos_parameters& eos,
                                     CCTK_REAL *restrict Ye,
                                     CCTK_REAL *restrict T ) {
   // Enforce bounds on rho
-  *rho = MIN(MAX(*rho,eos.rho_min),eos.rho_max);
+  *rho = MIN(MAX(*rho,eos.rho_b_min),eos.rho_b_max);
   // Enforce bounds on Ye
   *Ye  = MIN(MAX(*Ye, eos.Ye_min ),eos.Ye_max );
   // Enforce bounds on T
@@ -261,7 +261,7 @@ void enforce_table_bounds_rho_Ye_eps( const igm_eos_parameters& eos,
                                       CCTK_REAL *restrict Ye,
                                       CCTK_REAL *restrict eps ) {
   // Enforce bounds on rho
-  *rho = MIN(MAX(*rho,eos.rho_min),eos.rho_max);
+  *rho = MIN(MAX(*rho,eos.rho_b_min),eos.rho_b_max);
   // Enforce bounds on Ye
   *Ye  = MIN(MAX(*Ye, eos.Ye_min ),eos.Ye_max );
   // Enforce bounds on eps
@@ -273,7 +273,7 @@ void enforce_table_bounds_rho_Ye_S( const igm_eos_parameters& eos,
                                     CCTK_REAL *restrict Ye,
                                     CCTK_REAL *restrict S ) {
   // Enforce bounds on rho
-  *rho = MIN(MAX(*rho,eos.rho_min),eos.rho_max);
+  *rho = MIN(MAX(*rho,eos.rho_b_min),eos.rho_b_max);
   // Enforce bounds on Ye
   *Ye  = MIN(MAX(*Ye, eos.Ye_min ),eos.Ye_max );
   // Enforce bounds on S
@@ -285,7 +285,7 @@ void enforce_table_bounds_rho_Ye_P( const igm_eos_parameters& eos,
                                     CCTK_REAL *restrict Ye,
                                     CCTK_REAL *restrict P ) {
   // Enforce bounds on rho
-  *rho = MIN(MAX(*rho,eos.rho_min),eos.rho_max);
+  *rho = MIN(MAX(*rho,eos.rho_b_min),eos.rho_b_max);
   // Enforce bounds on Ye
   *Ye  = MIN(MAX(*Ye, eos.Ye_min ),eos.Ye_max );
   // Enforce bounds on S
