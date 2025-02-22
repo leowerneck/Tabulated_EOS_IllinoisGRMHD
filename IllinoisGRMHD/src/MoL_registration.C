@@ -23,28 +23,28 @@ extern "C" void IllinoisGRMHD_RegisterVars(CCTK_ARGUMENTS)
   // Register evolution & RHS gridfunction groups
 
   /* A_x_tilde and A_x_rhs */
-  group = CCTK_GroupIndex("IllinoisGRMHD::em_A_x_tilde");
-  rhs = CCTK_GroupIndex("IllinoisGRMHD::em_A_x_rhs");
+  group = CCTK_GroupIndex("IllinoisGRMHD::A_x_tilde");
+  rhs = CCTK_GroupIndex("IllinoisGRMHD::A_x_rhs");
   ierr += MoLRegisterEvolvedGroup(group, rhs);
 
   /* A_y_tilde and A_y_rhs */
-  group = CCTK_GroupIndex("IllinoisGRMHD::em_A_y_tilde");
-  rhs = CCTK_GroupIndex("IllinoisGRMHD::em_A_y_rhs");
+  group = CCTK_GroupIndex("IllinoisGRMHD::A_y_tilde");
+  rhs = CCTK_GroupIndex("IllinoisGRMHD::A_y_rhs");
   ierr += MoLRegisterEvolvedGroup(group, rhs);
 
   /* A_z_tilde and A_z_rhs */
-  group = CCTK_GroupIndex("IllinoisGRMHD::em_A_z_tilde");
-  rhs = CCTK_GroupIndex("IllinoisGRMHD::em_A_z_rhs");
+  group = CCTK_GroupIndex("IllinoisGRMHD::A_z_tilde");
+  rhs = CCTK_GroupIndex("IllinoisGRMHD::A_z_rhs");
   ierr += MoLRegisterEvolvedGroup(group, rhs);
 
   /* Phi_tilde and Phi_rhs */
-  group = CCTK_GroupIndex("IllinoisGRMHD::em_Phi_tilde");
-  rhs = CCTK_GroupIndex("IllinoisGRMHD::em_Phi_rhs");
+  group = CCTK_GroupIndex("IllinoisGRMHD::Phi_tilde");
+  rhs = CCTK_GroupIndex("IllinoisGRMHD::Phi_rhs");
   ierr += MoLRegisterEvolvedGroup(group, rhs);
 
   /* ALL OTHER EVOLVED VARIABLES (rho_tilde,tau,S_x,S_y,S_z) */
   group = CCTK_GroupIndex("IllinoisGRMHD::grmhd_conservatives");
-  rhs = CCTK_GroupIndex("IllinoisGRMHD::grmhd_conservatives_rhs");
+  rhs = CCTK_GroupIndex("IllinoisGRMHD::grmhd_rhss");
   ierr += MoLRegisterEvolvedGroup(group, rhs);
 
   if (ierr) CCTK_ERROR("Problems registering with MoL");

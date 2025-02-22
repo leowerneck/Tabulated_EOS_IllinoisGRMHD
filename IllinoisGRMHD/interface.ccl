@@ -22,10 +22,14 @@ CCTK_REAL A_y_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER101"' "Stagg
 CCTK_REAL A_z_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER110"' "Staggered z-component of magnetic (vector) potential"
 
 # Right-hand side variables
+CCTK_REAL Phi_rhs type=GF TAGS='prolongation="none" checkpoint="no"' "Phi right-hand-side"
+CCTK_REAL A_x_rhs type=GF TAGS='prolongation="none" checkpoint="no"' "A_x right-hand-side"
+CCTK_REAL A_y_rhs type=GF TAGS='prolongation="none" checkpoint="no"' "A_y right-hand-side"
+CCTK_REAL A_z_rhs type=GF TAGS='prolongation="none" checkpoint="no"' "A_z right-hand-side"
+
 CCTK_REAL grmhd_rhss type=GF TAGS='prolongation="none" checkpoint="no"'
 {
-    rho_rhs, tau_rhs, S_x_rhs, S_y_rhs, S_z_rhs, Y_e_rhs, ent_rhs,
-    A_x_rhs, A_y_rhs, A_z_rhs, Phi_rhs
+    rho_rhs, tau_rhs, S_x_rhs, S_y_rhs, S_z_rhs, Y_e_rhs, ent_rhs
 } "GRMHD right-hand sides"
 
 # Flux variables

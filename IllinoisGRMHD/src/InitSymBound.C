@@ -31,11 +31,11 @@ extern "C" void IllinoisGRMHD_InitSymBound(CCTK_ARGUMENTS)
       /* FIRST SET NO SYMMETRY OPTION */
       sym[0] = 1; sym[1] = 1; sym[2] = 1;
       SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::grmhd_conservatives");
-      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::em_A_x_tilde");
-      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::em_A_y_tilde");
-      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::em_A_z_tilde");
-      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::em_Phi_tilde");
-      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::grmhd_primitives_allbutBi");
+      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::A_x_tilde");
+      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::A_y_tilde");
+      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::A_z_tilde");
+      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::Phi_tilde");
+      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::grmhd_velocities");
     } else if(CCTK_EQUALS(Symmetry,"equatorial")) {
       /* THEN SET EQUATORIAL SYMMETRY OPTION */
       // Set default to no symmetry, which is correct for scalars and most vectors:
@@ -43,22 +43,21 @@ extern "C" void IllinoisGRMHD_InitSymBound(CCTK_ARGUMENTS)
       SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::grmhd_conservatives");
       // Don't worry about the wrong sym values since A_{\mu} is staggered
       // and we're going to impose the symmetry separately
-      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::em_A_x_tilde");
-      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::em_A_y_tilde");
-      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::em_A_z_tilde");
-      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::em_Phi_tilde");
-
-      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::grmhd_primitives_allbutBi");
+      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::A_x_tilde");
+      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::A_y_tilde");
+      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::A_z_tilde");
+      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::Phi_tilde");
+      SetCartSymGN(cctkGH,sym,"IllinoisGRMHD::grmhd_velocities");
 
       // Then set unstaggered B field variables
       sym[2] = -Sym_Bz;
-      SetCartSymVN(cctkGH, sym,"IllinoisGRMHD::Bx");
-      SetCartSymVN(cctkGH, sym,"IllinoisGRMHD::By");
+      SetCartSymVN(cctkGH, sym,"IllinoisGRMHD::Bx_center");
+      SetCartSymVN(cctkGH, sym,"IllinoisGRMHD::By_center");
       sym[2] = Sym_Bz;
-      SetCartSymVN(cctkGH, sym,"IllinoisGRMHD::Bz");
+      SetCartSymVN(cctkGH, sym,"IllinoisGRMHD::Bz_center");
 
       sym[2] = -1;
-      SetCartSymVN(cctkGH, sym,"IllinoisGRMHD::S_z");
+      SetCartSymVN(cctkGH, sym,"IllinoisGRMHD::S_z_tilde");
       SetCartSymVN(cctkGH, sym,"IllinoisGRMHD::vz");
     } else {
       CCTK_VError(VERR_DEF_PARAMS,"IllinoisGRMHD_initsymbound: Should not be here; picked an impossible symmetry.");

@@ -11,8 +11,12 @@ STORAGE: grmhd_velocities
 STORAGE: grmhd_B_center
 STORAGE: grmhd_B_stagger
 STORAGE: grmhd_primitives_reconstructed_temps
-STORAGE: grmhd_rhss
 STORAGE: grmhd_fluxes
+STORAGE: grmhd_rhss
+STORAGE: Phi_rhs
+STORAGE: A_x_rhs
+STORAGE: A_y_rhs
+STORAGE: A_z_rhs
 
 #>>>>>> Extra IGM stuff <<<<<<
 STORAGE: grmhd_cmin_cmax_temps
