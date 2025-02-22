@@ -84,7 +84,7 @@ schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in IllinoisGRMHD_PostPostIn
 } "Compute B and B_stagger from A SYNC: grmhd_B_center,grmhd_B_stagger"
 
 # Nontrivial primitives solve, for P,rho,vx,vy,vz:
-schedule IllinoisGRMHD_conserv_to_prims in IllinoisGRMHD_PostPostInitial after compute_b
+schedule GRHayLMHD_Con2Prim in IllinoisGRMHD_PostPostInitial after compute_b
 {
   LANG: C
 } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
@@ -144,12 +144,12 @@ schedule IllinoisGRMHD_compute_B_and_Bstagger_from_A in HydroBase_Boundaries aft
 } "Compute B and B_stagger from A, SYNC: grmhd_B_center,grmhd_B_stagger"
 
 # Nontrivial primitives solve, for P,rho,vx,vy,vz.
-schedule IllinoisGRMHD_conserv_to_prims in AddToTmunu after compute_B_and_Bstagger_from_A
+schedule GRHayLMHD_Con2Prim in AddToTmunu after compute_B_and_Bstagger_from_A
 {
   LANG: C
 } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
 
-schedule IllinoisGRMHD_outer_boundaries_on_P_rho_vx_vy_vz in AddToTmunu after IllinoisGRMHD_conserv_to_prims
+schedule IllinoisGRMHD_outer_boundaries_on_P_rho_vx_vy_vz in AddToTmunu after GRHayLMHD_Con2Prim
 {
 # We must sync {P,rho,vx,vy,vz} here.
   SYNC: HydroBase::rho, HydroBase::Y_e, HydroBase::temperature,

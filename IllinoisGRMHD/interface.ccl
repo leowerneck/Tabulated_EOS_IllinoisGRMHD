@@ -7,6 +7,7 @@ includes header: IllinoisGRMHD_headers.h in IllinoisGRMHD_headers.h
 
 USES INCLUDE: Symmetry.h
 USES INCLUDE HEADER: WVU_EOS_Tabulated_headers.hh
+USES INCLUDE HEADER: GRHayLib.h
 
 public:
 
